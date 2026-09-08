@@ -1,0 +1,195 @@
+'use client';
+
+import React, { useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Sidebar,
+  DashboardHeader,
+  CustomizeRetroModal,
+  TabSkeleton,
+  SessionsTab,
+  MembersTab,
+  SettingsTab,
+} from '@/components/dashboard';
+import { RetroBoard, CreateRetroPayload } from '@/types/retro';
+import { useDashboardTabs } from '@/hooks/useDashboardTabs';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import { CheckCircle2 } from 'lucide-react';
+
+/**
+ * DashboardContent Component
+ * Senior-level orchestrator component delegating feature state, URL sync,
+ * and view rendering to modular hooks and tab components.
+ */
+function DashboardContent() {
+  const router = useRouter();
+
+  // Tab routing & history synchronization hook
+  const { activeTab, switchTab, isTransitioning } = useDashboardTabs();
+
+  // Search & Mobile UI state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Business logic & REST API data hook
+  const {
+    user,
+    toastMessage,
+    sessions,
+    isSessionsLoading,
+    deleteSession,
+    saveSession,
+    activeSessionsCount,
+    members,
+    isMembersLoading,
+    fetchMembers,
+    addWhitelistMember,
+    settings,
+    isSettingsLoading,
+    isSavingSettings,
+    saveSettings,
+  } = useDashboardData(activeTab, searchQuery);
+
+  // Modal dialog states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<RetroBoard | null>(null);
+
+  // Auth Logout
+  const handleLogout = () => {
+    localStorage.removeItem('retroflow_token');
+    localStorage.removeItem('retroflow_user');
+    router.push('/login');
+  };
+
+  // Session Actions
+  const handleCreateRetro = () => {
+    setEditingSession(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditRetro = (session: RetroBoard) => {
+    setEditingSession(session);
+    setIsModalOpen(true);
+  };
+
+  const handleLaunchRetro = (session: RetroBoard) => {
+    router.push(`/retro/${session.shareToken}`);
+  };
+
+  const handleModalSave = async (payload: CreateRetroPayload) => {
+    const saved = await saveSession(payload, editingSession?._id);
+    if (!editingSession) {
+      setIsModalOpen(false);
+      if (saved?.shareToken) {
+        router.push(`/retro/${saved.shareToken}`);
+      }
+    }
+  };
+
+  // Derived loading state for skeleton loader
+  const isCurrentTabLoading =
+    isTransitioning ||
+    (activeTab === 'sessions' && isSessionsLoading) ||
+    (activeTab === 'members' && isMembersLoading) ||
+    (activeTab === 'settings' && isSettingsLoading);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex selection:bg-indigo-500 selection:text-white font-sans">
+      {/* Left Navigation Sidebar */}
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={switchTab}
+        activeSessionsCount={activeSessionsCount}
+        user={user}
+        onLogout={handleLogout}
+        isOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+      />
+
+      {/* Main Workspace Area */}
+      <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
+        {/* Top Header */}
+        <DashboardHeader
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          pendingApprovalsCount={1}
+          onCreateClick={handleCreateRetro}
+          onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
+        />
+
+        {/* Dynamic View Body with Component Skeletons */}
+        <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
+          {isCurrentTabLoading ? (
+            <TabSkeleton tab={activeTab} />
+          ) : (
+            <>
+              {activeTab === 'sessions' && (
+                <SessionsTab
+                  sessions={sessions}
+                  isLoading={false}
+                  activeSessionsCount={activeSessionsCount}
+                  onLaunch={handleLaunchRetro}
+                  onEdit={handleEditRetro}
+                  onDelete={deleteSession}
+                  onCreateNew={handleCreateRetro}
+                />
+              )}
+
+              {activeTab === 'members' && (
+                <MembersTab
+                  members={members}
+                  isLoading={isMembersLoading}
+                  onRefresh={fetchMembers}
+                  onWhitelistAdded={addWhitelistMember}
+                  currentEmail={user?.email}
+                />
+              )}
+
+              {activeTab === 'settings' && (
+                <SettingsTab
+                  settings={settings}
+                  isLoading={isSettingsLoading}
+                  isSaving={isSavingSettings}
+                  onSave={saveSettings}
+                />
+              )}
+            </>
+          )}
+        </main>
+      </div>
+
+      {/* Customize Retrospective Builder Modal */}
+      <CustomizeRetroModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleModalSave}
+        initialData={editingSession}
+      />
+
+      {/* Global Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-2xl flex items-center gap-2 border border-slate-800 animate-in slide-in-from-bottom-5">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+          <div className="flex items-center gap-3 text-slate-500 text-sm font-medium">
+            <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+            <span>Loading RetroFlow workspace...</span>
+          </div>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
+  );
+}
