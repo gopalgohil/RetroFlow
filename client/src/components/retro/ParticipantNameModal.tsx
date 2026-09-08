@@ -1,18 +1,26 @@
 'use client';
 
 import React, { useState, memo } from 'react';
+import { CheckCircle2, Sparkles, ShieldCheck } from 'lucide-react';
 
 export interface ParticipantNameModalProps {
   isOpen: boolean;
   onJoin: (name: string) => void;
+  verifiedEmail?: string | null;
 }
 
 /**
  * Clean Modal dialog prompting guest developers to provide a display name
+ * Supports Option-3 Magic Token Join with zero passwords and instant verified identity
  */
 export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
-  function ParticipantNameModal({ isOpen, onJoin }) {
-    const [nameInput, setNameInput] = useState('');
+  function ParticipantNameModal({ isOpen, onJoin, verifiedEmail }) {
+    // Derive initial suggestion from email prefix if available
+    const initialSuggestion = verifiedEmail
+      ? verifiedEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+      : '';
+
+    const [nameInput, setNameInput] = useState(initialSuggestion);
 
     if (!isOpen) return null;
 
@@ -31,28 +39,59 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
               RF
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Join Retrospective</h3>
-              <p className="text-xs text-slate-500">Enter your name to contribute sticky notes</p>
+              <h3 className="text-sm font-bold text-slate-900">
+                {verifiedEmail ? 'Welcome, Teammate!' : 'Join Retrospective'}
+              </h3>
+              <p className="text-xs text-slate-500">
+                {verifiedEmail ? 'Instant 1-Click Magic Entry' : 'Enter your name to contribute sticky notes'}
+              </p>
             </div>
           </div>
 
+          {/* Verified Invitation Pill */}
+          {verifiedEmail && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-xl flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] font-black uppercase tracking-wider text-emerald-700 flex items-center gap-1">
+                  <span>Verified Guest Invitation</span>
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600 inline" />
+                </div>
+                <div className="text-xs font-semibold text-emerald-900 truncate">
+                  {verifiedEmail}
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="text"
-              autoFocus
-              required
-              placeholder="e.g. Alex Rivera, Dev Vishal..."
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
-            />
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                Your Display Name
+              </label>
+              <input
+                type="text"
+                autoFocus
+                required
+                placeholder="e.g. Rahul Parmar, Alex Rivera..."
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all bg-white"
+              />
+              <p className="text-[10px] text-slate-400 mt-1">
+                This name will appear on the sticky cards you create and on your votes.
+              </p>
+            </div>
 
             <button
               type="submit"
               disabled={!nameInput.trim()}
-              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:bg-indigo-300"
+              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:bg-indigo-300 flex items-center justify-center gap-1.5"
             >
-              Join Retrospective Board →
+              <span>Enter Retrospective Board</span>
+              <Sparkles className="w-3.5 h-3.5" />
             </button>
           </form>
         </div>

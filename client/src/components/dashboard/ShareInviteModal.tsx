@@ -10,7 +10,9 @@ import {
   Link2,
   AlertCircle,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
+
 import { api, ENDPOINTS } from '@/lib/api';
 
 export interface ShareInviteSession {
@@ -37,6 +39,8 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
   const [email, setEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [magicLink, setMagicLink] = useState<{ email: string; url: string } | null>(null);
+  const [magicCopied, setMagicCopied] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -49,6 +53,12 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
     navigator.clipboard.writeText(inviteUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2200);
+  };
+
+  const handleCopyMagicLink = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setMagicCopied(true);
+    setTimeout(() => setMagicCopied(false), 2200);
   };
 
   const handleSendEmail = async (e: React.FormEvent) => {
@@ -67,6 +77,15 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
       const res = await api.post(`${ENDPOINTS.RETROS}/${session._id}/invite`, {
         email: trimmedEmail,
       });
+
+      const genUrl =
+        res.data?.inviteUrl ||
+        (res.data?.magicToken
+          ? `${origin}/retro/${session.shareToken}?invite=${res.data.magicToken}`
+          : null);
+      if (genUrl) {
+        setMagicLink({ email: trimmedEmail, url: genUrl });
+      }
 
       setSuccessMessage(res.message || `Invitation dispatched to ${trimmedEmail}!`);
       setEmail('');
@@ -162,6 +181,53 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
               <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                 <span>{successMessage}</span>
+              </div>
+            )}
+
+            {/* 1-Click Magic Link Box */}
+            {magicLink && (
+              <div className="p-3.5 bg-indigo-50/80 border border-indigo-200 rounded-xl space-y-2.5 animate-in fade-in">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-indigo-900 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>1-Click Magic Link for <strong>{magicLink.email}</strong></span>
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200">
+                    Zero Passwords
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={magicLink.url}
+                    className="flex-1 px-3 py-2 bg-white border border-indigo-200 rounded-xl text-xs text-indigo-900 font-mono select-all focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCopyMagicLink(magicLink.url)}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                      magicCopied
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                        : 'bg-indigo-600 hover:bg-indigo-500 text-white border-transparent shadow-xs'
+                    }`}
+                  >
+                    {magicCopied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy Magic Link</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-500">
+                  Developer clicks this link and enters directly into the retrospective within 5 seconds without creating a password.
+                </p>
               </div>
             )}
 

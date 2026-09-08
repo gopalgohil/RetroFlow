@@ -14,9 +14,11 @@ export interface UseRetroSessionReturn {
   isRevealed: boolean;
   isFacilitator: boolean;
   currentAuthorName: string;
-  currentUser: { id?: string; name: string; email: string; role?: string } | null;
+  currentUser: { id?: string; name: string; email: string; role?: string; isGuest?: boolean } | null;
   socketConnected: boolean;
   isNamePromptOpen: boolean;
+  verifiedGuestEmail: string | null;
+  isMagicInvite: boolean;
   setGuestName: (name: string) => void;
   setIsRevealed: React.Dispatch<React.SetStateAction<boolean>>;
   addCard: (topicId: string, text: string) => Promise<void>;
@@ -52,25 +54,98 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
   const [participantName, setParticipantName] = useState<string>('');
   const [isNamePromptOpen, setIsNamePromptOpen] = useState<boolean>(false);
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
+  const [verifiedGuestEmail, setVerifiedGuestEmail] = useState<string | null>(null);
+  const [isMagicInvite, setIsMagicInvite] = useState<boolean>(false);
 
   // 1. Initial Load: Participant Identity & Board Fetching
   useEffect(() => {
-    // Check local storage for authenticated profile
-    const storedUser = localStorage.getItem('retroflow_user');
-    if (storedUser) {
-      try {
-        const u = JSON.parse(storedUser);
-        setCurrentUser(u);
-        setParticipantName(u.name);
-      } catch {
-        // Fallback to guest identity
-      }
+    // Check URL parameters for ?invite=<magicToken>
+    let urlInviteToken: string | null = null;
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      urlInviteToken = urlParams.get('invite');
+    }
+
+    const guestSessionKey = `retroflow_guest_${shareToken}`;
+    const storedGuest = typeof window !== 'undefined' ? sessionStorage.getItem(guestSessionKey) : null;
+
+    if (urlInviteToken) {
+      setIsMagicInvite(true);
+      // Verify the encrypted magic token with backend
+      api
+        .post(`${ENDPOINTS.RETROS}/${shareToken}/verify-magic-invite`, { token: urlInviteToken })
+        .then((res: any) => {
+          const verifiedEmail = res.data?.email;
+          if (verifiedEmail) {
+            setVerifiedGuestEmail(verifiedEmail);
+
+            // If developer already entered their display name in this session, restore it
+            if (storedGuest) {
+              try {
+                const parsed = JSON.parse(storedGuest);
+                if (parsed.email === verifiedEmail && parsed.name) {
+                  setCurrentUser(parsed);
+                  setParticipantName(parsed.name);
+                  setIsNamePromptOpen(false);
+                  return;
+                }
+              } catch {
+                // proceed to prompt
+              }
+            }
+
+            // Check if logged-in user matches the invited email
+            const storedUser = localStorage.getItem('retroflow_user');
+            if (storedUser) {
+              try {
+                const u = JSON.parse(storedUser);
+                if (u.email?.toLowerCase() === verifiedEmail.toLowerCase()) {
+                  setCurrentUser({ ...u, isGuest: false });
+                  setParticipantName(u.name);
+                  setIsNamePromptOpen(false);
+                  return;
+                }
+              } catch {}
+            }
+
+            // Prompt for display name with verified email attached
+            setIsNamePromptOpen(true);
+          }
+        })
+        .catch((err: any) => {
+          console.warn('[RetroSession] Magic invite verification failed:', err.message);
+          setIsNamePromptOpen(true);
+        });
     } else {
-      const guest = sessionStorage.getItem('retroflow_participant_name');
-      if (guest) {
-        setParticipantName(guest);
+      // Standard flow: Check authenticated user or existing guest session
+      const storedUser = localStorage.getItem('retroflow_user');
+      if (storedUser) {
+        try {
+          const u = JSON.parse(storedUser);
+          setCurrentUser(u);
+          setParticipantName(u.name);
+        } catch {
+          // Fallback
+        }
+      } else if (storedGuest) {
+        try {
+          const parsed = JSON.parse(storedGuest);
+          setCurrentUser(parsed);
+          setParticipantName(parsed.name);
+          if (parsed.email) {
+            setVerifiedGuestEmail(parsed.email);
+            setIsMagicInvite(true);
+          }
+        } catch {
+          setIsNamePromptOpen(true);
+        }
       } else {
-        setIsNamePromptOpen(true);
+        const guest = sessionStorage.getItem('retroflow_participant_name');
+        if (guest) {
+          setParticipantName(guest);
+        } else {
+          setIsNamePromptOpen(true);
+        }
       }
     }
 
@@ -276,13 +351,26 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
   const canManageCard = canDeleteCard;
 
   // 4. Guest Name Setter
-  const setGuestName = useCallback((name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    setParticipantName(trimmed);
-    sessionStorage.setItem('retroflow_participant_name', trimmed);
-    setIsNamePromptOpen(false);
-  }, []);
+  const setGuestName = useCallback(
+    (name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      setParticipantName(trimmed);
+
+      const guestProfile = {
+        name: trimmed,
+        email: verifiedGuestEmail || '',
+        role: 'developer',
+        isGuest: true,
+      };
+
+      setCurrentUser(guestProfile);
+      sessionStorage.setItem(`retroflow_guest_${shareToken}`, JSON.stringify(guestProfile));
+      sessionStorage.setItem('retroflow_participant_name', trimmed);
+      setIsNamePromptOpen(false);
+    },
+    [verifiedGuestEmail, shareToken]
+  );
 
   // 5. Card CRUD Operations (Optimistic + Real-Time + REST Fallback)
   const addCard = useCallback(
@@ -436,6 +524,8 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     currentUser,
     socketConnected,
     isNamePromptOpen,
+    verifiedGuestEmail,
+    isMagicInvite,
     setGuestName,
     setIsRevealed,
     addCard,

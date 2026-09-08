@@ -46,6 +46,7 @@ export default function LiveRetroBoardPage({
         isRevealed={session.isRevealed}
         revealMode={session.retro.revealMode}
         socketConnected={session.socketConnected}
+        verifiedGuestEmail={session.verifiedGuestEmail}
         onToggleReveal={() => session.setIsRevealed((prev) => !prev)}
         onOpenInvite={() => setIsInviteModalOpen(true)}
       />
@@ -76,6 +77,7 @@ export default function LiveRetroBoardPage({
       <ParticipantNameModal
         isOpen={session.isNamePromptOpen}
         onJoin={session.setGuestName}
+        verifiedEmail={session.verifiedGuestEmail}
       />
 
       {/* 4. Team Share & Email Invite Modal */}

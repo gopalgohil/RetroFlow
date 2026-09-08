@@ -3,6 +3,8 @@ import { ApiError } from '../utils/ApiError.js';
 import env from '../config/env.js';
 import emailService from './email.service.js';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+
 
 class RetroService {
   /**
@@ -145,8 +147,21 @@ class RetroService {
       await retro.save();
     }
 
+    // Generate secure encrypted JWT Magic Token (7-day lifespan)
+    const magicToken = jwt.sign(
+      {
+        email: normalizedEmail,
+        shareToken: retro.shareToken,
+        retroId: retro._id.toString(),
+        role: 'developer',
+        purpose: 'retro_magic_invite',
+      },
+      env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
     const clientUrl = env.CLIENT_URL || 'http://localhost:3000';
-    const inviteUrl = `${clientUrl}/retro/${retro.shareToken}`;
+    const inviteUrl = `${clientUrl}/retro/${retro.shareToken}?invite=${magicToken}`;
     const senderName = retro.createdBy?.name || 'Your Agile Facilitator';
 
     const htmlContent = emailService.getRetroInvitationTemplate({
@@ -156,13 +171,15 @@ class RetroService {
       description: retro.description,
       customMessage: message,
       topics: retro.topics,
+      isMagicInvite: true,
+      recipientEmail: normalizedEmail,
     });
 
-    console.log(`\n📬 [Retro Invitation Email dispatched to ${normalizedEmail}] for Session "${retro.title}" (${inviteUrl})\n`);
+    console.log(`\n📬 [Retro Magic Invitation Email dispatched to ${normalizedEmail}] for Session "${retro.title}" (${inviteUrl})\n`);
 
     await emailService.sendEmail({
       to: normalizedEmail,
-      subject: `Invitation: Join "${retro.title}" Retrospective on RetroFlow`,
+      subject: `Invitation: Join "${retro.title}" Retrospective (1-Click Magic Entry)`,
       htmlContent,
     });
 
@@ -170,8 +187,61 @@ class RetroService {
       success: true,
       email: normalizedEmail,
       shareToken: retro.shareToken,
+      magicToken,
       inviteUrl,
       message: `Invitation email sent successfully to ${normalizedEmail}`,
+    };
+  }
+
+  /**
+   * Verify an encrypted magic invite token and return verified developer profile
+   */
+  async verifyMagicInvite(shareToken, magicToken) {
+    if (!magicToken) {
+      throw ApiError.badRequest('Magic invite token is required');
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(magicToken, env.JWT_SECRET);
+    } catch (err) {
+      throw ApiError.unauthorized('Invalid or expired magic invitation link. Please request a new invitation.');
+    }
+
+    if (decoded.purpose !== 'retro_magic_invite') {
+      throw ApiError.unauthorized('Invalid token purpose.');
+    }
+
+    // Verify share token matches
+    if (decoded.shareToken !== shareToken) {
+      throw ApiError.badRequest('This invitation link is not for this retrospective session.');
+    }
+
+    // Find the retrospective
+    const retro = await RetroBoard.findOne({ shareToken }).select('_id title shareToken status approvedMembers createdBy');
+    if (!retro) {
+      throw ApiError.notFound('Retrospective session not found.');
+    }
+
+    const normalizedEmail = decoded.email?.toLowerCase().trim();
+    if (!normalizedEmail) {
+      throw ApiError.badRequest('Invalid token payload: missing email.');
+    }
+
+    // Ensure email is whitelisted in approvedMembers
+    if (!retro.approvedMembers.includes(normalizedEmail)) {
+      retro.approvedMembers.push(normalizedEmail);
+      await retro.save();
+    }
+
+    return {
+      valid: true,
+      email: normalizedEmail,
+      shareToken: retro.shareToken,
+      retroId: retro._id,
+      retroTitle: retro.title,
+      role: 'developer',
+      isGuest: true,
     };
   }
 

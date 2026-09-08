@@ -59,6 +59,16 @@ class RetroController {
   });
 
   /**
+   * Verify an encrypted magic invite token
+   * POST /api/retros/:id/verify-magic-invite
+   */
+  verifyMagicInvite = asyncHandler(async (req, res) => {
+    const { token } = req.body;
+    const result = await retroService.verifyMagicInvite(req.params.id, token);
+    return ApiResponse.ok(res, result, 'Magic invite verified successfully');
+  });
+
+  /**
    * Add card to retrospective
    * POST /api/retros/:id/cards
    */

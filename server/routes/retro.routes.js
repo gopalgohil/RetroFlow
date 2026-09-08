@@ -70,6 +70,15 @@ router.post(
 );
 
 /**
+ * @route   POST /api/retros/:id/verify-magic-invite
+ * @desc    Verify encrypted JWT magic invite token for frictionless guest entry
+ */
+router.post(
+  '/:id/verify-magic-invite',
+  retroController.verifyMagicInvite
+);
+
+/**
  * @route   POST /api/retros/:id/cards
  * @desc    Add a sticky card to retrospective (facilitator or participant)
  */

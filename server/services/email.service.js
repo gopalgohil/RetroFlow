@@ -250,6 +250,8 @@ class EmailService {
     description = '',
     customMessage = '',
     topics = [],
+    isMagicInvite = true,
+    recipientEmail = '',
   }) {
     const topicPillsHtml =
       topics && topics.length > 0
@@ -267,11 +269,16 @@ class EmailService {
         : '';
 
     const bodyHtml = `
+      <div style="margin-bottom: 14px;">
+        <span style="display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 3px 8px; border-radius: 6px;">
+          ✨ 1-Click Magic Entry &bull; Zero Passwords
+        </span>
+      </div>
       <h1 class="main-heading" style="font-size: 21px; line-height: 27px; font-weight: 800; color: #0f172a; margin: 0 0 8px 0; letter-spacing: -0.4px;">
         You're invited to a Sprint Retrospective
       </h1>
       <p style="font-size: 14px; line-height: 22px; color: #475569; margin: 0 0 18px 0;">
-        <strong>${senderName}</strong> has invited you to collaborate in real-time on continuous improvement:
+        <strong>${senderName}</strong> has invited you to collaborate in real-time. No sign-up or password required — just click the button below to join:
       </p>
 
       <!-- Retrospective Card Box -->
