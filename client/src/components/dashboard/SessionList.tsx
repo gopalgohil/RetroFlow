@@ -31,6 +31,7 @@ interface SessionListProps {
   onDelete: (sessionId: string) => Promise<void>;
   onCreateNew: () => void;
   isLoading: boolean;
+  isAdmin?: boolean;
 }
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
@@ -51,6 +52,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   onDelete,
   onCreateNew,
   isLoading,
+  isAdmin = true,
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('active');
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
@@ -149,17 +151,23 @@ export const SessionList: React.FC<SessionListProps> = ({
             RF
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">No {activeFilter} sessions found</h3>
+            <h3 className="text-sm font-bold text-slate-900">
+              {isAdmin ? `No ${activeFilter} sessions found` : 'No retrospective sessions available'}
+            </h3>
             <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-              Create your first custom agile retrospective session with customized topics, voting limits, and live sync.
+              {isAdmin
+                ? 'Create your first custom agile retrospective session with customized topics, voting limits, and live sync.'
+                : 'You will see live sprint retrospectives here as soon as your Scrum Master or Facilitator invites you.'}
             </p>
           </div>
-          <button
-            onClick={onCreateNew}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
-          >
-            + Create New Retrospective
-          </button>
+          {isAdmin && (
+            <button
+              onClick={onCreateNew}
+              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+            >
+              + Create New Retrospective
+            </button>
+          )}
         </div>
       )}
 
@@ -244,44 +252,48 @@ export const SessionList: React.FC<SessionListProps> = ({
 
               {/* Card Footer Actions */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                {/* Left: Launch + Share / Invite Buttons */}
+                {/* Left: Launch / Join + Share */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onLaunch(session)}
                     className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                   >
-                    <span>Launch Board</span>
+                    <span>{isAdmin ? 'Launch Board' : 'Join Live Board'}</span>
                     <ExternalLink className="w-3 h-3" />
                   </button>
 
-                  <button
-                    onClick={() => setInvitingSession(session)}
-                    title="Invite Teammates & Developers"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-indigo-50/60 hover:bg-indigo-100/70 text-indigo-700 border-indigo-200/80 hover:border-indigo-300"
-                  >
-                    <Share2 className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Share / Invite</span>
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => setInvitingSession(session)}
+                      title="Invite Teammates & Developers"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-indigo-50/60 hover:bg-indigo-100/70 text-indigo-700 border-indigo-200/80 hover:border-indigo-300"
+                    >
+                      <Share2 className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Share / Invite</span>
+                    </button>
+                  )}
                 </div>
 
-                {/* Right: Quick Action Buttons */}
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => onEdit(session)}
-                    title="Edit Topics & Rules"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
+                {/* Right: Quick Action Buttons (Admin Only) */}
+                {isAdmin && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => onEdit(session)}
+                      title="Edit Topics & Rules"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
 
-                  <button
-                    onClick={() => setDeletingId(session._id)}
-                    title="Delete Retrospective"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                    <button
+                      onClick={() => setDeletingId(session._id)}
+                      title="Delete Retrospective"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

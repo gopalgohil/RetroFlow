@@ -12,6 +12,7 @@ interface SessionsTabProps {
   onEdit: (session: RetroBoard) => void;
   onDelete: (sessionId: string) => Promise<void>;
   onCreateNew: () => void;
+  isAdmin?: boolean;
 }
 
 /**
@@ -26,6 +27,7 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
   onEdit,
   onDelete,
   onCreateNew,
+  isAdmin = true,
 }) => {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -36,19 +38,20 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
         <div className="relative z-10 max-w-2xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-100/70 text-indigo-700 border border-indigo-200/80 shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
-            TeamRetro Engine
+            {isAdmin ? 'TeamRetro Engine' : 'Collaborative Workspace'}
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            Agile Retrospective{' '}
+            {isAdmin ? 'Agile Retrospective ' : 'My Team '}
             <span className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent">
-              Hub
+              {isAdmin ? 'Hub' : 'Retrospectives'}
             </span>
           </h2>
 
           <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-xl">
-            Facilitate high-impact continuous improvement retrospectives. Customize topics, set
-            voting rules, and align team deliverables in real-time.
+            {isAdmin
+              ? 'Facilitate high-impact continuous improvement retrospectives. Customize topics, set voting rules, and align team deliverables in real-time.'
+              : 'Collaborate live with your agile team, submit honest feedback on sprint questions, and vote on team action items in real-time.'}
           </p>
         </div>
 
@@ -59,7 +62,9 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
               ✓
             </span>
             <div>
-              <p className="text-xs font-bold text-slate-900">Active Retros</p>
+              <p className="text-xs font-bold text-slate-900">
+                {isAdmin ? 'Active Retros' : 'Invited Retros'}
+              </p>
               <p className="text-[11px] text-slate-500">
                 {activeSessionsCount} Live Session{activeSessionsCount !== 1 ? 's' : ''}
               </p>
@@ -85,6 +90,7 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
         onDelete={onDelete}
         onCreateNew={onCreateNew}
         isLoading={isLoading}
+        isAdmin={isAdmin}
       />
     </div>
   );

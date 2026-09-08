@@ -10,6 +10,7 @@ interface MembersTabProps {
   onRefresh: () => void;
   onWhitelistAdded: (email: string) => Promise<void>;
   currentEmail?: string;
+  isAdmin?: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   onRefresh,
   onWhitelistAdded,
   currentEmail,
+  isAdmin = true,
 }) => {
   const [emailInput, setEmailInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,10 +49,12 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         <div>
           <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
             <Users className="w-5 h-5 text-indigo-600" />
-            Team Members & Whitelist Roster
+            {isAdmin ? 'Team Members & Whitelist Roster' : 'Team Directory'}
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Developer permissions, automatic whitelist bypass, and workspace collaborators
+            {isAdmin
+              ? 'Developer permissions, automatic whitelist bypass, and workspace collaborators'
+              : 'Workspace teammates, collaborators, and active retrospective contributors'}
           </p>
         </div>
 
@@ -64,48 +68,50 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         </button>
       </div>
 
-      {/* Whitelist Quick Add Form Card */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-50/70 via-white to-indigo-50/40 border border-emerald-100/80 shadow-xs">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
-            <Shield className="w-4 h-4" />
+      {/* Whitelist Quick Add Form Card (Admin Only) */}
+      {isAdmin && (
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-50/70 via-white to-indigo-50/40 border border-emerald-100/80 shadow-xs">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+              <Shield className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Instant Whitelist Access</h3>
+              <p className="text-xs text-slate-500">
+                Developers on this whitelist bypass facilitator waiting room approvals.
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">Instant Whitelist Access</h3>
-            <p className="text-xs text-slate-500">
-              Developers on this whitelist bypass facilitator waiting room approvals.
-            </p>
-          </div>
-        </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 pt-2">
-          <div className="relative flex-1">
-            <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="email"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              placeholder="e.g. developer@company.com"
-              required
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting || !emailInput.trim()}
-            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer shrink-0"
-          >
-            {isSubmitting ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <Plus className="w-4 h-4" />
-                <span>Whitelist Developer</span>
-              </>
-            )}
-          </button>
-        </form>
-      </div>
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 pt-2">
+            <div className="relative flex-1">
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="e.g. developer@company.com"
+                required
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting || !emailInput.trim()}
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            >
+              {isSubmitting ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  <span>Whitelist Developer</span>
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* Members Roster List Card */}
       <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">

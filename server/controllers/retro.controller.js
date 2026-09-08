@@ -18,7 +18,7 @@ class RetroController {
    */
   getUserRetros = asyncHandler(async (req, res) => {
     const { status, search } = req.query;
-    const retros = await retroService.getUserRetros(req.user._id, { status, search });
+    const retros = await retroService.getUserRetros(req.user, { status, search });
     return ApiResponse.ok(res, retros, 'Retrospectives retrieved successfully');
   });
 

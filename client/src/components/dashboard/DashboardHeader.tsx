@@ -9,6 +9,7 @@ interface DashboardHeaderProps {
   pendingApprovalsCount: number;
   onCreateClick: () => void;
   onOpenMobileMenu: () => void;
+  isAdmin?: boolean;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -17,6 +18,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   pendingApprovalsCount,
   onCreateClick,
   onOpenMobileMenu,
+  isAdmin = true,
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 px-6 py-4 flex items-center justify-between gap-4">
@@ -31,10 +33,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
         <div className="hidden sm:block">
           <h1 className="text-lg font-bold text-slate-900 leading-none">
-            Retrospective Management
+            {isAdmin ? 'Retrospective Management' : 'Developer Workspace'}
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Configure custom agile topics, process rules, and team access
+            {isAdmin
+              ? 'Configure custom agile topics, process rules, and team access'
+              : 'Participate in agile sprint retrospectives and contribute live feedback'}
           </p>
         </div>
       </div>
@@ -55,25 +59,32 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       <div className="flex items-center gap-3">
         {/* Notification Bell */}
         <button
-          title="Join Approvals Waiting Room"
+          title={isAdmin ? 'Join Approvals Waiting Room' : 'Notifications'}
           className="relative p-2.5 rounded-xl border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
         >
           <Bell className="w-4 h-4" />
-          {pendingApprovalsCount > 0 && (
+          {isAdmin && pendingApprovalsCount > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs animate-pulse">
               {pendingApprovalsCount}
             </span>
           )}
         </button>
 
-        {/* Primary CTA Button */}
-        <button
-          onClick={onCreateClick}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-semibold shadow-md shadow-indigo-600/25 transition-all hover:scale-[1.02] cursor-pointer"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Create Custom Retro</span>
-        </button>
+        {/* Primary CTA Button for Admin vs Live Indicator for Developer */}
+        {isAdmin ? (
+          <button
+            onClick={onCreateClick}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-semibold shadow-md shadow-indigo-600/25 transition-all hover:scale-[1.02] cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Create Custom Retro</span>
+          </button>
+        ) : (
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Developer Space</span>
+          </div>
+        )}
       </div>
     </header>
   );

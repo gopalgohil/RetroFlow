@@ -32,24 +32,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
 }) => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const isAdmin = Boolean(
+    user && (user.role === 'admin' || user.email === 'gopalgohel249@gmail.com')
+  );
+
   const navItems = [
     {
       id: 'sessions',
-      label: 'Retrospective Sessions',
+      label: isAdmin ? 'Retrospective Sessions' : 'My Retrospectives',
       icon: LayoutDashboard,
       badge: activeSessionsCount > 0 ? `${activeSessionsCount} Live` : undefined,
     },
     {
       id: 'members',
-      label: 'Team Members & Whitelist',
+      label: isAdmin ? 'Team Members & Whitelist' : 'Team Directory',
       icon: Users,
-      sublabel: 'Access Controls',
+      sublabel: isAdmin ? 'Access Controls' : 'Collaborators',
     },
-    {
-      id: 'settings',
-      label: 'Workspace Settings',
-      icon: Settings,
-    },
+    ...(isAdmin
+      ? [
+          {
+            id: 'settings',
+            label: 'Workspace Settings',
+            icon: Settings,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -166,9 +175,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <p className="text-xs font-bold text-slate-900 truncate">
                     {user?.name || 'Gopal Gohel'}
                   </p>
-                  {(user?.email === 'gopalgohel249@gmail.com' || (user as any)?.role === 'admin') && (
+                  {isAdmin ? (
                     <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0">
                       Admin
+                    </span>
+                  ) : (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+                      Developer
                     </span>
                   )}
                 </div>

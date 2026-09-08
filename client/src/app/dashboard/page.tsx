@@ -51,6 +51,10 @@ function DashboardContent() {
     saveSettings,
   } = useDashboardData(activeTab, searchQuery);
 
+  const isAdmin = Boolean(
+    user && (user.role === 'admin' || user.email === 'gopalgohel249@gmail.com')
+  );
+
   // Welcome Toast Notification (triggered on fresh login)
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
 
@@ -122,13 +126,14 @@ function DashboardContent() {
 
       {/* Main Workspace Area */}
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
-        {/* Top Header */}
+        {/* Top Sticky Header */}
         <DashboardHeader
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          pendingApprovalsCount={1}
+          pendingApprovalsCount={0}
           onCreateClick={handleCreateRetro}
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
+          isAdmin={isAdmin}
         />
 
         {/* Dynamic View Body with Component Skeletons */}
@@ -146,6 +151,7 @@ function DashboardContent() {
                   onEdit={handleEditRetro}
                   onDelete={deleteSession}
                   onCreateNew={handleCreateRetro}
+                  isAdmin={isAdmin}
                 />
               )}
 
@@ -156,16 +162,29 @@ function DashboardContent() {
                   onRefresh={fetchMembers}
                   onWhitelistAdded={addWhitelistMember}
                   currentEmail={user?.email}
+                  isAdmin={isAdmin}
                 />
               )}
 
               {activeTab === 'settings' && (
-                <SettingsTab
-                  settings={settings}
-                  isLoading={isSettingsLoading}
-                  isSaving={isSavingSettings}
-                  onSave={saveSettings}
-                />
+                isAdmin ? (
+                  <SettingsTab
+                    settings={settings}
+                    isLoading={isSettingsLoading}
+                    isSaving={isSavingSettings}
+                    onSave={saveSettings}
+                  />
+                ) : (
+                  <div className="p-12 rounded-2xl bg-white border border-slate-200 text-center space-y-3 max-w-md mx-auto">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-black mx-auto">
+                      🛡️
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900">Admin Privileges Required</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Workspace configuration, Slack integrations, and agile retro defaults can only be managed by workspace administrators.
+                    </p>
+                  </div>
+                )
               )}
             </>
           )}

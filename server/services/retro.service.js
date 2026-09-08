@@ -31,8 +31,24 @@ class RetroService {
   /**
    * Retrieve all retrospective sessions created by or accessible to user
    */
-  async getUserRetros(userId, filters = {}) {
-    const query = { createdBy: userId };
+  async getUserRetros(userOrId, filters = {}) {
+    let query;
+    const userId = typeof userOrId === 'object' ? userOrId._id || userOrId.id : userOrId;
+    const userRole = typeof userOrId === 'object' ? userOrId.role : null;
+    const userEmail =
+      typeof userOrId === 'object' && userOrId.email ? userOrId.email.toLowerCase().trim() : null;
+
+    if (userRole === 'admin' || userEmail === 'gopalgohel249@gmail.com') {
+      query = { createdBy: userId };
+    } else {
+      // Member / Developer: returns retros where developer was invited (approvedMembers) OR created
+      query = {
+        $or: [
+          { createdBy: userId },
+          ...(userEmail ? [{ approvedMembers: userEmail }] : []),
+        ],
+      };
+    }
 
     if (filters.status && filters.status !== 'all') {
       query.status = filters.status;
@@ -43,6 +59,7 @@ class RetroService {
     }
 
     const retros = await RetroBoard.find(query)
+      .populate('createdBy', 'name email')
       .sort({ createdAt: -1 })
       .lean();
 
