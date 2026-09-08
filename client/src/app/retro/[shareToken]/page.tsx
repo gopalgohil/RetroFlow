@@ -276,8 +276,8 @@ export default function LiveRetroBoardPage({
       </header>
 
       {/* Retrospective Columns Board Canvas */}
-      <main className="flex-1 p-6 overflow-x-auto">
-        <div className="flex gap-6 items-start min-w-max pb-6">
+      <main className="flex-1 p-3 sm:p-4 md:p-5 overflow-x-auto w-full">
+        <div className="flex gap-3 sm:gap-4 items-start w-full min-w-max md:min-w-0 pb-6">
           {retro.topics?.map((topic: RetroTopic, idx: number) => {
             const ColumnIcon = ICON_MAP[topic.icon] || Smile;
             const columnCards = cards.filter((c) => c.topicId === topic.topicId);
@@ -286,90 +286,99 @@ export default function LiveRetroBoardPage({
             return (
               <div
                 key={topic.topicId || idx}
-                className="w-80 sm:w-96 rounded-2xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-sm flex flex-col shrink-0 overflow-hidden"
+                className="flex-1 min-w-[220px] rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 shadow-xs flex flex-col overflow-hidden transition-all"
               >
                 {/* Column Top Accent Header */}
                 <div
                   style={{ backgroundColor: `${topic.color}15`, borderBottomColor: `${topic.color}30` }}
-                  className="p-4 border-b space-y-1"
+                  className="px-3 py-2.5 border-b space-y-0.5"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
                       <div
                         style={{ backgroundColor: topic.color }}
-                        className="w-7 h-7 rounded-lg text-white flex items-center justify-center shadow-xs"
+                        className="w-6 h-6 rounded-lg text-white flex items-center justify-center shadow-2xs shrink-0"
                       >
-                        <ColumnIcon className="w-4 h-4" />
+                        <ColumnIcon className="w-3.5 h-3.5" />
                       </div>
-                      <h3 className="font-bold text-sm text-slate-900">{topic.title}</h3>
+                      <h3 className="font-bold text-xs sm:text-[13px] text-slate-900 truncate">
+                        {topic.title}
+                      </h3>
                     </div>
-                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-full bg-white/80 text-slate-600 border border-slate-200">
+                    <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-white/90 text-slate-600 border border-slate-200 shrink-0">
                       {columnCards.length}
                     </span>
                   </div>
                   {topic.description && (
-                    <p className="text-[11px] text-slate-500 leading-tight pl-9">
+                    <p className="text-[10px] text-slate-500 leading-tight pl-8 truncate">
                       {topic.description}
                     </p>
                   )}
                 </div>
 
                 {/* Sticky Cards List Area */}
-                <div className="p-3.5 space-y-3 min-h-[300px] max-h-[60vh] overflow-y-auto">
+                <div className="p-2 sm:p-2.5 space-y-2 min-h-[220px] max-h-[calc(100vh-230px)] overflow-y-auto">
                   {columnCards.map((card) => (
                     <div
                       key={card.id}
-                      style={{ borderLeftColor: topic.color }}
-                      className={`p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 border-l-4 shadow-2xs hover:shadow-xs transition-all space-y-2.5 ${
+                      style={{
+                        backgroundColor: `${topic.color}08`,
+                        borderColor: `${topic.color}30`,
+                        borderLeftColor: topic.color,
+                      }}
+                      className={`p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-1.5 ${
                         !isRevealed ? 'filter blur-xs select-none' : ''
                       }`}
                     >
-                      <p className="text-xs text-slate-800 leading-relaxed break-words font-medium">
+                      {/* Top Row: Vote Pill + Delete */}
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => handleVote(card.id)}
+                          disabled={remainingVotes <= 0}
+                          title="Vote on this thought"
+                          style={{
+                            color: card.hasVoted ? '#ffffff' : topic.color,
+                            backgroundColor: card.hasVoted ? topic.color : `${topic.color}15`,
+                            borderColor: `${topic.color}30`,
+                          }}
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition-all active:scale-95 cursor-pointer shadow-2xs"
+                        >
+                          <span>⇧</span>
+                          <span>+{card.votes}</span>
+                        </button>
+
+                        {(isFacilitator || card.author === currentAuthorName) && (
+                          <button
+                            onClick={() => handleDeleteCard(card.id)}
+                            title="Delete note"
+                            className="p-0.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-xs"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Card Content Text */}
+                      <p className="text-xs text-slate-800 leading-snug break-words font-medium">
                         {card.text}
                       </p>
 
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-200/60">
-                        <span className="font-semibold text-slate-600">by {card.author}</span>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleVote(card.id)}
-                            disabled={remainingVotes <= 0}
-                            title="Cast vote on this card"
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-transform active:scale-95 cursor-pointer ${
-                              card.hasVoted
-                                ? 'bg-indigo-600 text-white shadow-2xs'
-                                : 'bg-white hover:bg-indigo-50 border border-slate-200 text-slate-700 hover:text-indigo-600'
-                            }`}
-                          >
-                            <span>▲</span>
-                            <span>{card.votes}</span>
-                          </button>
-
-                          {/* Delete Card: Facilitator can delete all; Developer can only delete their own */}
-                          {(isFacilitator || card.author === currentAuthorName) && (
-                            <button
-                              onClick={() => handleDeleteCard(card.id)}
-                              title="Delete note"
-                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
+                      {/* Author Subtitle */}
+                      <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-200/40 flex items-center justify-between">
+                        <span className="truncate">by {card.author}</span>
                       </div>
                     </div>
                   ))}
 
                   {columnCards.length === 0 && !isInputOpen && (
-                    <div className="py-12 text-center text-slate-400 text-xs italic">
-                      No cards added yet. Click + Add Card below.
+                    <div className="py-8 text-center text-slate-400 text-[11px] italic">
+                      No cards added yet.
                     </div>
                   )}
 
                   {/* Inline Add Card Input */}
                   {isInputOpen && (
-                    <div className="p-3 rounded-xl bg-white border-2 border-indigo-500 shadow-sm space-y-2 animate-in fade-in">
+                    <div className="p-2.5 rounded-xl bg-white border-2 border-indigo-500 shadow-sm space-y-2 animate-in fade-in">
                       <textarea
                         autoFocus
                         rows={2}
@@ -380,18 +389,18 @@ export default function LiveRetroBoardPage({
                         placeholder="Write a thought or feedback..."
                         className="w-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none resize-none"
                       />
-                      <div className="flex items-center justify-end gap-2 pt-1">
+                      <div className="flex items-center justify-end gap-1.5 pt-1">
                         <button
                           type="button"
                           onClick={() => setActiveInputTopicId(null)}
-                          className="px-2.5 py-1 rounded-lg text-xs text-slate-500 hover:bg-slate-100 cursor-pointer"
+                          className="px-2 py-0.5 rounded-lg text-xs text-slate-500 hover:bg-slate-100 cursor-pointer"
                         >
                           Cancel
                         </button>
                         <button
                           type="button"
                           onClick={() => handleAddCard(topic.topicId)}
-                          className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs cursor-pointer"
                         >
                           Add Card
                         </button>
@@ -401,10 +410,10 @@ export default function LiveRetroBoardPage({
                 </div>
 
                 {/* Bottom Column "+ Add Card" Button */}
-                <div className="p-3 border-t border-slate-100 bg-white">
+                <div className="p-2 border-t border-slate-100 bg-white">
                   <button
                     onClick={() => setActiveInputTopicId(topic.topicId)}
-                    className="w-full py-2 rounded-xl border border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 text-xs font-bold text-slate-600 hover:text-indigo-600 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 text-xs font-semibold text-slate-600 hover:text-indigo-600 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Card</span>

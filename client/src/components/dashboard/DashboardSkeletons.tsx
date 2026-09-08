@@ -220,43 +220,44 @@ export const RetroBoardSkeleton: React.FC = () => {
       </header>
 
       {/* Columns Board Canvas Skeleton */}
-      <main className="flex-1 p-6 overflow-x-auto">
-        <div className="flex gap-6 items-start min-w-max pb-6">
+      <main className="flex-1 p-3 sm:p-4 md:p-5 overflow-x-auto w-full">
+        <div className="flex gap-3 sm:gap-4 items-start w-full min-w-max md:min-w-0 pb-6">
           {[
-            { color: '#10B981', titleWidth: 'w-32', cardCount: 3 },
-            { color: '#EF4444', titleWidth: 'w-44', cardCount: 2 },
-            { color: '#06B6D4', titleWidth: 'w-28', cardCount: 2 },
-            { color: '#8B5CF6', titleWidth: 'w-36', cardCount: 1 },
+            { color: '#10B981', titleWidth: 'w-24', cardCount: 3 },
+            { color: '#EF4444', titleWidth: 'w-28', cardCount: 2 },
+            { color: '#06B6D4', titleWidth: 'w-24', cardCount: 2 },
+            { color: '#F59E0B', titleWidth: 'w-24', cardCount: 2 },
+            { color: '#8B5CF6', titleWidth: 'w-24', cardCount: 1 },
           ].map((col, idx) => (
             <div
               key={idx}
-              className="w-80 sm:w-96 rounded-2xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-sm flex flex-col shrink-0 overflow-hidden"
+              className="flex-1 min-w-[220px] rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 shadow-xs flex flex-col overflow-hidden transition-all"
             >
               {/* Column Top Header */}
               <div
                 style={{ backgroundColor: `${col.color}15`, borderBottomColor: `${col.color}30` }}
-                className="p-4 border-b space-y-1.5"
+                className="px-3 py-2.5 border-b space-y-1"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div
                       style={{ backgroundColor: col.color }}
-                      className="w-7 h-7 rounded-lg opacity-80"
+                      className="w-6 h-6 rounded-lg opacity-80"
                     />
-                    <div className={`h-4 ${col.titleWidth} rounded bg-slate-300`} />
+                    <div className={`h-3.5 ${col.titleWidth} rounded bg-slate-300`} />
                   </div>
-                  <div className="h-5 w-6 rounded-full bg-white/80" />
+                  <div className="h-4 w-5 rounded-full bg-white/80" />
                 </div>
-                <div className="h-2.5 w-48 rounded bg-slate-200/70 ml-9" />
+                <div className="h-2 w-32 rounded bg-slate-200/70 ml-8" />
               </div>
 
               {/* Cards List Skeleton */}
-              <div className="p-3.5 space-y-3 min-h-[340px]">
+              <div className="p-2.5 space-y-2 min-h-[220px]">
                 {Array.from({ length: col.cardCount }).map((_, cIdx) => (
                   <div
                     key={cIdx}
                     style={{ borderLeftColor: col.color }}
-                    className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 border-l-4 shadow-2xs space-y-2.5"
+                    className="p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 border-l-[3.5px] shadow-2xs space-y-2"
                   >
                     <div className="space-y-1.5">
                       <div className="h-3.5 w-full rounded bg-slate-200" />
