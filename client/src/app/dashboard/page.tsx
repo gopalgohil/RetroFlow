@@ -45,6 +45,7 @@ function DashboardContent() {
     isMembersLoading,
     fetchMembers,
     addWhitelistMember,
+    removeWhitelistMember,
     settings,
     isSettingsLoading,
     isSavingSettings,
@@ -161,6 +162,7 @@ function DashboardContent() {
                   isLoading={isMembersLoading}
                   onRefresh={fetchMembers}
                   onWhitelistAdded={addWhitelistMember}
+                  onRemoveMember={removeWhitelistMember}
                   currentEmail={user?.email}
                   isAdmin={isAdmin}
                 />

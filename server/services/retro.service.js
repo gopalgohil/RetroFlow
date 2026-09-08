@@ -263,11 +263,12 @@ class RetroService {
       text: text.trim(),
       author: (author || 'Developer').trim(),
       authorEmail: authorEmail || '',
-      votes: 1,
-      voters: authorEmail ? [authorEmail] : [],
+      votes: 0,
+      voters: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
 
     const retro = await RetroBoard.findOneAndUpdate(
       query,
@@ -341,7 +342,7 @@ class RetroService {
   }
 
   /**
-   * Vote on a sticky card
+   * Vote on a sticky card (Enforces strictly 1 vote per developer / admin)
    */
   async voteCard(identifier, cardId, voter = null) {
     if (!cardId) {
@@ -349,25 +350,47 @@ class RetroService {
     }
 
     const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
-      ? { _id: identifier, 'cards.cardId': cardId }
-      : { shareToken: identifier, 'cards.cardId': cardId };
+      ? { _id: identifier }
+      : { shareToken: identifier };
 
-    const retro = await RetroBoard.findOneAndUpdate(
-      query,
-      {
-        $inc: { 'cards.$.votes': 1 },
-        ...(voter ? { $addToSet: { 'cards.$.voters': voter } } : {}),
-      },
-      { new: true }
-    );
-
+    const retro = await RetroBoard.findOne(query);
     if (!retro) {
-      throw ApiError.notFound('Card or retrospective session not found');
+      throw ApiError.notFound('Retrospective session not found');
     }
 
-    const targetCard = retro.cards.find((c) => c.cardId === cardId);
-    return { cardId, votes: targetCard ? targetCard.votes : 1 };
+    const card = retro.cards.find((c) => c.cardId === cardId);
+    if (!card) {
+      throw ApiError.notFound('Card not found');
+    }
+
+    const voterName = (voter || 'Developer').trim();
+
+    if (!Array.isArray(card.voters)) {
+      card.voters = [];
+    }
+
+    // Strictly enforce 1 vote per user
+    if (card.voters.includes(voterName)) {
+      return {
+        cardId,
+        votes: card.votes || 0,
+        voters: card.voters,
+        alreadyVoted: true,
+      };
+    }
+
+    card.voters.push(voterName);
+    card.votes = (card.votes || 0) + 1;
+    await retro.save();
+
+    return {
+      cardId,
+      votes: card.votes,
+      voters: card.voters,
+      alreadyVoted: false,
+    };
   }
+
 }
 
 export const retroService = new RetroService();

@@ -168,8 +168,12 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
               text: c.text,
               author: c.author,
               authorEmail: c.authorEmail,
-              votes: c.votes || 1,
-              voters: c.voters || [],
+              votes: typeof c.votes === 'number' ? c.votes : 0,
+              voters: Array.isArray(c.voters) ? c.voters : [],
+              hasVoted: Array.isArray(c.voters) && (
+                c.voters.includes(currentAuthorName) ||
+                (currentUser?.email && c.voters.includes(currentUser.email))
+              ),
               createdAt: c.createdAt,
             }))
           );
@@ -236,8 +240,12 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
                 text: c.text,
                 author: c.author,
                 authorEmail: c.authorEmail,
-                votes: c.votes || 1,
-                voters: c.voters || [],
+                votes: typeof c.votes === 'number' ? c.votes : 0,
+                voters: Array.isArray(c.voters) ? c.voters : [],
+                hasVoted: Array.isArray(c.voters) && (
+                  c.voters.includes(currentAuthorName) ||
+                  (currentUser?.email && c.voters.includes(currentUser.email))
+                ),
                 createdAt: c.createdAt,
               }))
             );
@@ -287,9 +295,25 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
       setCards((prev) => prev.filter((c) => c.id !== payload.cardId));
     };
 
-    const onCardVoted = (payload: { cardId: string; votes: number }) => {
+    const onCardVoted = (payload: { cardId: string; votes: number; voters?: string[] }) => {
       setCards((prev) =>
-        prev.map((c) => (c.id === payload.cardId ? { ...c, votes: payload.votes } : c))
+        prev.map((c) => {
+          if (c.id === payload.cardId) {
+            const updatedVoters = payload.voters || c.voters || [];
+            const hasVoted =
+              updatedVoters.includes(currentAuthorName) ||
+              (currentUser?.email && updatedVoters.includes(currentUser.email)) ||
+              Boolean(c.hasVoted);
+
+            return {
+              ...c,
+              votes: payload.votes,
+              voters: updatedVoters,
+              hasVoted,
+            };
+          }
+          return c;
+        })
       );
     };
 
@@ -481,11 +505,33 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     async (cardId: string) => {
       if (remainingVotes <= 0 || !shareToken) return;
 
+      const targetCard = cards.find((c) => c.id === cardId);
+      if (!targetCard) return;
+
+      const voterIdentifier = currentAuthorName;
+      const alreadyVoted =
+        targetCard.hasVoted ||
+        (Array.isArray(targetCard.voters) && (
+          targetCard.voters.includes(voterIdentifier) ||
+          (currentUser?.email && targetCard.voters.includes(currentUser.email))
+        ));
+
+      // Strictly enforce 1 vote per developer / admin!
+      if (alreadyVoted) {
+        return;
+      }
+
       // Optimistic Vote
       setCards((prev) =>
         prev.map((c) => {
           if (c.id === cardId) {
-            return { ...c, votes: c.votes + 1, hasVoted: true };
+            const newVoters = Array.from(new Set([...(c.voters || []), voterIdentifier]));
+            return {
+              ...c,
+              votes: (c.votes || 0) + 1,
+              voters: newVoters,
+              hasVoted: true,
+            };
           }
           return c;
         })
@@ -497,19 +543,19 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         socket.emit('card:vote', {
           shareToken,
           cardId,
-          voter: currentUser?.email || currentAuthorName,
+          voter: voterIdentifier,
         });
       } else {
         try {
           await api.post(`${ENDPOINTS.RETROS}/${shareToken}/cards/${cardId}/vote`, {
-            voter: currentUser?.email || currentAuthorName,
+            voter: voterIdentifier,
           });
         } catch (err) {
           console.error('[RetroSession] Failed to vote card:', err);
         }
       }
     },
-    [remainingVotes, shareToken, currentUser?.email, currentAuthorName]
+    [cards, remainingVotes, shareToken, currentUser?.email, currentAuthorName]
   );
 
   return {

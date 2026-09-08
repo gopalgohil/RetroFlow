@@ -143,6 +143,20 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [fetchMembers, showToast]
   );
 
+  const removeWhitelistMember = useCallback(
+    async (email: string) => {
+      try {
+        await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}`);
+        setMembers((prev) => prev.filter((m) => m.email.toLowerCase() !== email.toLowerCase()));
+        showToast(`Developer ${email} removed from whitelist.`);
+      } catch (err: any) {
+        showToast(err.message || 'Failed to remove member from whitelist');
+      }
+    },
+    [showToast]
+  );
+
+
   // 4. Workspace Settings State & Actions
   const [settings, setSettings] = useState<WorkspaceSettingsData>(DEFAULT_WORKSPACE_SETTINGS);
   const [isSettingsLoading, setIsSettingsLoading] = useState(false);
@@ -208,6 +222,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     isMembersLoading,
     fetchMembers,
     addWhitelistMember,
+    removeWhitelistMember,
     // Settings
     settings,
     isSettingsLoading,

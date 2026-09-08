@@ -82,7 +82,27 @@ class MembersService {
       isWhitelisted: true,
     };
   }
+
+  /**
+   * Remove developer email from whitelisted contributor list across facilitator retros
+   * @param {string|ObjectId} userId - Facilitator user ID
+   * @param {string} email - Developer email to remove
+   */
+  async removeWhitelistMember(userId, email) {
+    const cleanEmail = email.toLowerCase().trim();
+
+    await RetroBoard.updateMany(
+      { createdBy: userId },
+      { $pull: { approvedMembers: cleanEmail } }
+    );
+
+    return {
+      email: cleanEmail,
+      removed: true,
+    };
+  }
 }
+
 
 export const membersService = new MembersService();
 export default membersService;

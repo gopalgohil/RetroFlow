@@ -32,7 +32,21 @@ class MembersController {
       `Developer ${result.email} whitelisted successfully`
     );
   });
+
+  /**
+   * Remove a developer email from workspace whitelist
+   * DELETE /api/members/:email
+   */
+  removeWhitelistMember = asyncHandler(async (req, res) => {
+    const result = await membersService.removeWhitelistMember(req.user._id, req.params.email);
+    return ApiResponse.ok(
+      res,
+      result,
+      `Developer ${result.email} removed from whitelist successfully`
+    );
+  });
 }
+
 
 export const membersController = new MembersController();
 export default membersController;

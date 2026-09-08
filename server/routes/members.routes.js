@@ -25,4 +25,16 @@ router.post(
   membersController.addWhitelistMember
 );
 
+/**
+ * @route   DELETE /api/members/:email
+ * @desc    Remove developer email from workspace whitelist
+ * @access  Private (Authenticated facilitator)
+ */
+router.delete(
+  '/:email',
+  protect,
+  membersController.removeWhitelistMember
+);
+
 export default router;
+

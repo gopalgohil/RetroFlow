@@ -202,7 +202,7 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 5. Upvote Sticky Card
+    // 5. Upvote Sticky Card (Enforce 1 vote per user & emit voters)
     socket.on('card:vote', async (payload, callback) => {
       try {
         const { shareToken, cardId, voter } = payload || {};
@@ -212,32 +212,61 @@ export function initRetroSocket(io) {
           return;
         }
 
-        const updatedBoard = await RetroBoard.findOneAndUpdate(
-          { shareToken, 'cards.cardId': cardId },
-          {
-            $inc: { 'cards.$.votes': 1 },
-            ...(voter ? { $addToSet: { 'cards.$.voters': voter } } : {}),
-          },
-          { new: true }
-        );
+        const board = await RetroBoard.findOne({ shareToken });
+        if (!board) {
+          if (callback) callback({ error: 'Retrospective session not found' });
+          return;
+        }
 
-        if (!updatedBoard) {
+        const targetCard = board.cards.find((c) => c.cardId === cardId);
+        if (!targetCard) {
           if (callback) callback({ error: 'Card not found' });
           return;
         }
 
-        const targetCard = updatedBoard.cards.find((c) => c.cardId === cardId);
-        const votes = targetCard ? targetCard.votes : 1;
+        const voterName = (voter || 'Developer').trim();
+        if (!Array.isArray(targetCard.voters)) {
+          targetCard.voters = [];
+        }
+
+        // Strictly enforce 1 vote per person per card
+        if (targetCard.voters.includes(voterName)) {
+          if (callback) {
+            callback({
+              success: true,
+              votes: targetCard.votes || 0,
+              voters: targetCard.voters,
+              alreadyVoted: true,
+            });
+          }
+          return;
+        }
+
+        targetCard.voters.push(voterName);
+        targetCard.votes = (targetCard.votes || 0) + 1;
+        await board.save();
 
         const roomName = `retro:${shareToken}`;
-        retroNamespace.to(roomName).emit('card:voted', { cardId, votes });
+        retroNamespace.to(roomName).emit('card:voted', {
+          cardId,
+          votes: targetCard.votes,
+          voters: targetCard.voters,
+        });
 
-        if (callback) callback({ success: true, votes });
+        if (callback) {
+          callback({
+            success: true,
+            votes: targetCard.votes,
+            voters: targetCard.voters,
+            alreadyVoted: false,
+          });
+        }
       } catch (err) {
         console.error('[Socket] card:vote error:', err);
         if (callback) callback({ error: 'Failed to cast vote' });
       }
     });
+
 
     // 6. Disconnect
     socket.on('disconnect', () => {

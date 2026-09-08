@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, Shield, Mail, Plus, UserCheck, RefreshCw } from 'lucide-react';
+import { Users, Shield, Mail, Plus, UserCheck, RefreshCw, Trash2 } from 'lucide-react';
 import { TeamMember } from '@/types/retro';
 
 interface MembersTabProps {
@@ -9,9 +9,11 @@ interface MembersTabProps {
   isLoading: boolean;
   onRefresh: () => void;
   onWhitelistAdded: (email: string) => Promise<void>;
+  onRemoveMember?: (email: string) => Promise<void>;
   currentEmail?: string;
   isAdmin?: boolean;
 }
+
 
 /**
  * MembersTab Component
@@ -22,6 +24,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   isLoading,
   onRefresh,
   onWhitelistAdded,
+  onRemoveMember,
   currentEmail,
   isAdmin = true,
 }) => {
@@ -163,8 +166,20 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                   >
                     {m.status}
                   </span>
+
+                  {isAdmin && onRemoveMember && m.email !== currentEmail && (
+                    <button
+                      type="button"
+                      onClick={() => onRemoveMember(m.email)}
+                      title="Remove from Whitelist"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer ml-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
+
             ))}
           </div>
         )}

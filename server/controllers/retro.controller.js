@@ -122,10 +122,11 @@ class RetroController {
    * POST /api/retros/:id/cards/:cardId/vote
    */
   voteCard = asyncHandler(async (req, res) => {
+    const voter = req.body.voter || req.user?.name || req.user?.email || 'Developer';
     const result = await retroService.voteCard(
       req.params.id,
       req.params.cardId,
-      req.user?.email || req.body.voter
+      voter
     );
 
     const io = req.app.get('io');

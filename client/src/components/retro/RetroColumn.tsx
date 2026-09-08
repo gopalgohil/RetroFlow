@@ -119,11 +119,13 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             canEdit={canEditCard(card)}
             canDelete={canDeleteCard(card)}
             isCurrentAuthor={card.author === currentAuthorName}
+            currentAuthorName={currentAuthorName}
             remainingVotes={remainingVotes}
             onVote={onVoteCard}
             onUpdate={onUpdateCard}
             onDelete={onDeleteCard}
           />
+
         ))}
 
         {cards.length === 0 && !isInputOpen && (
