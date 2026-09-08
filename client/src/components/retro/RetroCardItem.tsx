@@ -8,7 +8,8 @@ export interface RetroCardItemProps {
   card: StickyCard;
   topicColor: string;
   isRevealed: boolean;
-  canManage: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
   isCurrentAuthor: boolean;
   remainingVotes: number;
   onVote: (cardId: string) => void;
@@ -24,7 +25,8 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   card,
   topicColor,
   isRevealed,
-  canManage,
+  canEdit,
+  canDelete,
   isCurrentAuthor,
   remainingVotes,
   onVote,
@@ -117,23 +119,27 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
               <span>+{card.votes}</span>
             </button>
 
-            {/* Edit & Delete Controls */}
-            {canManage && (
+            {/* Edit (Author Only) & Delete (Author or Facilitator Moderation) */}
+            {(canEdit || canDelete) && (
               <div className="flex items-center gap-0.5">
-                <button
-                  onClick={handleStartEdit}
-                  title="Edit thought"
-                  className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
-                >
-                  <Pencil className="w-3 h-3" />
-                </button>
-                <button
-                  onClick={() => onDelete(card.id)}
-                  title="Delete thought"
-                  className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
+                {canEdit && (
+                  <button
+                    onClick={handleStartEdit}
+                    title="Edit your thought"
+                    className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    onClick={() => onDelete(card.id)}
+                    title={canEdit ? 'Delete your thought' : 'Moderate / Delete thought'}
+                    className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
               </div>
             )}
           </div>

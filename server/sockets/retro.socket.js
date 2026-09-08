@@ -92,14 +92,50 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 3. Edit Sticky Card
+    // 3. Edit Sticky Card (Author Only - Feedback Integrity Guard)
     socket.on('card:edit', async (payload, callback) => {
       try {
-        const { shareToken, cardId, text } = payload || {};
+        const { shareToken, cardId, text, user } = payload || {};
 
         if (!shareToken || !cardId || !text?.trim()) {
           if (callback) callback({ error: 'Card ID and new text are required' });
           return;
+        }
+
+        // Verify that the user is the original author of the card
+        const existingBoard = await RetroBoard.findOne(
+          { shareToken, 'cards.cardId': cardId },
+          { 'cards.$': 1 }
+        ).lean();
+
+        if (!existingBoard || !existingBoard.cards || existingBoard.cards.length === 0) {
+          if (callback) callback({ error: 'Card or session not found' });
+          return;
+        }
+
+        const targetCard = existingBoard.cards[0];
+        const requester = user || currentUser;
+
+        if (requester) {
+          const isAuthor =
+            (requester.email &&
+              targetCard.authorEmail &&
+              requester.email.trim().toLowerCase() === targetCard.authorEmail.trim().toLowerCase()) ||
+            (requester.name &&
+              targetCard.author &&
+              requester.name.trim().toLowerCase() === targetCard.author.trim().toLowerCase());
+
+          if (!isAuthor) {
+            console.warn(
+              `[Socket Security] Unauthorized edit attempt on card ${cardId} by ${
+                requester.name || requester.email
+              }`
+            );
+            if (callback) {
+              callback({ error: 'Permission denied: Only the original author can edit this feedback.' });
+            }
+            return;
+          }
         }
 
         const trimmedText = text.trim();

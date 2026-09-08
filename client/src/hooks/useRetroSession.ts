@@ -23,6 +23,8 @@ export interface UseRetroSessionReturn {
   updateCard: (cardId: string, text: string) => Promise<void>;
   deleteCard: (cardId: string) => Promise<void>;
   voteCard: (cardId: string) => Promise<void>;
+  canEditCard: (card: StickyCard) => boolean;
+  canDeleteCard: (card: StickyCard) => boolean;
   canManageCard: (card: StickyCard) => boolean;
 }
 
@@ -231,14 +233,14 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     };
   }, [shareToken, currentAuthorName, currentUser?.email]);
 
-  // 3. Permission Check Helper
-  const canManageCard = useCallback(
+  // 3. Permission Checks
+  // Feedback Integrity Check: ONLY the original author can edit their own card
+  const isAuthorOfCard = useCallback(
     (card: StickyCard) => {
-      if (isFacilitator) return true;
       if (
         currentUser?.email &&
         card.authorEmail &&
-        currentUser.email.toLowerCase() === card.authorEmail.toLowerCase()
+        currentUser.email.trim().toLowerCase() === card.authorEmail.trim().toLowerCase()
       ) {
         return true;
       }
@@ -251,8 +253,27 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
       }
       return false;
     },
-    [isFacilitator, currentUser?.email, currentAuthorName]
+    [currentUser?.email, currentAuthorName]
   );
+
+  // Edit Permission: Strict Author-Only (Admin CANNOT alter or tamper with a developer's feedback)
+  const canEditCard = useCallback(
+    (card: StickyCard) => {
+      return isAuthorOfCard(card);
+    },
+    [isAuthorOfCard]
+  );
+
+  // Delete Permission: Author can delete their own; Admin/Facilitator can delete for spam/abuse moderation
+  const canDeleteCard = useCallback(
+    (card: StickyCard) => {
+      if (isFacilitator) return true;
+      return isAuthorOfCard(card);
+    },
+    [isFacilitator, isAuthorOfCard]
+  );
+
+  const canManageCard = canDeleteCard;
 
   // 4. Guest Name Setter
   const setGuestName = useCallback((name: string) => {
@@ -322,18 +343,26 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
           shareToken,
           cardId,
           text: trimmed,
+          user: {
+            name: currentAuthorName,
+            email: currentUser?.email || '',
+          },
         });
       } else {
         try {
           await api.put(`${ENDPOINTS.RETROS}/${shareToken}/cards/${cardId}`, {
             text: trimmed,
+            user: {
+              name: currentAuthorName,
+              email: currentUser?.email || '',
+            },
           });
         } catch (err) {
           console.error('[RetroSession] Failed to update card:', err);
         }
       }
     },
-    [shareToken]
+    [shareToken, currentAuthorName, currentUser?.email]
   );
 
   const deleteCard = useCallback(
@@ -413,6 +442,8 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     updateCard,
     deleteCard,
     voteCard,
+    canEditCard,
+    canDeleteCard,
     canManageCard,
   };
 }

@@ -61,7 +61,8 @@ export default function LiveRetroBoardPage({
               isRevealed={session.isRevealed}
               remainingVotes={session.remainingVotes}
               currentAuthorName={session.currentAuthorName}
-              canManageCard={session.canManageCard}
+              canEditCard={session.canEditCard}
+              canDeleteCard={session.canDeleteCard}
               onAddCard={session.addCard}
               onUpdateCard={session.updateCard}
               onDeleteCard={session.deleteCard}

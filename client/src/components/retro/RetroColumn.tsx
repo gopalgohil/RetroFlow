@@ -32,7 +32,8 @@ export interface RetroColumnProps {
   isRevealed: boolean;
   remainingVotes: number;
   currentAuthorName: string;
-  canManageCard: (card: StickyCard) => boolean;
+  canEditCard: (card: StickyCard) => boolean;
+  canDeleteCard: (card: StickyCard) => boolean;
   onAddCard: (topicId: string, text: string) => void;
   onUpdateCard: (cardId: string, text: string) => void;
   onDeleteCard: (cardId: string) => void;
@@ -49,7 +50,8 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   isRevealed,
   remainingVotes,
   currentAuthorName,
-  canManageCard,
+  canEditCard,
+  canDeleteCard,
   onAddCard,
   onUpdateCard,
   onDeleteCard,
@@ -114,7 +116,8 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             card={card}
             topicColor={topic.color}
             isRevealed={isRevealed}
-            canManage={canManageCard(card)}
+            canEdit={canEditCard(card)}
+            canDelete={canDeleteCard(card)}
             isCurrentAuthor={card.author === currentAuthorName}
             remainingVotes={remainingVotes}
             onVote={onVoteCard}
