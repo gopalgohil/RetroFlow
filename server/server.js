@@ -61,8 +61,10 @@ app.use(requestLogger);
 // 4. Rate Limiting for general endpoints
 app.use('/api', generalLimiter);
 
-// 5. Mount API Routes
+// 5. Mount API Routes (Accessible at both /api/* and /* for bulletproof client compatibility)
 app.use('/api', routes);
+app.use('/', routes);
+
 
 // Root Index Route
 app.get('/', (req, res) => {

@@ -5,7 +5,10 @@
  */
 
 // Base API URL from environment variable or local backend default
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// Automatically normalizes URL to include /api even if user omits it in deployment settings
+const rawBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').trim().replace(/\/+$/, '');
+const BASE_URL = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
+
 
 /**
  * Standard API Endpoints Registry (Ensures type-safety & zero typos)
