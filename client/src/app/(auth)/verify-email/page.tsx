@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { VerifyEmailForm } from '@/components/auth/VerifyEmailForm';
 
@@ -8,15 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function VerifyEmailPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="w-full max-w-md mx-auto text-center py-12 text-slate-400 text-sm font-mono">
-          Loading verification form...
-        </div>
-      }
-    >
-      <VerifyEmailForm />
-    </Suspense>
-  );
+  return <VerifyEmailForm />;
 }

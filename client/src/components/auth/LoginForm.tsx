@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input, Button, Checkbox, Alert } from '@/components/ui';
 import { AuthHeader, SocialButton, AuthDivider, AuthFooterLink } from '@/components/auth';
@@ -11,19 +11,41 @@ import { api, ENDPOINTS } from '@/lib/api';
 export interface LoginFormProps {
   onSubmit?: (credentials: LoginFormData) => Promise<void> | void;
   onGoogleSignIn?: () => void;
+  initialEmail?: string;
+  initialVerified?: boolean;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, onGoogleSignIn }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({
+  onSubmit,
+  onGoogleSignIn,
+  initialEmail = '',
+  initialVerified = false,
+}) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const isVerifiedParam = searchParams.get('verified') === 'true';
-  const emailParam = searchParams.get('email') || '';
 
   const [formData, setFormData] = useState({
-    email: emailParam,
+    email: initialEmail,
     password: '',
     rememberMe: false,
   });
+
+  const [isVerifiedParam, setIsVerifiedParam] = useState(initialVerified);
+
+  // Read URL search parameters on client without triggering Next.js Suspense fallback bailout
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const email = params.get('email');
+      const verified = params.get('verified') === 'true';
+      if (email && !initialEmail) {
+        setFormData((prev) => ({ ...prev, email }));
+      }
+      if (verified) {
+        setIsVerifiedParam(true);
+      }
+    }
+  }, [initialEmail]);
+
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);

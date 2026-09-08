@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input, Button, Alert } from '@/components/ui';
 import { AuthHeader, AuthFooterLink } from '@/components/auth';
@@ -14,10 +14,9 @@ export interface VerifyEmailFormProps {
 
 export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail = '' }) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const emailParam = searchParams.get('email') || initialEmail;
-  const [email, setEmail] = useState(emailParam);
+  const [email, setEmail] = useState(initialEmail);
+  const [hasEmailFromParam, setHasEmailFromParam] = useState(Boolean(initialEmail));
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -25,12 +24,19 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  // Sync email from search params if updated
+  // Sync email from search params on client without Suspense bailout
   useEffect(() => {
-    if (emailParam && !email) {
-      setEmail(emailParam);
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const paramEmail = params.get('email');
+      if (paramEmail) {
+        setEmail(paramEmail);
+        setHasEmailFromParam(true);
+      }
     }
-  }, [emailParam, email]);
+  }, []);
+
+
 
   // Countdown timer for resending verification code
   useEffect(() => {
@@ -106,7 +112,7 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
 
       {/* Verification Form */}
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        {!emailParam && (
+        {!hasEmailFromParam && (
           <Input
             label="Work Email"
             type="email"
