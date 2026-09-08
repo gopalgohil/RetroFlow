@@ -157,6 +157,130 @@ class RetroService {
       message: `Invitation email sent successfully to ${normalizedEmail}`,
     };
   }
+
+  /**
+   * Add a sticky card to a retrospective
+   */
+  async addCard(identifier, { topicId, text, author, authorEmail }) {
+    if (!topicId || !text?.trim()) {
+      throw ApiError.badRequest('Topic ID and text are required');
+    }
+
+    const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+      ? { _id: identifier }
+      : { shareToken: identifier };
+
+    const newCard = {
+      cardId: crypto.randomUUID(),
+      topicId,
+      text: text.trim(),
+      author: (author || 'Developer').trim(),
+      authorEmail: authorEmail || '',
+      votes: 1,
+      voters: authorEmail ? [authorEmail] : [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const retro = await RetroBoard.findOneAndUpdate(
+      query,
+      { $push: { cards: newCard } },
+      { new: true }
+    );
+
+    if (!retro) {
+      throw ApiError.notFound('Retrospective session not found');
+    }
+
+    return newCard;
+  }
+
+  /**
+   * Update sticky card content
+   */
+  async updateCard(identifier, cardId, { text }) {
+    if (!cardId || !text?.trim()) {
+      throw ApiError.badRequest('Card ID and text are required');
+    }
+
+    const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+      ? { _id: identifier, 'cards.cardId': cardId }
+      : { shareToken: identifier, 'cards.cardId': cardId };
+
+    const trimmedText = text.trim();
+    const updatedTime = new Date();
+
+    const retro = await RetroBoard.findOneAndUpdate(
+      query,
+      {
+        $set: {
+          'cards.$.text': trimmedText,
+          'cards.$.updatedAt': updatedTime,
+        },
+      },
+      { new: true }
+    );
+
+    if (!retro) {
+      throw ApiError.notFound('Card or retrospective session not found');
+    }
+
+    return { cardId, text: trimmedText, updatedAt: updatedTime };
+  }
+
+  /**
+   * Delete a sticky card
+   */
+  async deleteCard(identifier, cardId) {
+    if (!cardId) {
+      throw ApiError.badRequest('Card ID is required');
+    }
+
+    const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+      ? { _id: identifier }
+      : { shareToken: identifier };
+
+    const retro = await RetroBoard.findOneAndUpdate(
+      query,
+      { $pull: { cards: { cardId } } },
+      { new: true }
+    );
+
+    if (!retro) {
+      throw ApiError.notFound('Retrospective session not found');
+    }
+
+    return { success: true, cardId };
+  }
+
+  /**
+   * Vote on a sticky card
+   */
+  async voteCard(identifier, cardId, voter = null) {
+    if (!cardId) {
+      throw ApiError.badRequest('Card ID is required');
+    }
+
+    const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+      ? { _id: identifier, 'cards.cardId': cardId }
+      : { shareToken: identifier, 'cards.cardId': cardId };
+
+    const retro = await RetroBoard.findOneAndUpdate(
+      query,
+      {
+        $inc: { 'cards.$.votes': 1 },
+        ...(voter ? { $addToSet: { 'cards.$.voters': voter } } : {}),
+      },
+      { new: true }
+    );
+
+    if (!retro) {
+      throw ApiError.notFound('Card or retrospective session not found');
+    }
+
+    const targetCard = retro.cards.find((c) => c.cardId === cardId);
+    return { cardId, votes: targetCard ? targetCard.votes : 1 };
+  }
 }
 
 export const retroService = new RetroService();

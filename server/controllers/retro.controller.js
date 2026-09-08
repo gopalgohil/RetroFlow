@@ -57,6 +57,74 @@ class RetroController {
     const result = await retroService.inviteTeammate(req.params.id, req.user._id, req.body);
     return ApiResponse.ok(res, result, result.message);
   });
+
+  /**
+   * Add card to retrospective
+   * POST /api/retros/:id/cards
+   */
+  addCard = asyncHandler(async (req, res) => {
+    const card = await retroService.addCard(req.params.id, {
+      ...req.body,
+      author: req.body.author || req.user?.name,
+      authorEmail: req.body.authorEmail || req.user?.email,
+    });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.of('/retro').to(`retro:${req.params.id}`).emit('card:created', card);
+    }
+
+    return ApiResponse.created(res, card, 'Card added successfully');
+  });
+
+  /**
+   * Update card in retrospective
+   * PUT /api/retros/:id/cards/:cardId
+   */
+  updateCard = asyncHandler(async (req, res) => {
+    const updated = await retroService.updateCard(req.params.id, req.params.cardId, req.body);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.of('/retro').to(`retro:${req.params.id}`).emit('card:updated', updated);
+    }
+
+    return ApiResponse.ok(res, updated, 'Card updated successfully');
+  });
+
+  /**
+   * Delete card from retrospective
+   * DELETE /api/retros/:id/cards/:cardId
+   */
+  deleteCard = asyncHandler(async (req, res) => {
+    const result = await retroService.deleteCard(req.params.id, req.params.cardId);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.of('/retro').to(`retro:${req.params.id}`).emit('card:deleted', { cardId: req.params.cardId });
+    }
+
+    return ApiResponse.ok(res, result, 'Card deleted successfully');
+  });
+
+  /**
+   * Upvote card in retrospective
+   * POST /api/retros/:id/cards/:cardId/vote
+   */
+  voteCard = asyncHandler(async (req, res) => {
+    const result = await retroService.voteCard(
+      req.params.id,
+      req.params.cardId,
+      req.user?.email || req.body.voter
+    );
+
+    const io = req.app.get('io');
+    if (io) {
+      io.of('/retro').to(`retro:${req.params.id}`).emit('card:voted', result);
+    }
+
+    return ApiResponse.ok(res, result, 'Vote recorded');
+  });
 }
 
 export const retroController = new RetroController();

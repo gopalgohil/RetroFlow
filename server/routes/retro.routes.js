@@ -69,4 +69,44 @@ router.post(
   retroController.inviteTeammate
 );
 
+/**
+ * @route   POST /api/retros/:id/cards
+ * @desc    Add a sticky card to retrospective (facilitator or participant)
+ */
+router.post(
+  '/:id/cards',
+  optionalAuth,
+  retroController.addCard
+);
+
+/**
+ * @route   PUT /api/retros/:id/cards/:cardId
+ * @desc    Update sticky card text
+ */
+router.put(
+  '/:id/cards/:cardId',
+  optionalAuth,
+  retroController.updateCard
+);
+
+/**
+ * @route   DELETE /api/retros/:id/cards/:cardId
+ * @desc    Delete sticky card
+ */
+router.delete(
+  '/:id/cards/:cardId',
+  optionalAuth,
+  retroController.deleteCard
+);
+
+/**
+ * @route   POST /api/retros/:id/cards/:cardId/vote
+ * @desc    Upvote sticky card
+ */
+router.post(
+  '/:id/cards/:cardId/vote',
+  optionalAuth,
+  retroController.voteCard
+);
+
 export default router;

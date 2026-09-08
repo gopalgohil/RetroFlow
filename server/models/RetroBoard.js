@@ -39,6 +39,50 @@ const topicSchema = new mongoose.Schema(
 );
 
 /**
+ * Subdocument Schema for an individual retrospective sticky card/thought
+ */
+const cardSchema = new mongoose.Schema(
+  {
+    cardId: {
+      type: String,
+      default: () => crypto.randomUUID(),
+    },
+    topicId: {
+      type: String,
+      required: [true, 'Topic ID is required'],
+    },
+    text: {
+      type: String,
+      required: [true, 'Card feedback text is required'],
+      trim: true,
+      maxlength: 1000,
+    },
+    author: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    authorEmail: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    votes: {
+      type: Number,
+      default: 1,
+    },
+    voters: {
+      type: [String],
+      default: [],
+    },
+  },
+  {
+    timestamps: true,
+    _id: false,
+  }
+);
+
+/**
  * Retrospective Session Board Schema
  */
 const retroBoardSchema = new mongoose.Schema(
@@ -120,6 +164,10 @@ const retroBoardSchema = new mongoose.Schema(
           order: 2,
         },
       ],
+    },
+    cards: {
+      type: [cardSchema],
+      default: [],
     },
     approvedMembers: {
       type: [String],

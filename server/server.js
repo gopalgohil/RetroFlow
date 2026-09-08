@@ -1,3 +1,5 @@
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -9,8 +11,10 @@ import { generalLimiter } from './middlewares/rateLimiter.middleware.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { requestLogger } from './middlewares/logger.middleware.js';
 import { ApiError } from './utils/ApiError.js';
+import { initRetroSocket } from './sockets/retro.socket.js';
 
 const app = express();
+const httpServer = createServer(app);
 const PORT = env.PORT || 5000;
 
 // 1. Security & Protection Headers
@@ -84,29 +88,57 @@ app.use((req, res, next) => {
 // 7. Centralized Global Error Handler Middleware
 app.use(errorHandler);
 
-// 8. Bootstrap Server & Establish Database Connection
+// 8. Socket.io Real-Time Synchronization Engine
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.has(origin) ||
+        origin.endsWith('.vercel.app') ||
+        process.env.NODE_ENV !== 'production'
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, origin);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  },
+  pingTimeout: 30000,
+  pingInterval: 15000,
+});
+
+app.set('io', io);
+initRetroSocket(io);
+
+// 9. Bootstrap Server & Establish Database Connection
 let server;
 
 const startServer = async () => {
   // Connect to MongoDB Atlas with connection pooling
   await database.connect();
 
-  server = app.listen(PORT, () => {
+  server = httpServer.listen(PORT, () => {
     console.log(`\n======================================================`);
     console.log(` 🚀 RetroFlow Enterprise API Server Operational`);
     console.log(` 📡 Port: ${PORT}`);
+    console.log(` ⚡ Real-Time Engine: Socket.io active (/retro)`);
     console.log(` 🌍 Environment: ${env.NODE_ENV || 'development'}`);
     console.log(` 🔗 Health: http://localhost:${PORT}/api/health`);
     console.log(`======================================================\n`);
   });
 };
 
-// 9. Graceful Shutdown Handlers (SIGTERM, SIGINT)
+// 10. Graceful Shutdown Handlers (SIGTERM, SIGINT)
 const gracefulShutdown = async (signal) => {
   console.log(`\n[Server] Received ${signal}. Commencing graceful shutdown...`);
+  if (io) {
+    io.close();
+  }
   if (server) {
     server.close(async () => {
-      console.log('[Server] HTTP connections closed.');
+      console.log('[Server] HTTP and WebSocket connections closed.');
       await database.disconnect();
       console.log('[Server] Graceful shutdown completed cleanly.');
       process.exit(0);

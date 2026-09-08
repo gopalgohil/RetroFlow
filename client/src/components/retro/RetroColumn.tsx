@@ -1,0 +1,185 @@
+'use client';
+
+import React, { useState, memo } from 'react';
+import {
+  Smile,
+  Frown,
+  Lightbulb,
+  Puzzle,
+  Rocket,
+  Anchor,
+  Target,
+  Flag,
+  Plus,
+} from 'lucide-react';
+import { RetroTopic, StickyCard } from '@/types/retro';
+import { RetroCardItem } from './RetroCardItem';
+
+const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
+  smile: Smile,
+  frown: Frown,
+  bulb: Lightbulb,
+  puzzle: Puzzle,
+  rocket: Rocket,
+  anchor: Anchor,
+  target: Target,
+  flag: Flag,
+};
+
+export interface RetroColumnProps {
+  topic: RetroTopic;
+  cards: StickyCard[];
+  isRevealed: boolean;
+  remainingVotes: number;
+  currentAuthorName: string;
+  canManageCard: (card: StickyCard) => boolean;
+  onAddCard: (topicId: string, text: string) => void;
+  onUpdateCard: (cardId: string, text: string) => void;
+  onDeleteCard: (cardId: string) => void;
+  onVoteCard: (cardId: string) => void;
+}
+
+/**
+ * Reusable Retrospective Topic Column
+ * Handles card grouping, column headers, and inline feedback contribution.
+ */
+export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn({
+  topic,
+  cards,
+  isRevealed,
+  remainingVotes,
+  currentAuthorName,
+  canManageCard,
+  onAddCard,
+  onUpdateCard,
+  onDeleteCard,
+  onVoteCard,
+}) {
+  const [isInputOpen, setIsInputOpen] = useState(false);
+  const [cardText, setCardText] = useState('');
+
+  const ColumnIcon = ICON_MAP[topic.icon] || Smile;
+
+  const handleSubmitCard = () => {
+    const trimmed = cardText.trim();
+    if (!trimmed) return;
+    onAddCard(topic.topicId, trimmed);
+    setCardText('');
+    setIsInputOpen(false);
+  };
+
+  const handleCancelInput = () => {
+    setCardText('');
+    setIsInputOpen(false);
+  };
+
+  return (
+    <div className="flex-1 min-w-[220px] rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 shadow-xs flex flex-col overflow-hidden transition-all">
+      {/* Column Top Accent Header */}
+      <div
+        style={{
+          backgroundColor: `${topic.color}15`,
+          borderBottomColor: `${topic.color}30`,
+        }}
+        className="px-3 py-2.5 border-b space-y-0.5"
+      >
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-2 min-w-0">
+            <div
+              style={{ backgroundColor: topic.color }}
+              className="w-6 h-6 rounded-lg text-white flex items-center justify-center shadow-2xs shrink-0"
+            >
+              <ColumnIcon className="w-3.5 h-3.5" />
+            </div>
+            <h3 className="font-bold text-xs sm:text-[13px] text-slate-900 truncate">
+              {topic.title}
+            </h3>
+          </div>
+          <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-white/90 text-slate-600 border border-slate-200 shrink-0">
+            {cards.length}
+          </span>
+        </div>
+        {topic.description && (
+          <p className="text-[10px] text-slate-500 leading-tight pl-8 truncate">
+            {topic.description}
+          </p>
+        )}
+      </div>
+
+      {/* Sticky Cards Scrollable List */}
+      <div className="p-2 sm:p-2.5 space-y-2 min-h-[220px] max-h-[calc(100vh-230px)] overflow-y-auto">
+        {cards.map((card) => (
+          <RetroCardItem
+            key={card.id}
+            card={card}
+            topicColor={topic.color}
+            isRevealed={isRevealed}
+            canManage={canManageCard(card)}
+            isCurrentAuthor={card.author === currentAuthorName}
+            remainingVotes={remainingVotes}
+            onVote={onVoteCard}
+            onUpdate={onUpdateCard}
+            onDelete={onDeleteCard}
+          />
+        ))}
+
+        {cards.length === 0 && !isInputOpen && (
+          <div className="py-8 text-center text-slate-400 text-[11px] italic">
+            No cards added yet.
+          </div>
+        )}
+
+        {/* Inline Add Card Input Form */}
+        {isInputOpen && (
+          <div className="p-2.5 rounded-xl bg-white border-2 border-indigo-500 shadow-sm space-y-2 animate-in fade-in duration-150">
+            <textarea
+              autoFocus
+              rows={2}
+              value={cardText}
+              onChange={(e) => setCardText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmitCard();
+                } else if (e.key === 'Escape') {
+                  handleCancelInput();
+                }
+              }}
+              placeholder="Write a thought or feedback..."
+              className="w-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none resize-none"
+            />
+            <div className="flex items-center justify-end gap-1.5 pt-1">
+              <button
+                type="button"
+                onClick={handleCancelInput}
+                className="px-2 py-0.5 rounded-lg text-xs text-slate-500 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmitCard}
+                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+              >
+                Add Card
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Column "+ Add Card" Trigger */}
+      <div className="p-2 border-t border-slate-100 bg-white">
+        <button
+          onClick={() => setIsInputOpen(true)}
+          className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 text-xs font-semibold text-slate-600 hover:text-indigo-600 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Add Card</span>
+        </button>
+      </div>
+    </div>
+  );
+});
+
+export default RetroColumn;

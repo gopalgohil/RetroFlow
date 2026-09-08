@@ -12,6 +12,23 @@ export interface RetroTopic {
   order: number;
 }
 
+export interface RetroCard {
+  cardId: string;
+  topicId: string;
+  text: string;
+  author: string;
+  authorEmail?: string;
+  votes: number;
+  voters?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface StickyCard extends RetroCard {
+  id: string;
+  hasVoted?: boolean;
+}
+
 export interface RetroBoard {
   _id: string;
   title: string;
@@ -24,6 +41,7 @@ export interface RetroBoard {
   votingLimit: number;
   backgroundTheme: 'sailboat' | 'standard' | 'space' | 'mountain' | 'minimal';
   topics: RetroTopic[];
+  cards?: RetroCard[];
   approvedMembers: string[];
   createdBy?: {
     _id: string;
