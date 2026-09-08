@@ -5,12 +5,14 @@ import React, { ButtonHTMLAttributes } from 'react';
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'outline' | 'ghost';
   isLoading?: boolean;
+  spinnerOnly?: boolean;
 }
 
 export const Button: React.FC<ButtonProps> = ({
   children,
   variant = 'primary',
   isLoading = false,
+  spinnerOnly = false,
   className = '',
   disabled,
   ...props
@@ -33,9 +35,9 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {isLoading ? (
-        <span className="flex items-center gap-2">
+        <span className="flex items-center justify-center gap-2">
           <svg
-            className="animate-spin h-4 w-4 text-current"
+            className="animate-spin h-5 w-5 text-current"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -54,7 +56,7 @@ export const Button: React.FC<ButtonProps> = ({
               d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
             />
           </svg>
-          <span>Loading...</span>
+          {!spinnerOnly && <span>Loading...</span>}
         </span>
       ) : (
         children

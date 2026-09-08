@@ -101,16 +101,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           localStorage.setItem('retroflow_user', JSON.stringify(data.data.user));
         }
 
-        // Navigate to dashboard via client-side routing (keeps console logs visible)
-        router.push('/dashboard');
+        // Set session flag for role-specific dashboard welcome toast
+        sessionStorage.setItem('retroflow_welcome_toast', 'true');
+
+        // 2.2 second delay before navigating to dashboard as requested by user
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 2200);
       }
     } catch (err: any) {
+      setIsLoading(false);
       if (err.status === 403 || err.message?.toLowerCase().includes('not verified')) {
         setUnverifiedEmail(formData.email);
       }
       setGeneralError(err.message || 'Invalid email or password.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -205,6 +209,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           type="submit"
           variant="primary"
           isLoading={isLoading}
+          spinnerOnly={true}
+          disabled={isLoading}
           className="w-full py-3 text-sm font-semibold rounded-xl mt-2 shadow-md shadow-indigo-600/20"
         >
           Sign In

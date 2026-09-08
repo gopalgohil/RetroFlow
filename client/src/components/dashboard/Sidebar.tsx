@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -10,12 +10,13 @@ import {
   Sparkles,
   ChevronRight,
 } from 'lucide-react';
+import { LogoutConfirmModal } from './LogoutConfirmModal';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   activeSessionsCount: number;
-  user: { name: string; email: string } | null;
+  user: { name: string; email: string; role?: string } | null;
   onLogout: () => void;
   isOpen: boolean;
   onCloseMobile?: () => void;
@@ -30,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onCloseMobile,
 }) => {
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const navItems = [
     {
       id: 'sessions',
@@ -175,15 +177,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <button
-              onClick={onLogout}
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
               title="Sign Out"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+              aria-label="Sign Out"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0"
             >
               <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
       </aside>
+
+      {/* Logout Confirmation Popup */}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          setIsLogoutModalOpen(false);
+          onLogout();
+        }}
+        user={user}
+      />
     </>
   );
 };

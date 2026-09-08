@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Sidebar,
@@ -10,6 +10,7 @@ import {
   SessionsTab,
   MembersTab,
   SettingsTab,
+  WelcomeToast,
 } from '@/components/dashboard';
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
 import { useDashboardTabs } from '@/hooks/useDashboardTabs';
@@ -49,6 +50,19 @@ function DashboardContent() {
     isSavingSettings,
     saveSettings,
   } = useDashboardData(activeTab, searchQuery);
+
+  // Welcome Toast Notification (triggered on fresh login)
+  const [showWelcomeToast, setShowWelcomeToast] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const shouldGreet = sessionStorage.getItem('retroflow_welcome_toast');
+      if (shouldGreet === 'true') {
+        setShowWelcomeToast(true);
+        sessionStorage.removeItem('retroflow_welcome_toast');
+      }
+    }
+  }, []);
 
   // Modal dialog states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -164,6 +178,13 @@ function DashboardContent() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleModalSave}
         initialData={editingSession}
+      />
+
+      {/* Role-Specific Welcome Toast Notification */}
+      <WelcomeToast
+        user={user}
+        isOpen={showWelcomeToast}
+        onClose={() => setShowWelcomeToast(false)}
       />
 
       {/* Global Toast Notification */}

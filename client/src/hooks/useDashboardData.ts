@@ -33,7 +33,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const router = useRouter();
 
   // 1. User Authentication State
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; role?: string } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
