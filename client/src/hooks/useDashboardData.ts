@@ -128,20 +128,29 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const [isMembersLoading, setIsMembersLoading] = useState(false);
 
   const fetchMembers = useCallback(
-    async (pageOverride?: number, limitOverride?: number, searchOverride?: string) => {
+    async (
+      pageOverride?: number,
+      limitOverride?: number,
+      searchOverride?: string,
+      minDelayMs: number = 2000
+    ) => {
       setIsMembersLoading(true);
       const pageToUse = pageOverride ?? membersPage;
       const limitToUse = limitOverride ?? membersLimit;
       const searchToUse = searchOverride !== undefined ? searchOverride : membersSearch;
 
       try {
-        const res = await api.get(ENDPOINTS.MEMBERS, {
-          params: {
-            page: pageToUse,
-            limit: limitToUse,
-            search: searchToUse ? searchToUse.trim() : undefined,
-          },
-        });
+        const [res] = await Promise.all([
+          api.get(ENDPOINTS.MEMBERS, {
+            params: {
+              page: pageToUse,
+              limit: limitToUse,
+              search: searchToUse ? searchToUse.trim() : undefined,
+            },
+          }),
+          // Deliberate 2s delay so shimmer skeleton loader is visible and smooth
+          new Promise((resolve) => setTimeout(resolve, minDelayMs)),
+        ]);
 
         if (res.data) {
           if (Array.isArray(res.data)) {
@@ -173,7 +182,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const handlePageChange = useCallback(
     (newPage: number) => {
       setMembersPage(newPage);
-      fetchMembers(newPage, membersLimit, membersSearch);
+      fetchMembers(newPage, membersLimit, membersSearch, 2000);
     },
     [fetchMembers, membersLimit, membersSearch]
   );
@@ -182,7 +191,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     (newLimit: number) => {
       setMembersLimit(newLimit);
       setMembersPage(1);
-      fetchMembers(1, newLimit, membersSearch);
+      fetchMembers(1, newLimit, membersSearch, 2000);
     },
     [fetchMembers, membersSearch]
   );
@@ -191,7 +200,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     (query: string) => {
       setMembersSearch(query);
       setMembersPage(1);
-      fetchMembers(1, membersLimit, query);
+      fetchMembers(1, membersLimit, query, 500);
     },
     [fetchMembers, membersLimit]
   );
