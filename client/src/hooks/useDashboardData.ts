@@ -70,9 +70,8 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       const res = await api.get(ENDPOINTS.RETROS, {
         params: searchQuery ? { search: searchQuery } : undefined,
       });
-      if (res.data) {
-        setSessions(res.data);
-      }
+      const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+      setSessions(list);
     } catch (err: any) {
       console.error('Failed to load retrospectives:', err.message);
     } finally {
