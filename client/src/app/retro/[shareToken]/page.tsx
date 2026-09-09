@@ -7,6 +7,7 @@ import {
   RetroColumn,
   ParticipantNameModal,
   RetroNotFound,
+  EndSessionExportModal,
 } from '@/components/retro';
 import { ShareInviteModal } from '@/components/dashboard/ShareInviteModal';
 import { RetroBoardSkeleton } from '@/components/dashboard';
@@ -22,6 +23,8 @@ export default function LiveRetroBoardPage({
 }) {
   const { shareToken } = use(params);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isEndSessionModalOpen, setIsEndSessionModalOpen] = useState(false);
+  const [exportModalMode, setExportModalMode] = useState<'export_only' | 'end_and_export'>('end_and_export');
 
   // Encapsulates all DB persistence, Socket.io lifecycle, Identity & Role logic
   const session = useRetroSession(shareToken);
@@ -47,8 +50,18 @@ export default function LiveRetroBoardPage({
         revealMode={session.retro.revealMode}
         socketConnected={session.socketConnected}
         verifiedGuestEmail={session.verifiedGuestEmail}
+        projectKey={session.retro.projectKey}
+        sprintName={session.retro.sprintName}
         onToggleReveal={() => session.setIsRevealed((prev) => !prev)}
         onOpenInvite={() => setIsInviteModalOpen(true)}
+        onExportToSprint={() => {
+          setExportModalMode('export_only');
+          setIsEndSessionModalOpen(true);
+        }}
+        onEndSession={() => {
+          setExportModalMode('end_and_export');
+          setIsEndSessionModalOpen(true);
+        }}
       />
 
       {/* 2. Responsive Retrospective Columns Board Canvas */}
@@ -68,6 +81,10 @@ export default function LiveRetroBoardPage({
               onUpdateCard={session.updateCard}
               onDeleteCard={session.deleteCard}
               onVoteCard={session.voteCard}
+              onExportTopic={() => {
+                setExportModalMode('export_only');
+                setIsEndSessionModalOpen(true);
+              }}
             />
           ))}
         </div>
@@ -85,6 +102,16 @@ export default function LiveRetroBoardPage({
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
         session={session.retro}
+      />
+
+      {/* 5. End Session & Action Items Export to Sprint Modal */}
+      <EndSessionExportModal
+        isOpen={isEndSessionModalOpen}
+        onClose={() => setIsEndSessionModalOpen(false)}
+        retroId={session.retro._id}
+        retroTitle={session.retro.title}
+        cards={session.cards}
+        mode={exportModalMode}
       />
     </div>
   );

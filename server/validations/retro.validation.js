@@ -28,6 +28,11 @@ export const createRetroSchema = z.object({
   backgroundTheme: z.enum(['sailboat', 'standard', 'space', 'mountain', 'minimal']).optional().default('standard'),
   topics: z.array(topicValidationSchema).min(1, 'At least one topic column is required'),
   approvedMembers: z.array(z.string().email('Invalid email')).optional().default([]),
+  projectId: z.string().optional().nullable(),
+  projectKey: z.string().optional().nullable(),
+  sprintId: z.string().optional().nullable(),
+  sprintName: z.string().optional().nullable(),
+  isProjectScoped: z.boolean().optional().default(true),
 });
 
 export const updateRetroSchema = createRetroSchema.partial();

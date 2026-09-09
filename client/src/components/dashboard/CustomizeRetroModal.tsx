@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Plus,
@@ -24,11 +25,20 @@ import {
 } from 'lucide-react';
 import { RetroTopic, RetroBoard, CreateRetroPayload } from '@/types/retro';
 
+export interface ProjectRetroContext {
+  id: string;
+  name: string;
+  key: string;
+  sprintName?: string;
+  members: Array<{ name: string; email: string; role: string }>;
+}
+
 interface CustomizeRetroModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (payload: CreateRetroPayload) => Promise<void>;
   initialData?: RetroBoard | null;
+  projectContext?: ProjectRetroContext | null;
 }
 
 // Available Color Swatches matching login accents
@@ -75,8 +85,14 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   onClose,
   onSave,
   initialData,
+  projectContext,
 }) => {
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'topics' | 'process' | 'options'>('topics');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -112,6 +128,45 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setApprovedMembers(initialData.approvedMembers || []);
       setBackgroundTheme(initialData.backgroundTheme || 'standard');
       setTopics(initialData.topics || []);
+    } else if (projectContext) {
+      // Linked Project mode: Auto-fill project title, sprint, and auto-whitelist project members
+      const sprintTag = projectContext.sprintName || 'Sprint 14';
+      setTitle(`${projectContext.name} - ${sprintTag} Retrospective`);
+      setDescription(`Agile feedback & sprint retrospective for ${projectContext.name} (${projectContext.key}).`);
+      const today = new Date();
+      setScheduledDate(today.toISOString().slice(0, 16));
+      setRevealMode(false);
+      setVotingLimit(5);
+      setApprovalRequired(true); // Project privacy: restrict access to project members
+      const memberEmails = (projectContext.members || []).map((m) => m.email.toLowerCase().trim());
+      setApprovedMembers(memberEmails);
+      setBackgroundTheme('standard');
+      setTopics([
+        {
+          topicId: 'topic-1',
+          title: 'What went well?',
+          description: 'Things we are happy or proud of in this sprint',
+          icon: 'smile',
+          color: '#10B981',
+          order: 0,
+        },
+        {
+          topicId: 'topic-2',
+          title: 'What could be improved?',
+          description: 'Blockers, frictions, or slowdowns encountered',
+          icon: 'frown',
+          color: '#F43F5E',
+          order: 1,
+        },
+        {
+          topicId: 'topic-3',
+          title: 'Action Items',
+          description: 'Concrete backlog deliverables for upcoming sprint',
+          icon: 'target',
+          color: '#0EA5E9',
+          order: 2,
+        },
+      ]);
     } else {
       // Default initial state
       setTitle(`Sprint 42 Retrospective`);
@@ -152,9 +207,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
         },
       ]);
     }
-  }, [initialData, isOpen]);
+  }, [initialData, projectContext, isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   // Topic manipulation methods
   const handleUpdateTopic = (index: number, field: keyof RetroTopic, value: any) => {
@@ -277,6 +332,10 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
         backgroundTheme,
         topics: topics.map((t, idx) => ({ ...t, order: idx })),
         approvedMembers,
+        projectId: projectContext?.id,
+        projectKey: projectContext?.key,
+        sprintName: projectContext?.sprintName,
+        isProjectScoped: !!projectContext,
       });
       onClose();
     } catch (err: any) {
@@ -286,8 +345,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Top Header */}
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
@@ -312,6 +371,29 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Linked Project Banner */}
+        {projectContext && (
+          <div className="px-6 py-2.5 bg-gradient-to-r from-indigo-50 via-slate-50 to-indigo-50/50 border-b border-indigo-100/90 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-md bg-indigo-600 text-white font-mono font-bold text-[10px] uppercase shadow-2xs">
+                {projectContext.key}
+              </span>
+              <span className="font-bold text-slate-900">
+                Initiative: {projectContext.name}
+              </span>
+              {projectContext.sprintName && (
+                <span className="text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200 font-semibold text-[11px]">
+                  {projectContext.sprintName}
+                </span>
+              )}
+            </div>
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              🔒 {projectContext.members.length} Team Members Auto-Whitelisted (Strict Privacy)
+            </span>
+          </div>
+        )}
 
         {/* 4 Navigation Tabs */}
         <div className="px-6 border-b border-slate-200 bg-white flex items-center gap-8">
@@ -738,4 +820,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
+

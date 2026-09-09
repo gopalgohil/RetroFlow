@@ -2,7 +2,7 @@
 
 import React, { memo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ThumbsUp, Eye, EyeOff, Share2, Radio } from 'lucide-react';
+import { ArrowLeft, ThumbsUp, Eye, EyeOff, Share2, Radio, Sparkles } from 'lucide-react';
 
 export interface RetroHeaderProps {
   title: string;
@@ -14,8 +14,12 @@ export interface RetroHeaderProps {
   revealMode: boolean;
   socketConnected?: boolean;
   verifiedGuestEmail?: string | null;
+  projectKey?: string;
+  sprintName?: string;
   onToggleReveal: () => void;
   onOpenInvite: () => void;
+  onExportToSprint?: () => void;
+  onEndSession?: () => void;
 }
 
 
@@ -33,8 +37,12 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
   revealMode,
   socketConnected = true,
   verifiedGuestEmail,
+  projectKey,
+  sprintName,
   onToggleReveal,
   onOpenInvite,
+  onExportToSprint,
+  onEndSession,
 }) {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
@@ -62,6 +70,16 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
             <h1 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
               {title}
             </h1>
+            {projectKey && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase">
+                {projectKey}
+              </span>
+            )}
+            {sprintName && (
+              <span className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                {sprintName}
+              </span>
+            )}
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live Session
@@ -132,6 +150,30 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           <Share2 className="w-3.5 h-3.5 text-indigo-600" />
           <span className="hidden sm:inline">Invite Teammates</span>
         </button>
+
+        {/* Facilitator Push to Sprint Quick Action */}
+        {isFacilitator && onExportToSprint && (
+          <button
+            onClick={onExportToSprint}
+            className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/90 text-indigo-700 text-xs font-bold shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
+            title="Select action items and push directly to sprint backlog"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+            <span className="hidden sm:inline">Push to Sprint</span>
+          </button>
+        )}
+
+        {/* Facilitator End Session & Export Action */}
+        {isFacilitator && onEndSession && (
+          <button
+            onClick={onEndSession}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-bold shadow-xs transition-all hover:scale-[1.02] cursor-pointer"
+            title="End session and export action items to project backlog"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <span>End Session</span>
+          </button>
+        )}
       </div>
     </header>
   );

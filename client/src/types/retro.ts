@@ -43,6 +43,10 @@ export interface RetroBoard {
   topics: RetroTopic[];
   cards?: RetroCard[];
   approvedMembers: string[];
+  projectId?: string;
+  projectKey?: string;
+  sprintName?: string;
+  isProjectScoped?: boolean;
   createdBy?: {
     _id: string;
     name: string;
@@ -63,6 +67,10 @@ export interface CreateRetroPayload {
   backgroundTheme?: 'sailboat' | 'standard' | 'space' | 'mountain' | 'minimal';
   topics: RetroTopic[];
   approvedMembers?: string[];
+  projectId?: string;
+  projectKey?: string;
+  sprintName?: string;
+  isProjectScoped?: boolean;
 }
 
 export interface TeamMember {

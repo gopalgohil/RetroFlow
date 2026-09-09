@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
+  FolderKanban,
   Users,
   Settings,
   LogOut,
@@ -43,6 +44,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: isAdmin ? 'Retrospective Sessions' : 'My Retrospectives',
       icon: LayoutDashboard,
       badge: activeSessionsCount > 0 ? `${activeSessionsCount} Live` : undefined,
+    },
+    {
+      id: 'projects',
+      label: 'Agile Projects',
+      icon: FolderKanban,
+      sublabel: 'Sprints & Delivery',
     },
     {
       id: 'members',

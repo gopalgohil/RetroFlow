@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Search, Bell, Plus, Menu } from 'lucide-react';
+import { ProjectSwitcher } from '@/components/navigation/ProjectSwitcher';
 
 interface DashboardHeaderProps {
   searchQuery: string;
@@ -21,9 +22,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   isAdmin = true,
 }) => {
   return (
-    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 px-6 py-4 flex items-center justify-between gap-4">
-      {/* Mobile Hamburger + Title */}
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+      {/* Mobile Hamburger + Project Switcher + Title */}
+      <div className="flex items-center gap-3 shrink-0">
         <button
           onClick={onOpenMobileMenu}
           className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 lg:hidden cursor-pointer"
@@ -31,11 +32,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="hidden sm:block">
-          <h1 className="text-lg font-bold text-slate-900 leading-none">
+        {/* Intuitive Project Switcher */}
+        <ProjectSwitcher />
+
+        <div className="hidden xl:block h-6 w-px bg-slate-200" />
+
+        <div className="hidden xl:block">
+          <h1 className="text-sm font-bold text-slate-900 leading-none">
             {isAdmin ? 'Retrospective Management' : 'Developer Workspace'}
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-[11px] text-slate-500 mt-1">
             {isAdmin
               ? 'Configure custom agile topics, process rules, and team access'
               : 'Participate in agile sprint retrospectives and contribute live feedback'}

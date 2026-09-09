@@ -27,6 +27,7 @@ export const ENDPOINTS = {
   RETROS: '/retros',
   MEMBERS: '/members',
   SETTINGS: '/settings',
+  PROJECTS: '/projects',
 } as const;
 
 export interface RequestOptions extends RequestInit {

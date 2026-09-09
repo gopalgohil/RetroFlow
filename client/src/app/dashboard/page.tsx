@@ -8,6 +8,7 @@ import {
   CustomizeRetroModal,
   TabSkeleton,
   SessionsTab,
+  ProjectsTab,
   MembersTab,
   SettingsTab,
   WelcomeToast,
@@ -154,6 +155,10 @@ function DashboardContent() {
                   onCreateNew={handleCreateRetro}
                   isAdmin={isAdmin}
                 />
+              )}
+
+              {activeTab === 'projects' && (
+                <ProjectsTab isAdmin={isAdmin} />
               )}
 
               {activeTab === 'members' && (

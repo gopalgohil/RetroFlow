@@ -1,4 +1,6 @@
 import RetroBoard from '../models/RetroBoard.js';
+import Project from '../models/Project.js';
+import mongoose from 'mongoose';
 import { ApiError } from '../utils/ApiError.js';
 import env from '../config/env.js';
 import emailService from './email.service.js';
@@ -21,11 +23,68 @@ class RetroService {
       order: typeof t.order === 'number' ? t.order : idx,
     }));
 
+    let approvedMembers = Array.isArray(payload.approvedMembers)
+      ? payload.approvedMembers.map((e) => e.toLowerCase().trim()).filter(Boolean)
+      : [];
+
+    let linkedProject = null;
+    if (payload.projectId || payload.projectKey) {
+      const idOrKey = payload.projectId || payload.projectKey;
+      const isValidObjectId = mongoose.Types.ObjectId.isValid(idOrKey);
+      linkedProject = await Project.findOne(
+        isValidObjectId
+          ? { $or: [{ _id: idOrKey }, { key: String(idOrKey).toUpperCase() }] }
+          : { key: String(idOrKey).toUpperCase() }
+      );
+
+      if (linkedProject) {
+        // Auto-whitelist all project members for strict project privacy
+        const projectMemberEmails = linkedProject.members.map((m) => m.email.toLowerCase().trim());
+        approvedMembers = Array.from(new Set([...approvedMembers, ...projectMemberEmails]));
+      }
+    }
+
     const retro = await RetroBoard.create({
       ...payload,
+      approvedMembers,
+      projectId: linkedProject ? linkedProject._id : (payload.projectId || null),
+      projectKey: linkedProject ? linkedProject.key : (payload.projectKey || null),
+      sprintName:
+        payload.sprintName ||
+        (linkedProject?.activeSprint ? linkedProject.activeSprint.name.split(' - ')[0] : null),
+      isProjectScoped: payload.isProjectScoped !== undefined ? payload.isProjectScoped : !!linkedProject,
       topics: formattedTopics,
       createdBy: userId,
     });
+
+    // If linked to a project, push retro link into project.retrospectives
+    if (linkedProject) {
+      const sprintLabel =
+        payload.sprintName ||
+        (linkedProject.activeSprint ? linkedProject.activeSprint.name.split(' - ')[0] : 'Sprint Active');
+
+      const exists = linkedProject.retrospectives.some(
+        (r) => r.id === retro._id.toString() || r.shareToken === retro.shareToken
+      );
+
+      if (!exists) {
+        linkedProject.retrospectives.unshift({
+          id: retro._id.toString(),
+          shareToken: retro.shareToken,
+          title: retro.title,
+          scheduledDate: retro.scheduledDate
+            ? new Date(retro.scheduledDate).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0],
+          status: retro.status || 'active',
+          sprintName: sprintLabel,
+          topicsCount: retro.topics.length,
+          cardsCount: 0,
+          actionItemsCount: 0,
+          actionItemsExported: false,
+        });
+        await linkedProject.save();
+      }
+    }
 
     return retro;
   }
@@ -41,7 +100,8 @@ class RetroService {
       typeof userOrId === 'object' && userOrId.email ? userOrId.email.toLowerCase().trim() : null;
 
     if (userRole === 'admin' || userEmail === 'gopalgohel249@gmail.com') {
-      query = { createdBy: userId };
+      // Admin has full workspace visibility
+      query = {};
     } else {
       // Member / Developer: returns retros where developer was invited (approvedMembers) OR created
       query = {

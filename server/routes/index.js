@@ -3,6 +3,7 @@ import authRoutes from './auth.routes.js';
 import retroRoutes from './retro.routes.js';
 import membersRoutes from './members.routes.js';
 import settingsRoutes from './settings.routes.js';
+import projectRoutes from './project.routes.js';
 import { checkHealth } from '../controllers/health.controller.js';
 
 const router = Router();
@@ -22,5 +23,7 @@ router.use('/members', membersRoutes);
 // Workspace Settings Endpoints
 router.use('/settings', settingsRoutes);
 
-export default router;
+// Agile Project Management Module Endpoints
+router.use('/projects', projectRoutes);
 
+export default router;

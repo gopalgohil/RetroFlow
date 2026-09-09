@@ -11,6 +11,7 @@ import {
   Target,
   Flag,
   Plus,
+  Sparkles,
 } from 'lucide-react';
 import { RetroTopic, StickyCard } from '@/types/retro';
 import { RetroCardItem } from './RetroCardItem';
@@ -38,6 +39,7 @@ export interface RetroColumnProps {
   onUpdateCard: (cardId: string, text: string) => void;
   onDeleteCard: (cardId: string) => void;
   onVoteCard: (cardId: string) => void;
+  onExportTopic?: () => void;
 }
 
 /**
@@ -56,6 +58,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   onUpdateCard,
   onDeleteCard,
   onVoteCard,
+  onExportTopic,
 }) {
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [cardText, setCardText] = useState('');
@@ -97,9 +100,23 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
               {topic.title}
             </h3>
           </div>
-          <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-white/90 text-slate-600 border border-slate-200 shrink-0">
-            {cards.length}
-          </span>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {onExportTopic && cards.length > 0 && topic.title.toLowerCase().includes('action') && (
+              <button
+                type="button"
+                onClick={onExportTopic}
+                title="Select action items and push directly to sprint backlog"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold shadow-2xs transition-all hover:scale-[1.03] cursor-pointer"
+              >
+                <Sparkles className="w-2.5 h-2.5" />
+                <span>To Sprint</span>
+              </button>
+            )}
+            <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-white/90 text-slate-600 border border-slate-200 shrink-0">
+              {cards.length}
+            </span>
+          </div>
         </div>
         {topic.description && (
           <p className="text-[10px] text-slate-500 leading-tight pl-8 truncate">

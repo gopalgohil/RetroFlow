@@ -173,6 +173,30 @@ const retroBoardSchema = new mongoose.Schema(
       type: [String],
       default: [], // Whitelisted emails
     },
+    projectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project',
+      index: true,
+      default: null,
+    },
+    projectKey: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    sprintId: {
+      type: String,
+      default: null,
+    },
+    sprintName: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    isProjectScoped: {
+      type: Boolean,
+      default: true,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
