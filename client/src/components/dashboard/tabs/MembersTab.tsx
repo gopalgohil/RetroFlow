@@ -216,20 +216,40 @@ export const MembersTab: React.FC<MembersTabProps> = ({
           </div>
         </div>
 
-        {/* Members List */}
-        {isLoading && members.length === 0 ? (
-          <div className="py-16 text-center text-slate-400 text-xs flex flex-col items-center justify-center gap-2">
-            <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-            <span>Loading members from workspace...</span>
+        {/* Members List or Skeleton Loader */}
+        {isLoading ? (
+          <div className="divide-y divide-slate-100 px-5 sm:px-6">
+            {Array.from({ length: currentLimit || 5 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="py-3.5 flex items-center justify-between gap-4 animate-pulse"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Skeleton Avatar */}
+                  <div className="w-9 h-9 rounded-xl bg-slate-200/80 shrink-0" />
+                  {/* Skeleton Name & Email */}
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="h-3.5 w-28 sm:w-36 bg-slate-200/80 rounded-md" />
+                    <div className="h-2.5 w-36 sm:w-48 bg-slate-100 rounded-md" />
+                  </div>
+                </div>
+
+                {/* Skeleton Role & Status Pills */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="h-6 w-24 bg-slate-100 rounded-lg" />
+                  <div className="h-5 w-14 bg-slate-100 rounded-full" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : members.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-xs">
+          <div className="py-12 text-center text-slate-400 text-xs animate-in fade-in duration-150">
             {localSearch
               ? `No contributors found matching "${localSearch}". Try clearing search.`
               : 'No team members found. Whitelist developers using the input above.'}
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 px-5 sm:px-6">
+          <div className="divide-y divide-slate-100 px-5 sm:px-6 animate-in fade-in duration-150">
             {members.map((m) => (
               <div key={m.id || m.email} className="py-3.5 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
