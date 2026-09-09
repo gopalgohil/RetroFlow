@@ -45,11 +45,19 @@ function ProjectDetailContent() {
   const tabParam = searchParams.get('tab') || 'overview';
 
   const [project, setProject] = useState<Project | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sprints' | 'retros' | 'team'>(
     (tabParam as any) || 'overview'
   );
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCreateRetroOpen, setIsCreateRetroOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('retroflow_user');
+      if (saved) setCurrentUser(JSON.parse(saved));
+    } catch {}
+  }, []);
 
   // Sync tab with URL
   const handleTabChange = (newTab: 'overview' | 'sprints' | 'retros' | 'team') => {
@@ -144,15 +152,6 @@ function ProjectDetailContent() {
       </div>
     );
   }
-
-  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(null);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('retroflow_user');
-      if (saved) setCurrentUser(JSON.parse(saved));
-    } catch {}
-  }, []);
 
   const activeUser = currentUser || {
     name: 'Gopal Gohel',
