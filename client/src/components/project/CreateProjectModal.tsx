@@ -21,6 +21,7 @@ import {
 } from '@/types/project';
 import { MOCK_PROJECT_LEADS, ProjectDataService } from '@/services/mockProjectData';
 import { ProjectApiService } from '@/services/projectApi';
+import { api, ENDPOINTS } from '@/lib/api';
 import { Modal, StatusPill, UserAvatar } from '@/components/ui';
 
 interface CreateProjectModalProps {
@@ -36,6 +37,21 @@ const CADENCE_OPTIONS: { id: SprintCadence; label: string; desc: string }[] = [
   { id: 'custom', label: 'Custom', desc: 'Flexible days' },
 ];
 
+interface WorkspaceMemberOption {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+  avatar?: string;
+}
+
+const DEFAULT_WORKSPACE_LEADS: WorkspaceMemberOption[] = [
+  { id: 'lead-gopal', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com', role: 'Admin', avatar: 'GG' },
+  { id: 'lead-sarah', name: 'Sarah Jenkins', email: 'sarah.j@retroflow.io', role: 'Team Member', avatar: 'SJ' },
+  { id: 'lead-marcus', name: 'Marcus Chen', email: 'marcus.c@retroflow.io', role: 'Team Member', avatar: 'MC' },
+  { id: 'lead-priya', name: 'Priya Sharma', email: 'priya.s@retroflow.io', role: 'Team Member', avatar: 'PS' },
+];
+
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   isOpen,
   onClose,
@@ -47,9 +63,91 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [isKeyManuallyEdited, setIsKeyManuallyEdited] = useState(false);
   const [description, setDescription] = useState('');
   const [type, setType] = useState<ProjectType>('scrum');
-  const [leadId, setLeadId] = useState(MOCK_PROJECT_LEADS[0].id);
+  const [availableLeads, setAvailableLeads] = useState<WorkspaceMemberOption[]>(DEFAULT_WORKSPACE_LEADS);
+  const [selectedLeadEmail, setSelectedLeadEmail] = useState<string>('gopalgohel249@gmail.com');
   const [cadence, setCadence] = useState<SprintCadence>('2_weeks');
   const [customDays, setCustomDays] = useState(10);
+
+  // Dynamic Workspace Members fetch on Modal Open
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    let currentUser: any = null;
+    try {
+      const savedUser = localStorage.getItem('retroflow_user');
+      if (savedUser) currentUser = JSON.parse(savedUser);
+    } catch {}
+
+    api
+      .get(ENDPOINTS.MEMBERS, { params: { limit: 50 } })
+      .then((res) => {
+        const rawMembers = Array.isArray(res.data)
+          ? res.data
+          : res.data?.members || [];
+
+        const combinedMap = new Map<string, WorkspaceMemberOption>();
+
+        // 1. Current logged-in user (Admin / Creator) always at top
+        if (currentUser?.email) {
+          const userInitials = (currentUser.name || 'Admin')
+            .split(' ')
+            .map((n: string) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+
+          combinedMap.set(currentUser.email.toLowerCase().trim(), {
+            id: currentUser.id || 'current-user',
+            name: `${currentUser.name} (You)`,
+            email: currentUser.email,
+            role: currentUser.role === 'admin' ? 'Admin' : 'Manager',
+            avatar: userInitials,
+          });
+        }
+
+        // 2. Add real workspace members from MongoDB roster
+        rawMembers.forEach((m: any) => {
+          const email = (m.email || '').toLowerCase().trim();
+          if (email && !combinedMap.has(email)) {
+            const memberInitials = (m.name || email)
+              .split(' ')
+              .map((n: string) => n[0])
+              .join('')
+              .toUpperCase()
+              .slice(0, 2);
+
+            combinedMap.set(email, {
+              id: m.id || m._id || `lead-${email}`,
+              name: m.name || email.split('@')[0],
+              email: m.email,
+              role: m.role || 'Member',
+              avatar: memberInitials,
+            });
+          }
+        });
+
+        // 3. Fallback defaults if roster is small
+        DEFAULT_WORKSPACE_LEADS.forEach((d) => {
+          if (!combinedMap.has(d.email.toLowerCase())) {
+            combinedMap.set(d.email.toLowerCase(), d);
+          }
+        });
+
+        const list = Array.from(combinedMap.values());
+        setAvailableLeads(list);
+
+        if (currentUser?.email) {
+          setSelectedLeadEmail(currentUser.email);
+        } else if (list.length > 0) {
+          setSelectedLeadEmail(list[0].email);
+        }
+      })
+      .catch(() => {
+        if (currentUser?.email) {
+          setSelectedLeadEmail(currentUser.email);
+        }
+      });
+  }, [isOpen]);
 
   // Team Members State
   const [members, setMembers] = useState<
@@ -130,13 +228,44 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
     setIsSubmitting(true);
 
+    const chosenLead = availableLeads.find(
+      (l) => l.email.toLowerCase() === selectedLeadEmail.toLowerCase()
+    ) || {
+      id: 'lead-1',
+      name: 'Gopal Gohel',
+      email: selectedLeadEmail || 'gopalgohel249@gmail.com',
+      avatar: 'GG',
+    };
+
+    const cleanLeadName = chosenLead.name.replace(/\s*\(You\)\s*/i, '').trim();
+
+    // Automatically ensure the designated Project Lead is registered as Manager
+    const otherMembers = members.filter(
+      (m) => m.email.toLowerCase().trim() !== chosenLead.email.toLowerCase().trim()
+    );
+
+    const finalMembers = [
+      {
+        name: cleanLeadName,
+        email: chosenLead.email.toLowerCase().trim(),
+        role: 'Manager' as ProjectMemberRole,
+      },
+      ...otherMembers,
+    ];
+
     const payload: CreateProjectPayload = {
       name: name.trim(),
       key: key.trim() || name.slice(0, 3).toUpperCase(),
       description: description.trim(),
       type,
-      leadId,
-      members,
+      leadId: chosenLead.id,
+      lead: {
+        id: chosenLead.id,
+        name: cleanLeadName,
+        email: chosenLead.email,
+        avatar: chosenLead.avatar || cleanLeadName.slice(0, 2).toUpperCase(),
+      },
+      members: finalMembers,
       cadence,
       customCadenceDays: cadence === 'custom' ? customDays : undefined,
     };
@@ -301,13 +430,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             </label>
             <div className="relative">
               <select
-                value={leadId}
-                onChange={(e) => setLeadId(e.target.value)}
+                value={selectedLeadEmail}
+                onChange={(e) => setSelectedLeadEmail(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
               >
-                {MOCK_PROJECT_LEADS.map((lead) => (
-                  <option key={lead.id} value={lead.id}>
-                    {lead.name} ({lead.email})
+                {availableLeads.map((lead) => (
+                  <option key={lead.email} value={lead.email}>
+                    {lead.name} ({lead.email}) • {lead.role || 'Member'}
                   </option>
                 ))}
               </select>

@@ -145,11 +145,31 @@ function ProjectDetailContent() {
     );
   }
 
-  const user = {
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('retroflow_user');
+      if (saved) setCurrentUser(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const activeUser = currentUser || {
     name: 'Gopal Gohel',
     email: 'gopalgohel249@gmail.com',
     role: 'admin',
   };
+
+  const userEmail = activeUser.email?.toLowerCase().trim();
+  const isUserProjectLead = Boolean(
+    userEmail &&
+      (project.lead?.email?.toLowerCase().trim() === userEmail ||
+        project.members?.some(
+          (m) => m.email?.toLowerCase().trim() === userEmail && m.role === 'Manager'
+        ))
+  );
+
+  const canManageProject = activeUser.role === 'admin' || isUserProjectLead;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex selection:bg-indigo-500 selection:text-white font-sans">
@@ -162,7 +182,7 @@ function ProjectDetailContent() {
           }
         }}
         activeSessionsCount={1}
-        user={user}
+        user={activeUser}
         onLogout={() => router.push('/login')}
         isOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
@@ -186,13 +206,15 @@ function ProjectDetailContent() {
 
           {/* Right Header CTAs */}
           <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => setIsCreateRetroOpen(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.01] cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="hidden sm:inline">Launch Retro</span>
-            </button>
+            {canManageProject && (
+              <button
+                onClick={() => setIsCreateRetroOpen(true)}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.01] cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span className="hidden sm:inline">Launch Retro</span>
+              </button>
+            )}
 
             <Link
               href="/dashboard"
@@ -235,13 +257,22 @@ function ProjectDetailContent() {
                     />
                     {project.healthStatus.replace('_', ' ')}
                   </span>
+
+                  {isUserProjectLead && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                      <span>👑</span>
+                      <span>You are Project Lead</span>
+                    </span>
+                  )}
                 </div>
 
                 <p className="text-xs text-slate-500 max-w-2xl">{project.description}</p>
 
                 <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-1 font-medium">
                   <span>
-                    Lead: <strong className="text-slate-700">{project.lead.name}</strong>
+                    Lead:{' '}
+                    <strong className="text-slate-800">{project.lead?.name || 'Gopal Gohel'}</strong>
+                    {isUserProjectLead && <span className="text-indigo-600 font-bold ml-1">(You)</span>}
                   </span>
                   <span>•</span>
                   <span>

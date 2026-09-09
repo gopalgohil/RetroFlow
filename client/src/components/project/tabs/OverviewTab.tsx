@@ -19,6 +19,24 @@ interface OverviewTabProps {
 }
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToTab }) => {
+  const [currentUser, setCurrentUser] = React.useState<{ email?: string; name?: string; role?: string } | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('retroflow_user');
+      if (saved) setCurrentUser(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const userEmail = currentUser?.email?.toLowerCase().trim();
+  const isUserLead = Boolean(
+    userEmail &&
+      (project.lead?.email?.toLowerCase().trim() === userEmail ||
+        project.members?.some(
+          (m) => m.email?.toLowerCase().trim() === userEmail && m.role === 'Manager'
+        ))
+  );
+
   const activeSprint =
     project.activeSprint ||
     project.sprints.find((s) => s.status === 'active') ||
@@ -35,6 +53,46 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToT
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
+      {/* Project Lead Recognition Banner */}
+      {isUserLead && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-violet-500/10 border border-amber-300/70 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-200">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 text-white flex items-center justify-center font-black text-lg shadow-sm shrink-0">
+              👑
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-black uppercase tracking-wider text-amber-900">
+                  You are Project Lead / Manager
+                </p>
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-200/80 text-amber-950 border border-amber-300">
+                  Full Control
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Welcome, <strong>{currentUser?.name || 'Project Lead'}</strong>! You have lead privileges to plan sprints, track velocity, and launch retrospectives for <strong>{project.name}</strong>.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => onNavigateToTab('sprints')}
+              className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs transition-colors cursor-pointer"
+            >
+              Plan Sprints
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigateToTab('retros')}
+              className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+            >
+              Retrospectives
+            </button>
+          </div>
+        </div>
+      )}
       {/* 1. Reusable KPI Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Health Status */}

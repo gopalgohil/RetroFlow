@@ -233,8 +233,18 @@ class ProjectService {
       throw new Error(`Project key "${key}" already exists. Please choose a distinct key.`);
     }
 
-    const leadName = 'Gopal Gohel';
-    const leadEmail = 'gopalgohel249@gmail.com';
+    const leadName = payload.lead?.name?.trim() || 'Gopal Gohel';
+    const leadEmail = payload.lead?.email?.toLowerCase().trim() || 'gopalgohel249@gmail.com';
+    const leadAvatar =
+      payload.lead?.avatar ||
+      leadName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2) ||
+      'GG';
+    const leadId = payload.lead?.id || `lead-${Date.now()}`;
 
     const initialSprint = {
       id: `sprint-${crypto.randomUUID().slice(0, 8)}`,
@@ -251,20 +261,25 @@ class ProjectService {
       items: [],
     };
 
+    // Filter out if lead email is already in payload.members to avoid duplicate entries
+    const otherMembers = (payload.members || []).filter(
+      (m) => m.email?.toLowerCase().trim() !== leadEmail
+    );
+
     const members = [
       {
         id: `m-lead-${Date.now()}`,
         name: leadName,
         email: leadEmail,
         role: 'Manager',
-        avatar: 'GG',
+        avatar: leadAvatar,
         joinedAt: new Date(),
       },
-      ...(payload.members || []).map((m, idx) => ({
+      ...otherMembers.map((m, idx) => ({
         id: `m-${Date.now()}-${idx}`,
         name: m.name,
         email: m.email,
-        role: m.role,
+        role: m.role || 'Developer',
         avatar: m.name
           .split(' ')
           .map((n) => n[0])
@@ -284,11 +299,12 @@ class ProjectService {
       cadence: payload.cadence || '2_weeks',
       customCadenceDays: payload.customCadenceDays || 14,
       lead: {
-        id: 'lead-1',
+        id: leadId,
         name: leadName,
         email: leadEmail,
-        avatar: 'GG',
+        avatar: leadAvatar,
       },
+      createdBy: userId,
       members,
       sprints: [initialSprint],
       retrospectives: [],

@@ -102,7 +102,13 @@ export interface CreateProjectPayload {
   key: string;
   description?: string;
   type: ProjectType;
-  leadId: string;
+  leadId?: string;
+  lead?: {
+    id?: string;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
   members: Array<{
     name: string;
     email: string;

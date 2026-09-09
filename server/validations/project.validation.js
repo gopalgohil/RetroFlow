@@ -30,6 +30,14 @@ export const createProjectSchema = z.object({
   cadence: z.enum(['1_week', '2_weeks', '3_weeks', 'custom']).default('2_weeks'),
   customCadenceDays: z.coerce.number().min(1).max(90).optional(),
   leadId: z.string().optional(),
+  lead: z
+    .object({
+      id: z.string().optional(),
+      name: z.string().min(2, 'Lead name is required'),
+      email: z.string().email('Valid lead email is required'),
+      avatar: z.string().optional(),
+    })
+    .optional(),
   members: z.array(memberInputSchema).optional().default([]),
 });
 
