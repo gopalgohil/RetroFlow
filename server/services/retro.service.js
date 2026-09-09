@@ -342,7 +342,7 @@ class RetroService {
   }
 
   /**
-   * Vote on a sticky card (Enforces strictly 1 vote per developer / admin)
+   * Toggle Like / Unlike on a sticky card
    */
   async voteCard(identifier, cardId, voter = null) {
     if (!cardId) {
@@ -369,27 +369,35 @@ class RetroService {
       card.voters = [];
     }
 
-    // Strictly enforce 1 vote per user
-    if (card.voters.includes(voterName)) {
-      return {
-        cardId,
-        votes: card.votes || 0,
-        voters: card.voters,
-        alreadyVoted: true,
-      };
+    const existingIndex = card.voters.findIndex(
+      (v) => v.toLowerCase() === voterName.toLowerCase()
+    );
+
+    let hasVoted = false;
+
+    if (existingIndex !== -1) {
+      // UNLIKE: Remove vote & voter
+      card.voters.splice(existingIndex, 1);
+      card.votes = Math.max(0, (card.votes || 1) - 1);
+      hasVoted = false;
+    } else {
+      // LIKE: Add vote & voter
+      card.voters.push(voterName);
+      card.votes = (card.votes || 0) + 1;
+      hasVoted = true;
     }
 
-    card.voters.push(voterName);
-    card.votes = (card.votes || 0) + 1;
     await retro.save();
 
     return {
       cardId,
       votes: card.votes,
       voters: card.voters,
-      alreadyVoted: false,
+      hasVoted,
+      action: hasVoted ? 'liked' : 'unliked',
     };
   }
+
 
 }
 

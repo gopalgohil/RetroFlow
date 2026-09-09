@@ -171,8 +171,13 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
               votes: typeof c.votes === 'number' ? c.votes : 0,
               voters: Array.isArray(c.voters) ? c.voters : [],
               hasVoted: Array.isArray(c.voters) && (
-                c.voters.includes(currentAuthorName) ||
-                (currentUser?.email && c.voters.includes(currentUser.email))
+                c.voters.some((v: string) => {
+                    const vLower = v.toLowerCase().trim();
+                    return (
+                        (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim()) ||
+                        (currentUser?.email && vLower === currentUser.email.toLowerCase().trim())
+                    );
+                })
               ),
               createdAt: c.createdAt,
             }))
@@ -242,13 +247,34 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
                 authorEmail: c.authorEmail,
                 votes: typeof c.votes === 'number' ? c.votes : 0,
                 voters: Array.isArray(c.voters) ? c.voters : [],
-                hasVoted: Array.isArray(c.voters) && (
-                  c.voters.includes(currentAuthorName) ||
-                  (currentUser?.email && c.voters.includes(currentUser.email))
-                ),
+                hasVoted:
+                  Array.isArray(c.voters) &&
+                  c.voters.some(
+                    (v: string) => {
+                      const vLower = v.toLowerCase().trim();
+                      return (
+                        (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim()) ||
+                        (currentUser?.email && vLower === currentUser.email.toLowerCase().trim())
+                      );
+                    }
+                  ),
                 createdAt: c.createdAt,
               }))
             );
+            const votedCount = response.cards.filter(
+              (c: any) =>
+                Array.isArray(c.voters) &&
+                c.voters.some(
+                  (v: string) => {
+                    const vLower = v.toLowerCase().trim();
+                    return (
+                      (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim()) ||
+                      (currentUser?.email && vLower === currentUser.email.toLowerCase().trim())
+                    );
+                  }
+                )
+            ).length;
+            setRemainingVotes(Math.max(0, (retro?.votingLimit || 5) - votedCount));
           }
         }
       );
@@ -300,10 +326,15 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         prev.map((c) => {
           if (c.id === payload.cardId) {
             const updatedVoters = payload.voters || c.voters || [];
-            const hasVoted =
-              updatedVoters.includes(currentAuthorName) ||
-              (currentUser?.email && updatedVoters.includes(currentUser.email)) ||
-              Boolean(c.hasVoted);
+            const hasVoted = updatedVoters.some(
+              (v: string) => {
+                const vLower = v.toLowerCase().trim();
+                return (
+                  (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim()) ||
+                  (currentUser?.email && vLower === currentUser.email.toLowerCase().trim())
+                );
+              }
+            );
 
             return {
               ...c,
@@ -503,40 +534,62 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
 
   const voteCard = useCallback(
     async (cardId: string) => {
-      if (remainingVotes <= 0 || !shareToken) return;
+      if (!shareToken) return;
 
       const targetCard = cards.find((c) => c.id === cardId);
       if (!targetCard) return;
 
       const voterIdentifier = currentAuthorName;
-      const alreadyVoted =
-        targetCard.hasVoted ||
-        (Array.isArray(targetCard.voters) && (
-          targetCard.voters.includes(voterIdentifier) ||
-          (currentUser?.email && targetCard.voters.includes(currentUser.email))
-        ));
+      const isCurrentlyVoted =
+        Boolean(targetCard.hasVoted) ||
+        (Array.isArray(targetCard.voters) &&
+          targetCard.voters.some(
+            (v) =>
+              v.toLowerCase() === voterIdentifier.toLowerCase() ||
+              (currentUser?.email && v.toLowerCase() === currentUser.email.toLowerCase())
+          ));
 
-      // Strictly enforce 1 vote per developer / admin!
-      if (alreadyVoted) {
+      // If user has not voted yet and has no votes remaining, do nothing
+      if (!isCurrentlyVoted && remainingVotes <= 0) {
         return;
       }
 
-      // Optimistic Vote
+      const willBeVoted = !isCurrentlyVoted;
+
+      // Optimistic Like / Unlike Toggle
       setCards((prev) =>
         prev.map((c) => {
           if (c.id === cardId) {
-            const newVoters = Array.from(new Set([...(c.voters || []), voterIdentifier]));
+            let updatedVoters = Array.isArray(c.voters) ? [...c.voters] : [];
+            if (willBeVoted) {
+              if (!updatedVoters.some((v) => v.toLowerCase() === voterIdentifier.toLowerCase())) {
+                updatedVoters.push(voterIdentifier);
+              }
+            } else {
+              updatedVoters = updatedVoters.filter(
+                (v) =>
+                  v.toLowerCase() !== voterIdentifier.toLowerCase() &&
+                  (!currentUser?.email || v.toLowerCase() !== currentUser.email.toLowerCase())
+              );
+            }
+
+            const newVoteCount = willBeVoted
+              ? (c.votes || 0) + 1
+              : Math.max(0, (c.votes || 1) - 1);
+
             return {
               ...c,
-              votes: (c.votes || 0) + 1,
-              voters: newVoters,
-              hasVoted: true,
+              votes: newVoteCount,
+              voters: updatedVoters,
+              hasVoted: willBeVoted,
             };
           }
           return c;
         })
       );
-      setRemainingVotes((prev) => Math.max(0, prev - 1));
+
+      // Dynamically adjust remaining votes quota
+      setRemainingVotes((prev) => (willBeVoted ? Math.max(0, prev - 1) : prev + 1));
 
       const socket = getRetroSocket();
       if (socket && socket.connected) {
@@ -551,12 +604,13 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
             voter: voterIdentifier,
           });
         } catch (err) {
-          console.error('[RetroSession] Failed to vote card:', err);
+          console.error('[RetroSession] Failed to toggle vote on card:', err);
         }
       }
     },
     [cards, remainingVotes, shareToken, currentUser?.email, currentAuthorName]
   );
+
 
   return {
     retro,

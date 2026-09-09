@@ -202,7 +202,7 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 5. Upvote Sticky Card (Enforce 1 vote per user & emit voters)
+    // 5. Toggle Like / Unlike Sticky Card (Dynamic real-time toggle)
     socket.on('card:vote', async (payload, callback) => {
       try {
         const { shareToken, cardId, voter } = payload || {};
@@ -229,21 +229,23 @@ export function initRetroSocket(io) {
           targetCard.voters = [];
         }
 
-        // Strictly enforce 1 vote per person per card
-        if (targetCard.voters.includes(voterName)) {
-          if (callback) {
-            callback({
-              success: true,
-              votes: targetCard.votes || 0,
-              voters: targetCard.voters,
-              alreadyVoted: true,
-            });
-          }
-          return;
+        const existingIndex = targetCard.voters.findIndex(
+          (v) => v.toLowerCase() === voterName.toLowerCase()
+        );
+
+        let hasVoted = false;
+        if (existingIndex !== -1) {
+          // UNLIKE
+          targetCard.voters.splice(existingIndex, 1);
+          targetCard.votes = Math.max(0, (targetCard.votes || 1) - 1);
+          hasVoted = false;
+        } else {
+          // LIKE
+          targetCard.voters.push(voterName);
+          targetCard.votes = (targetCard.votes || 0) + 1;
+          hasVoted = true;
         }
 
-        targetCard.voters.push(voterName);
-        targetCard.votes = (targetCard.votes || 0) + 1;
         await board.save();
 
         const roomName = `retro:${shareToken}`;
@@ -258,14 +260,16 @@ export function initRetroSocket(io) {
             success: true,
             votes: targetCard.votes,
             voters: targetCard.voters,
-            alreadyVoted: false,
+            hasVoted,
+            action: hasVoted ? 'liked' : 'unliked',
           });
         }
       } catch (err) {
         console.error('[Socket] card:vote error:', err);
-        if (callback) callback({ error: 'Failed to cast vote' });
+        if (callback) callback({ error: 'Failed to toggle vote' });
       }
     });
+
 
 
     // 6. Disconnect

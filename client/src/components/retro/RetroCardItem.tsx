@@ -59,7 +59,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
     setIsEditing(false);
   };
 
-  const canVote = !card.hasVoted && remainingVotes > 0;
+  const canInteract = card.hasVoted || remainingVotes > 0;
 
   return (
     <div
@@ -116,14 +116,14 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             <div className="relative group/vote-popover">
               <button
                 type="button"
-                onClick={() => canVote && onVote(card.id)}
-                disabled={card.hasVoted || remainingVotes <= 0}
+                onClick={() => canInteract && onVote(card.id)}
+                disabled={!card.hasVoted && remainingVotes <= 0}
                 title={
                   card.hasVoted
-                    ? 'You have voted on this card (1 vote limit)'
+                    ? 'You liked this thought. Click to unlike'
                     : remainingVotes <= 0
                     ? 'No votes remaining'
-                    : 'Click to vote on this thought (1 vote limit)'
+                    : 'Click to like this thought (1 vote limit)'
                 }
                 style={{
                   color: card.hasVoted ? '#ffffff' : topicColor,
@@ -131,9 +131,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                   borderColor: card.hasVoted ? topicColor : `${topicColor}30`,
                 }}
                 className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all shadow-2xs ${
-                  card.hasVoted
-                    ? 'cursor-default opacity-95'
-                    : remainingVotes <= 0
+                  !card.hasVoted && remainingVotes <= 0
                     ? 'opacity-50 cursor-not-allowed'
                     : 'hover:scale-105 active:scale-95 cursor-pointer'
                 }`}
@@ -199,9 +197,12 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 )}
 
                 {card.hasVoted && (
-                  <div className="mt-2 pt-1.5 border-t border-slate-100 text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
-                    <Check className="w-3 h-3" />
-                    <span>You voted (1 vote max)</span>
+                  <div className="mt-2 pt-1.5 border-t border-slate-100 text-[10px] font-semibold text-emerald-600 flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      <span>You liked this</span>
+                    </div>
+                    <span className="text-[9px] text-slate-400 font-normal">Click to unlike</span>
                   </div>
                 )}
               </div>
