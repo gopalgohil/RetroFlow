@@ -25,9 +25,10 @@ export const authLimiter = rateLimit({
  */
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200, // Max 200 requests per 15 mins
+  max: process.env.NODE_ENV === 'production' ? 1000 : 50000,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.path === '/health' || process.env.NODE_ENV === 'development',
   handler: (req, res, next) => {
     next(new ApiError(429, 'Too many requests. Please slow down.'));
   },
