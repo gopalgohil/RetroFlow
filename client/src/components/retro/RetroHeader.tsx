@@ -142,14 +142,16 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           </span>
         </div>
 
-        {/* Invite Teammates Action */}
-        <button
-          onClick={onOpenInvite}
-          className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 text-xs font-bold shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
-        >
-          <Share2 className="w-3.5 h-3.5 text-indigo-600" />
-          <span className="hidden sm:inline">Invite Teammates</span>
-        </button>
+        {/* Invite Teammates Action (Restricted: Admin & Manager / Facilitator only) */}
+        {isFacilitator && (
+          <button
+            onClick={onOpenInvite}
+            className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 text-xs font-bold shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
+          >
+            <Share2 className="w-3.5 h-3.5 text-indigo-600" />
+            <span className="hidden sm:inline">Invite Teammates</span>
+          </button>
+        )}
 
         {/* Facilitator Push to Sprint Quick Action */}
         {isFacilitator && onExportToSprint && (

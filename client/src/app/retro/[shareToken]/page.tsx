@@ -97,12 +97,14 @@ export default function LiveRetroBoardPage({
         verifiedEmail={session.verifiedGuestEmail}
       />
 
-      {/* 4. Team Share & Email Invite Modal */}
-      <ShareInviteModal
-        isOpen={isInviteModalOpen}
-        onClose={() => setIsInviteModalOpen(false)}
-        session={session.retro}
-      />
+      {/* 4. Team Share & Email Invite Modal (Facilitator / Admin / Manager only) */}
+      {session.isFacilitator && (
+        <ShareInviteModal
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+          session={session.retro}
+        />
+      )}
 
       {/* 5. End Session & Action Items Export to Sprint Modal */}
       <EndSessionExportModal

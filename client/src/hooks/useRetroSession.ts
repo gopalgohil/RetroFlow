@@ -203,7 +203,12 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
   // Derive Facilitator Access
   const isFacilitator = useMemo(() => {
     if (!currentUser) return false;
-    if (currentUser.role === 'admin' || currentUser.email === 'gopalgohel249@gmail.com') {
+    const role = currentUser.role?.toLowerCase();
+    if (
+      role === 'admin' ||
+      role === 'manager' ||
+      currentUser.email === 'gopalgohel249@gmail.com'
+    ) {
       return true;
     }
     if (retro?.createdBy) {
