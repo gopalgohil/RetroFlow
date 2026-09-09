@@ -77,11 +77,12 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
     } catch {}
   }
 
+  const isAuthEndpoint = endpoint.includes('/auth/');
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-    ...(userEmail ? { 'x-user-email': userEmail } : {}),
-    ...(userRole ? { 'x-user-role': userRole } : {}),
+    ...(authToken && !isAuthEndpoint ? { Authorization: `Bearer ${authToken}` } : {}),
+    ...(userEmail && !isAuthEndpoint ? { 'x-user-email': userEmail } : {}),
+    ...(userRole && !isAuthEndpoint ? { 'x-user-role': userRole } : {}),
     ...headers,
   };
 
