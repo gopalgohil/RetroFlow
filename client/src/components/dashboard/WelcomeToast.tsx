@@ -29,6 +29,8 @@ export const WelcomeToast: React.FC<WelcomeToastProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(isOpen);
   const [progress, setProgress] = useState(100);
+  const onCloseRef = React.useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!isOpen) {
@@ -40,6 +42,8 @@ export const WelcomeToast: React.FC<WelcomeToastProps> = ({
     setProgress(100);
 
     const startTime = Date.now();
+    let timeoutId: NodeJS.Timeout | null = null;
+
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const remainingPct = Math.max(0, 100 - (elapsed / autoDismissMs) * 100);
@@ -48,12 +52,17 @@ export const WelcomeToast: React.FC<WelcomeToastProps> = ({
       if (remainingPct <= 0) {
         clearInterval(interval);
         setIsVisible(false);
-        setTimeout(onClose, 250);
+        timeoutId = setTimeout(() => {
+          onCloseRef.current();
+        }, 250);
       }
     }, 40);
 
-    return () => clearInterval(interval);
-  }, [isOpen, onClose, autoDismissMs]);
+    return () => {
+      clearInterval(interval);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isOpen, autoDismissMs]);
 
   if (!isOpen && !isVisible) return null;
 

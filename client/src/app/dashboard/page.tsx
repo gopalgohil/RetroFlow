@@ -64,16 +64,24 @@ function DashboardContent() {
     user && (user.role === 'admin' || user.email === 'gopalgohel249@gmail.com')
   );
 
-  // Welcome Toast Notification (triggered on fresh login)
+  // Welcome Toast Notification (triggered only once on fresh login)
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const shouldGreet = sessionStorage.getItem('retroflow_welcome_toast');
-      if (shouldGreet === 'true') {
+      const alreadyGreeted = sessionStorage.getItem('retroflow_toast_dismissed');
+      if (shouldGreet === 'true' && alreadyGreeted !== 'true') {
         setShowWelcomeToast(true);
         sessionStorage.removeItem('retroflow_welcome_toast');
       }
+    }
+  }, []);
+
+  const handleCloseWelcomeToast = React.useCallback(() => {
+    setShowWelcomeToast(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('retroflow_toast_dismissed', 'true');
     }
   }, []);
 
@@ -223,7 +231,7 @@ function DashboardContent() {
       <WelcomeToast
         user={user}
         isOpen={showWelcomeToast}
-        onClose={() => setShowWelcomeToast(false)}
+        onClose={handleCloseWelcomeToast}
       />
 
       {/* Global Toast Notification */}

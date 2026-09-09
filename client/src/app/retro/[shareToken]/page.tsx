@@ -54,10 +54,6 @@ export default function LiveRetroBoardPage({
         sprintName={session.retro.sprintName}
         onToggleReveal={() => session.setIsRevealed((prev) => !prev)}
         onOpenInvite={() => setIsInviteModalOpen(true)}
-        onExportToSprint={() => {
-          setExportModalMode('export_only');
-          setIsEndSessionModalOpen(true);
-        }}
         onEndSession={() => {
           setExportModalMode('end_and_export');
           setIsEndSessionModalOpen(true);

@@ -18,7 +18,6 @@ export interface RetroHeaderProps {
   sprintName?: string;
   onToggleReveal: () => void;
   onOpenInvite: () => void;
-  onExportToSprint?: () => void;
   onEndSession?: () => void;
 }
 
@@ -41,7 +40,6 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
   sprintName,
   onToggleReveal,
   onOpenInvite,
-  onExportToSprint,
   onEndSession,
 }) {
   return (
@@ -153,17 +151,6 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           </button>
         )}
 
-        {/* Facilitator Push to Sprint Quick Action */}
-        {isFacilitator && onExportToSprint && (
-          <button
-            onClick={onExportToSprint}
-            className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/90 text-indigo-700 text-xs font-bold shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
-            title="Select action items and push directly to sprint backlog"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-            <span className="hidden sm:inline">Push to Sprint</span>
-          </button>
-        )}
 
         {/* Facilitator End Session & Export Action */}
         {isFacilitator && onEndSession && (
