@@ -231,8 +231,8 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({ project, onProjectUpdate
                       <Layers className="w-3.5 h-3.5 text-indigo-600" />
                       Sprint Backlog Stories & Action Items ({sprint.items.length})
                     </span>
-                    <span className="text-[11px] text-slate-400">
-                      Estimated Story Points: {sprint.totalStoryPoints} SP
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      Total Items: {sprint.items.length}
                     </span>
                   </div>
 
@@ -272,9 +272,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({ project, onProjectUpdate
                                 </span>
                               </div>
                             )}
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700">
-                              {item.storyPoints || 3} SP
-                            </span>
                             <StatusPill status={item.status} />
                           </div>
                         </div>
@@ -306,7 +303,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({ project, onProjectUpdate
           message={
             confirmSprint.action === 'start'
               ? 'Starting this sprint will initiate active tracking, burndown counters, and mark any currently active sprint as completed.'
-              : 'Completing this sprint will lock story point delivery and prepare open tickets to roll over into the next upcoming sprint.'
+              : 'Completing this sprint will complete current tickets and prepare open items to roll over into the next sprint.'
           }
           confirmLabel={confirmSprint.action === 'start' ? 'Start Sprint' : 'Complete Sprint'}
           variant={confirmSprint.action === 'start' ? 'primary' : 'success'}

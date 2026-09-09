@@ -150,7 +150,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToT
         {/* Metric 4: Average Velocity */}
         <MetricCard
           title="Team Velocity"
-          value={`${avgVelocity} SP`}
+          value={`${avgVelocity}`}
           trend={{ value: '+12% trend', isPositive: true }}
           icon={<TrendingUp className="w-4 h-4" />}
           variant="violet"
@@ -169,7 +169,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToT
                 <StatusPill status="upcoming" label="Last 5 Sprints" />
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Comparison of committed story points versus actual points delivered.
+                Comparison of committed tasks versus actual items delivered.
               </p>
             </div>
 
@@ -199,19 +199,19 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToT
                     className="flex-1 flex flex-col items-center gap-2 h-full justify-end group"
                   >
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold bg-slate-900 text-white px-1.5 py-0.5 rounded shadow-xs mb-1 pointer-events-none">
-                      {item.completedPoints}/{item.committedPoints} SP
+                      {item.completedPoints}/{item.committedPoints}
                     </div>
 
                     <div className="w-full max-w-[48px] flex items-end justify-center gap-1.5 h-36">
                       <div
                         className="w-1/2 bg-slate-200/90 rounded-t-md transition-all duration-300 group-hover:bg-slate-300"
                         style={{ height: `${committedHeight}%` }}
-                        title={`Committed: ${item.committedPoints} SP`}
+                        title={`Committed: ${item.committedPoints}`}
                       />
                       <div
                         className="w-1/2 bg-gradient-to-t from-indigo-700 to-indigo-500 rounded-t-md transition-all duration-300 group-hover:from-indigo-600 group-hover:to-indigo-400 shadow-xs"
                         style={{ height: `${completedHeight}%` }}
-                        title={`Completed: ${item.completedPoints} SP`}
+                        title={`Completed: ${item.completedPoints}`}
                       />
                     </div>
                     <span className="text-[10px] font-semibold text-slate-500 truncate w-full text-center">
@@ -222,9 +222,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToT
               })}
             </div>
             <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2 px-1">
-              <span>0 SP</span>
-              <span>25 SP</span>
-              <span>50 SP Target</span>
+              <span>0</span>
+              <span>25</span>
+              <span>50 Target</span>
             </div>
           </div>
         </div>

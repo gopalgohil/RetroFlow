@@ -9,7 +9,6 @@ import {
   Layers,
   Check,
   User,
-  Hash,
   ListFilter,
   CheckSquare,
   Square,
@@ -72,7 +71,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   // Selected item IDs (multi-select checkboxes)
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
 
-  // Per-item configuration (assignee, story points, priority)
+  // Per-item configuration (assignee, priority)
   const [itemConfigs, setItemConfigs] = useState<Record<string, ItemConfig>>({});
 
   // Auto-select first project & suggested sprint
@@ -140,14 +139,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       },
     }));
   };
-
-  // Calculate total story points for selected items
-  const totalSelectedSP = useMemo(() => {
-    return selectedCardIds.reduce((sum, id) => {
-      const config = itemConfigs[id];
-      return sum + (config?.storyPoints || 3);
-    }, 0);
-  }, [selectedCardIds, itemConfigs]);
 
   const handleExportAndCommit = async () => {
     if (!selectedProject || selectedCardIds.length === 0) return;
@@ -235,7 +226,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
               <span>
                 {isExporting
                   ? 'Adding to Backlog...'
-                  : `Export (${selectedCardIds.length}) Items to Sprint • ${totalSelectedSP} SP`}
+                  : `Export (${selectedCardIds.length}) Items to Sprint`}
               </span>
             </button>
           </>
@@ -256,8 +247,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
               </h4>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
                 Transferred to <strong>{selectedProject?.name}</strong> under{' '}
-                <span className="text-indigo-600 font-semibold">{lastExportedSprint?.name}</span> with total{' '}
-                <span className="font-bold text-slate-800">{totalSelectedSP} SP</span>.
+                <span className="text-indigo-600 font-semibold">{lastExportedSprint?.name}</span>.
               </p>
             </div>
 
@@ -342,7 +332,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                     Select Action Items to Export ({selectedCardIds.length}/{actionCards.length})
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-                    Total: {totalSelectedSP} SP
+                    {selectedCardIds.length} Selected
                   </span>
                 </div>
 
@@ -410,7 +400,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                           </div>
                         </div>
 
-                        {/* Bottom: Assignee & Story Points Selector (Only enabled if selected) */}
+                        {/* Bottom: Assignee & Priority Selector (Only enabled if selected) */}
                         {isSelected && (
                           <div className="flex flex-wrap items-center gap-2 pl-7 pt-1 border-t border-indigo-100/80">
                             {/* Assignee Selector */}
@@ -429,26 +419,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                 {selectedProject?.members?.map((m) => (
                                   <option key={m.id || m.name} value={m.name}>
                                     {m.name} ({m.role})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-
-                            {/* Story Points Selector */}
-                            <div className="flex items-center gap-1.5">
-                              <Hash className="w-3 h-3 text-slate-400" />
-                              <select
-                                value={cfg.storyPoints}
-                                onChange={(e) =>
-                                  handleUpdateItemConfig(card.id, {
-                                    storyPoints: Number(e.target.value),
-                                  })
-                                }
-                                className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
-                              >
-                                {[1, 2, 3, 5, 8, 13].map((pts) => (
-                                  <option key={pts} value={pts}>
-                                    {pts} SP
                                   </option>
                                 ))}
                               </select>
