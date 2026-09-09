@@ -20,6 +20,7 @@ interface ProjectsTabProps {
 export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ email?: string; name?: string; role?: string } | null>(null);
   const [filterMode, setFilterMode] = useState<'all' | 'managed'>('all');
@@ -31,25 +32,24 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
     } catch {}
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
-    // Live REST API request -> visible in browser Network tab!
-    ProjectApiService.getProjects()
-      .then((list) => {
-        if (isMounted && list && list.length > 0) {
-          setProjects(list);
-        } else if (isMounted) {
-          setProjects(ProjectDataService.getProjects());
-        }
-      })
-      .catch(() => {
-        if (isMounted) setProjects(ProjectDataService.getProjects());
-      });
+  const fetchProjects = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Live REST API request -> visible in browser Network tab!
+      const list = await ProjectApiService.getProjects();
+      setProjects(list || []);
+    } catch (err) {
+      console.warn('[ProjectsTab] Live API request fallback:', err);
+      const fallback = ProjectDataService.getProjects();
+      setProjects(fallback || []);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [isCreateModalOpen]);
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects, isCreateModalOpen]);
 
   const myManagedProjects = projects.filter((p) => {
     const userEmail = currentUser?.email?.toLowerCase().trim();
@@ -70,16 +70,19 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              Manager Module
+              {isAdmin ? 'Admin Supervision' : 'My Initiatives'}
             </span>
-            <span className="text-xs text-slate-300">• {projects.length} Initiative Active</span>
+            <span className="text-xs text-slate-300">
+              • {projects.length} {isAdmin ? 'Workspace Projects' : 'Assigned Projects'}
+            </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
-            Agile Project & Sprint Delivery
+            {isAdmin ? 'Enterprise Project & Sprint Delivery' : 'Assigned Agile Projects'}
           </h2>
           <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
-            Payment Gateway Integration module with live Scrum sprint cadences, velocity metrics,
-            and automated retro action item backlogs.
+            {isAdmin
+              ? 'Complete organization supervisory view across all Scrum sprint cadences, velocity metrics, and retrospectives.'
+              : `Showing initiatives where your account (${currentUser?.email || 'logged in user'}) is registered as Project Lead or member.`}
           </p>
         </div>
 
@@ -136,23 +139,67 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
         </p>
       </div>
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {displayedProjects.length === 0 ? (
-          <div className="col-span-full p-12 text-center rounded-2xl bg-white border border-slate-200 space-y-2">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-lg mx-auto">
-              📂
+      {/* Loading Skeleton during real Network API request */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((n) => (
+            <div
+              key={n}
+              className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4 animate-pulse"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-200" />
+                  <div className="space-y-1.5">
+                    <div className="w-28 h-3.5 bg-slate-200 rounded" />
+                    <div className="w-16 h-2.5 bg-slate-100 rounded" />
+                  </div>
+                </div>
+                <div className="w-16 h-5 bg-slate-100 rounded-full" />
+              </div>
+              <div className="h-10 bg-slate-50 rounded-xl" />
+              <div className="space-y-2">
+                <div className="w-full h-3 bg-slate-100 rounded" />
+                <div className="w-2/3 h-3 bg-slate-100 rounded" />
+              </div>
+              <div className="h-16 bg-slate-50 rounded-xl" />
+              <div className="h-9 bg-slate-200 rounded-xl" />
             </div>
-            <p className="text-sm font-bold text-slate-800">
-              {filterMode === 'managed' ? 'No Projects Managed by You' : 'No Projects Found'}
-            </p>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              {filterMode === 'managed'
-                ? 'You are not assigned as Project Lead for any project yet. Create a project or ask an Admin to assign you as Lead.'
-                : 'Initialize your first Scrum or Kanban agile delivery project above.'}
-            </p>
-          </div>
-        ) : (
+          ))}
+        </div>
+      ) : (
+        /* Projects Grid */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayedProjects.length === 0 ? (
+            <div className="col-span-full p-12 text-center rounded-2xl bg-white border border-slate-200 space-y-3">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
+                {filterMode === 'managed' ? '👑' : '🔒'}
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-slate-900">
+                  {filterMode === 'managed'
+                    ? 'No Projects Managed by You'
+                    : isAdmin
+                    ? 'No Projects in Workspace'
+                    : 'No Assigned Projects'}
+                </h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  {filterMode === 'managed'
+                    ? 'You are not assigned as Project Lead for any project yet.'
+                    : isAdmin
+                    ? 'Initialize your first Scrum or Kanban agile delivery project above.'
+                    : `You haven't been assigned to any project yet. Only projects where your email (${
+                        currentUser?.email || 'your account'
+                      }) is added will appear here.`}
+                </p>
+              </div>
+              {!isAdmin && filterMode !== 'managed' && (
+                <p className="text-[11px] text-slate-400">
+                  Contact your workspace Administrator to get invited to active projects.
+                </p>
+              )}
+            </div>
+          ) : (
           displayedProjects.map((project) => {
             const activeSprint =
               project.activeSprint ||
@@ -296,14 +343,15 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
           );
         })
       )}
-      </div>
+        </div>
+      )}
 
       {/* Create Project Modal */}
       <CreateProjectModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onProjectCreated={(newProj) => {
-          setProjects(ProjectDataService.getProjects());
+          fetchProjects();
           router.push(`/projects/${newProj.id}`);
         }}
       />

@@ -46,6 +46,7 @@ function ProjectDetailContent() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(null);
+  const [accessDeniedError, setAccessDeniedError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sprints' | 'retros' | 'team'>(
     (tabParam as any) || 'overview'
   );
@@ -68,6 +69,7 @@ function ProjectDetailContent() {
 
   useEffect(() => {
     let isMounted = true;
+    setAccessDeniedError(null);
     // Live REST API request -> visible in browser Network tab!
     ProjectApiService.getProjectById(projectId)
       .then((p) => {
@@ -75,8 +77,15 @@ function ProjectDetailContent() {
           setProject(p);
         }
       })
-      .catch(() => {
+      .catch((err: any) => {
         if (isMounted) {
+          if (err?.message?.includes('Access Denied') || err?.status === 403) {
+            setAccessDeniedError(
+              err.message ||
+                'Access Denied: You are not assigned as a member or lead of this project.'
+            );
+            return;
+          }
           const fallback = ProjectDataService.getProjectById(projectId);
           if (fallback) setProject(fallback);
         }
@@ -141,6 +150,37 @@ function ProjectDetailContent() {
       }
     }
   };
+
+  if (accessDeniedError) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
+        <div className="max-w-md w-full p-8 rounded-3xl bg-white border border-slate-200/80 shadow-xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
+            🛡️
+          </div>
+          <div className="space-y-1.5">
+            <h2 className="text-lg font-bold text-slate-900">Project Access Restricted</h2>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              {accessDeniedError}
+            </p>
+          </div>
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px] text-slate-500 text-left">
+            <p>
+              <strong>RBAC Enterprise Policy:</strong> Non-admin users can only view initiatives
+              they are actively assigned to as a Team Member or Project Lead.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard')}
+            className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+          >
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!project) {
     return (

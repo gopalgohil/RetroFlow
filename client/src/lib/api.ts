@@ -54,13 +54,30 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
     if (queryStr) url += `?${queryStr}`;
   }
 
-  // Retrieve JWT auth token from localStorage if in browser environment
-  const authToken =
-    token || (typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null);
+  // Retrieve JWT auth token and user context from localStorage if in browser environment
+  let authToken = token || null;
+  let userEmail: string | null = null;
+  let userRole: string | null = null;
+
+  if (typeof window !== 'undefined') {
+    if (!authToken) {
+      authToken = localStorage.getItem('retroflow_token');
+    }
+    try {
+      const savedUser = localStorage.getItem('retroflow_user');
+      if (savedUser) {
+        const u = JSON.parse(savedUser);
+        userEmail = u.email || null;
+        userRole = u.role || null;
+      }
+    } catch {}
+  }
 
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
     ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    ...(userEmail ? { 'x-user-email': userEmail } : {}),
+    ...(userRole ? { 'x-user-role': userRole } : {}),
     ...headers,
   };
 
@@ -71,14 +88,18 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
 
   const isDev = process.env.NODE_ENV !== 'production';
 
-  // 1. Log outgoing request in development console
+  // 1. Log outgoing request in development console with full payload for network observability
   if (isDev) {
     const method = (config.method || 'GET').toUpperCase();
-    console.groupCollapsed(`%c🚀 [API Call] ${method} ${endpoint}`, 'color: #6366f1; font-weight: bold;');
-    console.log('URL:', url);
+    console.groupCollapsed(
+      `%c🚀 [API Call] ${method} ${endpoint}`,
+      'color: #6366f1; font-weight: bold;'
+    );
+    console.log('📍 Full URL:', url);
+    console.log('👤 Request User Context:', { email: userEmail, role: userRole });
     if (config.body) {
       try {
-        console.log('📦 Payload:', JSON.parse(config.body as string));
+        console.log('📦 JSON Payload:', JSON.parse(config.body as string));
       } catch {
         console.log('📦 Payload:', config.body);
       }

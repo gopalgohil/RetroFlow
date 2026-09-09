@@ -17,12 +17,14 @@ export interface ApiResponseWrapper<T> {
 
 export class ProjectApiService {
   /**
-   * Fetch all agile projects
+   * Fetch all agile projects (RBAC filtered)
    * GET /api/projects
    */
   static async getProjects(): Promise<Project[]> {
-    const res = await api.get<ApiResponseWrapper<Project[]>>(ENDPOINTS.PROJECTS);
-    return res.data || [];
+    const res = await api.get<any>(ENDPOINTS.PROJECTS);
+    if (Array.isArray(res)) return res;
+    if (Array.isArray(res?.data)) return res.data;
+    return [];
   }
 
   /**
@@ -30,8 +32,8 @@ export class ProjectApiService {
    * GET /api/projects/:id
    */
   static async getProjectById(idOrKey: string): Promise<Project> {
-    const res = await api.get<ApiResponseWrapper<Project>>(`${ENDPOINTS.PROJECTS}/${idOrKey}`);
-    return res.data;
+    const res = await api.get<any>(`${ENDPOINTS.PROJECTS}/${idOrKey}`);
+    return res?.data || res;
   }
 
   /**
@@ -39,8 +41,8 @@ export class ProjectApiService {
    * POST /api/projects
    */
   static async createProject(payload: CreateProjectPayload): Promise<Project> {
-    const res = await api.post<ApiResponseWrapper<Project>>(ENDPOINTS.PROJECTS, payload);
-    return res.data;
+    const res = await api.post<any>(ENDPOINTS.PROJECTS, payload);
+    return res?.data || res;
   }
 
   /**

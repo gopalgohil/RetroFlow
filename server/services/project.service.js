@@ -193,17 +193,39 @@ class ProjectService {
   }
 
   /**
-   * Retrieve all projects (with auto-seeding if empty)
+   * Retrieve projects with Enterprise RBAC filtering
+   * - Admin: Returns all projects across the enterprise organization
+   * - Member/Developer/QA: Strictly returns projects where the user is Lead, assigned in Members, or creator
    */
-  async getAllProjects() {
+  async getAllProjects(currentUser = null) {
     await this.ensureSeededProject();
+
+    // 1. If Admin: global supervisory visibility across all initiatives
+    if (currentUser?.role?.toLowerCase() === 'admin') {
+      return await Project.find().sort({ createdAt: -1 });
+    }
+
+    // 2. If authenticated regular member: strictly return projects where user is assigned
+    if (currentUser?.email) {
+      const email = currentUser.email.toLowerCase().trim();
+      const query = {
+        $or: [
+          { 'lead.email': { $regex: new RegExp(`^${email}$`, 'i') } },
+          { 'members.email': { $regex: new RegExp(`^${email}$`, 'i') } },
+          ...(currentUser._id ? [{ createdBy: currentUser._id }] : []),
+        ],
+      };
+      return await Project.find(query).sort({ createdAt: -1 });
+    }
+
+    // 3. Fallback for unauthenticated/demo requests
     return await Project.find().sort({ createdAt: -1 });
   }
 
   /**
-   * Find project by MongoDB _id, custom id, or key
+   * Find project by MongoDB _id, custom id, or key with zero-trust RBAC access check
    */
-  async getProjectByIdOrKey(idOrKey) {
+  async getProjectByIdOrKey(idOrKey, currentUser = null) {
     if (!idOrKey) return null;
     await this.ensureSeededProject();
 
@@ -217,7 +239,24 @@ class ProjectService {
     }
 
     if (!project) {
-      project = await Project.findOne({ key: 'PGI' }) || await Project.findOne();
+      project = (await Project.findOne({ key: 'PGI' })) || (await Project.findOne());
+    }
+
+    if (!project) return null;
+
+    // RBAC Authorization enforcement for non-admin users
+    if (currentUser && currentUser.role?.toLowerCase() !== 'admin') {
+      const email = currentUser.email?.toLowerCase().trim();
+      const isLead = project.lead?.email?.toLowerCase().trim() === email;
+      const isMember = project.members?.some((m) => m.email?.toLowerCase().trim() === email);
+      const isCreator =
+        currentUser._id && project.createdBy?.toString() === currentUser._id.toString();
+
+      if (!isLead && !isMember && !isCreator) {
+        const error = new Error('Access Denied: You are not assigned to this project workspace.');
+        error.statusCode = 403;
+        throw error;
+      }
     }
 
     return project;

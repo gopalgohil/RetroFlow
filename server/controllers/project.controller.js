@@ -4,20 +4,33 @@ import projectService from '../services/project.service.js';
 
 class ProjectController {
   /**
-   * Get all projects
+   * Get all projects (RBAC filtered)
    * GET /api/projects
    */
   getAllProjects = asyncHandler(async (req, res) => {
-    const projects = await projectService.getAllProjects();
-    return ApiResponse.ok(res, projects, 'Projects retrieved successfully');
+    const projects = await projectService.getAllProjects(req.user);
+    const isAdmin = req.user?.role?.toLowerCase() === 'admin';
+    return res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: isAdmin
+        ? 'Enterprise workspace initiatives retrieved successfully'
+        : 'Assigned member projects retrieved successfully',
+      data: projects,
+      meta: {
+        isGlobalView: isAdmin,
+        userRole: req.user?.role || 'member',
+        total: projects.length,
+      },
+    });
   });
 
   /**
-   * Get single project by ID or key (e.g. /api/projects/proj-pgi or /api/projects/PGI)
+   * Get single project by ID or key with RBAC membership validation
    * GET /api/projects/:id
    */
   getProject = asyncHandler(async (req, res) => {
-    const project = await projectService.getProjectByIdOrKey(req.params.id);
+    const project = await projectService.getProjectByIdOrKey(req.params.id, req.user);
     if (!project) {
       return res.status(404).json({
         success: false,
