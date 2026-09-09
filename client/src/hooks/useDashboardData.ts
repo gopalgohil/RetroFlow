@@ -8,6 +8,7 @@ import {
   CreateRetroPayload,
   TeamMember,
   WorkspaceSettingsData,
+  PaginationMeta,
 } from '@/types/retro';
 import { DashboardTab } from './useDashboardTabs';
 
@@ -113,47 +114,113 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
   // 3. Team Members & Whitelist State & Actions
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [membersPagination, setMembersPagination] = useState<PaginationMeta>({
+    page: 1,
+    limit: 5,
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
+  const [membersPage, setMembersPage] = useState<number>(1);
+  const [membersLimit, setMembersLimit] = useState<number>(5);
+  const [membersSearch, setMembersSearch] = useState<string>('');
   const [isMembersLoading, setIsMembersLoading] = useState(false);
 
-  const fetchMembers = useCallback(async () => {
-    setIsMembersLoading(true);
-    try {
-      const res = await api.get(ENDPOINTS.MEMBERS);
-      if (res.data) {
-        setMembers(res.data);
+  const fetchMembers = useCallback(
+    async (pageOverride?: number, limitOverride?: number, searchOverride?: string) => {
+      setIsMembersLoading(true);
+      const pageToUse = pageOverride ?? membersPage;
+      const limitToUse = limitOverride ?? membersLimit;
+      const searchToUse = searchOverride !== undefined ? searchOverride : membersSearch;
+
+      try {
+        const res = await api.get(ENDPOINTS.MEMBERS, {
+          params: {
+            page: pageToUse,
+            limit: limitToUse,
+            search: searchToUse ? searchToUse.trim() : undefined,
+          },
+        });
+
+        if (res.data) {
+          if (Array.isArray(res.data)) {
+            setMembers(res.data);
+            setMembersPagination({
+              page: pageToUse,
+              limit: limitToUse,
+              totalItems: res.data.length,
+              totalPages: Math.ceil(res.data.length / limitToUse) || 1,
+              hasNextPage: false,
+              hasPrevPage: false,
+            });
+          } else if (res.data.members && Array.isArray(res.data.members)) {
+            setMembers(res.data.members);
+            if (res.data.pagination) {
+              setMembersPagination(res.data.pagination);
+            }
+          }
+        }
+      } catch (err: any) {
+        console.error('Failed to load workspace members:', err.message);
+      } finally {
+        setIsMembersLoading(false);
       }
-    } catch (err: any) {
-      console.error('Failed to load workspace members:', err.message);
-    } finally {
-      setIsMembersLoading(false);
-    }
-  }, []);
+    },
+    [membersPage, membersLimit, membersSearch]
+  );
+
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setMembersPage(newPage);
+      fetchMembers(newPage, membersLimit, membersSearch);
+    },
+    [fetchMembers, membersLimit, membersSearch]
+  );
+
+  const handleLimitChange = useCallback(
+    (newLimit: number) => {
+      setMembersLimit(newLimit);
+      setMembersPage(1);
+      fetchMembers(1, newLimit, membersSearch);
+    },
+    [fetchMembers, membersSearch]
+  );
+
+  const handleSearchChange = useCallback(
+    (query: string) => {
+      setMembersSearch(query);
+      setMembersPage(1);
+      fetchMembers(1, membersLimit, query);
+    },
+    [fetchMembers, membersLimit]
+  );
 
   const addWhitelistMember = useCallback(
     async (email: string) => {
       try {
         await api.post(ENDPOINTS.MEMBERS, { email });
         showToast(`Developer ${email} whitelisted successfully!`);
-        await fetchMembers();
+        await fetchMembers(1, membersLimit, membersSearch);
       } catch (err: any) {
         showToast(err.message || 'Failed to whitelist member');
         throw err;
       }
     },
-    [fetchMembers, showToast]
+    [fetchMembers, membersLimit, membersSearch, showToast]
   );
 
   const removeWhitelistMember = useCallback(
     async (email: string) => {
       try {
         await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}`);
-        setMembers((prev) => prev.filter((m) => m.email.toLowerCase() !== email.toLowerCase()));
         showToast(`Developer ${email} removed from whitelist.`);
+        await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {
         showToast(err.message || 'Failed to remove member from whitelist');
       }
     },
-    [showToast]
+    [fetchMembers, membersPage, membersLimit, membersSearch, showToast]
   );
 
 
@@ -219,8 +286,15 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     activeSessionsCount: sessions.filter((s) => s.status === 'active').length,
     // Members
     members,
+    membersPagination,
+    membersPage,
+    membersLimit,
+    membersSearch,
     isMembersLoading,
     fetchMembers,
+    onMembersPageChange: handlePageChange,
+    onMembersLimitChange: handleLimitChange,
+    onMembersSearchChange: handleSearchChange,
     addWhitelistMember,
     removeWhitelistMember,
     // Settings

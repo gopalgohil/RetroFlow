@@ -11,7 +11,7 @@ class MembersService {
    * @param {string|ObjectId} userId - Requesting facilitator ID
    * @returns {Promise<Array>} List of formatted workspace members
    */
-  async getWorkspaceMembers(userId) {
+  async getWorkspaceMembers(userId, { page = 1, limit = 5, search = '' } = {}) {
     // 1. Fetch registered workspace accounts
     const users = await User.find({}, 'name email role createdAt isVerified').lean();
 
@@ -59,7 +59,38 @@ class MembersService {
       }
     });
 
-    return Array.from(memberMap.values());
+    let allMembers = Array.from(memberMap.values());
+
+    // 5. Apply search filtering if specified
+    if (search && typeof search === 'string' && search.trim()) {
+      const q = search.trim().toLowerCase();
+      allMembers = allMembers.filter(
+        (m) =>
+          (m.name && m.name.toLowerCase().includes(q)) ||
+          (m.email && m.email.toLowerCase().includes(q)) ||
+          (m.role && m.role.toLowerCase().includes(q))
+      );
+    }
+
+    // 6. Enterprise pagination calculations
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 5);
+    const totalItems = allMembers.length;
+    const totalPages = Math.ceil(totalItems / limitNum) || 1;
+    const startIndex = (pageNum - 1) * limitNum;
+    const paginatedMembers = allMembers.slice(startIndex, startIndex + limitNum);
+
+    return {
+      members: paginatedMembers,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        totalItems,
+        totalPages,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1,
+      },
+    };
   }
 
   /**

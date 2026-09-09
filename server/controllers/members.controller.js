@@ -12,11 +12,20 @@ class MembersController {
    * GET /api/members
    */
   getMembers = asyncHandler(async (req, res) => {
-    const members = await membersService.getWorkspaceMembers(req.user._id);
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 5;
+    const search = req.query.search || '';
+
+    const result = await membersService.getWorkspaceMembers(req.user._id, {
+      page,
+      limit,
+      search,
+    });
+
     return ApiResponse.ok(
       res,
-      members,
-      `Successfully loaded ${members.length} workspace team members`
+      result,
+      `Successfully loaded ${result.members.length} of ${result.pagination.totalItems} workspace team members`
     );
   });
 

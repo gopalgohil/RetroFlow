@@ -43,8 +43,15 @@ function DashboardContent() {
     saveSession,
     activeSessionsCount,
     members,
+    membersPagination,
+    membersPage,
+    membersLimit,
+    membersSearch,
     isMembersLoading,
     fetchMembers,
+    onMembersPageChange,
+    onMembersLimitChange,
+    onMembersSearchChange,
     addWhitelistMember,
     removeWhitelistMember,
     settings,
@@ -164,8 +171,15 @@ function DashboardContent() {
               {activeTab === 'members' && (
                 <MembersTab
                   members={members}
+                  pagination={membersPagination}
+                  currentPage={membersPage}
+                  currentLimit={membersLimit}
+                  searchQuery={membersSearch}
                   isLoading={isMembersLoading}
-                  onRefresh={fetchMembers}
+                  onRefresh={() => fetchMembers(membersPage, membersLimit, membersSearch)}
+                  onPageChange={onMembersPageChange}
+                  onLimitChange={onMembersLimitChange}
+                  onSearchChange={onMembersSearchChange}
                   onWhitelistAdded={addWhitelistMember}
                   onRemoveMember={removeWhitelistMember}
                   currentEmail={user?.email}

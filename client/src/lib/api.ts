@@ -31,7 +31,7 @@ export const ENDPOINTS = {
 } as const;
 
 export interface RequestOptions extends RequestInit {
-  params?: Record<string, string | number | boolean>;
+  params?: Record<string, string | number | boolean | undefined | null>;
   token?: string;
 }
 
@@ -45,8 +45,13 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
   let url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   if (params) {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, val]) => searchParams.append(key, String(val)));
-    url += `?${searchParams.toString()}`;
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        searchParams.append(key, String(val));
+      }
+    });
+    const queryStr = searchParams.toString();
+    if (queryStr) url += `?${queryStr}`;
   }
 
   // Retrieve JWT auth token from localStorage if in browser environment

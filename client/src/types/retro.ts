@@ -73,6 +73,15 @@ export interface CreateRetroPayload {
   isProjectScoped?: boolean;
 }
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
 export interface TeamMember {
   id: string;
   name: string;
