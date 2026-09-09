@@ -113,11 +113,10 @@ function DashboardContent() {
     }
   };
 
-  // Derived loading state for skeleton loader
+  // Derived loading state for skeleton loader (tab switching and full tab hydration)
   const isCurrentTabLoading =
     isTransitioning ||
     (activeTab === 'sessions' && isSessionsLoading) ||
-    (activeTab === 'members' && isMembersLoading) ||
     (activeTab === 'settings' && isSettingsLoading);
 
   return (
