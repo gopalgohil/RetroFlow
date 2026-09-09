@@ -37,7 +37,23 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
     try {
       // Live REST API request -> visible in browser Network tab!
       const list = await ProjectApiService.getProjects();
-      setProjects(list || []);
+      const localList = ProjectDataService.getProjects();
+
+      // Merge unique projects so no initiative is ever lost or hidden from Admin
+      const projectMap = new Map<string, Project>();
+      (list || []).forEach((p) => {
+        const identifier = p.id || p.key;
+        if (identifier) projectMap.set(identifier, p);
+      });
+      (localList || []).forEach((p) => {
+        const identifier = p.id || p.key;
+        if (identifier && !projectMap.has(identifier)) {
+          projectMap.set(identifier, p);
+        }
+      });
+
+      const merged = Array.from(projectMap.values());
+      setProjects(merged.length > 0 ? merged : (list || []));
     } catch (err) {
       console.warn('[ProjectsTab] Live API request fallback:', err);
       const fallback = ProjectDataService.getProjects();

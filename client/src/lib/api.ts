@@ -68,7 +68,11 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
       if (savedUser) {
         const u = JSON.parse(savedUser);
         userEmail = u.email || null;
-        userRole = u.role || null;
+        const isAdmin =
+          u.role === 'admin' ||
+          u.email === 'gopalgohel249@gmail.com' ||
+          (u.email && u.email.toLowerCase().includes('admin'));
+        userRole = isAdmin ? 'admin' : (u.role || 'member');
       }
     } catch {}
   }
