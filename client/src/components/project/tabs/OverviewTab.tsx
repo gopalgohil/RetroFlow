@@ -254,10 +254,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToT
 
             <div className="space-y-1.5 pt-2">
               <div className="flex items-center justify-between text-xs text-slate-300">
-                <span>Story Points Burned</span>
+                <span>Sprint Progress</span>
                 <span className="font-bold text-white">
-                  {activeSprint?.completedStoryPoints}/{activeSprint?.totalStoryPoints} SP (
-                  {completionPercentage}%)
+                  {completionPercentage}% complete
                 </span>
               </div>
               <ProgressBar

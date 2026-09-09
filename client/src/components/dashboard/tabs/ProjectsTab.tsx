@@ -249,10 +249,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
                     />
 
                     <div className="flex items-center justify-between text-[10px] text-slate-400">
-                      <span>
-                        {activeSprint.completedStoryPoints}/{activeSprint.totalStoryPoints} SP
-                      </span>
-                      <span>
+                      <span>Sprint Progress</span>
+                      <span className="font-semibold text-indigo-600">
                         {Math.round(
                           (activeSprint.completedStoryPoints / (activeSprint.totalStoryPoints || 1)) *
                             100

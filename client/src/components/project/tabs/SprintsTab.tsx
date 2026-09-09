@@ -170,7 +170,9 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({ project, onProjectUpdate
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500 font-medium">Progress</span>
                       <span className="font-bold text-slate-900">
-                        {sprint.completedStoryPoints}/{sprint.totalStoryPoints} SP
+                        {Math.round(
+                          (sprint.completedStoryPoints / (sprint.totalStoryPoints || 1)) * 100
+                        )}% complete
                       </span>
                     </div>
                     <ProgressBar
