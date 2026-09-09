@@ -97,7 +97,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
           </h2>
           <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
             {isAdmin
-              ? 'Complete organization supervisory view across all Scrum sprint cadences, velocity metrics, and retrospectives.'
+              ? 'Complete organization supervisory view across all Scrum sprints, velocity metrics, and retrospectives.'
               : `Showing initiatives where your account (${currentUser?.email || 'logged in user'}) is registered as Project Lead or member.`}
           </p>
         </div>

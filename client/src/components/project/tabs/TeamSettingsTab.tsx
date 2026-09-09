@@ -14,7 +14,7 @@ import {
   Trash2,
   AlertOctagon,
 } from 'lucide-react';
-import { Project, ProjectMemberRole, SprintCadence } from '@/types/project';
+import { Project, ProjectMemberRole } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
 import { UserAvatar, StatusPill, Modal } from '@/components/ui';
@@ -40,7 +40,6 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
   // Settings form state
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description || '');
-  const [cadence, setCadence] = useState<SprintCadence>(project.cadence);
   const [savedNotice, setSavedNotice] = useState(false);
 
   // Danger Zone state
@@ -92,7 +91,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
       const updated = await ProjectApiService.updateProject(project.id, {
         name: name.trim(),
         description: description.trim(),
-        cadence,
+        cadence: project.cadence,
       });
       if (updated) onProjectUpdated(updated);
     } catch {
@@ -101,7 +100,6 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
       if (idx !== -1) {
         projects[idx].name = name.trim();
         projects[idx].description = description.trim();
-        projects[idx].cadence = cadence;
         onProjectUpdated(projects[idx]);
       }
     }
@@ -232,7 +230,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
               General Project Configuration
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Update cadence rules, project descriptions, and board attributes
+              Update project descriptions, team details, and board attributes
             </p>
           </div>
 
@@ -265,19 +263,6 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-800">Sprint Cadence</label>
-            <select
-              value={cadence}
-              onChange={(e) => setCadence(e.target.value as SprintCadence)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 cursor-pointer"
-            >
-              <option value="1_week">1 Week (Fast iteration)</option>
-              <option value="2_weeks">2 Weeks (Industry standard)</option>
-              <option value="3_weeks">3 Weeks (Enterprise)</option>
-              <option value="custom">Custom Duration</option>
-            </select>
-          </div>
 
           <div className="pt-2">
             <button

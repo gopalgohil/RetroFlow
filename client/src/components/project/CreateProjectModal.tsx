@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import {
   ProjectType,
-  SprintCadence,
   ProjectMemberRole,
   CreateProjectPayload,
   Project,
@@ -31,13 +30,6 @@ interface CreateProjectModalProps {
   onClose: () => void;
   onProjectCreated: (project: Project) => void;
 }
-
-const CADENCE_OPTIONS: { id: SprintCadence; label: string; desc: string }[] = [
-  { id: '1_week', label: '1 Week', desc: 'Fast turnaround' },
-  { id: '2_weeks', label: '2 Weeks', desc: 'Industry standard' },
-  { id: '3_weeks', label: '3 Weeks', desc: 'Enterprise cadence' },
-  { id: 'custom', label: 'Custom', desc: 'Flexible days' },
-];
 
 interface WorkspaceMemberOption {
   id: string;
@@ -67,8 +59,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [type, setType] = useState<ProjectType>('scrum');
   const [availableLeads, setAvailableLeads] = useState<WorkspaceMemberOption[]>(DEFAULT_WORKSPACE_LEADS);
   const [selectedLeadEmail, setSelectedLeadEmail] = useState<string>('gopalgohel249@gmail.com');
-  const [cadence, setCadence] = useState<SprintCadence>('2_weeks');
-  const [customDays, setCustomDays] = useState(10);
   const [isLeadDropdownOpen, setIsLeadDropdownOpen] = useState(false);
   const leadDropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -284,8 +274,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         avatar: chosenLead.avatar || cleanLeadName.slice(0, 2).toUpperCase(),
       },
       members: finalMembers,
-      cadence,
-      customCadenceDays: cadence === 'custom' ? customDays : undefined,
+      cadence: '2_weeks',
+      customCadenceDays: 14,
     };
 
     try {
@@ -320,7 +310,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           </span>
         </div>
       }
-      description="Setup team workspace, sprint cadence, and retro linkage"
+      description="Setup team workspace and agile retro linkage"
       icon={<FolderPlus className="w-5 h-5" />}
       maxWidth="2xl"
     >
@@ -440,12 +430,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           </div>
         </div>
 
-        {/* Section 3: Project Lead & Cadence */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-800">
-              Project Lead / Manager
-            </label>
+        {/* Section 3: Project Lead / Manager */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-slate-800">
+            Project Lead / Manager
+          </label>
             <div className="relative" ref={leadDropdownRef}>
               {(() => {
                 const selectedLead =
@@ -552,40 +541,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               })()}
             </div>
             <p className="text-[11px] text-slate-400">Responsible for sprint planning & retros.</p>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-800">Sprint Cadence</label>
-            <div className="grid grid-cols-4 gap-1.5">
-              {CADENCE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setCadence(opt.id)}
-                  className={`py-2 px-1 text-center rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-                    cadence === opt.id
-                      ? 'border-indigo-600 bg-indigo-600 text-white shadow-xs'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-            {cadence === 'custom' && (
-              <div className="mt-2 flex items-center gap-2">
-                <input
-                  type="number"
-                  min={3}
-                  max={60}
-                  value={customDays}
-                  onChange={(e) => setCustomDays(Number(e.target.value))}
-                  className="w-20 px-2.5 py-1 text-xs border border-slate-200 rounded-lg bg-white"
-                />
-                <span className="text-xs text-slate-500 font-medium">Days per sprint</span>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Section 4: Team Members with Roles */}

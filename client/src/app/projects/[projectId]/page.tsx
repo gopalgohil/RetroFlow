@@ -315,10 +315,6 @@ function ProjectDetailContent() {
                   </span>
                   <span>•</span>
                   <span>
-                    Cadence: <strong className="text-slate-700 capitalize">{project.cadence.replace('_', ' ')}</strong>
-                  </span>
-                  <span>•</span>
-                  <span>
                     Type: <strong className="text-slate-700 uppercase">{project.type}</strong>
                   </span>
                   <span>•</span>

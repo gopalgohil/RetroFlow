@@ -89,12 +89,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({ project, onProjectUpdate
             </button>
           ))}
         </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 hidden sm:inline">
-            Cadence: <strong>{project.cadence.replace('_', ' ')}</strong>
-          </span>
-        </div>
       </div>
 
       {/* Sprints List */}
