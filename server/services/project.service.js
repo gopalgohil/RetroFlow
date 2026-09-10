@@ -484,6 +484,38 @@ class ProjectService {
   }
 
   /**
+   * Update status of an individual backlog item / action item in a sprint
+   */
+  async updateSprintItemStatus(idOrKey, sprintId, itemId, status, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+
+    const sprint = project.sprints.find((s) => s.id === sprintId);
+    if (!sprint) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
+
+    const item = sprint.items.find(
+      (i) => i.id === itemId || (i._id && i._id.toString() === itemId)
+    );
+    if (!item) throw new Error(`Item with ID ${itemId} not found in sprint ${sprint.name}`);
+
+    item.status = status;
+    item.updatedAt = new Date();
+
+    // Dynamically recalculate completedStoryPoints for this sprint based on completed items
+    sprint.completedStoryPoints = sprint.items
+      .filter((i) => i.status === 'done')
+      .reduce((acc, i) => acc + (i.storyPoints || 0), 0);
+
+    // If totalStoryPoints is 0, sum all items
+    if (!sprint.totalStoryPoints || sprint.totalStoryPoints === 0) {
+      sprint.totalStoryPoints = sprint.items.reduce((acc, i) => acc + (i.storyPoints || 0), 0);
+    }
+
+    await project.save();
+    return project;
+  }
+
+  /**
    * Add a team member with role
    */
   async addMember(idOrKey, memberData, currentUser = null) {

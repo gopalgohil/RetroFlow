@@ -90,6 +90,23 @@ export class ProjectApiService {
   }
 
   /**
+   * Update status of an individual backlog item / action item in a sprint
+   * PATCH /api/projects/:id/sprints/:sprintId/items/:itemId/status
+   */
+  static async updateSprintItemStatus(
+    projectId: string,
+    sprintId: string,
+    itemId: string,
+    status: 'todo' | 'in_progress' | 'done'
+  ): Promise<Project> {
+    const res = await api.patch<ApiResponseWrapper<Project>>(
+      `${ENDPOINTS.PROJECTS}/${projectId}/sprints/${sprintId}/items/${itemId}/status`,
+      { status }
+    );
+    return res.data;
+  }
+
+  /**
    * Add a team member with role
    * POST /api/projects/:id/members
    */

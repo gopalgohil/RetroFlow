@@ -76,3 +76,9 @@ export const exportActionItemsSchema = z.object({
     )
     .min(1, 'At least one action item is required for export'),
 });
+
+export const updateSprintItemStatusSchema = z.object({
+  status: z.enum(['todo', 'in_progress', 'done'], {
+    required_error: 'Item status must be one of: todo, in_progress, done',
+  }),
+});

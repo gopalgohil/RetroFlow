@@ -383,6 +383,39 @@ export class ProjectDataService {
     return project;
   }
 
+  public static updateSprintItemStatus(
+    projectId: string,
+    sprintId: string,
+    itemId: string,
+    status: 'todo' | 'in_progress' | 'done'
+  ): Project | null {
+    const projects = this.getStoredProjects();
+    const projIndex = projects.findIndex((p) => p.id === projectId);
+    if (projIndex === -1) return null;
+
+    const project = projects[projIndex];
+    project.sprints = project.sprints.map((s) => {
+      if (s.id === sprintId) {
+        const updatedItems = s.items.map((i) => (i.id === itemId ? { ...i, status } : i));
+        const completedStoryPoints = updatedItems
+          .filter((i) => i.status === 'done')
+          .reduce((acc, i) => acc + (i.storyPoints || 0), 0);
+
+        return {
+          ...s,
+          items: updatedItems,
+          completedStoryPoints,
+        };
+      }
+      return s;
+    });
+
+    project.updatedAt = new Date().toISOString().split('T')[0];
+    projects[projIndex] = project;
+    this.saveProjects(projects);
+    return project;
+  }
+
   public static addMember(
     projectId: string,
     member: { name: string; email: string; role: Project['members'][0]['role'] }

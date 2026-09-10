@@ -83,6 +83,22 @@ class ProjectController {
   });
 
   /**
+   * Update status of an individual backlog item in a sprint
+   * PATCH /api/projects/:id/sprints/:sprintId/items/:itemId/status
+   */
+  updateSprintItemStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    const project = await projectService.updateSprintItemStatus(
+      req.params.id,
+      req.params.sprintId,
+      req.params.itemId,
+      status,
+      req.user
+    );
+    return ApiResponse.ok(res, project, 'Sprint item status updated successfully');
+  });
+
+  /**
    * Add a team member to project
    * POST /api/projects/:id/members
    */

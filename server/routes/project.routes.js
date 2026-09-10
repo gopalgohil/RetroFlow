@@ -7,6 +7,7 @@ import {
   updateProjectSchema,
   addMemberSchema,
   exportActionItemsSchema,
+  updateSprintItemStatusSchema,
 } from '../validations/project.validation.js';
 
 const router = Router();
@@ -63,6 +64,17 @@ router.post(
   '/:id/sprints/:sprintId/complete',
   optionalAuth,
   projectController.completeSprint
+);
+
+/**
+ * @route   PATCH /api/projects/:id/sprints/:sprintId/items/:itemId/status
+ * @desc    Update status of an individual backlog item in a sprint
+ */
+router.patch(
+  '/:id/sprints/:sprintId/items/:itemId/status',
+  optionalAuth,
+  validate(updateSprintItemStatusSchema),
+  projectController.updateSprintItemStatus
 );
 
 /**

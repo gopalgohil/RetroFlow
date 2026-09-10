@@ -61,12 +61,12 @@ function ProjectDetailContent() {
     try {
       const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
       if (cached) setProject(JSON.parse(cached));
-    } catch {}
+    } catch { }
 
     try {
       const saved = localStorage.getItem('retroflow_user');
       if (saved) setCurrentUser(JSON.parse(saved));
-    } catch {}
+    } catch { }
   }, [projectId]);
 
   // Instant seamless project selection with component-matched skeleton
@@ -77,7 +77,7 @@ function ProjectDetailContent() {
       localStorage.setItem('retroflow_active_project_id', selectedProj.id);
       try {
         sessionStorage.setItem(`retroflow_cached_project_${selectedProj.id}`, JSON.stringify(selectedProj));
-      } catch {}
+      } catch { }
     }
     window.history.pushState(null, '', `/projects/${selectedProj.id}?tab=${activeTab}`);
 
@@ -94,7 +94,7 @@ function ProjectDetailContent() {
           setProject(p);
           try {
             sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
-          } catch {}
+          } catch { }
         }
       })
       .catch((err: any) => {
@@ -128,7 +128,7 @@ function ProjectDetailContent() {
           const fallback = ProjectDataService.getProjectById(projectId);
           if (fallback) setProject(fallback);
         }
-      } catch {}
+      } catch { }
     }
 
     // Live REST API request -> visible in browser Network tab!
@@ -138,7 +138,7 @@ function ProjectDetailContent() {
           setProject(p);
           try {
             sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
-          } catch {}
+          } catch { }
         }
       })
       .catch((err: any) => {
@@ -146,7 +146,7 @@ function ProjectDetailContent() {
           if (err?.message?.includes('Access Denied') || err?.status === 403) {
             setAccessDeniedError(
               err.message ||
-                'Access Denied: You are not assigned as a member or lead of this project.'
+              'Access Denied: You are not assigned as a member or lead of this project.'
             );
             return;
           }
@@ -209,7 +209,7 @@ function ProjectDetailContent() {
           .then((p) => {
             if (p) setProject(p);
           })
-          .catch(() => {});
+          .catch(() => { });
       }
 
       if (createdRetro?.shareToken) {
@@ -252,8 +252,8 @@ function ProjectDetailContent() {
 
   const currentUserRole =
     isDesignatedLead ? 'Project Lead' :
-    isProjectManager ? 'Manager' :
-    userMemberRecord?.role || (isWorkspaceAdmin ? 'Admin' : 'Developer');
+      isProjectManager ? 'Manager' :
+        userMemberRecord?.role || (isWorkspaceAdmin ? 'Admin' : 'Developer');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex selection:bg-indigo-500 selection:text-white font-sans">
@@ -347,149 +347,145 @@ function ProjectDetailContent() {
         ) : (
           <>
 
-        {/* 3. Project Summary Banner */}
-        <div className="bg-white border-b border-slate-200/80 px-6 py-6 sm:px-8">
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-md shadow-indigo-600/25">
-                {project.key}
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                    {project.name}
-                  </h1>
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
+            {/* 3. Project Summary Banner */}
+            <div className="bg-white border-b border-slate-200/80 px-6 py-6 sm:px-8">
+              <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-md shadow-indigo-600/25">
                     {project.key}
-                  </span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize flex items-center gap-1.5 ${
-                      project.healthStatus === 'on_track'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}
-                  >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        project.healthStatus === 'on_track' ? 'bg-emerald-500' : 'bg-amber-500'
-                      }`}
-                    />
-                    {project.healthStatus.replace('_', ' ')}
-                  </span>
+                  </div>
 
-                  {isUserProjectLead && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
-                      <span>👑</span>
-                      <span>You are Project Lead</span>
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                        {project.name}
+                      </h1>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
+                        {project.key}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize flex items-center gap-1.5 ${project.healthStatus === 'on_track'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${project.healthStatus === 'on_track' ? 'bg-emerald-500' : 'bg-amber-500'
+                            }`}
+                        />
+                        {project.healthStatus.replace('_', ' ')}
+                      </span>
+
+                      {isUserProjectLead && (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                          <span>👑</span>
+                          <span>You are Project Lead</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-slate-500 max-w-2xl">{project.description}</p>
+
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-1 font-medium">
+                      <span>
+                        Lead:{' '}
+                        <strong className="text-slate-800">{project.lead?.name || 'Gopal Gohel'}</strong>
+                        {isUserProjectLead && <span className="text-indigo-600 font-bold ml-1">(You)</span>}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        Type: <strong className="text-slate-700 uppercase">{project.type}</strong>
+                      </span>
+                      <span>•</span>
+                      <span>{project.members.length} team members</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Stats Pill on Banner */}
+                <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200/80 shrink-0">
+                  <div className="px-3 py-1.5 text-center">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Sprints</span>
+                    <span className="text-sm font-extrabold text-slate-800">{project.sprints.length}</span>
+                  </div>
+                  <div className="h-6 w-px bg-slate-200" />
+                  <div className="px-3 py-1.5 text-center">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Retros</span>
+                    <span className="text-sm font-extrabold text-indigo-600">
+                      {project.retrospectives.length}
                     </span>
-                  )}
-                </div>
-
-                <p className="text-xs text-slate-500 max-w-2xl">{project.description}</p>
-
-                <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-1 font-medium">
-                  <span>
-                    Lead:{' '}
-                    <strong className="text-slate-800">{project.lead?.name || 'Gopal Gohel'}</strong>
-                    {isUserProjectLead && <span className="text-indigo-600 font-bold ml-1">(You)</span>}
-                  </span>
-                  <span>•</span>
-                  <span>
-                    Type: <strong className="text-slate-700 uppercase">{project.type}</strong>
-                  </span>
-                  <span>•</span>
-                  <span>{project.members.length} team members</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Quick Stats Pill on Banner */}
-            <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200/80 shrink-0">
-              <div className="px-3 py-1.5 text-center">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Sprints</span>
-                <span className="text-sm font-extrabold text-slate-800">{project.sprints.length}</span>
-              </div>
-              <div className="h-6 w-px bg-slate-200" />
-              <div className="px-3 py-1.5 text-center">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Retros</span>
-                <span className="text-sm font-extrabold text-indigo-600">
-                  {project.retrospectives.length}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 4. Tab Navigation Strip */}
-          <div className="max-w-7xl mx-auto mt-6 pt-2 border-t border-slate-100 flex items-center gap-1 overflow-x-auto">
-            {[
-              { id: 'overview', label: 'Overview', icon: Activity },
-              { id: 'sprints', label: 'Sprints & Backlog', icon: Layers, count: project.sprints.length },
-              { id: 'retros', label: 'Retrospectives', icon: Sparkles, count: project.retrospectives.length },
-              {
-                id: 'team',
-                label: canManageProject ? 'Team & Settings' : 'Team Directory',
-                icon: Users,
-                count: project.members.length,
-              },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id as any)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                    isActive
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                  <span>{tab.label}</span>
-                  {tab.count !== undefined && (
-                    <span
-                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                        isActive ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'
-                      }`}
+              {/* 4. Tab Navigation Strip */}
+              <div className="max-w-7xl mx-auto mt-6 pt-2 border-t border-slate-100 flex items-center gap-1 overflow-x-auto">
+                {[
+                  { id: 'overview', label: 'Overview', icon: Activity },
+                  { id: 'sprints', label: 'Sprints & Backlog', icon: Layers, count: project.sprints.length },
+                  { id: 'retros', label: 'Retrospectives', icon: Sparkles, count: project.retrospectives.length },
+                  {
+                    id: 'team',
+                    label: canManageProject ? 'Team & Settings' : 'Team Directory',
+                    icon: Users,
+                    count: project.members.length,
+                  },
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleTabChange(tab.id as any)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${isActive
+                          ? 'bg-indigo-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                        }`}
                     >
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <span>{tab.label}</span>
+                      {tab.count !== undefined && (
+                        <span
+                          className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'
+                            }`}
+                        >
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-        {/* 5. Dynamic Tab View Content */}
-        <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto">
-          {activeTab === 'overview' && (
-            <OverviewTab
-              project={project}
-              onNavigateToTab={(t) => handleTabChange(t as any)}
-              canManageProject={canManageProject}
-              currentUserRole={currentUserRole}
-            />
-          )}
+            {/* 5. Dynamic Tab View Content */}
+            <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto">
+              {activeTab === 'overview' && (
+                <OverviewTab
+                  project={project}
+                  onNavigateToTab={(t) => handleTabChange(t as any)}
+                  canManageProject={canManageProject}
+                  currentUserRole={currentUserRole}
+                />
+              )}
 
-          {activeTab === 'sprints' && (
-            <SprintsTab project={project} onProjectUpdated={(up) => setProject({ ...up })} />
-          )}
+              {activeTab === 'sprints' && (
+                <SprintsTab project={project} onProjectUpdated={(up) => setProject({ ...up })} />
+              )}
 
-          {activeTab === 'retros' && (
-            <RetrosTab project={project} onCreateRetroClick={() => setIsCreateRetroOpen(true)} />
-          )}
+              {activeTab === 'retros' && (
+                <RetrosTab project={project} onCreateRetroClick={() => setIsCreateRetroOpen(true)} />
+              )}
 
-          {activeTab === 'team' && (
-            <TeamSettingsTab
-              project={project}
-              onProjectUpdated={(up) => setProject({ ...up })}
-              canManageProject={canManageProject}
-              currentUserRole={currentUserRole}
-            />
-          )}
-        </main>
+              {activeTab === 'team' && (
+                <TeamSettingsTab
+                  project={project}
+                  onProjectUpdated={(up) => setProject({ ...up })}
+                  canManageProject={canManageProject}
+                  currentUserRole={currentUserRole}
+                />
+              )}
+            </main>
           </>
         )}
       </div>
@@ -502,12 +498,12 @@ function ProjectDetailContent() {
         projectContext={
           project
             ? {
-                id: project.id,
-                name: project.name,
-                key: project.key,
-                sprintName: `Sprint ${(project.retrospectives?.length || 0) + 1}`,
-                members: project.members,
-              }
+              id: project.id,
+              name: project.name,
+              key: project.key,
+              sprintName: `Sprint ${(project.retrospectives?.length || 0) + 1}`,
+              members: project.members,
+            }
             : null
         }
       />
