@@ -46,23 +46,9 @@ function ProjectDetailContent() {
   const tabParam = searchParams.get('tab') || 'overview';
 
   const [project, setProject] = useState<Project | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
-        if (cached) return JSON.parse(cached);
-      } catch {}
-    }
     return ProjectDataService.getProjectById(projectId) || null;
   });
-  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('retroflow_user');
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(null);
   const [accessDeniedError, setAccessDeniedError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sprints' | 'retros' | 'team'>(
     (tabParam as any) || 'overview'
@@ -73,10 +59,15 @@ function ProjectDetailContent() {
 
   useEffect(() => {
     try {
+      const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
+      if (cached) setProject(JSON.parse(cached));
+    } catch {}
+
+    try {
       const saved = localStorage.getItem('retroflow_user');
       if (saved) setCurrentUser(JSON.parse(saved));
     } catch {}
-  }, []);
+  }, [projectId]);
 
   // Instant seamless project selection with component-matched skeleton
   const handleSelectProject = (selectedProj: Project) => {

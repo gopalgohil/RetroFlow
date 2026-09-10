@@ -167,7 +167,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-4 border-t border-slate-200/80 bg-slate-50/50">
           <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              <div
+                suppressHydrationWarning
+                className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
+              >
                 {user?.name
                   ? user.name
                       .split(' ')
@@ -179,20 +182,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <div className="overflow-hidden">
                 <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-bold text-slate-900 truncate">
+                  <p suppressHydrationWarning className="text-xs font-bold text-slate-900 truncate">
                     {user?.name || 'Gopal Gohel'}
                   </p>
                   {isAdmin ? (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0">
+                    <span suppressHydrationWarning className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0">
                       Admin
                     </span>
                   ) : (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+                    <span suppressHydrationWarning className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
                       Developer
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-400 truncate">{user?.email || 'gopalgohel249@gmail.com'}</p>
+                <p suppressHydrationWarning className="text-[11px] text-slate-400 truncate">{user?.email || 'gopalgohel249@gmail.com'}</p>
               </div>
             </div>
 
