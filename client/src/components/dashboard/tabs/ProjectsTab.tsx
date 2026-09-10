@@ -12,6 +12,7 @@ import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
 import { CreateProjectModal } from '@/components/project/CreateProjectModal';
 import { UserAvatar, StatusPill, ProgressBar } from '@/components/ui';
+import { ProjectsTabSkeleton } from '@/components/dashboard/DashboardSkeletons';
 
 interface ProjectsTabProps {
   isAdmin?: boolean;
@@ -78,6 +79,10 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
   });
 
   const displayedProjects = filterMode === 'managed' ? myManagedProjects : projects;
+
+  if (isLoading) {
+    return <ProjectsTabSkeleton />;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
@@ -155,37 +160,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
         </p>
       </div>
 
-      {/* Loading Skeleton during real Network API request */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((n) => (
-            <div
-              key={n}
-              className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4 animate-pulse"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-200" />
-                  <div className="space-y-1.5">
-                    <div className="w-28 h-3.5 bg-slate-200 rounded" />
-                    <div className="w-16 h-2.5 bg-slate-100 rounded" />
-                  </div>
-                </div>
-                <div className="w-16 h-5 bg-slate-100 rounded-full" />
-              </div>
-              <div className="h-10 bg-slate-50 rounded-xl" />
-              <div className="space-y-2">
-                <div className="w-full h-3 bg-slate-100 rounded" />
-                <div className="w-2/3 h-3 bg-slate-100 rounded" />
-              </div>
-              <div className="h-16 bg-slate-50 rounded-xl" />
-              <div className="h-9 bg-slate-200 rounded-xl" />
-            </div>
-          ))}
-        </div>
-      ) : (
-        /* Projects Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Projects Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayedProjects.length === 0 ? (
             <div className="col-span-full p-12 text-center rounded-2xl bg-white border border-slate-200 space-y-3">
               <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
@@ -367,8 +343,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
           );
         })
       )}
-        </div>
-      )}
+      </div>
 
       {/* Create Project Modal */}
       <CreateProjectModal
