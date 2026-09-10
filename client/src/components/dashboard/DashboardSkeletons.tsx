@@ -293,21 +293,21 @@ export const RetroBoardSkeleton: React.FC = () => {
 export const ProjectsTabSkeleton: React.FC = () => {
   return (
     <div className="space-y-8 animate-pulse">
-      {/* Top Header Banner Skeleton */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-950/80 via-slate-900/80 to-indigo-950/80 border border-indigo-900/40 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      {/* Top Header Banner Skeleton (Light Theme) */}
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-50/70 via-slate-50 to-white border border-indigo-100/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-3 max-w-xl w-full">
           <div className="flex items-center gap-2">
-            <div className="h-5 w-28 rounded-full bg-indigo-800/60" />
-            <div className="h-4 w-32 rounded-md bg-slate-700/50" />
+            <div className="h-5 w-28 rounded-full bg-indigo-100/80" />
+            <div className="h-4 w-32 rounded-md bg-slate-200/60" />
           </div>
-          <div className="h-7 sm:h-8 w-3/4 max-w-md rounded-xl bg-slate-700/60" />
+          <div className="h-7 sm:h-8 w-3/4 max-w-md rounded-xl bg-slate-200/80" />
           <div className="space-y-2 pt-0.5">
-            <div className="h-3.5 w-full rounded-md bg-slate-800/60" />
-            <div className="h-3.5 w-4/5 rounded-md bg-slate-800/60" />
+            <div className="h-3.5 w-full rounded-md bg-slate-100" />
+            <div className="h-3.5 w-4/5 rounded-md bg-slate-100" />
           </div>
         </div>
 
-        <div className="h-10 w-44 rounded-xl bg-indigo-600/50 shrink-0 self-start sm:self-auto" />
+        <div className="h-10 w-44 rounded-xl bg-indigo-100/80 shrink-0 self-start sm:self-auto" />
       </div>
 
       {/* View Filter Switcher Bar Skeleton */}
