@@ -84,6 +84,15 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
     return <ProjectsTabSkeleton />;
   }
 
+  // Option B: Admin + Project Leads / Managers have project creation permission
+  const userRole = currentUser?.role?.toLowerCase();
+  const canCreateProject =
+    isAdmin ||
+    userRole === 'admin' ||
+    userRole === 'manager' ||
+    userRole === 'lead' ||
+    myManagedProjects.length > 0;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* Header Banner */}
@@ -91,23 +100,29 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              {isAdmin ? 'Admin Supervision' : 'My Initiatives'}
+              {isAdmin ? 'Admin Supervision' : canCreateProject ? 'Lead / Management' : 'My Initiatives'}
             </span>
             <span className="text-xs text-slate-300">
-              • {projects.length} {isAdmin ? 'Workspace Projects' : 'Assigned Projects'}
+              • {projects.length} {isAdmin || canCreateProject ? 'Workspace Projects' : 'Assigned Projects'}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
-            {isAdmin ? 'Enterprise Project & Sprint Delivery' : 'Assigned Agile Projects'}
+            {isAdmin
+              ? 'Enterprise Project & Sprint Delivery'
+              : canCreateProject
+              ? 'Agile Projects & Sprints'
+              : 'Assigned Agile Projects'}
           </h2>
           <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
             {isAdmin
               ? 'Complete organization supervisory view across all Scrum sprints, velocity metrics, and retrospectives.'
+              : canCreateProject
+              ? 'Manage your agile initiatives, initialize new projects, and track sprint execution.'
               : `Showing initiatives where your account (${currentUser?.email || 'logged in user'}) is registered as Project Lead or member.`}
           </p>
         </div>
 
-        {isAdmin && (
+        {canCreateProject && (
           <button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
@@ -171,23 +186,23 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
                 <h3 className="text-sm font-bold text-slate-900">
                   {filterMode === 'managed'
                     ? 'No Projects Managed by You'
-                    : isAdmin
+                    : canCreateProject
                     ? 'No Projects in Workspace'
                     : 'No Assigned Projects'}
                 </h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
                   {filterMode === 'managed'
                     ? 'You are not assigned as Project Lead for any project yet.'
-                    : isAdmin
+                    : canCreateProject
                     ? 'Initialize your first Scrum or Kanban agile delivery project above.'
                     : `You haven't been assigned to any project yet. Only projects where your email (${
                         currentUser?.email || 'your account'
                       }) is added will appear here.`}
                 </p>
               </div>
-              {!isAdmin && filterMode !== 'managed' && (
+              {!canCreateProject && filterMode !== 'managed' && (
                 <p className="text-[11px] text-slate-400">
-                  Contact your workspace Administrator to get invited to active projects.
+                  Contact your workspace Administrator or Project Lead to get invited to active projects.
                 </p>
               )}
             </div>

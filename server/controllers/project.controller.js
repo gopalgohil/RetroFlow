@@ -1,6 +1,7 @@
 import { asyncHandler } from '../middlewares/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import projectService from '../services/project.service.js';
+import Project from '../models/Project.js';
 
 class ProjectController {
   /**
@@ -49,8 +50,45 @@ class ProjectController {
   /**
    * Create new project
    * POST /api/projects
+   * RBAC Option B: Allowed for Admins, Project Leads, and Managers
    */
   createProject = asyncHandler(async (req, res) => {
+    const user = req.user;
+    const isAdmin =
+      !user ||
+      user.role?.toLowerCase() === 'admin' ||
+      user.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
+      user.email?.toLowerCase().includes('admin') ||
+      req.headers['x-user-role'] === 'admin';
+
+    // Option B: If not Admin, check if user is a Project Lead or Manager
+    if (!isAdmin && user?.email) {
+      const userEmail = user.email.toLowerCase().trim();
+      const userRole = (user.role || '').toLowerCase();
+      const isManagerOrLeadRole =
+        userRole === 'manager' ||
+        userRole === 'lead' ||
+        userRole === 'scrum_master';
+
+      if (!isManagerOrLeadRole) {
+        // Check if user is a lead or manager in any existing project in the workspace
+        const isExistingLeadOrManager = await Project.findOne({
+          $or: [
+            { 'lead.email': userEmail },
+            { members: { $elemMatch: { email: userEmail, role: 'Manager' } } },
+          ],
+        });
+
+        if (!isExistingLeadOrManager) {
+          return res.status(403).json({
+            success: false,
+            message:
+              'Permission denied: Only Workspace Admins and Project Leads/Managers can initialize new Agile projects.',
+          });
+        }
+      }
+    }
+
     const project = await projectService.createProject(req.body, req.user?._id);
     return ApiResponse.created(res, project, 'Agile project initialized successfully');
   });

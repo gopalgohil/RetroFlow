@@ -32,8 +32,16 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ email?: string; name?: string; role?: string } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('retroflow_user');
+      if (saved) setCurrentUser(JSON.parse(saved));
+    } catch {}
+  }, []);
 
   // Active project resolution
   const resolvedProjectId =
@@ -109,6 +117,22 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.key.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Option B: Admin + Project Leads / Managers have permission to initialize new projects
+  const userEmail = currentUser?.email?.toLowerCase().trim();
+  const isAdmin =
+    currentUser?.role?.toLowerCase() === 'admin' ||
+    userEmail === 'gopalgohel249@gmail.com' ||
+    Boolean(userEmail?.includes('admin'));
+  const isManagerOrLead =
+    isAdmin ||
+    currentUser?.role?.toLowerCase() === 'manager' ||
+    currentUser?.role?.toLowerCase() === 'lead' ||
+    projects.some(
+      (p) =>
+        p.lead?.email?.toLowerCase().trim() === userEmail ||
+        p.members?.some((m) => m.email?.toLowerCase().trim() === userEmail && m.role === 'Manager')
+    );
 
   const handleSelect = (project: Project) => {
     if (typeof window !== 'undefined') {
@@ -252,20 +276,22 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
               )}
             </div>
 
-            {/* Bottom Footer Action: + New Project CTA */}
-            <div className="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsCreateModalOpen(true);
-                }}
-                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Create New Project</span>
-              </button>
-            </div>
+            {/* Bottom Footer Action: + New Project CTA (Admin & Project Leads only) */}
+            {isManagerOrLead && (
+              <div className="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setIsCreateModalOpen(true);
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Create New Project</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
