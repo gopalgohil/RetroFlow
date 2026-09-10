@@ -129,4 +129,16 @@ router.post('/:id/archive', optionalAuth, projectController.archiveProject);
  */
 router.delete('/:id', optionalAuth, projectController.deleteProject);
 
+/**
+ * @route   DELETE /api/projects/:id/retros/:retroId
+ * @desc    Delete retrospective session linked to project
+ */
+router.delete('/:id/retros/:retroId', optionalAuth, projectController.deleteProjectRetro);
+
+/**
+ * @route   PATCH /api/projects/:id/retros/:retroId
+ * @desc    Update retrospective session linked to project
+ */
+router.patch('/:id/retros/:retroId', optionalAuth, projectController.updateProjectRetro);
+
 export default router;

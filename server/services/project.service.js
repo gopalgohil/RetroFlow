@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Project from '../models/Project.js';
+import RetroBoard from '../models/RetroBoard.js';
 import crypto from 'crypto';
 
 /**
@@ -777,6 +778,76 @@ class ProjectService {
       nextProjectId: nextProject ? nextProject._id : null,
       nextProjectKey: nextProject ? nextProject.key : null,
     };
+  }
+
+  /**
+   * Delete a retrospective session linked to a project
+   */
+  async deleteProjectRetro(idOrKey, retroIdOrToken, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
+
+    const initialCount = project.retrospectives?.length || 0;
+    project.retrospectives = (project.retrospectives || []).filter(
+      (r) => r.id !== retroIdOrToken && r.shareToken !== retroIdOrToken
+    );
+
+    if (project.retrospectives.length === initialCount) {
+      throw new Error(`Retrospective "${retroIdOrToken}" not found in project ${project.name}`);
+    }
+
+    await project.save();
+
+    // Also clean up from RetroBoard collection if exists
+    try {
+      await RetroBoard.deleteOne({
+        $or: [{ _id: retroIdOrToken }, { shareToken: retroIdOrToken }],
+      });
+    } catch {}
+
+    return project;
+  }
+
+  /**
+   * Update retrospective session details (title, scheduledDate, sprintName) in project
+   */
+  async updateProjectRetro(idOrKey, retroIdOrToken, payload, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
+
+    const retro = (project.retrospectives || []).find(
+      (r) => r.id === retroIdOrToken || r.shareToken === retroIdOrToken
+    );
+
+    if (!retro) {
+      throw new Error(`Retrospective "${retroIdOrToken}" not found in project ${project.name}`);
+    }
+
+    if (payload.title) retro.title = payload.title.trim();
+    if (payload.scheduledDate) retro.scheduledDate = payload.scheduledDate;
+    if (payload.sprintName) retro.sprintName = payload.sprintName.trim();
+    if (payload.status) retro.status = payload.status;
+
+    await project.save();
+
+    // Also update RetroBoard document if present
+    try {
+      await RetroBoard.updateOne(
+        { $or: [{ _id: retroIdOrToken }, { shareToken: retroIdOrToken }] },
+        {
+          $set: {
+            title: retro.title,
+            scheduledDate: retro.scheduledDate,
+            sprintName: retro.sprintName,
+            status: retro.status,
+          },
+        }
+      );
+    } catch {}
+
+    return project;
   }
 }
 

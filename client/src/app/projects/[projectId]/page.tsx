@@ -493,7 +493,12 @@ function ProjectDetailContent() {
               )}
 
               {activeTab === 'retros' && (
-                <RetrosTab project={project} onCreateRetroClick={() => setIsCreateRetroOpen(true)} />
+                <RetrosTab
+                  project={project}
+                  onCreateRetroClick={() => setIsCreateRetroOpen(true)}
+                  onProjectUpdated={(up) => setProject({ ...up })}
+                  canManageProject={canManageProject}
+                />
               )}
 
               {activeTab === 'team' && (

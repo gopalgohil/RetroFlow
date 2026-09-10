@@ -209,6 +209,33 @@ class ProjectController {
     const result = await projectService.deleteProject(req.params.id, req.user);
     return ApiResponse.ok(res, result, `Project ${result.deletedKey} permanently deleted`);
   });
+
+  /**
+   * Delete a retrospective linked to a project
+   * DELETE /api/projects/:id/retros/:retroId
+   */
+  deleteProjectRetro = asyncHandler(async (req, res) => {
+    const project = await projectService.deleteProjectRetro(
+      req.params.id,
+      req.params.retroId,
+      req.user
+    );
+    return ApiResponse.ok(res, project, 'Retrospective session deleted successfully');
+  });
+
+  /**
+   * Update retrospective linked to a project
+   * PATCH /api/projects/:id/retros/:retroId
+   */
+  updateProjectRetro = asyncHandler(async (req, res) => {
+    const project = await projectService.updateProjectRetro(
+      req.params.id,
+      req.params.retroId,
+      req.body,
+      req.user
+    );
+    return ApiResponse.ok(res, project, 'Retrospective session updated successfully');
+  });
 }
 
 export const projectController = new ProjectController();

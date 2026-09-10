@@ -206,6 +206,33 @@ export class ProjectApiService {
     >(`${ENDPOINTS.PROJECTS}/${idOrKey}`);
     return res.data;
   }
+
+  /**
+   * Delete a retrospective session linked to a project
+   * DELETE /api/projects/:id/retros/:retroId
+   */
+  static async deleteProjectRetro(projectId: string, retroId: string): Promise<Project> {
+    const res = await api.delete<ApiResponseWrapper<Project>>(
+      `${ENDPOINTS.PROJECTS}/${projectId}/retros/${retroId}`
+    );
+    return res.data;
+  }
+
+  /**
+   * Update retrospective session details linked to a project
+   * PATCH /api/projects/:id/retros/:retroId
+   */
+  static async updateProjectRetro(
+    projectId: string,
+    retroId: string,
+    payload: { title?: string; scheduledDate?: string; sprintName?: string }
+  ): Promise<Project> {
+    const res = await api.patch<ApiResponseWrapper<Project>>(
+      `${ENDPOINTS.PROJECTS}/${projectId}/retros/${retroId}`,
+      payload
+    );
+    return res.data;
+  }
 }
 
 export default ProjectApiService;

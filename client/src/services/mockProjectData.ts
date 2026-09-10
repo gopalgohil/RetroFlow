@@ -540,4 +540,46 @@ export class ProjectDataService {
     this.saveProjects(projects);
     return { success: true, addedCount: newBacklogItems.length };
   }
+
+  public static deleteProjectRetro(projectId: string, retroId: string): Project | null {
+    const projects = this.getStoredProjects();
+    const projIndex = projects.findIndex((p) => p.id === projectId);
+    if (projIndex === -1) return null;
+
+    const project = projects[projIndex];
+    project.retrospectives = (project.retrospectives || []).filter(
+      (r) => r.id !== retroId && r.shareToken !== retroId
+    );
+
+    projects[projIndex] = project;
+    this.saveProjects(projects);
+    return project;
+  }
+
+  public static updateProjectRetro(
+    projectId: string,
+    retroId: string,
+    payload: { title?: string; scheduledDate?: string; sprintName?: string }
+  ): Project | null {
+    const projects = this.getStoredProjects();
+    const projIndex = projects.findIndex((p) => p.id === projectId);
+    if (projIndex === -1) return null;
+
+    const project = projects[projIndex];
+    project.retrospectives = (project.retrospectives || []).map((r) => {
+      if (r.id === retroId || r.shareToken === retroId) {
+        return {
+          ...r,
+          ...(payload.title ? { title: payload.title } : {}),
+          ...(payload.scheduledDate ? { scheduledDate: payload.scheduledDate } : {}),
+          ...(payload.sprintName ? { sprintName: payload.sprintName } : {}),
+        };
+      }
+      return r;
+    });
+
+    projects[projIndex] = project;
+    this.saveProjects(projects);
+    return project;
+  }
 }
