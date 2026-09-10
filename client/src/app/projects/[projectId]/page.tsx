@@ -15,6 +15,7 @@ import {
   RetrosTab,
   TeamSettingsTab,
 } from '@/components/project/tabs';
+import { ProjectDetailSkeleton } from '@/components/project/ProjectSkeletons';
 import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
@@ -44,7 +45,15 @@ function ProjectDetailContent() {
   const projectId = (params?.projectId as string) || 'proj-pgi';
   const tabParam = searchParams.get('tab') || 'overview';
 
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<Project | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return ProjectDataService.getProjectById(projectId) || null;
+  });
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(null);
   const [accessDeniedError, setAccessDeniedError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sprints' | 'retros' | 'team'>(
@@ -52,6 +61,7 @@ function ProjectDetailContent() {
   );
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCreateRetroOpen, setIsCreateRetroOpen] = useState(false);
+  const [isSwitchingProject, setIsSwitchingProject] = useState(false);
 
   useEffect(() => {
     try {
@@ -60,21 +70,76 @@ function ProjectDetailContent() {
     } catch {}
   }, []);
 
+  // Instant seamless project selection with component-matched skeleton
+  const handleSelectProject = (selectedProj: Project) => {
+    setIsSwitchingProject(true);
+    setAccessDeniedError(null);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('retroflow_active_project_id', selectedProj.id);
+      try {
+        sessionStorage.setItem(`retroflow_cached_project_${selectedProj.id}`, JSON.stringify(selectedProj));
+      } catch {}
+    }
+    window.history.pushState(null, '', `/projects/${selectedProj.id}?tab=${activeTab}`);
+
+    // Component-matched skeleton smoothly renders while updating project
+    setTimeout(() => {
+      setProject(selectedProj);
+      setIsSwitchingProject(false);
+    }, 280);
+
+    // Live background REST API sync
+    ProjectApiService.getProjectById(selectedProj.id)
+      .then((p) => {
+        if (p) {
+          setProject(p);
+          try {
+            sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
+          } catch {}
+        }
+      })
+      .catch((err: any) => {
+        if (err?.message?.includes('Access Denied') || err?.status === 403) {
+          setAccessDeniedError(
+            err.message || 'Access Denied: You are not assigned as a member or lead of this project.'
+          );
+        }
+      });
+  };
+
   // Sync tab with URL
   const handleTabChange = (newTab: 'overview' | 'sprints' | 'retros' | 'team') => {
     setActiveTab(newTab);
-    const url = `/projects/${projectId}?tab=${newTab}`;
+    const targetId = project?.id || projectId;
+    const url = `/projects/${targetId}?tab=${newTab}`;
     window.history.pushState(null, '', url);
   };
 
   useEffect(() => {
     let isMounted = true;
     setAccessDeniedError(null);
+
+    // If current project doesn't match URL projectId, check cache or mock first
+    if (!project || project.id !== projectId) {
+      try {
+        const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
+        if (cached) {
+          setProject(JSON.parse(cached));
+        } else {
+          const fallback = ProjectDataService.getProjectById(projectId);
+          if (fallback) setProject(fallback);
+        }
+      } catch {}
+    }
+
     // Live REST API request -> visible in browser Network tab!
     ProjectApiService.getProjectById(projectId)
       .then((p) => {
         if (isMounted && p) {
           setProject(p);
+          try {
+            sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
+          } catch {}
         }
       })
       .catch((err: any) => {
@@ -94,7 +159,7 @@ function ProjectDetailContent() {
     return () => {
       isMounted = false;
     };
-  }, [projectId, router]);
+  }, [projectId]);
 
   const handleRetroSave = async (payload: CreateRetroPayload) => {
     try {
@@ -151,48 +216,6 @@ function ProjectDetailContent() {
     }
   };
 
-  if (accessDeniedError) {
-    return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
-        <div className="max-w-md w-full p-8 rounded-3xl bg-white border border-slate-200/80 shadow-xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
-          <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
-            🛡️
-          </div>
-          <div className="space-y-1.5">
-            <h2 className="text-lg font-bold text-slate-900">Project Access Restricted</h2>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              {accessDeniedError}
-            </p>
-          </div>
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px] text-slate-500 text-left">
-            <p>
-              <strong>RBAC Enterprise Policy:</strong> Non-admin users can only view initiatives
-              they are actively assigned to as a Team Member or Project Lead.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => router.push('/dashboard')}
-            className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
-          >
-            Return to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!project) {
-    return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-500 text-sm font-medium">
-          <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-          <span>Loading project workspace...</span>
-        </div>
-      </div>
-    );
-  }
-
   const activeUser = currentUser || {
     name: 'Gopal Gohel',
     email: 'gopalgohel249@gmail.com',
@@ -200,19 +223,33 @@ function ProjectDetailContent() {
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
-  const isUserProjectLead = Boolean(
-    userEmail &&
-      (project.lead?.email?.toLowerCase().trim() === userEmail ||
-        project.members?.some(
-          (m) => m.email?.toLowerCase().trim() === userEmail && m.role === 'Manager'
-        ))
+  const isWorkspaceAdmin = Boolean(
+    activeUser.role?.toLowerCase() === 'admin' ||
+    userEmail === 'gopalgohel249@gmail.com' ||
+    userEmail?.includes('admin')
   );
 
-  const canManageProject = activeUser.role === 'admin' || isUserProjectLead;
+  const isDesignatedLead = Boolean(
+    userEmail && project?.lead?.email?.toLowerCase().trim() === userEmail
+  );
+
+  const userMemberRecord = project?.members?.find(
+    (m) => m.email?.toLowerCase().trim() === userEmail
+  );
+
+  const isProjectManager = Boolean(userMemberRecord && userMemberRecord.role === 'Manager');
+  const isUserProjectLead = isDesignatedLead || isProjectManager;
+
+  const canManageProject = isWorkspaceAdmin || isDesignatedLead || isProjectManager;
+
+  const currentUserRole =
+    isDesignatedLead ? 'Project Lead' :
+    isProjectManager ? 'Manager' :
+    userMemberRecord?.role || (isWorkspaceAdmin ? 'Admin' : 'Developer');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex selection:bg-indigo-500 selection:text-white font-sans">
-      {/* 1. Left Navigation Sidebar */}
+      {/* 1. Left Navigation Sidebar - ALWAYS rendered and persistent */}
       <Sidebar
         activeTab="projects"
         setActiveTab={(t) => {
@@ -229,7 +266,7 @@ function ProjectDetailContent() {
 
       {/* 2. Main Content Area */}
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
-        {/* Top Header with Project Switcher & Search */}
+        {/* Top Header with Project Switcher - ALWAYS rendered and persistent */}
         <header className="sticky top-0 z-30 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 px-6 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
@@ -239,8 +276,11 @@ function ProjectDetailContent() {
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Intuitive Project Switcher */}
-            <ProjectSwitcher currentProjectId={project.id} />
+            {/* Intuitive Project Switcher with instant callback */}
+            <ProjectSwitcher
+              currentProjectId={project?.id || projectId}
+              onSelectProject={handleSelectProject}
+            />
           </div>
 
           {/* Right Header CTAs */}
@@ -265,6 +305,39 @@ function ProjectDetailContent() {
             </Link>
           </div>
         </header>
+
+        {/* Content Body Area */}
+        {accessDeniedError ? (
+          <div className="flex-1 p-6 sm:p-8 flex items-center justify-center min-h-[50vh]">
+            <div className="max-w-md w-full p-8 rounded-3xl bg-white border border-slate-200/80 shadow-xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
+                🛡️
+              </div>
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-bold text-slate-900">Project Access Restricted</h2>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {accessDeniedError}
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px] text-slate-500 text-left">
+                <p>
+                  <strong>RBAC Enterprise Policy:</strong> Non-admin users can only view initiatives
+                  they are actively assigned to as a Team Member or Project Lead.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard')}
+                className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              >
+                Return to Dashboard
+              </button>
+            </div>
+          </div>
+        ) : !project || isSwitchingProject ? (
+          <ProjectDetailSkeleton activeTab={activeTab} />
+        ) : (
+          <>
 
         {/* 3. Project Summary Banner */}
         <div className="bg-white border-b border-slate-200/80 px-6 py-6 sm:px-8">
@@ -345,7 +418,12 @@ function ProjectDetailContent() {
               { id: 'overview', label: 'Overview', icon: Activity },
               { id: 'sprints', label: 'Sprints & Backlog', icon: Layers, count: project.sprints.length },
               { id: 'retros', label: 'Retrospectives', icon: Sparkles, count: project.retrospectives.length },
-              { id: 'team', label: 'Team & Settings', icon: Users, count: project.members.length },
+              {
+                id: 'team',
+                label: canManageProject ? 'Team & Settings' : 'Team Directory',
+                icon: Users,
+                count: project.members.length,
+              },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -391,9 +469,16 @@ function ProjectDetailContent() {
           )}
 
           {activeTab === 'team' && (
-            <TeamSettingsTab project={project} onProjectUpdated={(up) => setProject({ ...up })} />
+            <TeamSettingsTab
+              project={project}
+              onProjectUpdated={(up) => setProject({ ...up })}
+              canManageProject={canManageProject}
+              currentUserRole={currentUserRole}
+            />
           )}
         </main>
+          </>
+        )}
       </div>
 
       {/* Customize Retro Modal with Project Context & Auto-Invite */}
@@ -423,10 +508,25 @@ export default function ProjectDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-          <div className="flex items-center gap-3 text-slate-500 text-sm font-medium">
-            <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-            <span>Loading Project Workspace...</span>
+        <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex font-sans">
+          <div className="w-72 hidden lg:block border-r border-slate-200/80 bg-white/90 p-6 animate-pulse space-y-6 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-200" />
+              <div className="h-5 w-28 rounded bg-slate-200" />
+            </div>
+            <div className="h-10 w-full rounded-xl bg-slate-100" />
+            <div className="space-y-2 pt-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-10 w-full rounded-xl bg-slate-100" />
+              ))}
+            </div>
+          </div>
+          <div className="flex-1 flex flex-col min-w-0">
+            <header className="sticky top-0 z-30 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 px-6 py-3.5 flex items-center justify-between gap-4">
+              <div className="h-8 w-48 rounded-xl bg-slate-100 animate-pulse" />
+              <div className="h-8 w-24 rounded-xl bg-slate-100 animate-pulse" />
+            </header>
+            <ProjectDetailSkeleton activeTab="overview" />
           </div>
         </div>
       }

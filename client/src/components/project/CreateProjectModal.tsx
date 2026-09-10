@@ -62,11 +62,20 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [isLeadDropdownOpen, setIsLeadDropdownOpen] = useState(false);
   const leadDropdownRef = React.useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
+  // Team Member Dropdown selection state
+  const [selectedMemberEmail, setSelectedMemberEmail] = useState<string>('');
+  const [isMemberDropdownOpen, setIsMemberDropdownOpen] = useState(false);
+  const [isManualMemberEntry, setIsManualMemberEntry] = useState(false);
+  const memberDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (leadDropdownRef.current && !leadDropdownRef.current.contains(event.target as Node)) {
         setIsLeadDropdownOpen(false);
+      }
+      if (memberDropdownRef.current && !memberDropdownRef.current.contains(event.target as Node)) {
+        setIsMemberDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -77,6 +86,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   React.useEffect(() => {
     if (!isOpen) {
       setIsLeadDropdownOpen(false);
+      setIsMemberDropdownOpen(false);
       return;
     }
 
@@ -149,10 +159,20 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         } else if (list.length > 0) {
           setSelectedLeadEmail(list[0].email);
         }
+
+        const unadded = list.find((m) => !members.some((x) => x.email.toLowerCase() === m.email.toLowerCase()));
+        if (unadded) {
+          setSelectedMemberEmail(unadded.email);
+        } else if (list.length > 0) {
+          setSelectedMemberEmail(list[0].email);
+        }
       })
       .catch(() => {
         if (currentUser?.email) {
           setSelectedLeadEmail(currentUser.email);
+        }
+        if (DEFAULT_WORKSPACE_LEADS.length > 0) {
+          setSelectedMemberEmail(DEFAULT_WORKSPACE_LEADS[0].email);
         }
       });
   }, [isOpen]);
@@ -198,32 +218,73 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   const handleAddMember = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!newMemberName.trim()) {
-      setMemberError('Please enter member full name');
-      return;
-    }
-    if (!newMemberEmail.trim() || !newMemberEmail.includes('@')) {
-      setMemberError('Please enter a valid work email');
-      return;
-    }
-    if (members.some((m) => m.email.toLowerCase() === newMemberEmail.toLowerCase())) {
-      setMemberError('Member with this email is already added');
+    if (isManualMemberEntry) {
+      if (!newMemberName.trim()) {
+        setMemberError('Please enter member full name');
+        return;
+      }
+      if (!newMemberEmail.trim() || !newMemberEmail.includes('@')) {
+        setMemberError('Please enter a valid work email');
+        return;
+      }
+      if (members.some((m) => m.email.toLowerCase() === newMemberEmail.toLowerCase())) {
+        setMemberError('Member with this email is already added');
+        return;
+      }
+
+      setMembers((prev) => [
+        ...prev,
+        {
+          name: newMemberName.trim(),
+          email: newMemberEmail.trim().toLowerCase(),
+          role: newMemberRole,
+        },
+      ]);
+      setNewMemberName('');
+      setNewMemberEmail('');
+      setMemberError('');
       return;
     }
 
-    setMembers((prev) => [
-      ...prev,
+    if (!selectedMemberEmail) {
+      setMemberError('Please select a workspace member');
+      return;
+    }
+
+    const chosen = availableLeads.find(
+      (l) => l.email.toLowerCase() === selectedMemberEmail.toLowerCase()
+    );
+    if (!chosen) {
+      setMemberError('Selected member not found');
+      return;
+    }
+
+    if (members.some((m) => m.email.toLowerCase() === chosen.email.toLowerCase())) {
+      setMemberError('This member is already added to the project');
+      return;
+    }
+
+    const cleanName = chosen.name.replace(/\s*\(You\)\s*/i, '').trim();
+
+    const updated = [
+      ...members,
       {
-        name: newMemberName.trim(),
-        email: newMemberEmail.trim().toLowerCase(),
+        name: cleanName,
+        email: chosen.email.toLowerCase().trim(),
         role: newMemberRole,
       },
-    ]);
+    ];
 
-    setNewMemberName('');
-    setNewMemberEmail('');
-    setNewMemberRole('Developer');
+    setMembers(updated);
     setMemberError('');
+
+    // Preselect next unassigned member in dropdown
+    const nextUnassigned = availableLeads.find(
+      (l) => !updated.some((m) => m.email.toLowerCase() === l.email.toLowerCase())
+    );
+    if (nextUnassigned) {
+      setSelectedMemberEmail(nextUnassigned.email);
+    }
   };
 
   const handleRemoveMember = (email: string) => {
@@ -553,56 +614,215 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             <span className="text-[11px] text-slate-400">Can be updated anytime</span>
           </div>
 
-          {/* Add Member Row */}
-          <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
-              <div className="sm:col-span-4">
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={newMemberName}
-                  onChange={(e) => {
-                    setNewMemberName(e.target.value);
-                    setMemberError('');
-                  }}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
+          {/* Add Member Selector Row */}
+          <div className="p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/90 space-y-3">
+            {!isManualMemberEntry ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+                  {/* Member Dropdown Picker */}
+                  <div className="sm:col-span-7 relative" ref={memberDropdownRef}>
+                    {(() => {
+                      const activeChoice = availableLeads.find(
+                        (l) => l.email.toLowerCase() === selectedMemberEmail.toLowerCase()
+                      ) || availableLeads[0];
+
+                      return (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setIsMemberDropdownOpen((prev) => !prev)}
+                            className="w-full px-3 py-2 bg-white border border-slate-200 hover:border-indigo-400 rounded-xl flex items-center justify-between transition-all text-left shadow-2xs cursor-pointer"
+                          >
+                            {activeChoice ? (
+                              <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
+                                  {activeChoice.avatar || activeChoice.name.slice(0, 2).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-slate-900 truncate leading-tight">
+                                    {activeChoice.name}
+                                  </p>
+                                  <p className="text-[10px] text-slate-400 font-mono truncate leading-tight">
+                                    {activeChoice.email}
+                                  </p>
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-400">Select workspace member...</span>
+                            )}
+
+                            <ChevronDown
+                              className={`w-4 h-4 text-slate-400 transition-transform duration-150 shrink-0 ${
+                                isMemberDropdownOpen ? 'rotate-180 text-indigo-600' : ''
+                              }`}
+                            />
+                          </button>
+
+                          {/* Dropdown Menu */}
+                          {isMemberDropdownOpen && (
+                            <div className="absolute z-50 left-0 right-0 mt-1.5 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl space-y-1 max-h-56 overflow-y-auto">
+                              {availableLeads.map((m) => {
+                                const isAdded = members.some(
+                                  (existing) => existing.email.toLowerCase() === m.email.toLowerCase()
+                                );
+                                const isSelected =
+                                  m.email.toLowerCase() === selectedMemberEmail.toLowerCase();
+
+                                return (
+                                  <button
+                                    key={m.email}
+                                    type="button"
+                                    disabled={isAdded}
+                                    onClick={() => {
+                                      setSelectedMemberEmail(m.email);
+                                      setIsMemberDropdownOpen(false);
+                                      setMemberError('');
+                                    }}
+                                    className={`w-full p-2 rounded-lg flex items-center justify-between text-left transition-colors ${
+                                      isAdded
+                                        ? 'opacity-50 bg-slate-50 cursor-not-allowed text-slate-400'
+                                        : isSelected
+                                        ? 'bg-indigo-50/80 border border-indigo-200/60 text-slate-900 cursor-pointer'
+                                        : 'hover:bg-slate-50 border border-transparent text-slate-700 cursor-pointer'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                      <div className="w-6 h-6 rounded-md bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center shrink-0">
+                                        {m.avatar || m.name.slice(0, 2).toUpperCase()}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-xs font-semibold text-slate-900 truncate">
+                                          {m.name}
+                                        </p>
+                                        <p className="text-[10px] text-slate-400 font-mono truncate">
+                                          {m.email}
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    {isAdded ? (
+                                      <span className="text-[9px] font-bold text-slate-400 uppercase px-1.5 py-0.5 rounded bg-slate-100">
+                                        Added
+                                      </span>
+                                    ) : isSelected ? (
+                                      <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                                    ) : null}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Role Selector */}
+                  <div className="sm:col-span-3">
+                    <select
+                      value={newMemberRole}
+                      onChange={(e) => setNewMemberRole(e.target.value as ProjectMemberRole)}
+                      className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value="Developer">Developer</option>
+                      <option value="QA">QA Specialist</option>
+                      <option value="Manager">Manager</option>
+                      <option value="Viewer">Viewer</option>
+                    </select>
+                  </div>
+
+                  {/* Add Button */}
+                  <div className="sm:col-span-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAddMember()}
+                      className="w-full py-2 px-3 flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Add</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] pt-0.5 px-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsManualMemberEntry(true);
+                      setMemberError('');
+                    }}
+                    className="text-indigo-600 hover:text-indigo-700 hover:underline font-medium cursor-pointer"
+                  >
+                    + Or invite external member by email
+                  </button>
+                </div>
               </div>
-              <div className="sm:col-span-4">
-                <input
-                  type="email"
-                  placeholder="work.email@retroflow.io"
-                  value={newMemberEmail}
-                  onChange={(e) => {
-                    setNewMemberEmail(e.target.value);
-                    setMemberError('');
-                  }}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
+            ) : (
+              /* Manual Entry fallback */
+              <div className="space-y-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                  <div className="sm:col-span-4">
+                    <input
+                      type="text"
+                      placeholder="Full Name"
+                      value={newMemberName}
+                      onChange={(e) => {
+                        setNewMemberName(e.target.value);
+                        setMemberError('');
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div className="sm:col-span-4">
+                    <input
+                      type="email"
+                      placeholder="work.email@retroflow.io"
+                      value={newMemberEmail}
+                      onChange={(e) => {
+                        setNewMemberEmail(e.target.value);
+                        setMemberError('');
+                      }}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <select
+                      value={newMemberRole}
+                      onChange={(e) => setNewMemberRole(e.target.value as ProjectMemberRole)}
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value="Developer">Developer</option>
+                      <option value="QA">QA Specialist</option>
+                      <option value="Manager">Manager</option>
+                      <option value="Viewer">Viewer</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-1">
+                    <button
+                      type="button"
+                      onClick={() => handleAddMember()}
+                      className="w-full h-full min-h-[30px] flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors cursor-pointer"
+                      title="Add Member"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[11px] pt-0.5 px-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsManualMemberEntry(false);
+                      setMemberError('');
+                    }}
+                    className="text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                  >
+                    ← Back to workspace members list
+                  </button>
+                </div>
               </div>
-              <div className="sm:col-span-3">
-                <select
-                  value={newMemberRole}
-                  onChange={(e) => setNewMemberRole(e.target.value as ProjectMemberRole)}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
-                >
-                  <option value="Developer">Developer</option>
-                  <option value="QA">QA Specialist</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Viewer">Viewer</option>
-                </select>
-              </div>
-              <div className="sm:col-span-1">
-                <button
-                  type="button"
-                  onClick={() => handleAddMember()}
-                  className="w-full h-full min-h-[30px] flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors cursor-pointer"
-                  title="Add Member"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+            )}
+
             {memberError && <p className="text-[11px] text-rose-500 font-medium">{memberError}</p>}
           </div>
 

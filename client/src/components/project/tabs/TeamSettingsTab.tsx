@@ -13,20 +13,33 @@ import {
   RotateCcw,
   Trash2,
   AlertOctagon,
+  Lock,
 } from 'lucide-react';
 import { Project, ProjectMemberRole } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
+import { api, ENDPOINTS } from '@/lib/api';
 import { UserAvatar, StatusPill, Modal } from '@/components/ui';
 
 interface TeamSettingsTabProps {
   project: Project;
   onProjectUpdated: (updated: Project) => void;
+  canManageProject?: boolean;
+  currentUserRole?: string;
 }
+
+const DEFAULT_WORKSPACE_MEMBERS = [
+  { id: 'lead-gopal', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com' },
+  { id: 'lead-sarah', name: 'Sarah Jenkins', email: 'sarah.j@retroflow.io' },
+  { id: 'lead-marcus', name: 'Marcus Chen', email: 'marcus.c@retroflow.io' },
+  { id: 'lead-priya', name: 'Priya Sharma', email: 'priya.s@retroflow.io' },
+];
 
 export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
   project,
   onProjectUpdated,
+  canManageProject = false,
+  currentUserRole = 'Developer',
 }) => {
   const router = useRouter();
 
@@ -36,6 +49,53 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<ProjectMemberRole>('Developer');
   const [inviteError, setInviteError] = useState('');
+  const [workspaceMembers, setWorkspaceMembers] = useState(DEFAULT_WORKSPACE_MEMBERS);
+  const [selectedWorkspaceMemberEmail, setSelectedWorkspaceMemberEmail] = useState('');
+  const [isManualInvite, setIsManualInvite] = useState(false);
+
+  // Load real workspace members when invite modal opens
+  React.useEffect(() => {
+    if (!isInviteOpen) return;
+    api
+      .get(ENDPOINTS.MEMBERS, { params: { limit: 50 } })
+      .then((res) => {
+        const raw = Array.isArray(res.data) ? res.data : res.data?.members || [];
+        const map = new Map<string, any>();
+        raw.forEach((m: any) => {
+          if (m.email) {
+            map.set(m.email.toLowerCase(), {
+              id: m.id || m._id || m.email,
+              name: m.name || m.email.split('@')[0],
+              email: m.email,
+            });
+          }
+        });
+        DEFAULT_WORKSPACE_MEMBERS.forEach((d) => {
+          if (!map.has(d.email.toLowerCase())) map.set(d.email.toLowerCase(), d);
+        });
+        const list = Array.from(map.values());
+        setWorkspaceMembers(list);
+        const unadded = list.find(
+          (m) => !project.members?.some((x) => x.email.toLowerCase() === m.email.toLowerCase())
+        );
+        if (unadded) {
+          setSelectedWorkspaceMemberEmail(unadded.email);
+          setInviteName(unadded.name);
+          setInviteEmail(unadded.email);
+        }
+      })
+      .catch(() => {
+        setWorkspaceMembers(DEFAULT_WORKSPACE_MEMBERS);
+        const unadded = DEFAULT_WORKSPACE_MEMBERS.find(
+          (m) => !project.members?.some((x) => x.email.toLowerCase() === m.email.toLowerCase())
+        );
+        if (unadded) {
+          setSelectedWorkspaceMemberEmail(unadded.email);
+          setInviteName(unadded.name);
+          setInviteEmail(unadded.email);
+        }
+      });
+  }, [isInviteOpen, project.members]);
 
   // Settings form state
   const [name, setName] = useState(project.name);
@@ -165,14 +225,21 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsInviteOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>Invite Team Member</span>
-          </button>
+          {canManageProject ? (
+            <button
+              type="button"
+              onClick={() => setIsInviteOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Invite Team Member</span>
+            </button>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-xs font-semibold">
+              <Users className="w-3.5 h-3.5 text-slate-400" />
+              <span>Directory View</span>
+            </div>
+          )}
         </div>
 
         {/* Members Table */}
@@ -221,16 +288,24 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         </div>
       </div>
 
-      {/* Section 2: General Project Settings */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs p-6 space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+      {/* Section 2: General Project Configuration */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-6">
+        <div className="border-b border-slate-200/80 pb-4 flex items-center justify-between">
           <div>
             <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <Settings className="w-4 h-4 text-slate-700" />
-              General Project Configuration
+              <Settings className="w-4 h-4 text-indigo-600" />
+              <span>General Project Configuration</span>
+              {!canManageProject && (
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
+                  <Lock className="w-3 h-3 text-slate-400" />
+                  Read-Only
+                </span>
+              )}
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Update project descriptions, team details, and board attributes
+              {canManageProject
+                ? 'Update project descriptions, team details, and board attributes'
+                : 'Project configurations can only be updated by the Project Lead, Managers, or Workspace Admins'}
             </p>
           </div>
 
@@ -242,14 +317,29 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
           )}
         </div>
 
+        {!canManageProject && (
+          <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-amber-900 text-xs flex items-center gap-2.5">
+            <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+            <p>
+              Your role in this project is <strong>{currentUserRole}</strong>. Project settings and Danger Zone operations are strictly reserved for the <strong>Project Lead & Managers</strong>.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleSaveSettings} className="space-y-4 max-w-xl">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-800">Project Name</label>
             <input
               type="text"
+              disabled={!canManageProject}
+              readOnly={!canManageProject}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+              className={`w-full px-3.5 py-2.5 border rounded-xl text-xs text-slate-900 focus:outline-none ${
+                canManageProject
+                  ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500'
+                  : 'bg-slate-100/70 border-slate-200 text-slate-600 cursor-not-allowed'
+              }`}
             />
           </div>
 
@@ -257,104 +347,113 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             <label className="block text-xs font-bold text-slate-800">Description</label>
             <textarea
               rows={3}
+              disabled={!canManageProject}
+              readOnly={!canManageProject}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none"
+              className={`w-full px-3.5 py-2.5 border rounded-xl text-xs text-slate-900 focus:outline-none resize-none ${
+                canManageProject
+                  ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500'
+                  : 'bg-slate-100/70 border-slate-200 text-slate-600 cursor-not-allowed'
+              }`}
             />
           </div>
 
-
-          <div className="pt-2">
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
-            >
-              <Save className="w-4 h-4" />
-              <span>Save Configuration</span>
-            </button>
-          </div>
+          {canManageProject && (
+            <div className="pt-2">
+              <button
+                type="submit"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+                <span>Save Configuration</span>
+              </button>
+            </div>
+          )}
         </form>
       </div>
 
-      {/* Section 3: Enterprise Danger Zone */}
-      <div className="bg-rose-50/50 border border-rose-200/90 rounded-2xl shadow-xs overflow-hidden">
-        <div className="p-6 border-b border-rose-200/70 bg-rose-100/30 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-600/20 shrink-0">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-extrabold text-rose-950 tracking-tight flex items-center gap-2">
-                Danger Zone
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-200/80 text-rose-800 uppercase tracking-wider">
-                  Admin Only
-                </span>
-              </h3>
-              <p className="text-xs text-rose-700/80 mt-0.5">
-                Destructive operations and lifecycle status changes for this agile initiative
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6 space-y-4 divide-y divide-rose-100">
-          {/* Action A: Archive Initiative (Soft Delete) */}
-          <div className="pt-2 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                <Archive className="w-3.5 h-3.5 text-slate-500" />
-                <span>{project.isArchived ? 'Restore Initiative' : 'Archive Initiative'}</span>
-                {project.isArchived && (
-                  <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                    Archived
+      {/* Section 3: Enterprise Danger Zone (Visible ONLY to Project Lead / Manager / Workspace Admin) */}
+      {canManageProject && (
+        <div className="bg-rose-50/50 border border-rose-200/90 rounded-2xl shadow-xs overflow-hidden">
+          <div className="p-6 border-b border-rose-200/70 bg-rose-100/30 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-600/20 shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold text-rose-950 tracking-tight flex items-center gap-2">
+                  Danger Zone
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-200/80 text-rose-800 uppercase tracking-wider">
+                    Managers & Lead Only
                   </span>
-                )}
-              </h4>
-              <p className="text-xs text-slate-500 max-w-lg leading-relaxed">
-                Mark this project as {project.isArchived ? 'active again' : 'archived'}. Historical velocity data and retrospective action items remain preserved in read-only state.
-              </p>
+                </h3>
+                <p className="text-xs text-rose-700/80 mt-0.5">
+                  Destructive operations and lifecycle status changes for this agile initiative
+                </p>
+              </div>
             </div>
-
-            <button
-              type="button"
-              onClick={handleArchiveToggle}
-              disabled={isArchiving}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0 ${
-                project.isArchived
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
-              }`}
-            >
-              {isArchiving ? 'Updating...' : project.isArchived ? 'Unarchive Project' : 'Archive Project'}
-            </button>
           </div>
 
-          {/* Action B: Delete Initiative Permanently (Hard Delete) */}
-          <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <h4 className="text-xs font-bold text-rose-900 flex items-center gap-2">
-                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                <span>Delete this project permanently</span>
-              </h4>
-              <p className="text-xs text-slate-500 max-w-lg leading-relaxed">
-                Once deleted, all {project.sprints.length} sprints, backlog items, and configuration rules for <strong>{project.name}</strong> will be permanently wiped. This action <strong>cannot</strong> be undone.
-              </p>
+          <div className="p-6 space-y-4 divide-y divide-rose-100">
+            {/* Action A: Archive Initiative (Soft Delete) */}
+            <div className="pt-2 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                  <Archive className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{project.isArchived ? 'Restore Initiative' : 'Archive Initiative'}</span>
+                  {project.isArchived && (
+                    <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                      Archived
+                    </span>
+                  )}
+                </h4>
+                <p className="text-xs text-slate-500 max-w-lg leading-relaxed">
+                  Mark this project as {project.isArchived ? 'active again' : 'archived'}. Historical velocity data and retrospective action items remain preserved in read-only state.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleArchiveToggle}
+                disabled={isArchiving}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0 ${
+                  project.isArchived
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
+                }`}
+              >
+                {isArchiving ? 'Updating...' : project.isArchived ? 'Unarchive Project' : 'Archive Project'}
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setDeleteConfirmInput('');
-                setDeleteError('');
-                setIsDeleteModalOpen(true);
-              }}
-              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer shrink-0"
-            >
-              Delete Project...
-            </button>
+            {/* Action B: Delete Initiative Permanently (Hard Delete) */}
+            <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <h4 className="text-xs font-bold text-rose-900 flex items-center gap-2">
+                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Delete this project permanently</span>
+                </h4>
+                <p className="text-xs text-slate-500 max-w-lg leading-relaxed">
+                  Once deleted, all {project.sprints.length} sprints, backlog items, and configuration rules for <strong>{project.name}</strong> will be permanently wiped. This action <strong>cannot</strong> be undone.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteConfirmInput('');
+                  setDeleteError('');
+                  setIsDeleteModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer shrink-0"
+              >
+                Delete Project...
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Reusable Modal for Member Invitation */}
       <Modal
@@ -383,37 +482,105 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
           </>
         }
       >
-        <form onSubmit={handleInviteSubmit} className="space-y-3.5">
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">Full Name</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Jordan Hayes"
-              value={inviteName}
-              onChange={(e) => setInviteName(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-            />
-          </div>
+        <form onSubmit={handleInviteSubmit} className="space-y-4">
+          {!isManualInvite ? (
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">
+                Select Workspace Member
+              </label>
+              <select
+                value={selectedWorkspaceMemberEmail}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedWorkspaceMemberEmail(val);
+                  const found = workspaceMembers.find(
+                    (m) => m.email.toLowerCase() === val.toLowerCase()
+                  );
+                  if (found) {
+                    setInviteName(found.name);
+                    setInviteEmail(found.email);
+                  }
+                }}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+              >
+                {workspaceMembers.map((m) => {
+                  const isAlreadyMember = project.members?.some(
+                    (p) => p.email.toLowerCase() === m.email.toLowerCase()
+                  );
+                  return (
+                    <option key={m.email} value={m.email} disabled={isAlreadyMember}>
+                      {m.name} ({m.email}) {isAlreadyMember ? '— Already Added' : ''}
+                    </option>
+                  );
+                })}
+              </select>
+              <div className="pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsManualInvite(true);
+                    setInviteName('');
+                    setInviteEmail('');
+                  }}
+                  className="text-[11px] text-indigo-600 hover:text-indigo-700 hover:underline font-medium cursor-pointer"
+                >
+                  + Or enter custom name & email
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Jordan Hayes"
+                  value={inviteName}
+                  onChange={(e) => setInviteName(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Work Email</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="jordan.h@retroflow.io"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                />
+              </div>
+
+              <div className="pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsManualInvite(false);
+                    const found = workspaceMembers.find(
+                      (m) => m.email.toLowerCase() === selectedWorkspaceMemberEmail.toLowerCase()
+                    );
+                    if (found) {
+                      setInviteName(found.name);
+                      setInviteEmail(found.email);
+                    }
+                  }}
+                  className="text-[11px] text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                >
+                  ← Back to workspace members list
+                </button>
+              </div>
+            </>
+          )}
 
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">Work Email</label>
-            <input
-              type="email"
-              required
-              placeholder="jordan.h@retroflow.io"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">Role</label>
+            <label className="block text-xs font-bold text-slate-700">Project Role</label>
             <select
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value as ProjectMemberRole)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 cursor-pointer"
             >
               <option value="Developer">Developer</option>
               <option value="QA">QA Specialist</option>

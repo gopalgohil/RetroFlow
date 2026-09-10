@@ -60,7 +60,7 @@ class ProjectController {
    * PUT /api/projects/:id
    */
   updateProject = asyncHandler(async (req, res) => {
-    const project = await projectService.updateProject(req.params.id, req.body);
+    const project = await projectService.updateProject(req.params.id, req.body, req.user);
     return ApiResponse.ok(res, project, 'Project configuration updated successfully');
   });
 
@@ -87,7 +87,7 @@ class ProjectController {
    * POST /api/projects/:id/members
    */
   addMember = asyncHandler(async (req, res) => {
-    const project = await projectService.addMember(req.params.id, req.body);
+    const project = await projectService.addMember(req.params.id, req.body, req.user);
     return ApiResponse.created(res, project, 'Team member assigned to project');
   });
 
@@ -111,7 +111,7 @@ class ProjectController {
    */
   archiveProject = asyncHandler(async (req, res) => {
     const { isArchived } = req.body;
-    const project = await projectService.archiveProject(req.params.id, isArchived !== false);
+    const project = await projectService.archiveProject(req.params.id, isArchived !== false, req.user);
     return ApiResponse.ok(
       res,
       project,
@@ -124,7 +124,7 @@ class ProjectController {
    * DELETE /api/projects/:id
    */
   deleteProject = asyncHandler(async (req, res) => {
-    const result = await projectService.deleteProject(req.params.id);
+    const result = await projectService.deleteProject(req.params.id, req.user);
     return ApiResponse.ok(res, result, `Project ${result.deletedKey} permanently deleted`);
   });
 }

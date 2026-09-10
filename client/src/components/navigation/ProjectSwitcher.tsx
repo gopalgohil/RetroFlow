@@ -51,12 +51,31 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
       .then((list) => {
         if (isMounted && list && list.length > 0) {
           setProjects(list);
+          list.forEach((p) => {
+            try {
+              sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
+            } catch {}
+          });
         } else if (isMounted) {
-          setProjects(ProjectDataService.getProjects());
+          const fallbackList = ProjectDataService.getProjects();
+          setProjects(fallbackList);
+          fallbackList.forEach((p) => {
+            try {
+              sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
+            } catch {}
+          });
         }
       })
       .catch(() => {
-        if (isMounted) setProjects(ProjectDataService.getProjects());
+        if (isMounted) {
+          const fallbackList = ProjectDataService.getProjects();
+          setProjects(fallbackList);
+          fallbackList.forEach((p) => {
+            try {
+              sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
+            } catch {}
+          });
+        }
       });
 
     return () => {
@@ -94,6 +113,9 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   const handleSelect = (project: Project) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('retroflow_active_project_id', project.id);
+      try {
+        sessionStorage.setItem(`retroflow_cached_project_${project.id}`, JSON.stringify(project));
+      } catch {}
     }
     if (onSelectProject) {
       onSelectProject(project);
@@ -104,6 +126,9 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   };
 
   const handleProjectCreated = (newProj: Project) => {
+    try {
+      sessionStorage.setItem(`retroflow_cached_project_${newProj.id}`, JSON.stringify(newProj));
+    } catch {}
     setProjects((prev) => {
       const exists = prev.some((p) => p.id === newProj.id);
       return exists ? prev.map((p) => (p.id === newProj.id ? newProj : p)) : [...prev, newProj];

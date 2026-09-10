@@ -278,6 +278,32 @@ class ProjectService {
   }
 
   /**
+   * Helper to verify if currentUser has Manager, Project Lead, or Admin authority
+   */
+  assertCanManage(project, currentUser) {
+    if (!currentUser) return;
+
+    const isAdmin =
+      currentUser.role?.toLowerCase() === 'admin' ||
+      currentUser.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
+      currentUser.email?.toLowerCase().includes('admin');
+
+    if (isAdmin) return;
+
+    const email = currentUser.email?.toLowerCase().trim();
+    const isLead = project.lead?.email?.toLowerCase().trim() === email;
+    const memberRecord = project.members?.find((m) => m.email?.toLowerCase().trim() === email);
+    const isManager = memberRecord && memberRecord.role === 'Manager';
+    const isCreator = currentUser._id && project.createdBy?.toString() === currentUser._id.toString();
+
+    if (!isLead && !isManager && !isCreator) {
+      const error = new Error('Access Denied: Only Project Lead, Managers, or Workspace Admins can modify project settings or delete projects.');
+      error.statusCode = 403;
+      throw error;
+    }
+  }
+
+  /**
    * Create a new project with Initial Sprint
    */
   async createProject(payload, userId = null) {
@@ -374,9 +400,10 @@ class ProjectService {
   /**
    * Update project configuration
    */
-  async updateProject(idOrKey, payload) {
-    const project = await this.getProjectByIdOrKey(idOrKey);
+  async updateProject(idOrKey, payload, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
 
     if (payload.name) project.name = payload.name.trim();
     if (payload.description !== undefined) project.description = payload.description.trim();
@@ -442,9 +469,10 @@ class ProjectService {
   /**
    * Add a team member with role
    */
-  async addMember(idOrKey, memberData) {
-    const project = await this.getProjectByIdOrKey(idOrKey);
+  async addMember(idOrKey, memberData, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
 
     const email = memberData.email.toLowerCase().trim();
     const existing = project.members.find((m) => m.email.toLowerCase() === email);
@@ -543,9 +571,10 @@ class ProjectService {
   /**
    * Archive / Restore project (Soft Delete)
    */
-  async archiveProject(idOrKey, isArchived = true) {
-    const project = await this.getProjectByIdOrKey(idOrKey);
+  async archiveProject(idOrKey, isArchived = true, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
 
     project.isArchived = isArchived;
     if (isArchived) {
@@ -558,9 +587,10 @@ class ProjectService {
   /**
    * Permanently delete project (Hard Delete - Danger Zone)
    */
-  async deleteProject(idOrKey) {
-    const project = await this.getProjectByIdOrKey(idOrKey);
+  async deleteProject(idOrKey, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
 
     const totalProjects = await Project.countDocuments();
     if (totalProjects <= 1) {

@@ -350,6 +350,14 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
               {/* Action Button */}
               <Link
                 href={`/projects/${project.id}`}
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('retroflow_active_project_id', project.id);
+                    try {
+                      sessionStorage.setItem(`retroflow_cached_project_${project.id}`, JSON.stringify(project));
+                    } catch {}
+                  }
+                }}
                 className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-bold transition-all shadow-2xs group-hover:shadow-xs cursor-pointer"
               >
                 <span>Open Project Dashboard</span>
