@@ -4,9 +4,9 @@ import React from 'react';
 import Link from 'next/link';
 import {
   Activity,
-  AlertTriangle,
   Clock,
-  TrendingUp,
+  CheckCircle2,
+  Users,
   ArrowUpRight,
 } from 'lucide-react';
 import { Project } from '@/types/project';
@@ -52,10 +52,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     project.sprints.find((s) => s.status === 'active') ||
     project.sprints[0];
 
-  const avgVelocity = Math.round(
-    project.velocityHistory.reduce((sum, v) => sum + v.completedPoints, 0) /
-      (project.velocityHistory.length || 1)
-  );
+  const totalTasks = activeSprint?.items?.length || 0;
+  const completedTasks = activeSprint?.items?.filter((it) => it.status === 'done').length || 0;
+  const todoTasks = totalTasks - completedTasks;
+  const totalMembers = project.members?.length || 0;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -134,28 +134,33 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           }}
         />
 
-        {/* Metric 3: Open Blockers */}
+        {/* Metric 3: Sprint Tasks Progress */}
         <MetricCard
-          title="Open Blockers"
-          value={activeSprint?.openBlockers ?? 0}
-          unit="critical flags"
-          icon={<AlertTriangle className="w-4 h-4" />}
-          variant={(activeSprint?.openBlockers || 0) > 0 ? 'danger' : 'success'}
+          title="Tasks Progress"
+          value={`${completedTasks} / ${totalTasks}`}
+          unit="completed"
+          icon={<CheckCircle2 className="w-4 h-4" />}
+          variant={completedTasks === totalTasks && totalTasks > 0 ? 'success' : 'indigo'}
+          progress={{
+            current: completedTasks,
+            total: totalTasks || 1,
+            label: `${totalTasks} sprint items`,
+          }}
           subtitle={
-            (activeSprint?.openBlockers || 0) > 0
-              ? '1 critical ticket requiring QA/DevOps intervention.'
-              : 'Zero active blockers. Team flow unobstructed.'
+            totalTasks === 0
+              ? 'No tasks assigned in this sprint yet.'
+              : `${todoTasks} remaining task${todoTasks !== 1 ? 's' : ''} in active cycle.`
           }
         />
 
-        {/* Metric 4: Average Velocity */}
+        {/* Metric 4: Team Contributors */}
         <MetricCard
-          title="Team Velocity"
-          value={`${avgVelocity}`}
-          trend={{ value: '+12% trend', isPositive: true }}
-          icon={<TrendingUp className="w-4 h-4" />}
+          title="Team Roster"
+          value={totalMembers}
+          unit={`contributor${totalMembers !== 1 ? 's' : ''}`}
+          icon={<Users className="w-4 h-4" />}
           variant="violet"
-          subtitle="Calculated across previous completed 5 sprints."
+          subtitle={`Lead: ${project.lead?.name || 'Assigned Lead'} • ${project.type?.toUpperCase() || 'SCRUM'}`}
         />
       </div>
 
