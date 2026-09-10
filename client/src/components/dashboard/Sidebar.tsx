@@ -34,8 +34,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
+  const activeUser = user || {
+    name: 'Gopal Gohel',
+    email: 'gopalgohel249@gmail.com',
+    role: 'admin',
+  };
+
+  const userEmail = activeUser.email?.toLowerCase().trim();
   const isAdmin = Boolean(
-    user && (user.role === 'admin' || user.email === 'gopalgohel249@gmail.com')
+    activeUser.role?.toLowerCase() === 'admin' ||
+    userEmail === 'gopalgohel249@gmail.com' ||
+    userEmail?.includes('admin')
   );
 
   const navItems = [
@@ -171,8 +180,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 suppressHydrationWarning
                 className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
               >
-                {user?.name
-                  ? user.name
+                {activeUser.name
+                  ? activeUser.name
                       .split(' ')
                       .map((n) => n[0])
                       .join('')
@@ -183,7 +192,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="overflow-hidden">
                 <div className="flex items-center gap-1.5">
                   <p suppressHydrationWarning className="text-xs font-bold text-slate-900 truncate">
-                    {user?.name || 'Gopal Gohel'}
+                    {activeUser.name || 'Gopal Gohel'}
                   </p>
                   {isAdmin ? (
                     <span suppressHydrationWarning className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0">
@@ -195,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </span>
                   )}
                 </div>
-                <p suppressHydrationWarning className="text-[11px] text-slate-400 truncate">{user?.email || 'gopalgohel249@gmail.com'}</p>
+                <p suppressHydrationWarning className="text-[11px] text-slate-400 truncate">{activeUser.email || 'gopalgohel249@gmail.com'}</p>
               </div>
             </div>
 

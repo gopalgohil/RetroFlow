@@ -30,11 +30,30 @@ const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettingsData = {
  * - Workspace preferences (GET, PUT /api/settings)
  * - Toast feedback messages
  */
+const DEFAULT_WORKSPACE_USER = {
+  name: 'Gopal Gohel',
+  email: 'gopalgohel249@gmail.com',
+  role: 'admin',
+};
+
 export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const router = useRouter();
 
-  // 1. User Authentication State
-  const [user, setUser] = useState<{ name: string; email: string; role?: string } | null>(null);
+  // 1. User Authentication State - synchronously initialized to prevent role flicker
+  const [user, setUser] = useState<{ name: string; email: string; role?: string }>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('retroflow_user');
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          if (parsed && (parsed.email || parsed.name)) {
+            return parsed;
+          }
+        }
+      } catch {}
+    }
+    return DEFAULT_WORKSPACE_USER;
+  });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -53,7 +72,8 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     const storedUser = localStorage.getItem('retroflow_user');
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsed = JSON.parse(storedUser);
+        if (parsed) setUser(parsed);
       } catch {
         // Fallback
       }

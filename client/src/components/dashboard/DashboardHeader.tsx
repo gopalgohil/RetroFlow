@@ -38,10 +38,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <div className="hidden xl:block h-6 w-px bg-slate-200" />
 
         <div className="hidden xl:block">
-          <h1 className="text-sm font-bold text-slate-900 leading-none">
+          <h1 suppressHydrationWarning className="text-sm font-bold text-slate-900 leading-none">
             {isAdmin ? 'Retrospective Management' : 'Developer Workspace'}
           </h1>
-          <p className="text-[11px] text-slate-500 mt-1">
+          <p suppressHydrationWarning className="text-[11px] text-slate-500 mt-1">
             {isAdmin
               ? 'Configure custom agile topics, process rules, and team access'
               : 'Participate in agile sprint retrospectives and contribute live feedback'}
@@ -79,6 +79,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {/* Primary CTA Button for Admin vs Live Indicator for Developer */}
         {isAdmin ? (
           <button
+            suppressHydrationWarning
             onClick={onCreateClick}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-semibold shadow-md shadow-indigo-600/25 transition-all hover:scale-[1.02] cursor-pointer"
           >
@@ -86,7 +87,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <span>Create Custom Retro</span>
           </button>
         ) : (
-          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+          <div suppressHydrationWarning className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Developer Space</span>
           </div>

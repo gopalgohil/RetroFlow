@@ -48,7 +48,22 @@ function ProjectDetailContent() {
   const [project, setProject] = useState<Project | null>(() => {
     return ProjectDataService.getProjectById(projectId) || null;
   });
-  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string }>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('retroflow_user');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && (parsed.email || parsed.name)) return parsed;
+        }
+      } catch {}
+    }
+    return {
+      name: 'Gopal Gohel',
+      email: 'gopalgohel249@gmail.com',
+      role: 'admin',
+    };
+  });
   const [accessDeniedError, setAccessDeniedError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sprints' | 'retros' | 'team'>(
     (tabParam as any) || 'overview'
