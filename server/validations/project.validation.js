@@ -82,3 +82,14 @@ export const updateSprintItemStatusSchema = z.object({
     required_error: 'Item status must be one of: todo, in_progress, done',
   }),
 });
+
+export const updateSprintDatesSchema = z.object({
+  startDate: z
+    .string({ required_error: 'Start date is required' })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date must be in YYYY-MM-DD format'),
+  endDate: z
+    .string({ required_error: 'End date is required' })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be in YYYY-MM-DD format'),
+  goal: z.string().trim().max(500).optional(),
+  name: z.string().trim().max(150).optional(),
+});

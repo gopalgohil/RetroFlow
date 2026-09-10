@@ -416,6 +416,38 @@ export class ProjectDataService {
     return project;
   }
 
+  public static updateSprintDates(
+    projectId: string,
+    sprintId: string,
+    payload: { startDate: string; endDate: string; goal?: string; name?: string }
+  ): Project | null {
+    const projects = this.getStoredProjects();
+    const projIndex = projects.findIndex((p) => p.id === projectId);
+    if (projIndex === -1) return null;
+
+    const project = projects[projIndex];
+    project.sprints = project.sprints.map((s) => {
+      if (s.id === sprintId) {
+        const endMs = new Date(payload.endDate).getTime();
+        const diffDays = Math.ceil((endMs - Date.now()) / 86400000);
+        return {
+          ...s,
+          startDate: payload.startDate,
+          endDate: payload.endDate,
+          daysLeft: Math.max(0, diffDays),
+          goal: payload.goal !== undefined ? payload.goal : s.goal,
+          name: payload.name !== undefined ? payload.name : s.name,
+        };
+      }
+      return s;
+    });
+
+    project.updatedAt = new Date().toISOString().split('T')[0];
+    projects[projIndex] = project;
+    this.saveProjects(projects);
+    return project;
+  }
+
   public static addMember(
     projectId: string,
     member: { name: string; email: string; role: Project['members'][0]['role'] }

@@ -470,7 +470,11 @@ function ProjectDetailContent() {
               )}
 
               {activeTab === 'sprints' && (
-                <SprintsTab project={project} onProjectUpdated={(up) => setProject({ ...up })} />
+                <SprintsTab
+                  project={project}
+                  onProjectUpdated={(up) => setProject({ ...up })}
+                  canManageProject={canManageProject}
+                />
               )}
 
               {activeTab === 'retros' && (

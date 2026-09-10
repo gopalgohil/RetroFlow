@@ -11,23 +11,31 @@ import {
   ChevronUp,
   Layers,
   Sparkles,
+  Pencil,
 } from 'lucide-react';
 import { Project, Sprint } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
 import { StatusPill, ProgressBar, UserAvatar, ConfirmDialog } from '@/components/ui';
+import { EditSprintDatesModal } from '@/components/project/EditSprintDatesModal';
 
 interface SprintsTabProps {
   project: Project;
   onProjectUpdated: (updated: Project) => void;
+  canManageProject?: boolean;
 }
 
-export const SprintsTab: React.FC<SprintsTabProps> = ({ project, onProjectUpdated }) => {
+export const SprintsTab: React.FC<SprintsTabProps> = ({
+  project,
+  onProjectUpdated,
+  canManageProject = true,
+}) => {
   const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('all');
   const [expandedSprintIds, setExpandedSprintIds] = useState<string[]>([
     project.sprints.find((s) => s.status === 'active')?.id || project.sprints[0]?.id || '',
   ]);
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+  const [editingDatesSprint, setEditingDatesSprint] = useState<Sprint | null>(null);
 
   // Reusable confirmation dialog state
   const [confirmSprint, setConfirmSprint] = useState<{
@@ -184,21 +192,41 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({ project, onProjectUpdate
 
                     <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">{sprint.goal}</p>
 
-                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-1 font-medium">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {sprint.startDate} → {sprint.endDate}
-                      </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
+                    <div className="flex flex-wrap items-center gap-2.5 text-[11px] pt-1 font-medium">
+                      {canManageProject ? (
+                        <button
+                          type="button"
+                          onClick={() => setEditingDatesSprint(sprint)}
+                          title="Click to edit sprint start & end dates"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100/90 hover:bg-indigo-50/80 text-slate-700 hover:text-indigo-700 font-semibold border border-slate-200/80 hover:border-indigo-200 shadow-2xs transition-all cursor-pointer group"
+                        >
+                          <Calendar className="w-3.5 h-3.5 text-indigo-600 group-hover:scale-105 transition-transform" />
+                          <span>
+                            {sprint.startDate} → {sprint.endDate}
+                          </span>
+                          <Pencil className="w-3 h-3 text-slate-400 group-hover:text-indigo-600 transition-colors ml-0.5" />
+                        </button>
+                      ) : (
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100/90 text-slate-700 font-semibold border border-slate-200/80 shadow-2xs">
+                          <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>
+                            {sprint.startDate} → {sprint.endDate}
+                          </span>
+                        </div>
+                      )}
+
+                      <span className="text-slate-300">•</span>
+
+                      <span className="inline-flex items-center gap-1 font-semibold text-slate-600">
+                        <Clock className="w-3.5 h-3.5 text-indigo-500" />
                         {sprint.status === 'completed'
                           ? 'Completed'
                           : `${sprint.daysLeft} days remaining`}
                       </span>
+
                       {sprint.openBlockers > 0 && (
                         <>
-                          <span>•</span>
+                          <span className="text-slate-300">•</span>
                           <span className="text-rose-600 font-bold flex items-center gap-1">
                             <AlertCircle className="w-3.5 h-3.5" />
                             {sprint.openBlockers} blocker
@@ -431,6 +459,15 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({ project, onProjectUpdate
           variant={confirmSprint.action === 'start' ? 'primary' : 'success'}
         />
       )}
+
+      {/* Custom Sprint Dates & Cycle Modal */}
+      <EditSprintDatesModal
+        isOpen={Boolean(editingDatesSprint)}
+        onClose={() => setEditingDatesSprint(null)}
+        sprint={editingDatesSprint}
+        projectId={project.id}
+        onSprintUpdated={(up) => onProjectUpdated(up)}
+      />
     </div>
   );
 };

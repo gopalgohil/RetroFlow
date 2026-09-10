@@ -516,6 +516,32 @@ class ProjectService {
   }
 
   /**
+   * Update custom start/end dates and goal of an individual sprint
+   */
+  async updateSprintDates(idOrKey, sprintId, { startDate, endDate, goal, name }, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
+
+    const sprint = project.sprints.find((s) => s.id === sprintId);
+    if (!sprint) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
+
+    sprint.startDate = startDate;
+    sprint.endDate = endDate;
+    if (goal !== undefined) sprint.goal = goal;
+    if (name !== undefined) sprint.name = name;
+
+    // Calculate days remaining from today till endDate
+    const endMs = new Date(endDate).getTime();
+    const nowMs = Date.now();
+    const diffDays = Math.ceil((endMs - nowMs) / 86400000);
+    sprint.daysLeft = Math.max(0, diffDays);
+
+    await project.save();
+    return project;
+  }
+
+  /**
    * Add a team member with role
    */
   async addMember(idOrKey, memberData, currentUser = null) {

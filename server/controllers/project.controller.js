@@ -99,6 +99,20 @@ class ProjectController {
   });
 
   /**
+   * Update custom dates and goal of an individual sprint
+   * PATCH /api/projects/:id/sprints/:sprintId/dates
+   */
+  updateSprintDates = asyncHandler(async (req, res) => {
+    const project = await projectService.updateSprintDates(
+      req.params.id,
+      req.params.sprintId,
+      req.body,
+      req.user
+    );
+    return ApiResponse.ok(res, project, 'Sprint dates updated successfully');
+  });
+
+  /**
    * Add a team member to project
    * POST /api/projects/:id/members
    */

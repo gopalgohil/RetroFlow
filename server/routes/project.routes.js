@@ -8,6 +8,7 @@ import {
   addMemberSchema,
   exportActionItemsSchema,
   updateSprintItemStatusSchema,
+  updateSprintDatesSchema,
 } from '../validations/project.validation.js';
 
 const router = Router();
@@ -75,6 +76,17 @@ router.patch(
   optionalAuth,
   validate(updateSprintItemStatusSchema),
   projectController.updateSprintItemStatus
+);
+
+/**
+ * @route   PATCH /api/projects/:id/sprints/:sprintId/dates
+ * @desc    Update custom start/end dates and goal of an individual sprint
+ */
+router.patch(
+  '/:id/sprints/:sprintId/dates',
+  optionalAuth,
+  validate(updateSprintDatesSchema),
+  projectController.updateSprintDates
 );
 
 /**

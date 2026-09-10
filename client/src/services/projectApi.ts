@@ -107,6 +107,22 @@ export class ProjectApiService {
   }
 
   /**
+   * Update custom dates and goal of an individual sprint
+   * PATCH /api/projects/:id/sprints/:sprintId/dates
+   */
+  static async updateSprintDates(
+    projectId: string,
+    sprintId: string,
+    payload: { startDate: string; endDate: string; goal?: string; name?: string }
+  ): Promise<Project> {
+    const res = await api.patch<ApiResponseWrapper<Project>>(
+      `${ENDPOINTS.PROJECTS}/${projectId}/sprints/${sprintId}/dates`,
+      payload
+    );
+    return res.data;
+  }
+
+  /**
    * Add a team member with role
    * POST /api/projects/:id/members
    */
