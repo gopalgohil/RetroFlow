@@ -77,6 +77,12 @@ router.post(
 );
 
 /**
+ * @route   DELETE /api/projects/:id/members/:memberId
+ * @desc    Remove a team member from the project
+ */
+router.delete('/:id/members/:memberId', optionalAuth, projectController.removeMember);
+
+/**
  * @route   POST /api/projects/:id/export-action-items
  * @desc    Export retrospective action items into sprint backlog
  */

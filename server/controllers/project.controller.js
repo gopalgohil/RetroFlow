@@ -92,6 +92,15 @@ class ProjectController {
   });
 
   /**
+   * Remove a team member from project
+   * DELETE /api/projects/:id/members/:memberId
+   */
+  removeMember = asyncHandler(async (req, res) => {
+    const project = await projectService.removeMember(req.params.id, req.params.memberId, req.user);
+    return ApiResponse.ok(res, project, 'Team member removed from project');
+  });
+
+  /**
    * Export retrospective action items directly into next sprint backlog
    * POST /api/projects/:id/export-action-items
    */

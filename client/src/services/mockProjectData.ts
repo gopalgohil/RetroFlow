@@ -411,6 +411,18 @@ export class ProjectDataService {
     return project;
   }
 
+  public static removeMember(projectId: string, memberId: string): Project | null {
+    const projects = this.getStoredProjects();
+    const projIndex = projects.findIndex((p) => p.id === projectId);
+    if (projIndex === -1) return null;
+
+    const project = projects[projIndex];
+    project.members = project.members.filter((m) => m.id !== memberId && m.email !== memberId);
+    projects[projIndex] = project;
+    this.saveProjects(projects);
+    return project;
+  }
+
   public static exportActionItemsToSprint(
     projectId: string,
     targetSprintId: string,

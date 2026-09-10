@@ -105,6 +105,17 @@ export class ProjectApiService {
   }
 
   /**
+   * Remove a team member from project
+   * DELETE /api/projects/:id/members/:memberId
+   */
+  static async removeMember(projectId: string, memberId: string): Promise<Project> {
+    const res = await api.delete<ApiResponseWrapper<Project>>(
+      `${ENDPOINTS.PROJECTS}/${projectId}/members/${memberId}`
+    );
+    return res.data;
+  }
+
+  /**
    * Export action items from retro directly into sprint backlog
    * POST /api/projects/:id/export-action-items
    */

@@ -501,6 +501,35 @@ class ProjectService {
   }
 
   /**
+   * Remove a team member from the project
+   */
+  async removeMember(idOrKey, memberIdOrEmail, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
+
+    const identifier = memberIdOrEmail.toLowerCase().trim();
+    const memberIndex = project.members.findIndex(
+      (m) => m.id === identifier || m.email.toLowerCase() === identifier
+    );
+
+    if (memberIndex === -1) {
+      throw new Error('Member not found in this project');
+    }
+
+    const memberToRemove = project.members[memberIndex];
+
+    // Prevent removing designated primary Project Lead
+    if (project.lead?.email?.toLowerCase() === memberToRemove.email.toLowerCase()) {
+      throw new Error('Cannot remove the designated Project Lead from the project.');
+    }
+
+    project.members.splice(memberIndex, 1);
+    await project.save();
+    return project;
+  }
+
+  /**
    * Export action items from a retrospective into the sprint backlog
    */
   async exportActionItems(idOrKey, sprintId, items) {
