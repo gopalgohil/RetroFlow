@@ -162,14 +162,21 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const [isMembersLoading, setIsMembersLoading] = useState(false);
   const membersAbortRef = useRef<AbortController | null>(null);
 
+  const membersPageRef = useRef(membersPage);
+  membersPageRef.current = membersPage;
+  const membersLimitRef = useRef(membersLimit);
+  membersLimitRef.current = membersLimit;
+  const membersSearchRef = useRef(membersSearch);
+  membersSearchRef.current = membersSearch;
+
   const fetchMembers = useCallback(
     async (
       pageOverride?: number,
       limitOverride?: number,
       searchOverride?: string,
-      minDelayMs: number = 2000
+      minDelayMs: number = 0
     ) => {
-      // Abort any existing in-flight search request
+      // Abort any existing in-flight request
       if (membersAbortRef.current) {
         membersAbortRef.current.abort();
       }
@@ -177,9 +184,9 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       membersAbortRef.current = controller;
 
       setIsMembersLoading(true);
-      const pageToUse = pageOverride ?? membersPage;
-      const limitToUse = limitOverride ?? membersLimit;
-      const searchToUse = searchOverride !== undefined ? searchOverride : membersSearch;
+      const pageToUse = pageOverride ?? membersPageRef.current;
+      const limitToUse = limitOverride ?? membersLimitRef.current;
+      const searchToUse = searchOverride !== undefined ? searchOverride : membersSearchRef.current;
 
       try {
         const fetchPromise = api.get(ENDPOINTS.MEMBERS, {
@@ -230,34 +237,33 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
         }
       }
     },
-    [membersPage, membersLimit, membersSearch]
+    []
   );
 
   const handlePageChange = useCallback(
     (newPage: number) => {
       setMembersPage(newPage);
-      fetchMembers(newPage, membersLimit, membersSearch, 2000);
+      fetchMembers(newPage, membersLimitRef.current, membersSearchRef.current, 0);
     },
-    [fetchMembers, membersLimit, membersSearch]
+    [fetchMembers]
   );
 
   const handleLimitChange = useCallback(
     (newLimit: number) => {
       setMembersLimit(newLimit);
       setMembersPage(1);
-      fetchMembers(1, newLimit, membersSearch, 2000);
+      fetchMembers(1, newLimit, membersSearchRef.current, 0);
     },
-    [fetchMembers, membersSearch]
+    [fetchMembers]
   );
 
   const handleSearchChange = useCallback(
     (query: string) => {
       setMembersSearch(query);
       setMembersPage(1);
-      // For search, 0 artificial delay for maximum responsiveness!
-      fetchMembers(1, membersLimit, query, 0);
+      fetchMembers(1, membersLimitRef.current, query, 0);
     },
-    [fetchMembers, membersLimit]
+    [fetchMembers]
   );
 
   const addWhitelistMember = useCallback(
