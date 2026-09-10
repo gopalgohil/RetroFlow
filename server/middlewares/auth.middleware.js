@@ -24,8 +24,10 @@ export const protect = asyncHandler(async (req, res, next) => {
       const isAdmin =
         email === 'gopalgohel249@gmail.com' || req.headers['x-user-role'] === 'admin';
       req.user = {
-        _id: new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1'),
-        id: 'user-admin',
+        _id: isAdmin
+          ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
+          : new mongoose.Types.ObjectId(),
+        id: isAdmin ? 'user-admin' : `guest-${email.split('@')[0]}`,
         email,
         name: email.split('@')[0],
         role: isAdmin ? 'admin' : (req.headers['x-user-role'] || 'member'),
@@ -38,12 +40,15 @@ export const protect = asyncHandler(async (req, res, next) => {
   try {
     const decoded = verifyToken(token);
     // Find user excluding sensitive fields
-    let user = await User.findById(decoded.id).select(
-      '-password -resetPasswordOtp -resetPasswordExpires'
-    );
+    let user = null;
+    if (decoded.id && mongoose.Types.ObjectId.isValid(decoded.id)) {
+      user = await User.findById(decoded.id).select(
+        '-password -resetPasswordOtp -resetPasswordExpires'
+      );
+    }
 
     if (!user) {
-      // In dev or local environment, if User table was reset, resolve from decoded payload or header
+      // Resolve from decoded JWT payload or headers (e.g. Solution 1 guest session)
       const email = (
         decoded.email ||
         req.headers['x-user-email'] ||
@@ -59,11 +64,14 @@ export const protect = asyncHandler(async (req, res, next) => {
         _id:
           decoded.id && mongoose.Types.ObjectId.isValid(decoded.id)
             ? new mongoose.Types.ObjectId(decoded.id)
-            : new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1'),
-        id: decoded.id || 'user-admin',
+            : isAdmin
+            ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
+            : new mongoose.Types.ObjectId(),
+        id: decoded.id || (isAdmin ? 'user-admin' : `guest-${email.split('@')[0]}`),
         email,
         name: decoded.name || email.split('@')[0],
-        role: isAdmin ? 'admin' : decoded.role || 'member',
+        role: isAdmin ? 'admin' : decoded.role || req.headers['x-user-role'] || 'member',
+        isGuest: Boolean(decoded.isGuest),
       };
     }
 
@@ -75,11 +83,13 @@ export const protect = asyncHandler(async (req, res, next) => {
       const isAdmin =
         email === 'gopalgohel249@gmail.com' || req.headers['x-user-role'] === 'admin';
       req.user = {
-        _id: new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1'),
-        id: 'user-admin',
+        _id: isAdmin
+          ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
+          : new mongoose.Types.ObjectId(),
+        id: isAdmin ? 'user-admin' : `guest-${email.split('@')[0]}`,
         email,
         name: email.split('@')[0],
-        role: isAdmin ? 'admin' : 'member',
+        role: isAdmin ? 'admin' : (req.headers['x-user-role'] || 'member'),
       };
       return next();
     }
@@ -108,9 +118,31 @@ export const optionalAuth = asyncHandler(async (req, res, next) => {
   if (token) {
     try {
       const decoded = verifyToken(token);
-      const user = await User.findById(decoded.id).select('-password -resetPasswordOtp -resetPasswordExpires');
+      let user = null;
+      if (decoded.id && mongoose.Types.ObjectId.isValid(decoded.id)) {
+        user = await User.findById(decoded.id).select(
+          '-password -resetPasswordOtp -resetPasswordExpires'
+        );
+      }
       if (user) {
         req.user = user;
+      } else if (decoded && (decoded.email || decoded.id)) {
+        const email = (decoded.email || '').toLowerCase().trim();
+        const isAdmin =
+          email === 'gopalgohel249@gmail.com' || decoded.role === 'admin';
+        req.user = {
+          _id:
+            decoded.id && mongoose.Types.ObjectId.isValid(decoded.id)
+              ? new mongoose.Types.ObjectId(decoded.id)
+              : isAdmin
+              ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
+              : new mongoose.Types.ObjectId(),
+          id: decoded.id || `guest-${email.split('@')[0]}`,
+          email,
+          name: decoded.name || email.split('@')[0] || 'Developer',
+          role: isAdmin ? 'admin' : decoded.role || 'member',
+          isGuest: Boolean(decoded.isGuest),
+        };
       }
     } catch {
       // Ignore token errors for optional auth
@@ -121,14 +153,22 @@ export const optionalAuth = asyncHandler(async (req, res, next) => {
   if (!req.user && req.headers['x-user-email']) {
     try {
       const email = String(req.headers['x-user-email']).toLowerCase().trim();
-      const user = await User.findOne({ email }).select('-password -resetPasswordOtp -resetPasswordExpires');
+      const user = await User.findOne({ email }).select(
+        '-password -resetPasswordOtp -resetPasswordExpires'
+      );
       if (user) {
         req.user = user;
       } else {
+        const isAdmin =
+          email === 'gopalgohel249@gmail.com' || req.headers['x-user-role'] === 'admin';
         req.user = {
+          _id: isAdmin
+            ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
+            : new mongoose.Types.ObjectId(),
+          id: isAdmin ? 'user-admin' : `guest-${email.split('@')[0]}`,
           email,
           name: email.split('@')[0],
-          role: String(req.headers['x-user-role'] || 'member').toLowerCase(),
+          role: isAdmin ? 'admin' : String(req.headers['x-user-role'] || 'member').toLowerCase(),
         };
       }
     } catch {}

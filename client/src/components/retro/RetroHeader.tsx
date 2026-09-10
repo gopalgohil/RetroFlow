@@ -14,6 +14,7 @@ export interface RetroHeaderProps {
   revealMode: boolean;
   socketConnected?: boolean;
   verifiedGuestEmail?: string | null;
+  projectId?: string;
   projectKey?: string;
   sprintName?: string;
   onToggleReveal: () => void;
@@ -36,6 +37,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
   revealMode,
   socketConnected = true,
   verifiedGuestEmail,
+  projectId,
   projectKey,
   sprintName,
   onToggleReveal,
@@ -45,23 +47,38 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
       {/* Left: Role-based Navigation + Session Identity */}
-      <div className="flex items-center gap-3 sm:gap-4">
-        {isFacilitator ? (
+      <div className="flex items-center gap-2.5 sm:gap-3.5">
+        {/* If linked to an Agile Project, show prominent Project Dashboard button */}
+        {projectId || projectKey ? (
+          <Link
+            href={`/projects/${projectId || projectKey}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-all text-xs font-bold shadow-2xs group cursor-pointer"
+            title="Back to Project Dashboard (Sprints & Delivery)"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+            <span className="hidden sm:inline text-slate-500 font-medium">Project:</span>
+            <span className="font-mono text-indigo-600 font-extrabold uppercase">
+              {projectKey || 'Overview'}
+            </span>
+          </Link>
+        ) : (
           <Link
             href="/dashboard"
             className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-            title="Back to Admin Dashboard"
+            title="Back to Workspace Dashboard"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
-        ) : (
-          <div
-            title="RetroFlow Collaborative Board"
-            className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0 select-none"
-          >
-            RF
-          </div>
         )}
+
+        {/* Brand Logo - clickable back to main workspace dashboard */}
+        <Link
+          href="/dashboard"
+          title="RetroFlow Workspace Dashboard"
+          className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 hover:opacity-90 text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0 select-none transition-transform hover:scale-105"
+        >
+          RF
+        </Link>
 
         <div>
           <div className="flex items-center gap-2">

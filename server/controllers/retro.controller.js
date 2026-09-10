@@ -69,6 +69,16 @@ class RetroController {
   });
 
   /**
+   * Solution 1: Instant No-Password Participant Identity Activation
+   * POST /api/retros/:id/join-participant
+   */
+  joinParticipant = asyncHandler(async (req, res) => {
+    const { name, email } = req.body;
+    const result = await retroService.joinParticipant(req.params.id, { name, email });
+    return ApiResponse.ok(res, result, 'Participant session activated successfully');
+  });
+
+  /**
    * Add card to retrospective
    * POST /api/retros/:id/cards
    */

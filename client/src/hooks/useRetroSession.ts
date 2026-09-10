@@ -19,7 +19,7 @@ export interface UseRetroSessionReturn {
   isNamePromptOpen: boolean;
   verifiedGuestEmail: string | null;
   isMagicInvite: boolean;
-  setGuestName: (name: string) => void;
+  setGuestName: (name: string, email?: string) => Promise<void> | void;
   setIsRevealed: React.Dispatch<React.SetStateAction<boolean>>;
   addCard: (topicId: string, text: string) => Promise<void>;
   updateCard: (cardId: string, text: string) => Promise<void>;
@@ -79,6 +79,11 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
           if (verifiedEmail) {
             setVerifiedGuestEmail(verifiedEmail);
 
+            // Save active JWT session if returned
+            if (res.data?.token) {
+              localStorage.setItem('retroflow_token', res.data.token);
+            }
+
             // If developer already entered their display name in this session, restore it
             if (storedGuest) {
               try {
@@ -86,6 +91,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
                 if (parsed.email === verifiedEmail && parsed.name) {
                   setCurrentUser(parsed);
                   setParticipantName(parsed.name);
+                  localStorage.setItem('retroflow_user', JSON.stringify(parsed));
                   setIsNamePromptOpen(false);
                   return;
                 }
@@ -410,21 +416,56 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
 
   const canManageCard = canDeleteCard;
 
-  // 4. Guest Name Setter
+  // 4. Solution 1: Instant Participant Identity & Session Activation
   const setGuestName = useCallback(
-    (name: string) => {
+    async (name: string, email?: string) => {
       const trimmed = name.trim();
       if (!trimmed) return;
       setParticipantName(trimmed);
 
+      const effectiveEmail = (email || verifiedGuestEmail || '').toLowerCase().trim();
+
+      try {
+        // Solution 1: Activate genuine session & map to project role in MongoDB
+        const res = await api.post(`${ENDPOINTS.RETROS}/${shareToken}/join-participant`, {
+          name: trimmed,
+          email: effectiveEmail,
+        });
+
+        if (res.data?.user && res.data?.token) {
+          const userPayload = res.data.user;
+          setCurrentUser(userPayload);
+          localStorage.setItem('retroflow_token', res.data.token);
+          localStorage.setItem('retroflow_user', JSON.stringify(userPayload));
+          sessionStorage.setItem(`retroflow_guest_${shareToken}`, JSON.stringify(userPayload));
+          sessionStorage.setItem('retroflow_participant_name', trimmed);
+
+          // If linked project returned, cache it for instant 0ms switching
+          if (res.data.project) {
+            sessionStorage.setItem(
+              `retroflow_cached_project_${res.data.project.id}`,
+              JSON.stringify(res.data.project)
+            );
+          }
+
+          setIsNamePromptOpen(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[RetroSession] Backend join-participant failed, using resilient client fallback:', err);
+      }
+
+      // Resilient fallback
       const guestProfile = {
         name: trimmed,
-        email: verifiedGuestEmail || '',
-        role: 'developer',
+        email: effectiveEmail,
+        role: 'Developer',
         isGuest: true,
       };
 
       setCurrentUser(guestProfile);
+      localStorage.setItem('retroflow_user', JSON.stringify(guestProfile));
+      localStorage.setItem('retroflow_token', `guest-token-${Date.now()}`);
       sessionStorage.setItem(`retroflow_guest_${shareToken}`, JSON.stringify(guestProfile));
       sessionStorage.setItem('retroflow_participant_name', trimmed);
       setIsNamePromptOpen(false);

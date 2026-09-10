@@ -79,6 +79,15 @@ router.post(
 );
 
 /**
+ * @route   POST /api/retros/:id/join-participant
+ * @desc    Solution 1: Instant No-Password Participant Identity & Session Activation
+ */
+router.post(
+  '/:id/join-participant',
+  retroController.joinParticipant
+);
+
+/**
  * @route   POST /api/retros/:id/cards
  * @desc    Add a sticky card to retrospective (facilitator or participant)
  */

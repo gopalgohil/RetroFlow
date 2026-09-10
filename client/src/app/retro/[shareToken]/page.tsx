@@ -50,6 +50,7 @@ export default function LiveRetroBoardPage({
         revealMode={session.retro.revealMode}
         socketConnected={session.socketConnected}
         verifiedGuestEmail={session.verifiedGuestEmail}
+        projectId={session.retro.projectId}
         projectKey={session.retro.projectKey}
         sprintName={session.retro.sprintName}
         onToggleReveal={() => session.setIsRevealed((prev) => !prev)}
@@ -89,7 +90,7 @@ export default function LiveRetroBoardPage({
       {/* 3. Guest Developer Display Name Prompt Dialog */}
       <ParticipantNameModal
         isOpen={session.isNamePromptOpen}
-        onJoin={session.setGuestName}
+        onJoin={(name, email) => session.setGuestName(name, email)}
         verifiedEmail={session.verifiedGuestEmail}
       />
 

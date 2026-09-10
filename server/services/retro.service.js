@@ -6,6 +6,7 @@ import env from '../config/env.js';
 import emailService from './email.service.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { generateToken } from '../utils/token.js';
 
 
 class RetroService {
@@ -103,11 +104,26 @@ class RetroService {
       // Admin has full workspace visibility
       query = {};
     } else {
-      // Member / Developer: returns retros where developer was invited (approvedMembers) OR created
+      // Member / Developer: returns retros where developer was invited (approvedMembers), created,
+      // or attached to projects where they are assigned members or lead
+      let memberProjectIds = [];
+      if (userEmail) {
+        try {
+          const userProjects = await Project.find({
+            $or: [
+              { 'lead.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+              { 'members.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+            ],
+          }).select('_id');
+          memberProjectIds = userProjects.map((p) => p._id);
+        } catch {}
+      }
+
       query = {
         $or: [
           { createdBy: userId },
           ...(userEmail ? [{ approvedMembers: userEmail }] : []),
+          ...(memberProjectIds.length > 0 ? [{ projectId: { $in: memberProjectIds } }] : []),
         ],
       };
     }
@@ -254,7 +270,7 @@ class RetroService {
   }
 
   /**
-   * Verify an encrypted magic invite token and return verified developer profile
+   * Verify an encrypted magic invite token and return verified developer profile with active session JWT
    */
   async verifyMagicInvite(shareToken, magicToken) {
     if (!magicToken) {
@@ -278,7 +294,9 @@ class RetroService {
     }
 
     // Find the retrospective
-    const retro = await RetroBoard.findOne({ shareToken }).select('_id title shareToken status approvedMembers createdBy');
+    const retro = await RetroBoard.findOne({ shareToken }).select(
+      '_id title shareToken status approvedMembers createdBy projectId projectKey'
+    );
     if (!retro) {
       throw ApiError.notFound('Retrospective session not found.');
     }
@@ -294,14 +312,160 @@ class RetroService {
       await retro.save();
     }
 
+    let linkedProject = null;
+    let assignedRole = 'Developer';
+
+    if (retro.projectId || retro.projectKey) {
+      const idOrKey = retro.projectId || retro.projectKey;
+      const isValidObjectId = mongoose.Types.ObjectId.isValid(idOrKey);
+      linkedProject = await Project.findOne(
+        isValidObjectId
+          ? { $or: [{ _id: idOrKey }, { key: String(idOrKey).toUpperCase() }] }
+          : { key: String(idOrKey).toUpperCase() }
+      );
+
+      if (linkedProject) {
+        const isLead = linkedProject.lead?.email?.toLowerCase().trim() === normalizedEmail;
+        const matchedMember = linkedProject.members?.find(
+          (m) => m.email?.toLowerCase().trim() === normalizedEmail
+        );
+
+        if (isLead) {
+          assignedRole = 'Project Lead';
+        } else if (matchedMember) {
+          assignedRole = matchedMember.role || 'Developer';
+        }
+      }
+    }
+
+    const guestId = `guest-${crypto.randomUUID().slice(0, 8)}`;
+    const guestName = normalizedEmail
+      .split('@')[0]
+      .replace(/[._]/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+
+    const token = generateToken(
+      {
+        id: guestId,
+        name: guestName,
+        email: normalizedEmail,
+        role: assignedRole.toLowerCase(),
+        isGuest: true,
+      },
+      '7d'
+    );
+
     return {
       valid: true,
+      token,
       email: normalizedEmail,
+      name: guestName,
       shareToken: retro.shareToken,
       retroId: retro._id,
       retroTitle: retro.title,
-      role: 'developer',
+      role: assignedRole,
       isGuest: true,
+      project: linkedProject
+        ? {
+            id: linkedProject._id.toString(),
+            key: linkedProject.key,
+            name: linkedProject.name,
+          }
+        : null,
+    };
+  }
+
+  /**
+   * Solution 1: Instant No-Password Participant Identity Activation
+   * Enriches guest developer with linked project role and issues genuine 7-day JWT session token
+   */
+  async joinParticipant(shareToken, { name, email }) {
+    if (!name || !name.trim()) {
+      throw ApiError.badRequest('Display name is required to join retrospective');
+    }
+
+    const trimmedName = name.trim();
+    const normalizedEmail = email ? email.toLowerCase().trim() : '';
+
+    const retro = await RetroBoard.findOne({ shareToken });
+    if (!retro) {
+      throw ApiError.notFound('Retrospective session not found.');
+    }
+
+    let linkedProject = null;
+    let assignedRole = 'Developer';
+
+    // If retro is project-scoped, lookup project and matching team member
+    if (retro.projectId || retro.projectKey) {
+      const idOrKey = retro.projectId || retro.projectKey;
+      const isValidObjectId = mongoose.Types.ObjectId.isValid(idOrKey);
+      linkedProject = await Project.findOne(
+        isValidObjectId
+          ? { $or: [{ _id: idOrKey }, { key: String(idOrKey).toUpperCase() }] }
+          : { key: String(idOrKey).toUpperCase() }
+      );
+
+      if (linkedProject && normalizedEmail) {
+        const isLead = linkedProject.lead?.email?.toLowerCase().trim() === normalizedEmail;
+        const matchedMember = linkedProject.members?.find(
+          (m) => m.email?.toLowerCase().trim() === normalizedEmail
+        );
+
+        if (isLead) {
+          assignedRole = 'Project Lead';
+        } else if (matchedMember) {
+          assignedRole = matchedMember.role || 'Developer';
+        }
+      }
+    }
+
+    // Whitelist in retro if email is provided
+    if (normalizedEmail && !retro.approvedMembers.includes(normalizedEmail)) {
+      retro.approvedMembers.push(normalizedEmail);
+      await retro.save();
+    }
+
+    const guestId = `guest-${crypto.randomUUID().slice(0, 8)}`;
+    const userRole = assignedRole;
+
+    // Issue genuine 7-day JWT session token
+    const token = generateToken(
+      {
+        id: guestId,
+        name: trimmedName,
+        email: normalizedEmail,
+        role: userRole.toLowerCase(),
+        isGuest: true,
+      },
+      '7d'
+    );
+
+    const userProfile = {
+      id: guestId,
+      name: trimmedName,
+      email: normalizedEmail,
+      role: userRole,
+      isGuest: true,
+    };
+
+    return {
+      token,
+      user: userProfile,
+      project: linkedProject
+        ? {
+            id: linkedProject._id.toString(),
+            key: linkedProject.key,
+            name: linkedProject.name,
+          }
+        : null,
+      retro: {
+        id: retro._id.toString(),
+        shareToken: retro.shareToken,
+        title: retro.title,
+        projectId: retro.projectId?.toString() || linkedProject?._id.toString() || null,
+        projectKey: retro.projectKey || linkedProject?.key || null,
+        sprintName: retro.sprintName || null,
+      },
     };
   }
 
