@@ -465,7 +465,12 @@ function ProjectDetailContent() {
         {/* 5. Dynamic Tab View Content */}
         <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto">
           {activeTab === 'overview' && (
-            <OverviewTab project={project} onNavigateToTab={(t) => handleTabChange(t as any)} />
+            <OverviewTab
+              project={project}
+              onNavigateToTab={(t) => handleTabChange(t as any)}
+              canManageProject={canManageProject}
+              currentUserRole={currentUserRole}
+            />
           )}
 
           {activeTab === 'sprints' && (

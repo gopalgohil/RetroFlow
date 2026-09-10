@@ -16,9 +16,16 @@ import { MetricCard, StatusPill, UserAvatar, ProgressBar } from '@/components/ui
 interface OverviewTabProps {
   project: Project;
   onNavigateToTab: (tab: string) => void;
+  canManageProject?: boolean;
+  currentUserRole?: string;
 }
 
-export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToTab }) => {
+export const OverviewTab: React.FC<OverviewTabProps> = ({
+  project,
+  onNavigateToTab,
+  canManageProject,
+  currentUserRole = 'Developer',
+}) => {
   const [currentUser, setCurrentUser] = React.useState<{ email?: string; name?: string; role?: string } | null>(null);
 
   React.useEffect(() => {
@@ -29,13 +36,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToT
   }, []);
 
   const userEmail = currentUser?.email?.toLowerCase().trim();
-  const isUserLead = Boolean(
-    userEmail &&
-      (project.lead?.email?.toLowerCase().trim() === userEmail ||
-        project.members?.some(
-          (m) => m.email?.toLowerCase().trim() === userEmail && m.role === 'Manager'
-        ))
-  );
+  const isUserLead =
+    canManageProject !== undefined
+      ? canManageProject
+      : Boolean(
+          userEmail &&
+            (project.lead?.email?.toLowerCase().trim() === userEmail ||
+              project.members?.some(
+                (m) => m.email?.toLowerCase().trim() === userEmail && m.role === 'Manager'
+              ))
+        );
 
   const activeSprint =
     project.activeSprint ||
@@ -273,7 +283,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToT
             className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-slate-950 text-xs font-bold hover:bg-slate-100 transition-colors shadow-xs cursor-pointer"
           >
             <Layers className="w-4 h-4 text-indigo-600" />
-            <span>Manage Sprints & Backlog</span>
+            <span>{canManageProject ? 'Manage Sprints & Backlog' : 'View Sprints & Backlog'}</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -343,7 +353,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ project, onNavigateToT
               onClick={() => onNavigateToTab('team')}
               className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
             >
-              <span>Manage Team</span>
+              <span>{canManageProject ? 'Manage Team' : 'View Team Directory'}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>

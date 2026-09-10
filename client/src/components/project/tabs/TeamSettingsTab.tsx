@@ -327,37 +327,39 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         )}
 
         <form onSubmit={handleSaveSettings} className="space-y-4 max-w-xl">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-800">Project Name</label>
-            <input
-              type="text"
-              disabled={!canManageProject}
-              readOnly={!canManageProject}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={`w-full px-3.5 py-2.5 border rounded-xl text-xs text-slate-900 focus:outline-none ${
-                canManageProject
-                  ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500'
-                  : 'bg-slate-100/70 border-slate-200 text-slate-600 cursor-not-allowed'
-              }`}
-            />
-          </div>
+          <fieldset disabled={!canManageProject} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-800">Project Name</label>
+              <input
+                type="text"
+                disabled={!canManageProject}
+                readOnly={!canManageProject}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={`w-full px-3.5 py-2.5 border rounded-xl text-xs text-slate-900 focus:outline-none ${
+                  canManageProject
+                    ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500'
+                    : 'bg-slate-100/70 border-slate-200 text-slate-500 cursor-not-allowed select-none'
+                }`}
+              />
+            </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-800">Description</label>
-            <textarea
-              rows={3}
-              disabled={!canManageProject}
-              readOnly={!canManageProject}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className={`w-full px-3.5 py-2.5 border rounded-xl text-xs text-slate-900 focus:outline-none resize-none ${
-                canManageProject
-                  ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500'
-                  : 'bg-slate-100/70 border-slate-200 text-slate-600 cursor-not-allowed'
-              }`}
-            />
-          </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-800">Description</label>
+              <textarea
+                rows={3}
+                disabled={!canManageProject}
+                readOnly={!canManageProject}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className={`w-full px-3.5 py-2.5 border rounded-xl text-xs text-slate-900 focus:outline-none resize-none ${
+                  canManageProject
+                    ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500'
+                    : 'bg-slate-100/70 border-slate-200 text-slate-500 cursor-not-allowed select-none'
+                }`}
+              />
+            </div>
+          </fieldset>
 
           {canManageProject && (
             <div className="pt-2">
@@ -374,7 +376,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
       </div>
 
       {/* Section 3: Enterprise Danger Zone (Visible ONLY to Project Lead / Manager / Workspace Admin) */}
-      {canManageProject && (
+      {canManageProject ? (
         <div className="bg-rose-50/50 border border-rose-200/90 rounded-2xl shadow-xs overflow-hidden">
           <div className="p-6 border-b border-rose-200/70 bg-rose-100/30 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -451,6 +453,28 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 Delete Project...
               </button>
             </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center shrink-0">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <span>Enterprise Danger Zone</span>
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-200 text-slate-600 uppercase">
+                  Restricted
+                </span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Permanently deleting or archiving <strong>{project.name}</strong> is strictly restricted to the <strong>Project Lead, Managers, and Workspace Admins</strong>.
+              </p>
+            </div>
+          </div>
+          <div className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-400 shrink-0 select-none">
+            🔒 Operations Locked
           </div>
         </div>
       )}
