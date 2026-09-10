@@ -200,7 +200,28 @@ class RetroService {
       throw ApiError.notFound('Retrospective session not found.');
     }
 
-    return retro;
+    const retroObj = retro.toObject();
+    if (retro.projectId) {
+      try {
+        const project = await Project.findById(retro.projectId).select('lead members key name').lean();
+        if (project) {
+          retroObj.project = project;
+        }
+      } catch {
+        // Ignore project fetch error
+      }
+    } else if (retro.projectKey) {
+      try {
+        const project = await Project.findOne({ key: retro.projectKey }).select('lead members key name').lean();
+        if (project) {
+          retroObj.project = project;
+        }
+      } catch {
+        // Ignore project fetch error
+      }
+    }
+
+    return retroObj;
   }
 
   /**

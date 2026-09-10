@@ -13,6 +13,7 @@ export interface UseRetroSessionReturn {
   remainingVotes: number;
   isRevealed: boolean;
   isFacilitator: boolean;
+  canExportToSprint: boolean;
   currentAuthorName: string;
   currentUser: { id?: string; name: string; email: string; role?: string; isGuest?: boolean } | null;
   socketConnected: boolean;
@@ -206,28 +207,67 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     [currentUser?.name, participantName]
   );
 
-  // Derive Facilitator Access
-  const isFacilitator = useMemo(() => {
+  // Derive Facilitator & Sprint Export Access (Admin, Manager, Project Lead)
+  const canExportToSprint = useMemo(() => {
     if (!currentUser) return false;
-    const role = currentUser.role?.toLowerCase();
+    const role = currentUser.role?.toLowerCase() || '';
+    const email = currentUser.email?.toLowerCase().trim() || '';
+
+    // 1. Workspace Admin
     if (
       role === 'admin' ||
-      role === 'manager' ||
-      currentUser.email === 'gopalgohel249@gmail.com'
+      email === 'gopalgohel249@gmail.com' ||
+      email.includes('admin')
     ) {
       return true;
     }
+
+    // 2. Manager or Project/Team Lead
+    if (
+      role === 'manager' ||
+      role === 'project lead' ||
+      role === 'team lead' ||
+      role.includes('lead') ||
+      role.includes('manager')
+    ) {
+      return true;
+    }
+
+    // 3. Creator of the retro board
     if (retro?.createdBy) {
       if (typeof retro.createdBy === 'object') {
-        return (
+        if (
           (retro.createdBy as any)._id === currentUser.id ||
           (retro.createdBy as any).email === currentUser.email
-        );
+        ) {
+          return true;
+        }
+      } else if ((retro.createdBy as any) === currentUser.id) {
+        return true;
       }
-      return (retro.createdBy as any) === currentUser.id;
     }
+
+    // 4. Project Lead or Project Manager on linked project
+    if (retro?.project) {
+      const projLeadEmail = retro.project.lead?.email?.toLowerCase().trim();
+      if (projLeadEmail && projLeadEmail === email) {
+        return true;
+      }
+      const member = retro.project.members?.find(
+        (m: any) => m.email?.toLowerCase().trim() === email
+      );
+      if (member) {
+        const mRole = member.role?.toLowerCase() || '';
+        if (mRole === 'manager' || mRole.includes('lead') || mRole.includes('manager')) {
+          return true;
+        }
+      }
+    }
+
     return false;
-  }, [currentUser, retro?.createdBy]);
+  }, [currentUser, retro?.createdBy, retro?.project]);
+
+  const isFacilitator = canExportToSprint;
 
   // 2. Socket.io Real-Time Synchronization
   useEffect(() => {
@@ -666,6 +706,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     remainingVotes,
     isRevealed,
     isFacilitator,
+    canExportToSprint,
     currentAuthorName,
     currentUser,
     socketConnected,

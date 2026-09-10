@@ -53,6 +53,12 @@ export interface RetroBoard {
     name: string;
     email: string;
   };
+  project?: {
+    lead?: { name: string; email: string; avatar?: string };
+    members?: Array<{ id?: string; name: string; email: string; role: string; avatar?: string }>;
+    key?: string;
+    name?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }

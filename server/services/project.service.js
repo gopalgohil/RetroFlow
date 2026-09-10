@@ -281,7 +281,11 @@ class ProjectService {
    * Helper to verify if currentUser has Manager, Project Lead, or Admin authority
    */
   assertCanManage(project, currentUser) {
-    if (!currentUser) return;
+    if (!currentUser) {
+      const error = new Error('Access Denied: You must be logged in as a Manager, Project Lead, or Workspace Admin.');
+      error.statusCode = 403;
+      throw error;
+    }
 
     const isAdmin =
       currentUser.role?.toLowerCase() === 'admin' ||
@@ -290,14 +294,27 @@ class ProjectService {
 
     if (isAdmin) return;
 
+    const isGlobalManagerOrLead =
+      currentUser.role?.toLowerCase() === 'manager' ||
+      currentUser.role?.toLowerCase() === 'project lead' ||
+      currentUser.role?.toLowerCase() === 'team lead' ||
+      currentUser.role?.toLowerCase().includes('manager') ||
+      currentUser.role?.toLowerCase().includes('lead');
+
+    if (isGlobalManagerOrLead) return;
+
     const email = currentUser.email?.toLowerCase().trim();
     const isLead = project.lead?.email?.toLowerCase().trim() === email;
     const memberRecord = project.members?.find((m) => m.email?.toLowerCase().trim() === email);
-    const isManager = memberRecord && memberRecord.role === 'Manager';
+    const isManager =
+      memberRecord &&
+      (memberRecord.role === 'Manager' ||
+        memberRecord.role?.toLowerCase().includes('manager') ||
+        memberRecord.role?.toLowerCase().includes('lead'));
     const isCreator = currentUser._id && project.createdBy?.toString() === currentUser._id.toString();
 
     if (!isLead && !isManager && !isCreator) {
-      const error = new Error('Access Denied: Only Project Lead, Managers, or Workspace Admins can modify project settings or delete projects.');
+      const error = new Error('Access Denied: Only Project Lead, Managers, or Workspace Admins can perform this action.');
       error.statusCode = 403;
       throw error;
     }
@@ -532,9 +549,10 @@ class ProjectService {
   /**
    * Export action items from a retrospective into the sprint backlog
    */
-  async exportActionItems(idOrKey, sprintId, items) {
-    const project = await this.getProjectByIdOrKey(idOrKey);
+  async exportActionItems(idOrKey, sprintId, items, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
 
     // Locate target sprint or determine from retro context
     let sprint = project.sprints.find((s) => s.id === sprintId);

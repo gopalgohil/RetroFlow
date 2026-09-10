@@ -55,10 +55,14 @@ export default function LiveRetroBoardPage({
         sprintName={session.retro.sprintName}
         onToggleReveal={() => session.setIsRevealed((prev) => !prev)}
         onOpenInvite={() => setIsInviteModalOpen(true)}
-        onEndSession={() => {
-          setExportModalMode('end_and_export');
-          setIsEndSessionModalOpen(true);
-        }}
+        onEndSession={
+          session.canExportToSprint
+            ? () => {
+                setExportModalMode('end_and_export');
+                setIsEndSessionModalOpen(true);
+              }
+            : undefined
+        }
       />
 
       {/* 2. Responsive Retrospective Columns Board Canvas */}
@@ -78,10 +82,14 @@ export default function LiveRetroBoardPage({
               onUpdateCard={session.updateCard}
               onDeleteCard={session.deleteCard}
               onVoteCard={session.voteCard}
-              onExportTopic={() => {
-                setExportModalMode('export_only');
-                setIsEndSessionModalOpen(true);
-              }}
+              onExportTopic={
+                session.canExportToSprint
+                  ? () => {
+                      setExportModalMode('export_only');
+                      setIsEndSessionModalOpen(true);
+                    }
+                  : undefined
+              }
             />
           ))}
         </div>
@@ -110,11 +118,13 @@ export default function LiveRetroBoardPage({
         retroId={session.retro._id}
         retroTitle={session.retro.title}
         cards={session.cards}
+        topics={session.retro.topics}
         projectId={session.retro.projectId}
         projectKey={session.retro.projectKey}
         sprintId={session.retro.sprintId}
         sprintName={session.retro.sprintName}
         mode={exportModalMode}
+        canExport={session.canExportToSprint}
       />
     </div>
   );

@@ -12,8 +12,9 @@ import {
   ListFilter,
   CheckSquare,
   Square,
+  ShieldAlert,
 } from 'lucide-react';
-import { StickyCard } from '@/types/retro';
+import { RetroTopic, StickyCard } from '@/types/retro';
 import { useRetroProjectIntegration } from '@/hooks/useRetroProjectIntegration';
 import { Modal } from '@/components/ui';
 
@@ -23,12 +24,14 @@ interface EndSessionExportModalProps {
   retroId: string;
   retroTitle: string;
   cards: StickyCard[];
+  topics?: RetroTopic[];
   projectId?: string | null;
   projectKey?: string | null;
   sprintId?: string | null;
   sprintName?: string | null;
   onSessionEnded?: () => void;
   mode?: 'export_only' | 'end_and_export';
+  canExport?: boolean;
 }
 
 interface ItemConfig {
@@ -43,12 +46,14 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   retroId,
   retroTitle,
   cards,
+  topics,
   projectId,
   projectKey,
   sprintId,
   sprintName,
   onSessionEnded,
   mode = 'end_and_export',
+  canExport = true,
 }) => {
   const {
     projects,
@@ -61,17 +66,40 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     resetExportState,
   } = useRetroProjectIntegration();
 
-  // Filter cards that belong to Action Items / Improvements
+  // Filter cards strictly belonging to Action Items topic(s) or explicitly designated action items
   const actionCards = useMemo(() => {
-    const filtered = cards.filter(
-      (c) =>
-        c.topicId?.toLowerCase().includes('action') ||
-        c.topicId?.toLowerCase().includes('improve') ||
-        c.text.toLowerCase().startsWith('action:') ||
-        c.text.toLowerCase().startsWith('todo:')
-    );
-    return filtered.length > 0 ? filtered : cards.slice(0, 3);
-  }, [cards]);
+    // 1. Identify all topicIds that belong to Action Items columns
+    const actionTopicIds = new Set<string>();
+    (topics || []).forEach((t) => {
+      const titleLower = (t.title || '').toLowerCase();
+      if (
+        titleLower.includes('action') ||
+        t.icon === 'target' ||
+        (t.topicId && t.topicId.toLowerCase().includes('action'))
+      ) {
+        actionTopicIds.add(t.topicId);
+      }
+    });
+
+    // 2. Strict filtering: Only include cards from Action Items topic(s) or explicitly prefixed
+    return cards.filter((c) => {
+      if (c.topicId && actionTopicIds.has(c.topicId)) {
+        return true;
+      }
+      const textLower = (c.text || '').toLowerCase().trim();
+      if (
+        textLower.startsWith('action:') ||
+        textLower.startsWith('[action]') ||
+        textLower.startsWith('todo:')
+      ) {
+        return true;
+      }
+      if (c.topicId && c.topicId.toLowerCase().includes('action')) {
+        return true;
+      }
+      return false;
+    });
+  }, [cards, topics]);
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [selectedSprintId, setSelectedSprintId] = useState<string>('');
@@ -197,6 +225,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   };
 
   const handleExportAndCommit = async () => {
+    if (!canExport) {
+      alert('Access Denied: Only Project Lead, Managers, or Workspace Admins can export action items to the sprint backlog.');
+      return;
+    }
     if (!selectedProject || selectedCardIds.length === 0) return;
     const sprintIdToUse =
       selectedSprintId || suggestedSprint?.id || selectedProject.sprints[0]?.id;
@@ -275,13 +307,15 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
             <button
               type="button"
               onClick={handleExportAndCommit}
-              disabled={isExporting || selectedCardIds.length === 0}
+              disabled={isExporting || selectedCardIds.length === 0 || !canExport}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-md shadow-indigo-600/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <Sparkles className="w-4 h-4" />
               <span>
                 {isExporting
                   ? 'Adding to Backlog...'
+                  : !canExport
+                  ? 'Export Restricted'
                   : `Export (${selectedCardIds.length}) Items to Sprint`}
               </span>
             </button>
@@ -290,6 +324,17 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       }
     >
       <div className="space-y-5">
+        {!exportSuccess && !canExport && (
+          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
+            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Export Restricted (Manager / Lead Only)</p>
+              <p className="text-amber-700 text-[11px] mt-0.5">
+                Only Workspace Admins, Project Managers, and Team Leads can export retrospective action items to the sprint backlog.
+              </p>
+            </div>
+          </div>
+        )}
         {exportSuccess ? (
           /* Success State */
           <div className="text-center py-4 space-y-4">
@@ -415,8 +460,9 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
               {/* Scrollable list of items */}
               <div className="max-h-64 overflow-y-auto space-y-2 p-1.5 border border-slate-200 rounded-2xl bg-white">
                 {actionCards.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-400">
-                    No action items found on board. Add cards in the Action Items column first.
+                  <div className="py-8 text-center text-xs text-slate-400 space-y-1">
+                    <p className="font-semibold text-slate-600">No action items found on board.</p>
+                    <p>Only cards created under the &quot;Action Items&quot; column can be exported to the sprint backlog.</p>
                   </div>
                 ) : (
                   actionCards.map((card) => {

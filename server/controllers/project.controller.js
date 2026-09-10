@@ -106,7 +106,12 @@ class ProjectController {
    */
   exportActionItems = asyncHandler(async (req, res) => {
     const { sprintId, items } = req.body;
-    const result = await projectService.exportActionItems(req.params.id, sprintId, items);
+    const result = await projectService.exportActionItems(
+      req.params.id,
+      sprintId,
+      items,
+      req.user
+    );
     return ApiResponse.ok(
       res,
       result,
