@@ -7,8 +7,6 @@ import {
   FolderPlus,
   Sparkles,
   Users,
-  Calendar,
-  Layers,
   CheckCircle2,
   ShieldCheck,
   ChevronDown,
@@ -56,7 +54,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [key, setKey] = useState('');
   const [isKeyManuallyEdited, setIsKeyManuallyEdited] = useState(false);
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<ProjectType>('scrum');
+  const type: ProjectType = 'scrum';
   const [availableLeads, setAvailableLeads] = useState<WorkspaceMemberOption[]>(DEFAULT_WORKSPACE_LEADS);
   const [selectedLeadEmail, setSelectedLeadEmail] = useState<string>('gopalgohel249@gmail.com');
   const [isLeadDropdownOpen, setIsLeadDropdownOpen] = useState(false);
@@ -429,69 +427,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           />
         </div>
 
-        {/* Section 2: Methodology (Scrum vs Kanban) */}
-        <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-800">
-            Project Framework & Methodology
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setType('scrum')}
-              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
-                type === 'scrum'
-                  ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-500/20 shadow-xs'
-                  : 'border-slate-200 hover:border-slate-300 bg-white'
-              }`}
-            >
-              <div
-                className={`p-2 rounded-lg ${
-                  type === 'scrum' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                <Calendar className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-slate-900">Scrum Sprints</span>
-                  {type === 'scrum' && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600" />}
-                </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Time-boxed sprints, velocity tracking, and sprint retrospectives.
-                </p>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setType('kanban')}
-              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
-                type === 'kanban'
-                  ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-500/20 shadow-xs'
-                  : 'border-slate-200 hover:border-slate-300 bg-white'
-              }`}
-            >
-              <div
-                className={`p-2 rounded-lg ${
-                  type === 'kanban' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-slate-900">Continuous Kanban</span>
-                  {type === 'kanban' && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600" />}
-                </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Continuous flow, WIP limits, on-demand cycle retros.
-                </p>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Section 3: Project Lead / Manager */}
+        {/* Section 2: Project Lead / Manager */}
         <div className="space-y-1.5">
           <label className="block text-xs font-bold text-slate-800">
             Project Lead / Manager
