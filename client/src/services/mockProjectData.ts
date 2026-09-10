@@ -426,6 +426,12 @@ export class ProjectDataService {
     if (projIndex === -1) return null;
 
     const project = projects[projIndex];
+    const startMs = new Date(payload.startDate).getTime();
+    const endMs = new Date(payload.endDate).getTime();
+    if (isNaN(startMs) || isNaN(endMs) || endMs < startMs) {
+      throw new Error('Ending date cannot be earlier than starting date');
+    }
+
     project.sprints = project.sprints.map((s) => {
       if (s.id === sprintId) {
         const endMs = new Date(payload.endDate).getTime();

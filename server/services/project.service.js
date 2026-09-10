@@ -526,13 +526,31 @@ class ProjectService {
     const sprint = project.sprints.find((s) => s.id === sprintId);
     if (!sprint) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
 
+    const startMs = new Date(startDate).getTime();
+    const endMs = new Date(endDate).getTime();
+    if (isNaN(startMs) || isNaN(endMs)) {
+      const err = new Error('Invalid date format provided');
+      err.statusCode = 400;
+      throw err;
+    }
+    if (endMs < startMs) {
+      const err = new Error('Ending date cannot be earlier than starting date');
+      err.statusCode = 400;
+      throw err;
+    }
+    const durationDays = Math.round((endMs - startMs) / 86400000);
+    if (durationDays > 90) {
+      const err = new Error('Sprint duration cannot exceed 90 days');
+      err.statusCode = 400;
+      throw err;
+    }
+
     sprint.startDate = startDate;
     sprint.endDate = endDate;
     if (goal !== undefined) sprint.goal = goal;
     if (name !== undefined) sprint.name = name;
 
     // Calculate days remaining from today till endDate
-    const endMs = new Date(endDate).getTime();
     const nowMs = Date.now();
     const diffDays = Math.ceil((endMs - nowMs) / 86400000);
     sprint.daysLeft = Math.max(0, diffDays);
