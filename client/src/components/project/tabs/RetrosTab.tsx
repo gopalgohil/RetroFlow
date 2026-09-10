@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Plus, ArrowUpRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { Project } from '@/types/project';
 import { StatusPill, UserAvatar } from '@/components/ui';
+import { formatDateDMY } from '@/lib/dateUtils';
 
 interface RetrosTabProps {
   project: Project;
@@ -77,7 +78,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({ project, onCreateRetroClic
                     </div>
 
                     <span className="text-[11px] text-slate-400 font-medium">
-                      {retro.scheduledDate}
+                      {formatDateDMY(retro.scheduledDate)}
                     </span>
                   </div>
 

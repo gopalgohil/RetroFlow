@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Project } from '@/types/project';
 import { MetricCard, StatusPill, UserAvatar, ProgressBar } from '@/components/ui';
+import { formatDateDMY } from '@/lib/dateUtils';
 
 interface OverviewTabProps {
   project: Project;
@@ -318,7 +319,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   <div>
                     <p className="text-xs font-bold text-slate-900">{retro.title}</p>
                     <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
-                      <span>{retro.scheduledDate}</span>
+                      <span>{formatDateDMY(retro.scheduledDate)}</span>
                       <span>•</span>
                       <span>{retro.cardsCount} cards</span>
                       <span>•</span>

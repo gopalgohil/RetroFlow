@@ -18,6 +18,7 @@ import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
 import { StatusPill, ProgressBar, UserAvatar, ConfirmDialog } from '@/components/ui';
 import { EditSprintDatesModal } from '@/components/project/EditSprintDatesModal';
+import { formatDateDMY } from '@/lib/dateUtils';
 
 interface SprintsTabProps {
   project: Project;
@@ -202,7 +203,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                         >
                           <Calendar className="w-3.5 h-3.5 text-indigo-600 group-hover:scale-105 transition-transform" />
                           <span>
-                            {sprint.startDate} → {sprint.endDate}
+                            {formatDateDMY(sprint.startDate)} → {formatDateDMY(sprint.endDate)}
                           </span>
                           <Pencil className="w-3 h-3 text-slate-400 group-hover:text-indigo-600 transition-colors ml-0.5" />
                         </button>
@@ -210,7 +211,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100/90 text-slate-700 font-semibold border border-slate-200/80 shadow-2xs">
                           <Calendar className="w-3.5 h-3.5 text-indigo-600" />
                           <span>
-                            {sprint.startDate} → {sprint.endDate}
+                            {formatDateDMY(sprint.startDate)} → {formatDateDMY(sprint.endDate)}
                           </span>
                         </div>
                       )}

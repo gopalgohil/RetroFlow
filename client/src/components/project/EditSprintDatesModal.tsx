@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, Clock, Sparkles, Check, AlertCircle, Zap } from 'lucide-react';
+import { Calendar, Clock, Sparkles, Check, AlertCircle } from 'lucide-react';
 import { Modal } from '@/components/ui';
 import { Sprint, Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
+import { formatDateDMY } from '@/lib/dateUtils';
 
 interface EditSprintDatesModalProps {
   isOpen: boolean;
@@ -56,17 +57,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
         setEndDate(shiftedEnd);
       }
     }
-  };
-
-  // Quick preset duration click (e.g. 7, 14, 21, 28 days)
-  const applyPresetDuration = (days: number) => {
-    if (!startDate) return;
-    const startMs = new Date(startDate).getTime();
-    if (isNaN(startMs)) return;
-
-    const newEnd = new Date(startMs + (days - 1) * 86400000).toISOString().split('T')[0];
-    setEndDate(newEnd);
-    setError(null);
   };
 
   // Comprehensive validation and live metrics
@@ -275,11 +265,18 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Starting Date */}
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Starting Date</span>
-              <span className="text-rose-500">*</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Starting Date</span>
+                <span className="text-rose-500">*</span>
+              </label>
+              {startDate && (
+                <span className="text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100/60">
+                  {formatDateDMY(startDate)}
+                </span>
+              )}
+            </div>
             <input
               type="date"
               value={startDate}
@@ -295,11 +292,18 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
 
           {/* Ending Date */}
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Ending Date</span>
-              <span className="text-rose-500">*</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Ending Date</span>
+                <span className="text-rose-500">*</span>
+              </label>
+              {endDate && (
+                <span className="text-[11px] font-mono font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100/60">
+                  {formatDateDMY(endDate)}
+                </span>
+              )}
+            </div>
             <input
               type="date"
               value={endDate}
@@ -326,42 +330,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
           </div>
         )}
 
-        {/* Quick Duration Preset Shortcuts */}
-        <div className="space-y-1.5 pt-1">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="font-bold text-slate-600 flex items-center gap-1">
-              <Zap className="w-3 h-3 text-amber-500" />
-              <span>Quick Cycle Presets</span>
-            </span>
-            <span className="text-slate-400 text-[10px]">Sets ending date from start date</span>
-          </div>
-
-          <div className="grid grid-cols-4 gap-1.5">
-            {[
-              { label: '1 Week', days: 7 },
-              { label: '2 Weeks', days: 14, popular: true },
-              { label: '3 Weeks', days: 21 },
-              { label: '4 Weeks', days: 28 },
-            ].map((preset) => {
-              const isSelected = metrics?.durationDays === preset.days;
-              return (
-                <button
-                  key={preset.days}
-                  type="button"
-                  onClick={() => applyPresetDuration(preset.days)}
-                  className={`py-1.5 px-2 rounded-lg text-xs font-bold border transition-all text-center cursor-pointer ${
-                    isSelected
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                      : 'bg-slate-50 hover:bg-indigo-50/70 text-slate-700 hover:text-indigo-700 border-slate-200 hover:border-indigo-200'
-                  }`}
-                >
-                  <span>{preset.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Live Calculation Preview Card */}
         {metrics && validation.isValid && (
           <div className="p-3.5 rounded-2xl border bg-indigo-50/60 border-indigo-200/80 text-indigo-950">
@@ -372,8 +340,7 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
                   Cycle Duration:
                 </span>
                 <span className="font-bold text-indigo-700 font-mono">
-                  {metrics.durationDays} Days (
-                  {Math.round((metrics.durationDays / 7) * 10) / 10} Weeks)
+                  {metrics.durationDays} Days ({formatDateDMY(startDate)} → {formatDateDMY(endDate)})
                 </span>
               </div>
 
