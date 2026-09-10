@@ -233,6 +233,40 @@ export class ProjectApiService {
     );
     return res.data;
   }
+
+  /**
+   * Send project invitation emails to selected or external members
+   * POST /api/projects/:id/invite
+   */
+  static async inviteMembers(
+    projectId: string,
+    emails: string[],
+    message?: string
+  ): Promise<{
+    success: boolean;
+    projectId: string;
+    projectKey: string;
+    inviteUrl: string;
+    invitationsCount: number;
+    recipients: Array<{ email: string; status: string; role: string }>;
+    message: string;
+  }> {
+    const res = await api.post<
+      ApiResponseWrapper<{
+        success: boolean;
+        projectId: string;
+        projectKey: string;
+        inviteUrl: string;
+        invitationsCount: number;
+        recipients: Array<{ email: string; status: string; role: string }>;
+        message: string;
+      }>
+    >(`${ENDPOINTS.PROJECTS}/${projectId}/invite`, {
+      emails,
+      message,
+    });
+    return res.data;
+  }
 }
 
 export default ProjectApiService;

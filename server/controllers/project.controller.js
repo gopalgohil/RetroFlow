@@ -236,6 +236,15 @@ class ProjectController {
     );
     return ApiResponse.ok(res, project, 'Retrospective session updated successfully');
   });
+
+  /**
+   * Send invitation emails for this project
+   * POST /api/projects/:id/invite
+   */
+  inviteMembers = asyncHandler(async (req, res) => {
+    const result = await projectService.inviteMembers(req.params.id, req.body, req.user);
+    return ApiResponse.ok(res, result, result.message || 'Invitations dispatched successfully');
+  });
 }
 
 export const projectController = new ProjectController();

@@ -117,3 +117,10 @@ export const updateSprintDatesSchema = z
       path: ['endDate'],
     }
   );
+
+export const inviteProjectMembersSchema = z.object({
+  emails: z
+    .array(z.string().email('Valid email address required'))
+    .min(1, 'At least one email address must be selected to send invitations'),
+  message: z.string().trim().max(500).optional(),
+});

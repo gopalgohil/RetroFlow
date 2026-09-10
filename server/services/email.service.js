@@ -359,6 +359,92 @@ class EmailService {
       bodyHtml,
     });
   }
+
+  /**
+   * Project Invitation Email Template
+   */
+  getProjectInvitationTemplate({
+    projectName,
+    projectKey,
+    projectLead,
+    role = 'Developer',
+    inviteUrl,
+    senderName,
+    customMessage,
+    recipientEmail,
+  }) {
+    const bodyHtml = `
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; width: 52px; height: 52px; line-height: 52px; border-radius: 16px; background-color: #ede9fe; color: #6366f1; font-size: 20px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+          ${projectKey || 'PRJ'}
+        </div>
+        <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 14px 0 6px 0; letter-spacing: -0.5px;">
+          You've been invited to ${projectName}
+        </h2>
+        <p style="font-size: 13px; color: #64748b; margin: 0; line-height: 1.5;">
+          ${senderName || 'Your Project Lead'} invited you to join this agile initiative as a <strong>${role}</strong>.
+        </p>
+      </div>
+
+      <!-- Project Metadata Card -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="retro-card-padding" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+        <tr>
+          <td>
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 4px;">Project Details</div>
+            <div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">${projectName} (${projectKey})</div>
+            <div style="font-size: 12px; color: #64748b;">
+              Project Lead: <strong style="color: #334155;">${projectLead || 'Designated Lead'}</strong> &bull; Assigned Role: <strong style="color: #4f46e5;">${role}</strong>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      ${
+        customMessage
+          ? `
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; background-color: #f8fafc; border-left: 3px solid #6366f1; border-radius: 0 8px 8px 0;">
+          <tr>
+            <td style="padding: 12px 16px;">
+              <p style="font-size: 13px; color: #334155; font-style: italic; margin: 0; line-height: 1.5;">
+                "${customMessage}"
+              </p>
+              <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; font-weight: 600;">— Note from ${senderName}</div>
+            </td>
+          </tr>
+        </table>
+      `
+          : ''
+      }
+
+      <!-- Direct Mobile-Friendly CTA Button -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0 16px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
+              <tr>
+                <td align="center" style="background-color: #4f46e5; border-radius: 10px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);">
+                  <a href="${inviteUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #4f46e5; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                    Open Project Dashboard &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Fallback Direct Link -->
+      <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
+        Or copy and paste this link in your browser:<br />
+        <a href="${inviteUrl}" style="color: #4f46e5; text-decoration: underline; word-break: break-all; font-weight: 500;">${inviteUrl}</a>
+      </p>
+    `;
+
+    return this._wrapEmail({
+      title: `Invitation: ${projectName} - RetroFlow`,
+      bodyHtml,
+    });
+  }
 }
 
 export const emailService = new EmailService();

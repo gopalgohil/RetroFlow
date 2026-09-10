@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import Project from '../models/Project.js';
 import RetroBoard from '../models/RetroBoard.js';
 import crypto from 'crypto';
+import env from '../config/env.js';
+import emailService from './email.service.js';
 
 /**
  * Canonical Default Project Payload (Payment Gateway Integration)
@@ -848,6 +850,58 @@ class ProjectService {
     } catch {}
 
     return project;
+  }
+
+  /**
+   * Send project invitation emails to selected or external members
+   */
+  async inviteMembers(idOrKey, { emails, message }, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+
+    const clientUrl = env.CLIENT_URL || 'http://localhost:3000';
+    const inviteUrl = `${clientUrl}/projects/${project._id || project.key}`;
+    const senderName = currentUser?.name || project.lead?.name || 'Project Lead';
+    const projectLead = project.lead?.name || 'Designated Lead';
+
+    const results = [];
+    for (const email of emails) {
+      const normalizedEmail = email.trim().toLowerCase();
+      // Find member role if already assigned in project
+      const member = project.members?.find((m) => m.email?.toLowerCase() === normalizedEmail);
+      const role = member?.role || 'Developer';
+
+      const htmlContent = emailService.getProjectInvitationTemplate({
+        projectName: project.name,
+        projectKey: project.key,
+        projectLead,
+        role,
+        inviteUrl,
+        senderName,
+        customMessage: message,
+        recipientEmail: normalizedEmail,
+      });
+
+      console.log(`\n📬 [Project Invitation Email dispatched to ${normalizedEmail}] for Project "${project.name}" (${inviteUrl})\n`);
+
+      await emailService.sendEmail({
+        to: normalizedEmail,
+        subject: `Invitation: Join "${project.name}" Project on RetroFlow`,
+        htmlContent,
+      });
+
+      results.push({ email: normalizedEmail, status: 'sent', role });
+    }
+
+    return {
+      success: true,
+      projectId: project._id,
+      projectKey: project.key,
+      inviteUrl,
+      invitationsCount: results.length,
+      recipients: results,
+      message: `Project invitation email${results.length > 1 ? 's' : ''} sent successfully`,
+    };
   }
 }
 

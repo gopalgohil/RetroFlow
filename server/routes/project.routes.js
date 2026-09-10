@@ -6,6 +6,7 @@ import {
   createProjectSchema,
   updateProjectSchema,
   addMemberSchema,
+  inviteProjectMembersSchema,
   exportActionItemsSchema,
   updateSprintItemStatusSchema,
   updateSprintDatesSchema,
@@ -105,6 +106,17 @@ router.post(
  * @desc    Remove a team member from the project
  */
 router.delete('/:id/members/:memberId', optionalAuth, projectController.removeMember);
+
+/**
+ * @route   POST /api/projects/:id/invite
+ * @desc    Send project invitation emails to selected or external members
+ */
+router.post(
+  '/:id/invite',
+  optionalAuth,
+  validate(inviteProjectMembersSchema),
+  projectController.inviteMembers
+);
 
 /**
  * @route   POST /api/projects/:id/export-action-items

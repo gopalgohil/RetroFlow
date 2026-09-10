@@ -16,6 +16,7 @@ import {
   TeamSettingsTab,
 } from '@/components/project/tabs';
 import { ProjectDetailSkeleton } from '@/components/project/ProjectSkeletons';
+import { ShareProjectModal } from '@/components/project/ShareProjectModal';
 import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
@@ -70,6 +71,7 @@ function ProjectDetailContent() {
   );
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCreateRetroOpen, setIsCreateRetroOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isSwitchingProject, setIsSwitchingProject] = useState(false);
 
   useEffect(() => {
@@ -308,6 +310,18 @@ function ProjectDetailContent() {
 
           {/* Right Header CTAs */}
           <div className="flex items-center gap-2.5">
+            {project && (
+              <button
+                type="button"
+                onClick={() => setIsShareModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                title="Share Project & Invite Team Members"
+              >
+                <Share2 className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="hidden sm:inline">Share</span>
+              </button>
+            )}
+
             {canManageProject && (
               <button
                 onClick={() => setIsCreateRetroOpen(true)}
@@ -529,6 +543,19 @@ function ProjectDetailContent() {
             }
             : null
         }
+      />
+
+      {/* Share Project & Member Invite Modal */}
+      <ShareProjectModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        project={project}
+        onProjectUpdated={(updatedProject) => {
+          setProject(updatedProject);
+          try {
+            sessionStorage.setItem(`retroflow_cached_project_${updatedProject.id}`, JSON.stringify(updatedProject));
+          } catch { }
+        }}
       />
     </div>
   );
