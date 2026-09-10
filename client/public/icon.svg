@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <linearGradient id="rf-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4338CA"/>
+      <stop offset="45%" stop-color="#4F46E5"/>
+      <stop offset="80%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#7C73F8"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#4338CA" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <!-- Squircle rounded background -->
+  <rect x="4" y="4" width="120" height="120" rx="34" fill="url(#rf-grad)" filter="url(#shadow)" />
+  <!-- Subtle inner border stroke for depth -->
+  <rect x="5" y="5" width="118" height="118" rx="33" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.25" />
+  <!-- Crisp white bold RF typography -->
+  <text 
+    x="64" 
+    y="72" 
+    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', 'Helvetica Neue', Arial, sans-serif" 
+    font-size="60" 
+    font-weight="900" 
+    letter-spacing="-3.5" 
+    fill="#FFFFFF" 
+    text-anchor="middle" 
+    dominant-baseline="central"
+  >RF</text>
+</svg>
