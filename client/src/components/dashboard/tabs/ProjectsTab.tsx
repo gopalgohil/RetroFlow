@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import {
   Plus,
   ArrowRight,
+  FolderKanban,
+  Lock,
 } from 'lucide-react';
 import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
@@ -157,7 +159,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span>👑 Managed by Me</span>
+            <span>Managed by Me</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
                 myManagedProjects.length > 0
@@ -179,8 +181,12 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayedProjects.length === 0 ? (
             <div className="col-span-full p-12 text-center rounded-2xl bg-white border border-slate-200 space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
-                {filterMode === 'managed' ? '👑' : '🔒'}
+              <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold mx-auto shadow-2xs">
+                {filterMode === 'managed' ? (
+                  <FolderKanban className="w-6 h-6 text-indigo-600" />
+                ) : (
+                  <Lock className="w-6 h-6 text-indigo-600" />
+                )}
               </div>
               <div className="space-y-1">
                 <h3 className="text-sm font-bold text-slate-900">
@@ -269,7 +275,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
 
                     {isCurrentLead ? (
                       <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shrink-0 shadow-2xs">
-                        <span>👑</span>
                         <span>You are Lead</span>
                       </span>
                     ) : (

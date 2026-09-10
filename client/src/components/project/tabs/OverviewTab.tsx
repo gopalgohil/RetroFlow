@@ -67,23 +67,18 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       {/* Project Lead Recognition Banner */}
       {isUserLead && (
         <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-violet-500/10 border border-amber-300/70 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-200">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 text-white flex items-center justify-center font-black text-lg shadow-sm shrink-0">
-              👑
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-xs font-black uppercase tracking-wider text-amber-900">
-                  You are Project Lead / Manager
-                </p>
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-200/80 text-amber-950 border border-amber-300">
-                  Full Control
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Welcome, <strong>{currentUser?.name || 'Project Lead'}</strong>! You have lead privileges to plan sprints, track velocity, and launch retrospectives for <strong>{project.name}</strong>.
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-black uppercase tracking-wider text-amber-900">
+                You are Project Lead / Manager
               </p>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-200/80 text-amber-950 border border-amber-300">
+                Full Control
+              </span>
             </div>
+            <p className="text-xs text-slate-600 mt-0.5">
+              Welcome, <strong>{currentUser?.name || 'Project Lead'}</strong>! You have lead privileges to plan sprints, track velocity, and launch retrospectives for <strong>{project.name}</strong>.
+            </p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
