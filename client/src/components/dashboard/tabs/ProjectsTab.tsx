@@ -100,7 +100,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              {isAdmin ? 'Admin Supervision' : canCreateProject ? 'Lead / Management' : 'My Initiatives'}
+              {isAdmin ? 'Admin Supervision' : canCreateProject ? 'Lead / Management' : 'My Projects'}
             </span>
             <span className="text-xs text-slate-300">
               • {projects.length} {isAdmin || canCreateProject ? 'Workspace Projects' : 'Assigned Projects'}
@@ -111,7 +111,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = true }) => {
               ? 'Enterprise Project & Sprint Delivery'
               : canCreateProject
               ? 'Agile Projects & Sprints'
-              : 'Assigned Agile Projects'}
+              : 'My Projects & Sprints'}
           </h2>
           <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
             {isAdmin

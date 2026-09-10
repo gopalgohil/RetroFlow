@@ -213,7 +213,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             <div className="p-3 border-b border-slate-100 bg-slate-50/70 space-y-2">
               <div className="flex items-center justify-between px-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  Agile Projects ({projects.length})
+                  {isAdmin ? 'Agile Projects' : 'My Projects'} ({projects.length})
                 </span>
                 <span className="text-[10px] font-semibold text-indigo-600">RetroFlow Pro</span>
               </div>
