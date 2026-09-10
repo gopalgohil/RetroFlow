@@ -155,6 +155,7 @@ function DashboardContent() {
         <DashboardHeader
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          isLoading={isSessionsLoading}
           pendingApprovalsCount={0}
           onCreateClick={handleCreateRetro}
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ENDPOINTS } from '@/lib/api';
 import {
@@ -83,19 +83,34 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   // 2. Retrospective Sessions State & Actions
   const [sessions, setSessions] = useState<RetroBoard[]>([]);
   const [isSessionsLoading, setIsSessionsLoading] = useState(true);
+  const sessionsAbortRef = useRef<AbortController | null>(null);
 
   const fetchSessions = useCallback(async () => {
+    // Abort previous in-flight request if still running
+    if (sessionsAbortRef.current) {
+      sessionsAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    sessionsAbortRef.current = controller;
+
     setIsSessionsLoading(true);
     try {
       const res = await api.get(ENDPOINTS.RETROS, {
-        params: searchQuery ? { search: searchQuery } : undefined,
+        params: searchQuery ? { search: searchQuery.trim() } : undefined,
+        signal: controller.signal,
       });
+      if (controller.signal.aborted) return;
       const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
       setSessions(list);
     } catch (err: any) {
+      if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || controller.signal.aborted) {
+        return;
+      }
       console.error('Failed to load retrospectives:', err.message);
     } finally {
-      setIsSessionsLoading(false);
+      if (!controller.signal.aborted) {
+        setIsSessionsLoading(false);
+      }
     }
   }, [searchQuery]);
 
@@ -145,6 +160,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const [membersLimit, setMembersLimit] = useState<number>(5);
   const [membersSearch, setMembersSearch] = useState<string>('');
   const [isMembersLoading, setIsMembersLoading] = useState(false);
+  const membersAbortRef = useRef<AbortController | null>(null);
 
   const fetchMembers = useCallback(
     async (
@@ -153,23 +169,37 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       searchOverride?: string,
       minDelayMs: number = 2000
     ) => {
+      // Abort any existing in-flight search request
+      if (membersAbortRef.current) {
+        membersAbortRef.current.abort();
+      }
+      const controller = new AbortController();
+      membersAbortRef.current = controller;
+
       setIsMembersLoading(true);
       const pageToUse = pageOverride ?? membersPage;
       const limitToUse = limitOverride ?? membersLimit;
       const searchToUse = searchOverride !== undefined ? searchOverride : membersSearch;
 
       try {
-        const [res] = await Promise.all([
-          api.get(ENDPOINTS.MEMBERS, {
-            params: {
-              page: pageToUse,
-              limit: limitToUse,
-              search: searchToUse ? searchToUse.trim() : undefined,
-            },
-          }),
-          // Deliberate 2s delay so shimmer skeleton loader is visible and smooth
-          new Promise((resolve) => setTimeout(resolve, minDelayMs)),
-        ]);
+        const fetchPromise = api.get(ENDPOINTS.MEMBERS, {
+          params: {
+            page: pageToUse,
+            limit: limitToUse,
+            search: searchToUse ? searchToUse.trim() : undefined,
+          },
+          signal: controller.signal,
+        });
+
+        const [res] =
+          minDelayMs > 0
+            ? await Promise.all([
+                fetchPromise,
+                new Promise((resolve) => setTimeout(resolve, minDelayMs)),
+              ])
+            : [await fetchPromise];
+
+        if (controller.signal.aborted) return;
 
         if (res.data) {
           if (Array.isArray(res.data)) {
@@ -190,9 +220,14 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
           }
         }
       } catch (err: any) {
+        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || controller.signal.aborted) {
+          return;
+        }
         console.error('Failed to load workspace members:', err.message);
       } finally {
-        setIsMembersLoading(false);
+        if (!controller.signal.aborted) {
+          setIsMembersLoading(false);
+        }
       }
     },
     [membersPage, membersLimit, membersSearch]
@@ -219,7 +254,8 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     (query: string) => {
       setMembersSearch(query);
       setMembersPage(1);
-      fetchMembers(1, membersLimit, query, 500);
+      // For search, 0 artificial delay for maximum responsiveness!
+      fetchMembers(1, membersLimit, query, 0);
     },
     [fetchMembers, membersLimit]
   );

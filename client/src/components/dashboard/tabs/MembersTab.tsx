@@ -10,11 +10,13 @@ import {
   RefreshCw,
   Trash2,
   Search,
+  Loader2,
   X,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
 import { TeamMember, PaginationMeta } from '@/types/retro';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface MembersTabProps {
   members: TeamMember[];
@@ -60,6 +62,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   const [emailInput, setEmailInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchQuery);
+  const debouncedSearch = useDebounce(localSearch, 350);
 
   // Sync local search when external prop changes
   useEffect(() => {
@@ -68,13 +71,10 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
   // Debounce search query changes to trigger backend request
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localSearch !== searchQuery && onSearchChange) {
-        onSearchChange(localSearch);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [localSearch, searchQuery, onSearchChange]);
+    if (debouncedSearch !== searchQuery && onSearchChange) {
+      onSearchChange(debouncedSearch.trim());
+    }
+  }, [debouncedSearch, searchQuery, onSearchChange]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,7 +196,13 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
           {/* Live Search Bar */}
           <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+              {isLoading || localSearch !== debouncedSearch ? (
+                <Loader2 className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
+              ) : (
+                <Search className="w-3.5 h-3.5 text-slate-400" />
+              )}
+            </div>
             <input
               type="text"
               value={localSearch}
@@ -209,6 +215,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 type="button"
                 onClick={handleClearSearch}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
