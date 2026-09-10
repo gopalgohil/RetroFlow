@@ -171,12 +171,23 @@ function ProjectDetailContent() {
 
   const handleRetroSave = async (payload: CreateRetroPayload) => {
     try {
+      // Calculate dynamic sprint name for this individual retro
+      let detectedSprintName = payload.sprintName;
+      if (!detectedSprintName && payload.title) {
+        const match = payload.title.match(/sprint\s*(\d+)/i);
+        if (match) detectedSprintName = `Sprint ${match[1]}`;
+      }
+      if (!detectedSprintName) {
+        const nextNum = (project?.retrospectives?.length || 0) + 1;
+        detectedSprintName = `Sprint ${nextNum}`;
+      }
+
       // Live REST API POST request -> visible in browser Network tab!
       const res = await api.post(ENDPOINTS.RETROS, {
         ...payload,
         projectId: project?.id,
         projectKey: project?.key,
-        sprintName: project?.activeSprint ? project.activeSprint.name.split(' - ')[0] : 'Sprint 14',
+        sprintName: detectedSprintName,
       });
 
       const createdRetro = res.data;
@@ -191,9 +202,7 @@ function ProjectDetailContent() {
             ? new Date(createdRetro.scheduledDate).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],
           status: (createdRetro.status || 'active') as 'active' | 'completed' | 'draft',
-          sprintName:
-            createdRetro.sprintName ||
-            (project.activeSprint?.name ? project.activeSprint.name.split(' - ')[0] : 'Sprint Active'),
+          sprintName: createdRetro.sprintName || detectedSprintName,
           topicsCount: createdRetro.topics?.length || payload.topics.length,
           cardsCount: 0,
           actionItemsCount: 0,
@@ -204,7 +213,7 @@ function ProjectDetailContent() {
         const updatedProject = { ...project, retrospectives: updatedRetros };
         setProject(updatedProject);
 
-        // Sync with live backend Project data
+        // Sync with live backend Project data so auto-created sprint is loaded immediately
         ProjectApiService.getProjectById(project.id)
           .then((p) => {
             if (p) setProject(p);
@@ -505,9 +514,7 @@ function ProjectDetailContent() {
                 id: project.id,
                 name: project.name,
                 key: project.key,
-                sprintName: project.activeSprint
-                  ? project.activeSprint.name.split(' - ')[0]
-                  : 'Sprint 14',
+                sprintName: `Sprint ${(project.retrospectives?.length || 0) + 1}`,
                 members: project.members,
               }
             : null

@@ -507,8 +507,52 @@ class ProjectService {
     const project = await this.getProjectByIdOrKey(idOrKey);
     if (!project) throw new Error('Project not found');
 
-    // Locate target sprint or default to upcoming/active
+    // Locate target sprint or determine from retro context
     let sprint = project.sprints.find((s) => s.id === sprintId);
+
+    if (!sprint) {
+      // Deduce sprint number from sourceRetroTitle or sourceRetroId
+      let sprintNum = null;
+      const sourceTitle = items[0]?.sourceRetroTitle || '';
+      const match = sourceTitle.match(/sprint\s*(\d+)/i);
+      if (match) {
+        sprintNum = parseInt(match[1], 10);
+      } else if (items[0]?.sourceRetroId) {
+        const retroEntry = project.retrospectives?.find(
+          (r) => r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId
+        );
+        if (retroEntry?.sprintName) {
+          const sMatch = retroEntry.sprintName.match(/\d+/);
+          if (sMatch) sprintNum = parseInt(sMatch[0], 10);
+        }
+      }
+
+      if (sprintNum) {
+        sprint = project.sprints.find(
+          (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
+        );
+
+        if (!sprint) {
+          // Auto-provision the individual sprint for this retro
+          sprint = {
+            id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
+            name: `Sprint ${sprintNum} - Execution & Backlog`,
+            number: sprintNum,
+            status: 'upcoming',
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+            goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
+            daysLeft: project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14,
+            totalStoryPoints: 0,
+            completedStoryPoints: 0,
+            openBlockers: 0,
+            items: [],
+          };
+          project.sprints.push(sprint);
+        }
+      }
+    }
+
     if (!sprint) {
       sprint = project.sprints.find((s) => s.status === 'upcoming') ||
                project.sprints.find((s) => s.status === 'active') ||

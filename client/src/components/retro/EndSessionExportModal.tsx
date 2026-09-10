@@ -23,6 +23,10 @@ interface EndSessionExportModalProps {
   retroId: string;
   retroTitle: string;
   cards: StickyCard[];
+  projectId?: string | null;
+  projectKey?: string | null;
+  sprintId?: string | null;
+  sprintName?: string | null;
   onSessionEnded?: () => void;
   mode?: 'export_only' | 'end_and_export';
 }
@@ -39,6 +43,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   retroId,
   retroTitle,
   cards,
+  projectId,
+  projectKey,
+  sprintId,
+  sprintName,
   onSessionEnded,
   mode = 'end_and_export',
 }) => {
@@ -74,15 +82,63 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   // Per-item configuration (assignee, priority)
   const [itemConfigs, setItemConfigs] = useState<Record<string, ItemConfig>>({});
 
-  // Auto-select first project & suggested sprint
+  // Auto-select linked project & linked individual sprint
   useEffect(() => {
-    if (projects.length > 0 && !selectedProjectId) {
-      const defaultProj = projects[0];
-      setSelectedProjectId(defaultProj.id);
-      const sugg = getSuggestedSprint(defaultProj.id);
-      setSelectedSprintId(sugg?.id || defaultProj.sprints?.[0]?.id || '');
+    if (projects.length === 0) return;
+
+    // 1. Resolve target project
+    let targetProj = projects[0];
+    if (projectId || projectKey) {
+      const matched = projects.find(
+        (p) =>
+          (projectId && (p.id === projectId || (p as any)._id === projectId)) ||
+          (projectKey && p.key?.toUpperCase() === projectKey.toUpperCase())
+      );
+      if (matched) targetProj = matched;
     }
-  }, [projects, selectedProjectId, getSuggestedSprint]);
+    setSelectedProjectId(targetProj.id);
+
+    // 2. Resolve individual target sprint
+    let targetSprint = null;
+
+    // A. Explicit sprintId
+    if (sprintId) {
+      targetSprint = targetProj.sprints?.find((s) => s.id === sprintId);
+    }
+
+    // B. Matching sprintName (e.g. "Sprint 2")
+    if (!targetSprint && sprintName) {
+      const match = sprintName.match(/\d+/);
+      const sprintNum = match ? parseInt(match[0], 10) : null;
+      targetSprint = targetProj.sprints?.find(
+        (s) =>
+          (sprintNum !== null && s.number === sprintNum) ||
+          s.name.toLowerCase().includes(sprintName.toLowerCase())
+      );
+    }
+
+    // C. Parse from retroTitle (e.g. "Sprint 2 Retrospective")
+    if (!targetSprint && retroTitle) {
+      const match = retroTitle.match(/sprint\s*(\d+)/i);
+      if (match) {
+        const sprintNum = parseInt(match[1], 10);
+        targetSprint = targetProj.sprints?.find(
+          (s) =>
+            s.number === sprintNum ||
+            s.name.toLowerCase().includes(`sprint ${sprintNum}`)
+        );
+      }
+    }
+
+    // D. Fallback to suggested or first sprint
+    if (!targetSprint) {
+      targetSprint = getSuggestedSprint(targetProj.id) || targetProj.sprints?.[0] || null;
+    }
+
+    if (targetSprint) {
+      setSelectedSprintId(targetSprint.id);
+    }
+  }, [projects, projectId, projectKey, sprintId, sprintName, retroTitle, getSuggestedSprint, isOpen]);
 
   // Initialize selected card IDs and default item configs when modal opens or cards change
   useEffect(() => {
@@ -305,8 +361,9 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                   <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                     Target Sprint
                   </label>
-                  <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                    Auto-matched
+                  <span className="text-[10px] text-indigo-700 font-bold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-indigo-500" />
+                    Dedicated Retro Sprint
                   </span>
                 </div>
                 <select

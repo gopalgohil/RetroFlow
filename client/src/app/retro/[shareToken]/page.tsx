@@ -110,6 +110,10 @@ export default function LiveRetroBoardPage({
         retroId={session.retro._id}
         retroTitle={session.retro.title}
         cards={session.cards}
+        projectId={session.retro.projectId}
+        projectKey={session.retro.projectKey}
+        sprintId={session.retro.sprintId}
+        sprintName={session.retro.sprintName}
         mode={exportModalMode}
       />
     </div>

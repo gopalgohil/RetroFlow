@@ -45,6 +45,7 @@ export interface RetroBoard {
   approvedMembers: string[];
   projectId?: string;
   projectKey?: string;
+  sprintId?: string;
   sprintName?: string;
   isProjectScoped?: boolean;
   createdBy?: {
@@ -69,6 +70,7 @@ export interface CreateRetroPayload {
   approvedMembers?: string[];
   projectId?: string;
   projectKey?: string;
+  sprintId?: string;
   sprintName?: string;
   isProjectScoped?: boolean;
 }

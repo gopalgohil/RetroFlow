@@ -37,11 +37,54 @@ class RetroService {
           ? { $or: [{ _id: idOrKey }, { key: String(idOrKey).toUpperCase() }] }
           : { key: String(idOrKey).toUpperCase() }
       );
+    }
 
-      if (linkedProject) {
-        // Auto-whitelist all project members for strict project privacy
-        const projectMemberEmails = linkedProject.members.map((m) => m.email.toLowerCase().trim());
-        approvedMembers = Array.from(new Set([...approvedMembers, ...projectMemberEmails]));
+    let targetSprint = null;
+    let sprintLabel = payload.sprintName || null;
+
+    if (linkedProject) {
+      // Auto-whitelist all project members for strict project privacy
+      const projectMemberEmails = linkedProject.members.map((m) => m.email.toLowerCase().trim());
+      approvedMembers = Array.from(new Set([...approvedMembers, ...projectMemberEmails]));
+
+      // Determine sprint number dynamically
+      let sprintNum = null;
+      if (payload.sprintName) {
+        const match = payload.sprintName.match(/\d+/);
+        if (match) sprintNum = parseInt(match[0], 10);
+      }
+      if (!sprintNum && payload.title) {
+        const match = payload.title.match(/sprint\s*(\d+)/i);
+        if (match) sprintNum = parseInt(match[1], 10);
+      }
+      if (!sprintNum) {
+        sprintNum = (linkedProject.retrospectives?.length || 0) + 1;
+      }
+
+      sprintLabel = `Sprint ${sprintNum}`;
+
+      // Check if this sprint exists in linkedProject.sprints
+      targetSprint = linkedProject.sprints?.find(
+        (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
+      );
+
+      if (!targetSprint) {
+        // Automatically create individual sprint in the project
+        targetSprint = {
+          id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
+          name: `Sprint ${sprintNum} - Execution & Backlog`,
+          number: sprintNum,
+          status: linkedProject.sprints.length === 0 ? 'active' : 'upcoming',
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+          goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
+          daysLeft: linkedProject.cadence === '1_week' ? 7 : linkedProject.cadence === '3_weeks' ? 21 : 14,
+          totalStoryPoints: 0,
+          completedStoryPoints: 0,
+          openBlockers: 0,
+          items: [],
+        };
+        linkedProject.sprints.push(targetSprint);
       }
     }
 
@@ -50,9 +93,8 @@ class RetroService {
       approvedMembers,
       projectId: linkedProject ? linkedProject._id : (payload.projectId || null),
       projectKey: linkedProject ? linkedProject.key : (payload.projectKey || null),
-      sprintName:
-        payload.sprintName ||
-        (linkedProject?.activeSprint ? linkedProject.activeSprint.name.split(' - ')[0] : null),
+      sprintId: targetSprint ? targetSprint.id : (payload.sprintId || null),
+      sprintName: sprintLabel || (linkedProject?.activeSprint ? linkedProject.activeSprint.name.split(' - ')[0] : null),
       isProjectScoped: payload.isProjectScoped !== undefined ? payload.isProjectScoped : !!linkedProject,
       topics: formattedTopics,
       createdBy: userId,
@@ -60,10 +102,6 @@ class RetroService {
 
     // If linked to a project, push retro link into project.retrospectives
     if (linkedProject) {
-      const sprintLabel =
-        payload.sprintName ||
-        (linkedProject.activeSprint ? linkedProject.activeSprint.name.split(' - ')[0] : 'Sprint Active');
-
       const exists = linkedProject.retrospectives.some(
         (r) => r.id === retro._id.toString() || r.shareToken === retro.shareToken
       );
@@ -77,14 +115,15 @@ class RetroService {
             ? new Date(retro.scheduledDate).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],
           status: retro.status || 'active',
-          sprintName: sprintLabel,
+          sprintName: sprintLabel || 'Sprint Active',
           topicsCount: retro.topics.length,
           cardsCount: 0,
           actionItemsCount: 0,
           actionItemsExported: false,
         });
-        await linkedProject.save();
       }
+
+      await linkedProject.save();
     }
 
     return retro;
