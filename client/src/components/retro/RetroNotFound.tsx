@@ -20,14 +20,20 @@ export const RetroNotFound: React.FC<RetroNotFoundProps> = memo(function RetroNo
           {error || 'Session does not exist or has expired.'}
         </p>
       </div>
-      {isFacilitator && (
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <Link
-          href="/dashboard"
+          href="/projects"
           className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-xs hover:bg-indigo-500 transition-colors cursor-pointer"
         >
-          ← Back to Admin Dashboard
+          ← Back to Projects
         </Link>
-      )}
+        <Link
+          href="/dashboard"
+          className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-xs hover:bg-slate-800 transition-colors cursor-pointer"
+        >
+          ← Workspace Dashboard
+        </Link>
+      </div>
     </div>
   );
 });

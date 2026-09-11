@@ -53,6 +53,7 @@ export default function LiveRetroBoardPage({
         projectId={session.retro.projectId}
         projectKey={session.retro.projectKey}
         sprintName={session.retro.sprintName}
+        userRole={session.currentUser?.role}
         onToggleReveal={() => session.setIsRevealed((prev) => !prev)}
         onOpenInvite={() => setIsInviteModalOpen(true)}
         onEndSession={

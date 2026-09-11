@@ -1,5 +1,6 @@
 import RetroBoard from '../models/RetroBoard.js';
 import Project from '../models/Project.js';
+import User from '../models/User.js';
 import mongoose from 'mongoose';
 import { ApiError } from '../utils/ApiError.js';
 import env from '../config/env.js';
@@ -184,7 +185,220 @@ class RetroService {
   }
 
   /**
+   * Helper to construct seed retrospective document from project retro link
+   */
+  buildSeedRetroData(identifier, retroLink, project, creatorId = null) {
+    const isPgi13 = identifier === 'retro-pgi-13' || retroLink?.shareToken === 'retro-pgi-13';
+    const isPgi14 = identifier === 'retro-pgi-14' || retroLink?.shareToken === 'retro-pgi-14';
+    const isPgi12 = identifier === 'retro-pgi-12' || retroLink?.shareToken === 'retro-pgi-12';
+
+    const title = retroLink?.title || (
+      isPgi13 ? 'Sprint 13 Retro: Stripe 3DS V2' :
+      isPgi14 ? 'Sprint 14 Mid-Cycle Sync' :
+      isPgi12 ? 'Sprint 12 Post-Mortem & Flow' :
+      `${project?.name || 'Agile Project'} - Retrospective`
+    );
+
+    const sprintName = retroLink?.sprintName || (
+      isPgi13 ? 'Sprint 13' :
+      isPgi14 ? 'Sprint 14 (Active)' :
+      isPgi12 ? 'Sprint 12' :
+      'Sprint Retrospective'
+    );
+
+    const topics = [
+      { topicId: 'topic-1', title: 'What went well? 🚀', description: 'Celebrations, wins, and team velocity achievements', icon: 'smile', color: '#10B981', order: 0 },
+      { topicId: 'topic-2', title: 'What could be improved? ⚠️', description: 'Frictions, blockers, delays, or architectural debt', icon: 'frown', color: '#F43F5E', order: 1 },
+      { topicId: 'topic-3', title: 'Action Items 🎯', description: 'Concrete backlog deliverables for the upcoming sprint', icon: 'target', color: '#0EA5E9', order: 2 },
+    ];
+
+    let cards = [];
+    if (isPgi13) {
+      cards = [
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-1',
+          text: 'Stripe 3DS V2 challenge flow completed and tested cleanly with sandbox issuing banks.',
+          author: 'Sarah Jenkins',
+          authorEmail: 'sarah.j@retroflow.io',
+          votes: 6,
+          voters: ['sarah.j@retroflow.io', 'gopalgohel249@gmail.com', 'priya.s@retroflow.io'],
+          createdAt: new Date(Date.now() - 12 * 86400000),
+          updatedAt: new Date(Date.now() - 12 * 86400000),
+        },
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-1',
+          text: 'Webhook signature validation middleware added with zero false negatives.',
+          author: 'Marcus Chen',
+          authorEmail: 'marcus.c@retroflow.io',
+          votes: 5,
+          voters: ['marcus.c@retroflow.io', 'sarah.j@retroflow.io'],
+          createdAt: new Date(Date.now() - 11 * 86400000),
+          updatedAt: new Date(Date.now() - 11 * 86400000),
+        },
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-1',
+          text: 'Idempotency key caching prevents duplicate customer credit charges under network retries.',
+          author: 'Gopal Gohel',
+          authorEmail: 'gopalgohel249@gmail.com',
+          votes: 8,
+          voters: ['gopalgohel249@gmail.com', 'priya.s@retroflow.io', 'marcus.c@retroflow.io'],
+          createdAt: new Date(Date.now() - 10 * 86400000),
+          updatedAt: new Date(Date.now() - 10 * 86400000),
+        },
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-2',
+          text: 'Sandbox environment experienced intermittent 504 timeouts from test card payment gateway.',
+          author: 'Priya Sharma',
+          authorEmail: 'priya.s@retroflow.io',
+          votes: 4,
+          voters: ['priya.s@retroflow.io', 'david.m@retroflow.io'],
+          createdAt: new Date(Date.now() - 9 * 86400000),
+          updatedAt: new Date(Date.now() - 9 * 86400000),
+        },
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-2',
+          text: 'End-to-end integration tests took 18 minutes to run in CI/CD pipeline, slowing down PR reviews.',
+          author: 'Marcus Chen',
+          authorEmail: 'marcus.c@retroflow.io',
+          votes: 7,
+          voters: ['marcus.c@retroflow.io', 'sarah.j@retroflow.io', 'david.m@retroflow.io'],
+          createdAt: new Date(Date.now() - 8 * 86400000),
+          updatedAt: new Date(Date.now() - 8 * 86400000),
+        },
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-3',
+          text: 'Split CI test pipeline into parallel matrix execution to reduce run to under 5 mins.',
+          author: 'Marcus Chen',
+          authorEmail: 'marcus.c@retroflow.io',
+          votes: 5,
+          voters: ['marcus.c@retroflow.io', 'gopalgohel249@gmail.com'],
+          createdAt: new Date(Date.now() - 7 * 86400000),
+          updatedAt: new Date(Date.now() - 7 * 86400000),
+        },
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-3',
+          text: 'Update Stripe webhook secret rotation runbook in engineering documentation.',
+          author: 'Sarah Jenkins',
+          authorEmail: 'sarah.j@retroflow.io',
+          votes: 4,
+          voters: ['sarah.j@retroflow.io', 'priya.s@retroflow.io'],
+          createdAt: new Date(Date.now() - 6 * 86400000),
+          updatedAt: new Date(Date.now() - 6 * 86400000),
+        },
+      ];
+    } else if (isPgi14) {
+      cards = [
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-1',
+          text: 'Webhook retry queue latency dropped by 45% after Redis connection pool optimizations.',
+          author: 'Sarah Jenkins',
+          authorEmail: 'sarah.j@retroflow.io',
+          votes: 4,
+          voters: ['sarah.j@retroflow.io', 'priya.s@retroflow.io'],
+          createdAt: new Date(Date.now() - 3 * 86400000),
+          updatedAt: new Date(Date.now() - 3 * 86400000),
+        },
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-2',
+          text: 'Need clearer alerting on DLQ (Dead Letter Queue) message overflows in staging.',
+          author: 'Priya Sharma',
+          authorEmail: 'priya.s@retroflow.io',
+          votes: 5,
+          voters: ['priya.s@retroflow.io', 'gopalgohel249@gmail.com'],
+          createdAt: new Date(Date.now() - 2 * 86400000),
+          updatedAt: new Date(Date.now() - 2 * 86400000),
+        },
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-3',
+          text: 'Setup Slack webhook notification channel for unhandled refund failure webhooks.',
+          author: 'Gopal Gohel',
+          authorEmail: 'gopalgohel249@gmail.com',
+          votes: 6,
+          voters: ['gopalgohel249@gmail.com', 'marcus.c@retroflow.io'],
+          createdAt: new Date(Date.now() - 1 * 86400000),
+          updatedAt: new Date(Date.now() - 1 * 86400000),
+        },
+      ];
+    } else if (isPgi12) {
+      cards = [
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-1',
+          text: 'Zero downtime achieved during database migration to multi-currency schema.',
+          author: 'Marcus Chen',
+          authorEmail: 'marcus.c@retroflow.io',
+          votes: 5,
+          voters: ['marcus.c@retroflow.io', 'sarah.j@retroflow.io'],
+          createdAt: new Date(Date.now() - 20 * 86400000),
+          updatedAt: new Date(Date.now() - 20 * 86400000),
+        },
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-2',
+          text: 'Documentation on multi-currency exchange rate rounding rules was missing.',
+          author: 'David Miller',
+          authorEmail: 'david.m@retroflow.io',
+          votes: 3,
+          voters: ['david.m@retroflow.io'],
+          createdAt: new Date(Date.now() - 19 * 86400000),
+          updatedAt: new Date(Date.now() - 19 * 86400000),
+        },
+        {
+          cardId: crypto.randomUUID(),
+          topicId: 'topic-3',
+          text: 'Publish currency rounding standard doc in team repository.',
+          author: 'David Miller',
+          authorEmail: 'david.m@retroflow.io',
+          votes: 4,
+          voters: ['david.m@retroflow.io', 'gopalgohel249@gmail.com'],
+          createdAt: new Date(Date.now() - 18 * 86400000),
+          updatedAt: new Date(Date.now() - 18 * 86400000),
+        },
+      ];
+    }
+
+    const memberEmails = new Set();
+    if (project?.lead?.email) memberEmails.add(project.lead.email.toLowerCase().trim());
+    if (Array.isArray(project?.members)) {
+      project.members.forEach((m) => {
+        if (m.email) memberEmails.add(m.email.toLowerCase().trim());
+      });
+    }
+
+    return {
+      title,
+      description: `Collaborative retrospective session for ${project?.name || 'Project'} (${project?.key || 'Agile'}).`,
+      shareToken: retroLink?.shareToken || identifier,
+      scheduledDate: retroLink?.scheduledDate ? new Date(retroLink.scheduledDate) : new Date(),
+      status: retroLink?.status || 'active',
+      approvalRequired: false,
+      revealMode: false,
+      votingLimit: 5,
+      backgroundTheme: 'standard',
+      topics,
+      approvedMembers: Array.from(memberEmails),
+      projectId: project?._id || null,
+      projectKey: project?.key || null,
+      sprintName,
+      isProjectScoped: true,
+      createdBy: creatorId || project?.createdBy || null,
+      cards,
+    };
+  }
+
+  /**
    * Get single retrospective by ID or shareToken
+   * With resilient auto-provisioning for project-linked and canonical retrospectives
    */
   async getRetroByIdOrToken(identifier, userId = null) {
     let query;
@@ -194,7 +408,36 @@ class RetroService {
       query = { shareToken: identifier };
     }
 
-    const retro = await RetroBoard.findOne(query).populate('createdBy', 'name email');
+    let retro = await RetroBoard.findOne(query).populate('createdBy', 'name email');
+
+    // If not found in RetroBoard, check if this retro is registered under any Project
+    if (!retro) {
+      let linkedProject = await Project.findOne({
+        $or: [
+          { 'retrospectives.shareToken': identifier },
+          { 'retrospectives.id': identifier },
+        ],
+      });
+
+      // Also check canonical PGI project if it matches default sprint retro tokens
+      if (!linkedProject && (identifier === 'retro-pgi-14' || identifier === 'retro-pgi-13' || identifier === 'retro-pgi-12')) {
+        linkedProject = await Project.findOne({ key: 'PGI' });
+      }
+
+      if (linkedProject) {
+        const retroLink = (linkedProject.retrospectives || []).find(
+          (r) => r.shareToken === identifier || r.id === identifier
+        );
+        let creatorId = linkedProject.createdBy || userId;
+        if (!creatorId) {
+          const adminUser = await User.findOne({ $or: [{ role: 'admin' }, { email: 'gopalgohel249@gmail.com' }] });
+          creatorId = adminUser?._id || null;
+        }
+        const seedPayload = this.buildSeedRetroData(identifier, retroLink, linkedProject, creatorId);
+        retro = await RetroBoard.create(seedPayload);
+        retro = await RetroBoard.findById(retro._id).populate('createdBy', 'name email');
+      }
+    }
 
     if (!retro) {
       throw ApiError.notFound('Retrospective session not found.');
@@ -206,6 +449,21 @@ class RetroService {
         const project = await Project.findById(retro.projectId).select('lead members key name').lean();
         if (project) {
           retroObj.project = project;
+
+          // Auto-whitelist all project members (Developers, QA, Managers) in retro.approvedMembers
+          const projectEmails = (project.members || []).map((m) => m.email?.toLowerCase().trim()).filter(Boolean);
+          if (project.lead?.email) projectEmails.push(project.lead.email.toLowerCase().trim());
+
+          let updatedApproved = false;
+          projectEmails.forEach((email) => {
+            if (!retro.approvedMembers.includes(email)) {
+              retro.approvedMembers.push(email);
+              updatedApproved = true;
+            }
+          });
+          if (updatedApproved) {
+            await retro.save();
+          }
         }
       } catch {
         // Ignore project fetch error
@@ -215,6 +473,21 @@ class RetroService {
         const project = await Project.findOne({ key: retro.projectKey }).select('lead members key name').lean();
         if (project) {
           retroObj.project = project;
+
+          // Auto-whitelist all project members in retro.approvedMembers
+          const projectEmails = (project.members || []).map((m) => m.email?.toLowerCase().trim()).filter(Boolean);
+          if (project.lead?.email) projectEmails.push(project.lead.email.toLowerCase().trim());
+
+          let updatedApproved = false;
+          projectEmails.forEach((email) => {
+            if (!retro.approvedMembers.includes(email)) {
+              retro.approvedMembers.push(email);
+              updatedApproved = true;
+            }
+          });
+          if (updatedApproved) {
+            await retro.save();
+          }
         }
       } catch {
         // Ignore project fetch error
