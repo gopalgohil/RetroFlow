@@ -225,6 +225,7 @@ export class ProjectApiService {
     nextProjectId: string | null;
     nextProjectKey: string | null;
   }> {
+    this.clearProjectsCache();
     const res = await api.delete<
       ApiResponseWrapper<{
         deletedProjectId: string;
@@ -233,7 +234,8 @@ export class ProjectApiService {
         nextProjectKey: string | null;
       }>
     >(`${ENDPOINTS.PROJECTS}/${idOrKey}`);
-    return res.data;
+    this.clearProjectsCache();
+    return res?.data || res;
   }
 
   /**

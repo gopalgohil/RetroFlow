@@ -235,12 +235,21 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
 
       if (typeof window !== 'undefined') {
         localStorage.removeItem('retroflow_active_project_id');
+        try {
+          sessionStorage.removeItem(`retroflow_cached_project_${project.id}`);
+          if (project.key) {
+            sessionStorage.removeItem(`retroflow_cached_project_${project.key}`);
+          }
+        } catch {}
       }
 
       if (res && res.nextProjectId) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('retroflow_active_project_id', res.nextProjectId);
+        }
         router.push(`/projects/${res.nextProjectId}`);
       } else {
-        router.push('/dashboard');
+        router.push('/dashboard?tab=projects');
       }
     } catch (err: any) {
       setDeleteError(err.message || 'Failed to delete project.');

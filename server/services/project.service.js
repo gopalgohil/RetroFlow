@@ -946,22 +946,15 @@ class ProjectService {
       throw error;
     }
 
-    const totalProjects = await Project.countDocuments();
-    if (totalProjects <= 1) {
-      throw new Error(
-        'Cannot delete the only remaining active project in RetroFlow. At least one agile initiative is required.'
-      );
-    }
-
     await Project.deleteOne({ _id: project._id });
 
-    // Locate the next available project
+    // Locate the next available project if any remain
     const nextProject = await Project.findOne().sort({ createdAt: -1 });
 
     return {
-      deletedProjectId: project._id,
+      deletedProjectId: project._id.toString(),
       deletedKey: project.key,
-      nextProjectId: nextProject ? nextProject._id : null,
+      nextProjectId: nextProject ? nextProject._id.toString() : null,
       nextProjectKey: nextProject ? nextProject.key : null,
     };
   }
