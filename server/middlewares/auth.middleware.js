@@ -21,6 +21,11 @@ export const protect = asyncHandler(async (req, res, next) => {
   if (!token) {
     if (req.headers['x-user-email']) {
       const email = String(req.headers['x-user-email']).toLowerCase().trim();
+      const dbUser = await User.findOne({ email });
+      if (dbUser) {
+        req.user = dbUser;
+        return next();
+      }
       const isAdmin =
         email === 'gopalgohel249@gmail.com' || req.headers['x-user-role'] === 'admin';
       req.user = {
@@ -80,6 +85,11 @@ export const protect = asyncHandler(async (req, res, next) => {
   } catch (error) {
     if (req.headers['x-user-email']) {
       const email = String(req.headers['x-user-email']).toLowerCase().trim();
+      const dbUser = await User.findOne({ email });
+      if (dbUser) {
+        req.user = dbUser;
+        return next();
+      }
       const isAdmin =
         email === 'gopalgohel249@gmail.com' || req.headers['x-user-role'] === 'admin';
       req.user = {

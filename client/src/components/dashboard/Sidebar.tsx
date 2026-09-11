@@ -7,18 +7,14 @@ import {
   FolderKanban,
   Users,
   Settings,
-  LogOut,
-  Sparkles,
-  ChevronRight,
 } from 'lucide-react';
-import { LogoutConfirmModal } from './LogoutConfirmModal';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   activeSessionsCount: number;
-  user: { name: string; email: string; role?: string } | null;
-  onLogout: () => void;
+  user?: { name: string; email: string; role?: string } | null;
+  onLogout?: () => void;
   isOpen: boolean;
   onCloseMobile?: () => void;
 }
@@ -28,11 +24,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setActiveTab,
   activeSessionsCount,
   user,
-  onLogout,
   isOpen,
   onCloseMobile,
 }) => {
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -94,12 +88,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white/90 backdrop-blur-xl border-r border-slate-200/80 flex flex-col justify-between transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white/90 backdrop-blur-xl border-r border-slate-200/80 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Top Header & Brand */}
-        <div className="p-6">
+        <div className="p-6 flex-1 overflow-y-auto">
           <Link href="/dashboard" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-indigo-400 flex items-center justify-center font-black text-white text-base shadow-md shadow-indigo-600/25 group-hover:scale-105 transition-transform">
               RF
@@ -176,66 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             })}
           </nav>
         </div>
-
-        {/* Bottom Profile Footer */}
-        <div className="p-4 border-t border-slate-200/80 bg-slate-50/50">
-          <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between">
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              <div
-                suppressHydrationWarning
-                className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
-              >
-                {activeUser.name
-                  ? activeUser.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2)
-                  : 'AD'}
-              </div>
-              <div className="overflow-hidden">
-                <div className="flex items-center gap-1.5">
-                  <p suppressHydrationWarning className="text-xs font-bold text-slate-900 truncate">
-                    {activeUser.name || 'Gopal Gohel'}
-                  </p>
-                  {isAdmin ? (
-                    <span suppressHydrationWarning className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0">
-                      Admin
-                    </span>
-                  ) : (
-                    <span suppressHydrationWarning className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
-                      Developer
-                    </span>
-                  )}
-                </div>
-                <p suppressHydrationWarning className="text-[11px] text-slate-400 truncate">{activeUser.email || 'gopalgohel249@gmail.com'}</p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsLogoutModalOpen(true)}
-              title="Sign Out"
-              aria-label="Sign Out"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
       </aside>
-
-      {/* Logout Confirmation Popup */}
-      <LogoutConfirmModal
-        isOpen={isLogoutModalOpen}
-        onClose={() => setIsLogoutModalOpen(false)}
-        onConfirm={() => {
-          setIsLogoutModalOpen(false);
-          onLogout();
-        }}
-        user={user}
-      />
     </>
   );
 };

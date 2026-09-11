@@ -22,6 +22,8 @@ export const ENDPOINTS = {
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
     ME: '/auth/me',
+    UPDATE_PROFILE: '/auth/profile',
+    CHANGE_PASSWORD: '/auth/change-password',
   },
   HEALTH: '/health',
   RETROS: '/retros',
@@ -77,12 +79,11 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
     } catch {}
   }
 
-  const isAuthEndpoint = endpoint.includes('/auth/');
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(authToken && !isAuthEndpoint ? { Authorization: `Bearer ${authToken}` } : {}),
-    ...(userEmail && !isAuthEndpoint ? { 'x-user-email': userEmail } : {}),
-    ...(userRole && !isAuthEndpoint ? { 'x-user-role': userRole } : {}),
+    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    ...(userEmail ? { 'x-user-email': userEmail } : {}),
+    ...(userRole ? { 'x-user-role': userRole } : {}),
     ...headers,
   };
 

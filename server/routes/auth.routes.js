@@ -96,4 +96,26 @@ router.get(
   authController.getMe
 );
 
+/**
+ * @route   PUT /api/auth/profile
+ * @desc    Update user profile name
+ * @access  Private (Requires Bearer token)
+ */
+router.put(
+  '/profile',
+  protect,
+  authController.updateProfile
+);
+
+/**
+ * @route   PUT /api/auth/change-password
+ * @desc    Update password with current password verification
+ * @access  Private (Requires Bearer token)
+ */
+router.put(
+  '/change-password',
+  protect,
+  authController.changePassword
+);
+
 export default router;

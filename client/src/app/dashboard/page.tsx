@@ -60,7 +60,15 @@ function DashboardContent() {
     saveSettings,
   } = useDashboardData(activeTab, searchQuery);
 
-  const activeUser = user || {
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      setCurrentUser(user);
+    }
+  }, [user]);
+
+  const activeUser = currentUser || user || {
     name: 'Team Member',
     email: '',
     role: 'member',
@@ -171,6 +179,9 @@ function DashboardContent() {
           onCreateClick={handleCreateRetro}
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
           isAdmin={canManageSessions}
+          user={activeUser}
+          onLogout={handleLogout}
+          onUserUpdated={(updated) => setCurrentUser(updated)}
         />
 
         {/* Dynamic View Body with Component Skeletons */}

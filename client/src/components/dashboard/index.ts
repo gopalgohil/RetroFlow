@@ -7,3 +7,4 @@ export * from './DashboardSkeletons';
 export * from './tabs';
 export * from './WelcomeToast';
 export * from './LogoutConfirmModal';
+export * from './MyProfileModal';

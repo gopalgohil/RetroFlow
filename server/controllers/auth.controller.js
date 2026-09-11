@@ -80,6 +80,27 @@ class AuthController {
     const profile = await authService.getProfile(req.user._id);
     return ApiResponse.ok(res, profile, 'User profile fetched successfully');
   });
+
+  /**
+   * Update profile details
+   * PUT /api/auth/profile
+   */
+  updateProfile = asyncHandler(async (req, res) => {
+    const updated = await authService.updateProfile(req.user._id, req.body);
+    return ApiResponse.ok(res, updated, 'Profile updated successfully');
+  });
+
+  /**
+   * Change user password
+   * PUT /api/auth/change-password
+   */
+  changePassword = asyncHandler(async (req, res) => {
+    const result = await authService.changePassword(req.user._id, {
+      ...req.body,
+      email: req.user?.email,
+    });
+    return ApiResponse.ok(res, result, result.message || 'Password changed successfully');
+  });
 }
 
 export const authController = new AuthController();

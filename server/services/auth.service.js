@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Project from '../models/Project.js';
 import { ApiError } from '../utils/ApiError.js';
 import { generateToken } from '../utils/token.js';
 import emailService from './email.service.js';
@@ -277,14 +278,82 @@ class AuthService {
   }
 
   /**
-   * Retrieves profile of authenticated user
+   * Retrieves profile of authenticated user with active projects summary
    */
   async getProfile(userId) {
-    const user = await User.findById(userId).select('-password -resetPasswordOtp -resetPasswordExpires -verificationOtp -verificationOtpExpires');
+    const user = await User.findById(userId).select(
+      '-password -resetPasswordOtp -resetPasswordExpires -verificationOtp -verificationOtpExpires'
+    );
     if (!user) {
       throw ApiError.notFound('User profile not found.');
     }
-    return user;
+
+    // Retrieve active projects the user participates in or created
+    const userProjects = await Project.find({
+      isArchived: { $ne: true },
+      $or: [
+        { createdBy: userId },
+        { 'teamMembers.email': user.email.toLowerCase().trim() },
+      ],
+    })
+      .select('id key name')
+      .lean();
+
+    return {
+      ...user.toObject(),
+      activeProjectsCount: userProjects.length,
+      activeProjects: userProjects.map((p) => ({ id: p._id?.toString() || p.id, key: p.key, name: p.name })),
+    };
+  }
+
+  /**
+   * Updates user profile (e.g. name)
+   */
+  async updateProfile(userId, { name }) {
+    if (!name || !name.trim()) {
+      throw ApiError.badRequest('Full name is required.');
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      throw ApiError.notFound('User not found.');
+    }
+    user.name = name.trim();
+    await user.save();
+
+    return this.getProfile(userId);
+  }
+
+  /**
+   * Updates password verifying current password first
+   */
+  async changePassword(userId, { currentPassword, newPassword, email }) {
+    if (!currentPassword || !newPassword) {
+      throw ApiError.badRequest('Current password and new password are required.');
+    }
+    if (newPassword.length < 8) {
+      throw ApiError.badRequest('New password must be at least 8 characters long.');
+    }
+
+    let user = null;
+    if (userId) {
+      user = await User.findById(userId);
+    }
+    if (!user && email) {
+      user = await User.findOne({ email: email.toLowerCase().trim() });
+    }
+    if (!user) {
+      throw ApiError.notFound('User account not found.');
+    }
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      throw ApiError.badRequest('Current password is incorrect. Please try again.');
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return { success: true, message: 'Password updated successfully.' };
   }
 }
 
