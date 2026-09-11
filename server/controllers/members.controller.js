@@ -59,6 +59,28 @@ class MembersController {
   });
 
   /**
+   * Bulk remove members from workspace
+   * POST /api/members/bulk-remove
+   */
+  bulkRemoveMembers = asyncHandler(async (req, res) => {
+    const { emails } = req.body || {};
+    if (!Array.isArray(emails) || emails.length === 0) {
+      throw new Error('Emails list is required for bulk removal.');
+    }
+
+    const settled = await Promise.allSettled(
+      emails.map((email) => membersService.removeWhitelistMember(req.user._id, email))
+    );
+
+    const successful = settled.filter((s) => s.status === 'fulfilled').length;
+    return ApiResponse.ok(
+      res,
+      { count: successful, total: emails.length },
+      `Successfully removed ${successful} contributor(s) from workspace.`
+    );
+  });
+
+  /**
    * Update a member's role
    * PATCH /api/members/:email/role
    */

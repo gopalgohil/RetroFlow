@@ -320,6 +320,23 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [fetchMembers, membersPage, membersLimit, membersSearch, showToast]
   );
 
+  const bulkRemoveMembers = useCallback(
+    async (emails: string[]) => {
+      if (!Array.isArray(emails) || emails.length === 0) return;
+      try {
+        const emailSet = new Set(emails.map((e) => e.toLowerCase()));
+        setMembers((prev) => prev.filter((m) => !emailSet.has(m.email.toLowerCase())));
+        await api.post('/api/members/bulk-remove', { emails });
+        showToast(`Successfully removed ${emails.length} contributor(s) from workspace.`);
+        await fetchMembers(membersPage, membersLimit, membersSearch);
+      } catch (err: any) {
+        showToast(err.message || 'Failed to remove selected members');
+        await fetchMembers(membersPage, membersLimit, membersSearch);
+      }
+    },
+    [fetchMembers, membersPage, membersLimit, membersSearch, showToast]
+  );
+
   const updateMemberRole = useCallback(
     async (email: string, newRole: string) => {
       try {
@@ -421,6 +438,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     onMembersSearchChange: handleSearchChange,
     addWhitelistMember,
     removeWhitelistMember,
+    bulkRemoveMembers,
     updateMemberRole,
     // Settings
     settings,

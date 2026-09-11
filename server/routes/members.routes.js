@@ -38,6 +38,17 @@ router.patch(
 );
 
 /**
+ * @route   POST /api/members/bulk-remove
+ * @desc    Bulk remove members from workspace
+ * @access  Private (Admin only)
+ */
+router.post(
+  '/bulk-remove',
+  protect,
+  membersController.bulkRemoveMembers
+);
+
+/**
  * @route   DELETE /api/members/:email
  * @desc    Remove developer email from workspace whitelist
  * @access  Private (Authenticated facilitator)

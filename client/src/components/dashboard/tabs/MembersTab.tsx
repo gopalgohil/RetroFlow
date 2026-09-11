@@ -339,13 +339,16 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 </tr>
               ) : (
                 members.map((m, index) => {
-                  const isLeadOrAdmin =
-                    m.isPrimaryLead ||
-                    m.role?.toLowerCase().includes('admin') ||
-                    m.projectRole?.toLowerCase().includes('lead');
+                  const emailLower = m.email?.toLowerCase().trim();
+                  const isSelf = emailLower === currentEmail?.toLowerCase().trim();
+                  const isPrimaryOwner = emailLower === 'gopalgohel249@gmail.com';
+                  const isLeadRole = m.projectRole?.toLowerCase().includes('lead') || m.isPrimaryLead;
 
                   return (
-                    <tr key={m.id || m.email} className="hover:bg-slate-50/50 transition-colors">
+                    <tr
+                      key={m.id || m.email}
+                      className="hover:bg-slate-50/50 transition-colors"
+                    >
                       {/* 1. Member Name (with avatar & online status) */}
                       <td className="px-6 py-4 flex items-center gap-3">
                         <UserAvatar
@@ -357,14 +360,18 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                         <div>
                           <div className="flex items-center gap-1.5">
                             <p className="font-bold text-slate-900">{m.name || m.email}</p>
-                            {m.email === currentEmail && (
+                            {isSelf && (
                               <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
                                 You
                               </span>
                             )}
                           </div>
-                          {isLeadOrAdmin ? (
-                            <span className="text-[10px] text-indigo-600 font-semibold">
+                          {isPrimaryOwner ? (
+                            <span className="text-[10px] text-indigo-600 font-bold">
+                              Workspace Owner
+                            </span>
+                          ) : isLeadRole ? (
+                            <span className="text-[10px] text-sky-600 font-semibold">
                               Project Lead
                             </span>
                           ) : (
@@ -375,7 +382,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                         </div>
                       </td>
 
-                      {/* 2. Assigned Projects (NO EMAIL COLUMN - Replaced with Project Count & Themed Hover Popover) */}
+                      {/* 2. Assigned Projects (Project Count & Themed Hover Popover) */}
                       <td className="px-6 py-4">
                         {typeof m.projectsCount === 'number' && m.projectsCount > 0 ? (
                           <div className="relative group inline-block hover:z-50">
@@ -441,9 +448,9 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                         )}
                       </td>
 
-                      {/* 3. Project Role (Interactive Dropdown for Admin) */}
+                      {/* 3. Project Role (Interactive Dropdown for Admin, permanent ADMIN badge for Owner/Self-Admin) */}
                       <td className="px-6 py-4">
-                        {isLeadOrAdmin || m.email === currentEmail ? (
+                        {isPrimaryOwner || (isSelf && isAdmin) ? (
                           <div className="inline-flex items-center" title="Admin role is permanent">
                             <StatusPill status="admin" label="ADMIN" />
                           </div>
@@ -499,14 +506,14 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                                 <div className="space-y-0.5">
                                   {AVAILABLE_PROJECT_ROLES.map((roleOption) => {
                                     const currentRole = (m.projectRole || 'Developer').toLowerCase();
-                                    const isSelected = currentRole === roleOption.id.toLowerCase();
+                                    const isSelectedRole = currentRole === roleOption.id.toLowerCase();
                                     return (
                                       <button
                                         key={roleOption.id}
                                         type="button"
                                         onClick={() => handleRoleSelect(m.email, roleOption.id)}
                                         className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition-colors cursor-pointer ${
-                                          isSelected
+                                          isSelectedRole
                                             ? 'bg-indigo-50 text-indigo-900 font-bold'
                                             : 'text-slate-700 hover:bg-slate-50'
                                         }`}
@@ -524,7 +531,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                                             </p>
                                           </div>
                                         </div>
-                                        {isSelected && (
+                                        {isSelectedRole && (
                                           <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                                         )}
                                       </button>
@@ -555,19 +562,26 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                       {/* 6. Actions */}
                       {isAdmin && (
                         <td className="px-6 py-4 text-right">
-                          {isLeadOrAdmin || m.email === currentEmail ? (
+                          {isPrimaryOwner ? (
                             <span
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 select-none"
-                              title="Designated Project Lead cannot be removed"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-200 select-none"
+                              title="Primary Workspace Owner"
                             >
-                              Primary Lead
+                              Owner
+                            </span>
+                          ) : isSelf ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 select-none"
+                              title="You cannot remove your own account"
+                            >
+                              You
                             </span>
                           ) : (
                             <button
                               type="button"
                               onClick={() => setMemberToRemove(m)}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-rose-300 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
-                              title={`Remove ${m.name || m.email} from whitelist`}
+                              title={`Remove ${m.name || m.email} from workspace`}
                             >
                               <Trash2 className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 transition-colors" />
                               <span>Remove</span>
@@ -734,7 +748,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
             </div>
 
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              Once removed, this contributor will immediately lose access to all assigned projects, retrospective sessions, and workspace whitelist privileges.
+              Once removed, this contributor will immediately lose access to all assigned projects, retrospective sessions, and workspace whitelist privileges. Any project where they were lead will be automatically reassigned to Primary Admin.
             </p>
           </div>
         </Modal>

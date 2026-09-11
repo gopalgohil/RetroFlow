@@ -95,7 +95,7 @@ class MembersService {
         projectRole,
         projectsCount: stats.count,
         projectNames: stats.names,
-        isPrimaryLead: stats.isLead || isAdmin,
+        isPrimaryLead: emailLower === 'gopalgohel249@gmail.com',
         avatar,
         status: u.isVerified ? 'active' : 'pending',
         isWhitelisted: true,
@@ -119,7 +119,7 @@ class MembersService {
             projectNames: stats?.names || [proj.name || proj.key],
             status: 'active',
             isWhitelisted: true,
-            isPrimaryLead: true,
+            isPrimaryLead: emailLower === 'gopalgohel249@gmail.com',
             avatar: proj.lead.avatar || proj.lead.name?.slice(0, 2).toUpperCase() || 'L',
             joinedAt: new Date(),
           });
@@ -235,15 +235,30 @@ class MembersService {
   async removeWhitelistMember(userId, email) {
     const cleanEmail = email.toLowerCase().trim();
 
-    // Guard: Prevent removing primary workspace admin
+    // Guard: Prevent removing primary workspace owner
     if (cleanEmail === 'gopalgohel249@gmail.com') {
-      throw new Error('Primary Workspace Admin cannot be removed.');
+      throw new Error('Primary Workspace Owner cannot be removed.');
     }
 
     const targetUser = await User.findOne({ email: cleanEmail });
-    if (targetUser && targetUser.role === 'admin') {
-      throw new Error('Workspace Admin accounts cannot be removed.');
+    if (targetUser && String(targetUser._id) === String(userId)) {
+      throw new Error('You cannot remove your own account from the workspace.');
     }
+
+    // Reassign project lead if this member was the designated lead of any projects
+    await Project.updateMany(
+      { 'lead.email': cleanEmail },
+      {
+        $set: {
+          lead: {
+            id: 'lead-primary',
+            name: 'Gopal',
+            email: 'gopalgohel249@gmail.com',
+            avatar: 'G',
+          },
+        },
+      }
+    );
 
     await Promise.all([
       // 1. Remove from all retro boards approved members
