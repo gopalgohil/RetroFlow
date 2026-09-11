@@ -135,7 +135,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               ? 'Complete organization supervisory view across all Scrum sprints, velocity metrics, and retrospectives.'
               : canCreateProject
               ? 'Manage your agile initiatives, initialize new projects, and track sprint execution.'
-              : `Showing initiatives where your account (${currentUser?.email || 'logged in user'}) is registered as Project Lead or member.`}
+              : `Showing initiatives where your account (${currentUser?.email || 'logged in user'}) is registered as Manager or member.`}
           </p>
         </div>
 
@@ -213,7 +213,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 </h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
                   {filterMode === 'managed'
-                    ? 'You are not assigned as Project Lead for any project yet.'
+                    ? 'You are not assigned as Manager for any project yet.'
                     : canCreateProject
                     ? 'Initialize your first Scrum or Kanban agile delivery project above.'
                     : `You haven't been assigned to any project yet. Only projects where your email (${
@@ -223,7 +223,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               </div>
               {!canCreateProject && filterMode !== 'managed' && (
                 <p className="text-[11px] text-slate-400">
-                  Contact your workspace Administrator or Project Lead to get invited to active projects.
+                  Contact your workspace Administrator or Manager to get invited to active projects.
                 </p>
               )}
             </div>
@@ -235,11 +235,20 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               project.sprints[0];
 
             const userEmail = currentUser?.email?.toLowerCase().trim();
+            // Resolve designated project manager
+            const managerMember = project.members?.find(
+              (m) => (m.role || '').toLowerCase() === 'manager'
+            );
+            const managerName = managerMember?.name || project.lead?.name || 'Gopal';
+            const managerEmail = (managerMember?.email || project.lead?.email || '').toLowerCase().trim();
+            const managerAvatar = managerMember?.avatar || project.lead?.avatar || 'M';
+
             const isCurrentLead = Boolean(
               userEmail &&
-                (project.lead?.email?.toLowerCase().trim() === userEmail ||
+                (managerEmail === userEmail ||
+                  project.lead?.email?.toLowerCase().trim() === userEmail ||
                   project.members?.some(
-                    (m) => m.email?.toLowerCase().trim() === userEmail && m.role === 'Manager'
+                    (m) => m.email?.toLowerCase().trim() === userEmail && (m.role || '').toLowerCase() === 'manager'
                   ))
             );
 
@@ -272,29 +281,29 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     <StatusPill status={project.healthStatus} pulse />
                   </div>
 
-                  {/* Dedicated Project Lead Identity Row */}
+                  {/* Dedicated Manager Identity Row */}
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/60">
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
-                        {project.lead?.avatar || 'PL'}
+                        {managerAvatar}
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">
-                          Project Lead
+                          Manager
                         </p>
                         <p className="text-xs font-bold text-slate-800 truncate mt-0.5">
-                          {project.lead?.name || 'Gopal'}
+                          {managerName}
                         </p>
                       </div>
                     </div>
 
                     {isCurrentLead ? (
                       <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shrink-0 shadow-2xs">
-                        <span>You are Lead</span>
+                        <span>You are Manager</span>
                       </span>
                     ) : (
                       <span className="text-[10px] text-slate-400 font-mono truncate max-w-[110px]">
-                        {project.lead?.email}
+                        {managerEmail}
                       </span>
                     )}
                   </div>

@@ -347,7 +347,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                       <p className="font-bold text-slate-900">{member.name}</p>
                       {project.lead.email === member.email && (
                         <span className="text-[10px] text-indigo-600 font-semibold">
-                          Project Lead
+                          Manager
                         </span>
                       )}
                     </div>
@@ -370,9 +370,9 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                       {project.lead.email.toLowerCase() === member.email.toLowerCase() ? (
                         <span
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 select-none"
-                          title="Designated Project Lead cannot be removed"
+                          title="Designated Project Manager cannot be removed"
                         >
-                          Primary Lead
+                          Primary Manager
                         </span>
                       ) : (
                         <button

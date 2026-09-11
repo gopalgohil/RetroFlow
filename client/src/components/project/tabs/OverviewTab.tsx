@@ -65,14 +65,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <p className="text-xs font-black uppercase tracking-wider text-amber-900">
-                You are Project Lead / Manager
+                You are Manager
               </p>
               <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-200/80 text-amber-950 border border-amber-300">
                 Full Control
               </span>
             </div>
             <p className="text-xs text-slate-600 mt-0.5">
-              Welcome, <strong>{currentUser?.name || 'Project Lead'}</strong>! You have lead privileges to plan sprints, track velocity, and launch retrospectives for <strong>{project.name}</strong>.
+              Welcome, <strong>{currentUser?.name || 'Manager'}</strong>! You have manager privileges to plan sprints, track velocity, and launch retrospectives for <strong>{project.name}</strong>.
             </p>
           </div>
 

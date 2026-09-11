@@ -752,20 +752,26 @@ function ProjectDetailContent() {
                         {project.healthStatus.replace('_', ' ')}
                       </span>
 
-                      {isProjectLead && (
+                      {isManager ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                          <span>You are Manager</span>
+                        </span>
+                      ) : isProjectLead ? (
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
                           <span>You are Project Lead</span>
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     <p className="text-xs text-slate-500 max-w-2xl">{project.description}</p>
 
                     <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-1 font-medium">
                       <span>
-                        Lead:{' '}
-                        <strong className="text-slate-800">{project.lead?.name || 'Gopal'}</strong>
-                        {isProjectLead && <span className="text-indigo-600 font-bold ml-1">(You)</span>}
+                        Manager:{' '}
+                        <strong className="text-slate-800">
+                          {project.members?.find((m) => (m.role || '').toLowerCase() === 'manager')?.name || project.lead?.name || 'Gopal'}
+                        </strong>
+                        {(isManager || isProjectLead) && <span className="text-indigo-600 font-bold ml-1">(You)</span>}
                       </span>
                       <span>•</span>
                       <span>
