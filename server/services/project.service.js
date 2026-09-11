@@ -185,17 +185,23 @@ const CANONICAL_PGI_PROJECT = {
   ],
 };
 
+let hasCheckedSeed = false;
+
 class ProjectService {
   /**
-   * Automatically seed the canonical Payment Gateway Integration project if database is empty
+   * Automatically seed the canonical Payment Gateway Integration project once
    */
   async ensureSeededProject() {
-    const pgi = await Project.findOne({ key: 'PGI' });
-    if (!pgi) {
-      const seeded = await Project.create(CANONICAL_PGI_PROJECT);
-      return [seeded];
+    if (hasCheckedSeed) return;
+    try {
+      const pgi = await Project.findOne({ key: 'PGI' }).select('_id').lean();
+      if (!pgi) {
+        await Project.create(CANONICAL_PGI_PROJECT);
+      }
+      hasCheckedSeed = true;
+    } catch {
+      // Don't block requests if seed check fails
     }
-    return null;
   }
 
   /**
@@ -204,7 +210,9 @@ class ProjectService {
    * - Regular Member/Developer: Strictly returns projects where the user is Lead, assigned in Members, or creator
    */
   async getAllProjects(currentUser = null) {
-    await this.ensureSeededProject();
+    if (!hasCheckedSeed) {
+      await this.ensureSeededProject();
+    }
 
     // 1. If Admin: ALWAYS return all projects across the workspace
     const isAdmin =
@@ -213,25 +221,32 @@ class ProjectService {
       currentUser.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
       currentUser.email?.toLowerCase().includes('admin');
 
-    if (isAdmin) {
-      return await Project.find().sort({ createdAt: -1 });
-    }
+    let query = {};
 
     // 2. If authenticated regular member: strictly return projects where user is assigned
-    if (currentUser?.email) {
+    if (!isAdmin && currentUser?.email) {
       const email = currentUser.email.toLowerCase().trim();
-      const query = {
+      query = {
         $or: [
           { 'lead.email': { $regex: new RegExp(`^${email}$`, 'i') } },
           { 'members.email': { $regex: new RegExp(`^${email}$`, 'i') } },
           ...(currentUser._id ? [{ createdBy: currentUser._id }] : []),
         ],
       };
-      return await Project.find(query).sort({ createdAt: -1 });
     }
 
-    // 3. Fallback: return all projects
-    return await Project.find().sort({ createdAt: -1 });
+    // High-performance lean query with virtual activeSprint hydration
+    const rawProjects = await Project.find(query).sort({ createdAt: -1 }).lean();
+
+    return rawProjects.map((p) => {
+      const id = p._id.toString();
+      const activeSprint = p.sprints?.find((s) => s.status === 'active') || p.sprints?.[0] || null;
+      return {
+        ...p,
+        id,
+        activeSprint,
+      };
+    });
   }
 
   /**

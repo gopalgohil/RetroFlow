@@ -22,6 +22,9 @@ class MembersController {
       search,
     });
 
+    // Enable browser micro-caching with stale-while-revalidate
+    res.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=60');
+
     return ApiResponse.ok(
       res,
       result,

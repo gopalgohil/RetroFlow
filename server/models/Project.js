@@ -267,8 +267,11 @@ const projectSchema = new mongoose.Schema(
   }
 );
 
-// Compound indexes
+// Compound & Performance indexes for high-speed sub-millisecond queries
+projectSchema.index({ key: 1 });
 projectSchema.index({ key: 1, createdBy: 1 });
+projectSchema.index({ 'members.email': 1 });
+projectSchema.index({ 'lead.email': 1 });
 projectSchema.index({ createdAt: -1 });
 
 export const Project = mongoose.model('Project', projectSchema);

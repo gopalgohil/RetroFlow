@@ -20,6 +20,9 @@ class ProjectController {
 
     const projects = await projectService.getAllProjects(user);
 
+    // High-speed browser caching with background revalidation
+    res.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=60');
+
     return res.status(200).json({
       success: true,
       statusCode: 200,

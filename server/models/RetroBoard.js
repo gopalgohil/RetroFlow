@@ -210,8 +210,12 @@ const retroBoardSchema = new mongoose.Schema(
   }
 );
 
-// Index for efficient user dashboard sorting
+// Indexes for high-speed dashboard, whitelisting, and real-time session lookups
+retroBoardSchema.index({ shareToken: 1 });
 retroBoardSchema.index({ createdBy: 1, createdAt: -1 });
+retroBoardSchema.index({ approvedMembers: 1 });
+retroBoardSchema.index({ projectId: 1 });
+retroBoardSchema.index({ projectKey: 1 });
 
 const RetroBoard = mongoose.model('RetroBoard', retroBoardSchema);
 

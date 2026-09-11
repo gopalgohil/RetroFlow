@@ -12,11 +12,11 @@ class MembersService {
    * @returns {Promise<Array>} List of formatted workspace members
    */
   async getWorkspaceMembers(userId, { page = 1, limit = 5, search = '' } = {}) {
-    // 1. Fetch registered workspace accounts
-    const users = await User.find({}, 'name email role createdAt isVerified').lean();
-
-    // 2. Fetch approved whitelisted emails from facilitator's retrospectives
-    const retros = await RetroBoard.find({ createdBy: userId }, 'approvedMembers').lean();
+    // 1 & 2. Concurrently fetch registered workspace accounts and facilitator whitelist
+    const [users, retros] = await Promise.all([
+      User.find({}, 'name email role createdAt isVerified').lean(),
+      RetroBoard.find({ createdBy: userId }, 'approvedMembers').lean(),
+    ]);
     const whitelistedSet = new Set();
     retros.forEach((r) => {
       if (Array.isArray(r.approvedMembers)) {
