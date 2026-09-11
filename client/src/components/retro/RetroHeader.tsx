@@ -87,11 +87,6 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
             <h1 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
               {title}
             </h1>
-            {sprintName && (
-              <span className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                {sprintName}
-              </span>
-            )}
           </div>
           {description && (
             <p className="text-xs text-slate-500 mt-0.5 max-w-md truncate">{description}</p>
