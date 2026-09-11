@@ -16,15 +16,42 @@ export interface ApiResponseWrapper<T> {
 }
 
 export class ProjectApiService {
+  private static inFlightProjectsPromise: Promise<Project[]> | null = null;
+  private static cachedProjects: { data: Project[]; timestamp: number } | null = null;
+  private static readonly CACHE_TTL_MS = 3000;
+
+  public static clearProjectsCache(): void {
+    this.inFlightProjectsPromise = null;
+    this.cachedProjects = null;
+  }
+
   /**
-   * Fetch all agile projects (RBAC filtered)
+   * Fetch all agile projects (RBAC filtered) with single-flight request deduplication
+   * Prevents simultaneous components (e.g. ProjectsTab & ProjectSwitcher) from sending duplicate HTTP requests
    * GET /api/projects
    */
-  static async getProjects(): Promise<Project[]> {
-    const res = await api.get<any>(ENDPOINTS.PROJECTS);
-    if (Array.isArray(res)) return res;
-    if (Array.isArray(res?.data)) return res.data;
-    return [];
+  static async getProjects(forceRefresh = false): Promise<Project[]> {
+    const now = Date.now();
+    if (!forceRefresh && this.cachedProjects && now - this.cachedProjects.timestamp < this.CACHE_TTL_MS) {
+      return this.cachedProjects.data;
+    }
+
+    if (this.inFlightProjectsPromise) {
+      return this.inFlightProjectsPromise;
+    }
+
+    this.inFlightProjectsPromise = (async () => {
+      try {
+        const res = await api.get<any>(ENDPOINTS.PROJECTS);
+        const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+        this.cachedProjects = { data: list, timestamp: Date.now() };
+        return list;
+      } finally {
+        this.inFlightProjectsPromise = null;
+      }
+    })();
+
+    return this.inFlightProjectsPromise;
   }
 
   /**
@@ -41,7 +68,9 @@ export class ProjectApiService {
    * POST /api/projects
    */
   static async createProject(payload: CreateProjectPayload): Promise<Project> {
+    this.clearProjectsCache();
     const res = await api.post<any>(ENDPOINTS.PROJECTS, payload);
+    this.clearProjectsCache();
     return res?.data || res;
   }
 
