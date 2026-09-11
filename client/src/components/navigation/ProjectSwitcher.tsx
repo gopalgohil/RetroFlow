@@ -58,34 +58,15 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   useEffect(() => {
     let isMounted = true;
     // Live REST API request -> visible in browser Network tab!
-    ProjectApiService.getProjects()
+    ProjectApiService.getProjects(true)
       .then((list) => {
-        if (isMounted && list && list.length > 0) {
-          setProjects(list);
-          list.forEach((p) => {
-            try {
-              sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
-            } catch {}
-          });
-        } else if (isMounted) {
-          const fallbackList = ProjectDataService.getProjects();
-          setProjects(fallbackList);
-          fallbackList.forEach((p) => {
-            try {
-              sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
-            } catch {}
-          });
+        if (isMounted) {
+          setProjects(Array.isArray(list) ? list : []);
         }
       })
       .catch(() => {
         if (isMounted) {
-          const fallbackList = ProjectDataService.getProjects();
-          setProjects(fallbackList);
-          fallbackList.forEach((p) => {
-            try {
-              sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
-            } catch {}
-          });
+          setProjects([]);
         }
       });
 

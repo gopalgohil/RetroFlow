@@ -229,8 +229,23 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
     setIsDeleting(true);
     setDeleteError('');
     try {
-      // Live REST API DELETE request -> visible in browser Network tab!
-      const res = await ProjectApiService.deleteProject(project.id);
+      let res: any = null;
+      try {
+        // Live REST API DELETE request -> visible in browser Network tab!
+        res = await ProjectApiService.deleteProject(project.id);
+      } catch (apiErr: any) {
+        // If project was not found in MongoDB (e.g. stale mock data), treat as deleted cleanly
+        if (
+          apiErr?.status === 404 ||
+          apiErr?.message?.toLowerCase().includes('not found')
+        ) {
+          console.warn('[TeamSettingsTab] Project already deleted or not found on server:', apiErr);
+          res = { nextProjectId: null };
+        } else {
+          throw apiErr;
+        }
+      }
+
       setIsDeleteModalOpen(false);
 
       if (typeof window !== 'undefined') {
@@ -242,6 +257,8 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
           }
         } catch {}
       }
+
+      ProjectApiService.clearProjectsCache();
 
       if (res && res.nextProjectId) {
         if (typeof window !== 'undefined') {

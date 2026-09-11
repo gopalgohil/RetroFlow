@@ -1035,6 +1035,7 @@ class ProjectService {
   async inviteMembers(idOrKey, { emails, message }, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
 
     const clientUrl = env.CLIENT_URL || 'http://localhost:3000';
     const inviteUrl = `${clientUrl}/projects/${project._id || project.key}`;

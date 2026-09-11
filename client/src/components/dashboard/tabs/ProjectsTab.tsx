@@ -38,29 +38,12 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false }) => 
   const fetchProjects = React.useCallback(async () => {
     setIsLoading(true);
     try {
-      // Live REST API request -> visible in browser Network tab!
-      const list = await ProjectApiService.getProjects();
-      const localList = ProjectDataService.getProjects();
-
-      // Merge unique projects so no initiative is ever lost or hidden from Admin
-      const projectMap = new Map<string, Project>();
-      (list || []).forEach((p) => {
-        const identifier = p.id || p.key;
-        if (identifier) projectMap.set(identifier, p);
-      });
-      (localList || []).forEach((p) => {
-        const identifier = p.id || p.key;
-        if (identifier && !projectMap.has(identifier)) {
-          projectMap.set(identifier, p);
-        }
-      });
-
-      const merged = Array.from(projectMap.values());
-      setProjects(merged.length > 0 ? merged : (list || []));
+      // Live REST API request directly from MongoDB Atlas
+      const list = await ProjectApiService.getProjects(true);
+      setProjects(Array.isArray(list) ? list : []);
     } catch (err) {
-      console.warn('[ProjectsTab] Live API request fallback:', err);
-      const fallback = ProjectDataService.getProjects();
-      setProjects(fallback || []);
+      console.warn('[ProjectsTab] Live API request error:', err);
+      setProjects([]);
     } finally {
       setIsLoading(false);
     }

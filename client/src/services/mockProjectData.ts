@@ -14,89 +14,31 @@ export const MOCK_PROJECT_LEADS = [
 ];
 
 /**
- * Single Canonical Dynamic Project: Retro (RET)
+ * Zero Default Hardcoded Projects: Fully dynamic MongoDB Atlas initialization
  */
-export const INITIAL_PROJECTS: Project[] = [
-  {
-    id: '6aa29fac0ae6747bfed5307f',
-    name: 'Retro',
-    key: 'RET',
-    description: 'Dynamic agile workspace for sprint retrospectives and team delivery.',
-    type: 'scrum',
-    healthStatus: 'on_track',
-    cadence: '2_weeks',
-    lead: {
-      id: '6a9ff515f6ed7508f5b2088b',
-      name: 'jaynit',
-      email: 'drakpatel2004@gmail.com',
-      avatar: 'J',
-    },
-    members: [
-      { id: 'm-1', name: 'jaynit', email: 'drakpatel2004@gmail.com', role: 'Manager', avatar: 'J', joinedAt: '2026-06-01' },
-      { id: 'm-2', name: 'sharad', email: 'gopalg@internal.digiflux.io', role: 'Developer', avatar: 'S', joinedAt: '2026-06-01' },
-    ],
-    velocityHistory: [
-      { sprintName: 'Sprint 1', committedPoints: 30, completedPoints: 28 },
-    ],
-    retrospectives: [
-      {
-        id: 'retro-ret-1',
-        shareToken: '5f4c7f80-d15',
-        title: 'Retro - Sprint 1 Retrospective',
-        scheduledDate: '2026-09-08',
-        status: 'active',
-        sprintName: 'Sprint 1',
-        topicsCount: 3,
-        cardsCount: 5,
-        actionItemsCount: 2,
-        actionItemsExported: false,
-      },
-    ],
-    sprints: [
-      {
-        id: 'sprint-1',
-        projectId: '6aa29fac0ae6747bfed5307f',
-        name: 'Sprint 1 - Launch & Foundation',
-        number: 1,
-        status: 'active',
-        startDate: '2026-09-01',
-        endDate: '2026-09-15',
-        goal: 'Establish core platform workflows and automated retro synchronization.',
-        daysLeft: 4,
-        totalStoryPoints: 20,
-        completedStoryPoints: 12,
-        openBlockers: 0,
-        items: [],
-      },
-    ],
-    createdAt: '2026-09-01',
-    updatedAt: '2026-09-11',
-  },
-];
+export const INITIAL_PROJECTS: Project[] = [];
 
 /**
  * Service to manage project state with localStorage persistence
  */
 export class ProjectDataService {
   private static getStoredProjects(): Project[] {
-    if (typeof window === 'undefined') return INITIAL_PROJECTS;
+    if (typeof window === 'undefined') return [];
     try {
-      // Clean up legacy v1 key if present
+      // Clean up legacy keys
       localStorage.removeItem('retroflow_projects_store');
+      localStorage.removeItem('retroflow_projects_store_v2');
+      localStorage.removeItem('retroflow_projects_store_v3');
+      localStorage.removeItem('retroflow_cached_project_6aa29fac0ae6747bfed5307f');
+      localStorage.removeItem('retroflow_cached_project_RET');
 
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PROJECTS));
-        return INITIAL_PROJECTS;
-      }
+      if (!raw) return [];
       const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed) || parsed.length === 0) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PROJECTS));
-        return INITIAL_PROJECTS;
-      }
+      if (!Array.isArray(parsed)) return [];
       return parsed;
     } catch {
-      return INITIAL_PROJECTS;
+      return [];
     }
   }
 
