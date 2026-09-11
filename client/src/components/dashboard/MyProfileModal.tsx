@@ -46,7 +46,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
     activeProjectsCount?: number;
     activeProjects?: Array<{ id: string; key: string; name: string }>;
   }>({
-    name: user?.name || 'Gopal Gohel',
+    name: user?.name || 'Gopal',
     email: user?.email || 'gopalgohel249@gmail.com',
     role: user?.role || 'admin',
     isVerified: true,
@@ -238,7 +238,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-slate-900 leading-tight">
-                  {profileData.name || 'Gopal Gohel'}
+                  {profileData.name || 'Gopal'}
                 </h2>
                 {isAdmin ? (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-indigo-100 text-indigo-700 border border-indigo-200">

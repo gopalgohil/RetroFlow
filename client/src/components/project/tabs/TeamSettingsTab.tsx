@@ -29,7 +29,7 @@ interface TeamSettingsTabProps {
 }
 
 const DEFAULT_WORKSPACE_MEMBERS = [
-  { id: 'lead-gopal', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com' },
+  { id: 'lead-gopal', name: 'Gopal', email: 'gopalgohel249@gmail.com' },
 ];
 
 export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({

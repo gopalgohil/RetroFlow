@@ -10,7 +10,7 @@ import { Project, Sprint, BacklogItem, ProjectRetroLink, CreateProjectPayload } 
 const STORAGE_KEY = 'retroflow_projects_store_v3';
 
 export const MOCK_PROJECT_LEADS = [
-  { id: 'lead-1', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com', role: 'Manager' as const, avatar: 'GG' },
+  { id: 'lead-1', name: 'Gopal', email: 'gopalgohel249@gmail.com', role: 'Manager' as const, avatar: 'G' },
 ];
 
 /**

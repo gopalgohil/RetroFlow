@@ -38,7 +38,7 @@ interface WorkspaceMemberOption {
 }
 
 const DEFAULT_WORKSPACE_LEADS: WorkspaceMemberOption[] = [
-  { id: 'lead-gopal', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com', role: 'Admin', avatar: 'GG' },
+  { id: 'lead-gopal', name: 'Gopal', email: 'gopalgohel249@gmail.com', role: 'Admin', avatar: 'G' },
 ];
 
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
@@ -293,9 +293,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       (l) => l.email.toLowerCase() === selectedLeadEmail.toLowerCase()
     ) || {
       id: 'lead-1',
-      name: 'Gopal Gohel',
+      name: 'Gopal',
       email: selectedLeadEmail || 'gopalgohel249@gmail.com',
-      avatar: 'GG',
+      avatar: 'G',
     };
 
     const cleanLeadName = chosenLead.name.replace(/\s*\(You\)\s*/i, '').trim();

@@ -34,7 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, []);
 
   const activeUser = user || {
-    name: 'Gopal Gohel',
+    name: 'Gopal',
     email: 'gopalgohel249@gmail.com',
     role: 'admin',
   };

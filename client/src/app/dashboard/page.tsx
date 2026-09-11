@@ -69,7 +69,7 @@ function DashboardContent() {
   }, [user]);
 
   const activeUser = currentUser || user || {
-    name: 'Gopal Gohel',
+    name: 'Gopal',
     email: 'gopalgohel249@gmail.com',
     role: 'admin',
   };

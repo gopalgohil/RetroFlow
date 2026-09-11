@@ -240,9 +240,9 @@ const projectSchema = new mongoose.Schema(
     },
     lead: {
       id: { type: String, default: 'lead-1' },
-      name: { type: String, default: 'Gopal Gohel' },
+      name: { type: String, default: 'Gopal' },
       email: { type: String, default: 'gopalgohel249@gmail.com' },
-      avatar: { type: String, default: 'GG' },
+      avatar: { type: String, default: 'G' },
     },
     members: [projectMemberSchema],
     sprints: [sprintSchema],

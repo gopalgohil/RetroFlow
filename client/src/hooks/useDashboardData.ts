@@ -31,7 +31,7 @@ const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettingsData = {
  * - Toast feedback messages
  */
 const DEFAULT_WORKSPACE_USER = {
-  name: 'Gopal Gohel',
+  name: 'Gopal',
   email: 'gopalgohel249@gmail.com',
   role: 'admin',
 };

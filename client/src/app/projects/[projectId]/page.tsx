@@ -455,7 +455,7 @@ function ProjectDetailContent() {
                     <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-1 font-medium">
                       <span>
                         Lead:{' '}
-                        <strong className="text-slate-800">{project.lead?.name || 'Gopal Gohel'}</strong>
+                        <strong className="text-slate-800">{project.lead?.name || 'Gopal'}</strong>
                         {isUserProjectLead && <span className="text-indigo-600 font-bold ml-1">(You)</span>}
                       </span>
                       <span>•</span>

@@ -149,7 +149,7 @@ class AuthService {
     // If Admin account doesn't exist yet in fresh database, auto-provision Admin account
     if (!user && (normalizedEmail === 'gopalgohel249@gmail.com' || normalizedEmail.includes('admin'))) {
       user = await User.create({
-        name: 'Gopal Gohel',
+        name: 'Gopal',
         email: normalizedEmail,
         password,
         role: 'admin',

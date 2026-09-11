@@ -277,7 +277,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false }) => 
                           Project Lead
                         </p>
                         <p className="text-xs font-bold text-slate-800 truncate mt-0.5">
-                          {project.lead?.name || 'Gopal Gohel'}
+                          {project.lead?.name || 'Gopal'}
                         </p>
                       </div>
                     </div>

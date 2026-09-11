@@ -32,7 +32,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const activeUser = user || {
-    name: 'Gopal Gohel',
+    name: 'Gopal',
     email: 'gopalgohel249@gmail.com',
     role: 'admin',
   };
@@ -56,7 +56,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         .join('')
         .toUpperCase()
         .slice(0, 2)
-    : 'AD';
+    : 'G';
 
   // Close dropdown on outside click or Escape key
   useEffect(() => {
@@ -120,7 +120,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             {/* User Name & Role */}
             <div className="text-left hidden sm:block">
               <p suppressHydrationWarning className="text-xs font-bold text-slate-900 leading-tight">
-                {activeUser.name || 'Gopal Gohel'}
+                {activeUser.name || 'Gopal'}
               </p>
               <p suppressHydrationWarning className="text-[11px] font-medium text-slate-400 capitalize leading-tight">
                 {isUserAdmin ? 'Admin' : 'Developer'}
@@ -150,7 +150,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   <div className="overflow-hidden flex-1">
                     <div className="flex items-center gap-1.5">
                       <p suppressHydrationWarning className="text-xs font-bold text-slate-900 truncate">
-                        {activeUser.name || 'Gopal Gohel'}
+                        {activeUser.name || 'Gopal'}
                       </p>
                       {isUserAdmin ? (
                         <span suppressHydrationWarning className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0 leading-none">

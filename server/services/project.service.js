@@ -21,12 +21,12 @@ const CANONICAL_PGI_PROJECT = {
   customCadenceDays: 14,
   lead: {
     id: 'lead-1',
-    name: 'Gopal Gohel',
+    name: 'Gopal',
     email: 'gopalgohel249@gmail.com',
-    avatar: 'GG',
+    avatar: 'G',
   },
   members: [
-    { id: 'm-1', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com', role: 'Manager', avatar: 'GG' },
+    { id: 'm-1', name: 'Gopal', email: 'gopalgohel249@gmail.com', role: 'Manager', avatar: 'G' },
   ],
   velocityHistory: [
     { sprintName: 'Sprint 10', committedPoints: 35, completedPoints: 34 },
@@ -94,7 +94,7 @@ const CANONICAL_PGI_PROJECT = {
           priority: 'high',
           status: 'done',
           storyPoints: 5,
-          assignee: { name: 'Gopal Gohel', avatar: 'GG' },
+          assignee: { name: 'Gopal', avatar: 'G' },
           createdAt: new Date('2026-09-02'),
         },
         {
@@ -104,7 +104,7 @@ const CANONICAL_PGI_PROJECT = {
           priority: 'critical',
           status: 'in_progress',
           storyPoints: 8,
-          assignee: { name: 'Gopal Gohel', avatar: 'GG' },
+          assignee: { name: 'Gopal', avatar: 'G' },
           createdAt: new Date('2026-09-04'),
         },
         {
@@ -114,7 +114,7 @@ const CANONICAL_PGI_PROJECT = {
           priority: 'medium',
           status: 'todo',
           storyPoints: 5,
-          assignee: { name: 'Gopal Gohel', avatar: 'GG' },
+          assignee: { name: 'Gopal', avatar: 'G' },
           createdAt: new Date('2026-09-05'),
         },
       ],
@@ -139,7 +139,7 @@ const CANONICAL_PGI_PROJECT = {
           priority: 'high',
           status: 'todo',
           storyPoints: 8,
-          assignee: { name: 'Gopal Gohel', avatar: 'GG' },
+          assignee: { name: 'Gopal', avatar: 'G' },
           createdAt: new Date('2026-09-07'),
         },
         {
@@ -149,7 +149,7 @@ const CANONICAL_PGI_PROJECT = {
           priority: 'medium',
           status: 'todo',
           storyPoints: 5,
-          assignee: { name: 'Gopal Gohel', avatar: 'GG' },
+          assignee: { name: 'Gopal', avatar: 'G' },
           createdAt: new Date('2026-09-07'),
         },
       ],
@@ -338,7 +338,7 @@ class ProjectService {
       throw new Error(`Project key "${key}" already exists. Please choose a distinct key.`);
     }
 
-    const leadName = payload.lead?.name?.trim() || 'Gopal Gohel';
+    const leadName = payload.lead?.name?.trim() || 'Gopal';
     const leadEmail = payload.lead?.email?.toLowerCase().trim() || 'gopalgohel249@gmail.com';
     const leadAvatar =
       payload.lead?.avatar ||
