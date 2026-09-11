@@ -24,8 +24,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   isAdmin = true,
   isLoading = false,
 }) => {
+  const [mounted, setMounted] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const debouncedSearch = useDebounce(localSearch, 350);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Sync if external searchQuery changes
   useEffect(() => {
@@ -64,10 +69,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
         <div className="hidden xl:block">
           <h1 suppressHydrationWarning className="text-sm font-bold text-slate-900 leading-none">
-            {isAdmin ? 'Retrospective Management' : 'Developer Workspace'}
+            {mounted && isAdmin ? 'Retrospective Management' : 'Developer Workspace'}
           </h1>
           <p suppressHydrationWarning className="text-[11px] text-slate-500 mt-1">
-            {isAdmin
+            {mounted && isAdmin
               ? 'Configure custom agile topics, process rules, and team access'
               : 'Participate in agile sprint retrospectives and contribute live feedback'}
           </p>
@@ -103,11 +108,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       <div className="flex items-center gap-3">
         {/* Notification Bell */}
         <button
-          title={isAdmin ? 'Join Approvals Waiting Room' : 'Notifications'}
+          title={mounted && isAdmin ? 'Join Approvals Waiting Room' : 'Notifications'}
           className="relative p-2.5 rounded-xl border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
         >
           <Bell className="w-4 h-4" />
-          {isAdmin && pendingApprovalsCount > 0 && (
+          {mounted && isAdmin && pendingApprovalsCount > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs animate-pulse">
               {pendingApprovalsCount}
             </span>
@@ -115,17 +120,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </button>
 
         {/* Primary CTA Button for Admin vs Live Indicator for Developer */}
-        {isAdmin ? (
+        {!mounted ? (
+          <div className="h-9 w-36 rounded-xl bg-slate-100/80 animate-pulse shrink-0" />
+        ) : isAdmin ? (
           <button
-            suppressHydrationWarning
             onClick={onCreateClick}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-semibold shadow-md shadow-indigo-600/25 transition-all hover:scale-[1.02] cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-semibold shadow-md shadow-indigo-600/25 transition-all hover:scale-[1.02] cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Create Custom Retro</span>
           </button>
         ) : (
-          <div suppressHydrationWarning className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold shrink-0">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Developer Space</span>
           </div>

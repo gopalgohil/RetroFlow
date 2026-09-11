@@ -185,19 +185,10 @@ let hasCheckedSeed = false;
 
 class ProjectService {
   /**
-   * Automatically seed the canonical Payment Gateway Integration project once
+   * Automatically seed project check - disabled to prevent dummy project re-creation
    */
   async ensureSeededProject() {
-    if (hasCheckedSeed) return;
-    try {
-      const pgi = await Project.findOne({ key: 'PGI' }).select('_id').lean();
-      if (!pgi) {
-        await Project.create(CANONICAL_PGI_PROJECT);
-      }
-      hasCheckedSeed = true;
-    } catch {
-      // Don't block requests if seed check fails
-    }
+    hasCheckedSeed = true;
   }
 
   /**
@@ -262,7 +253,7 @@ class ProjectService {
     }
 
     if (!project) {
-      project = (await Project.findOne({ key: 'PGI' })) || (await Project.findOne());
+      project = (await Project.findOne({ key: 'RET' })) || (await Project.findOne());
     }
 
     if (!project) return null;

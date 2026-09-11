@@ -51,7 +51,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     (typeof window !== 'undefined'
       ? localStorage.getItem('retroflow_active_project_id')
       : null) ||
-    'proj-pgi';
+    '';
 
   useEffect(() => {
     let isMounted = true;
@@ -181,15 +181,15 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
         >
           {/* Project Avatar */}
           <UserAvatar
-            name={activeProject?.name || 'PGI'}
-            avatar={activeProject?.key.slice(0, 3) || 'PGI'}
+            name={activeProject?.name || 'Retro'}
+            avatar={activeProject?.key.slice(0, 3) || 'RET'}
             size="sm"
           />
 
           <div className="flex flex-col min-w-0 max-w-[150px] sm:max-w-[200px]">
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-bold text-slate-900 truncate">
-                {activeProject?.name || 'Payment Gateway Integration'}
+                {activeProject?.name || 'Retro'}
               </span>
               {activeProject && (
                 <span className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200/80">

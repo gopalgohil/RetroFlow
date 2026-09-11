@@ -419,10 +419,6 @@ class RetroService {
         ],
       });
 
-      // Also check canonical PGI project if it matches default sprint retro tokens
-      if (!linkedProject && (identifier === 'retro-pgi-14' || identifier === 'retro-pgi-13' || identifier === 'retro-pgi-12')) {
-        linkedProject = await Project.findOne({ key: 'PGI' });
-      }
 
       if (linkedProject) {
         const retroLink = (linkedProject.retrospectives || []).find(
