@@ -50,8 +50,8 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
     email: user?.email || 'gopalgohel249@gmail.com',
     role: user?.role || 'admin',
     isVerified: true,
-    activeProjectsCount: 1,
-    activeProjects: [{ id: '1', key: 'RET', name: 'Retro' }],
+    activeProjectsCount: 0,
+    activeProjects: [],
   });
 
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);

@@ -8,6 +8,7 @@ import {
   Plus,
   Check,
   X,
+  FolderKanban,
 } from 'lucide-react';
 import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
@@ -173,19 +174,25 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
               ? 'bg-white border-indigo-500 ring-2 ring-indigo-500/20 shadow-xs'
               : 'bg-white/80 hover:bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs'
           }`}
-          title="Switch active agile project"
+          title={activeProject ? `Active Project: ${activeProject.name}` : 'Select agile project'}
         >
-          {/* Project Avatar */}
-          <UserAvatar
-            name={activeProject?.name || 'Retro'}
-            avatar={activeProject?.key.slice(0, 3) || 'RET'}
-            size="sm"
-          />
+          {/* Project Avatar or Neutral Agile Icon */}
+          {activeProject ? (
+            <UserAvatar
+              name={activeProject.name}
+              avatar={activeProject.key.slice(0, 3)}
+              size="sm"
+            />
+          ) : (
+            <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200/70 text-indigo-600 flex items-center justify-center shrink-0">
+              <FolderKanban className="w-3.5 h-3.5" />
+            </div>
+          )}
 
           <div className="flex flex-col min-w-0 max-w-[150px] sm:max-w-[200px]">
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-bold text-slate-900 truncate">
-                {activeProject?.name || 'Retro'}
+                {activeProject ? activeProject.name : 'Select Project'}
               </span>
               {activeProject && (
                 <span className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
@@ -239,8 +246,22 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             {/* List of Projects */}
             <div className="p-1.5 max-h-64 overflow-y-auto space-y-1">
               {filteredProjects.length === 0 ? (
-                <div className="py-6 text-center text-xs text-slate-400">
-                  No matching projects found
+                <div className="py-7 px-4 text-center space-y-2">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                    <FolderKanban className="w-4 h-4 text-slate-400" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-semibold text-slate-700">
+                      {searchQuery ? 'No matching projects found' : 'No projects in workspace'}
+                    </p>
+                    <p className="text-[11px] text-slate-400 max-w-[220px] mx-auto leading-tight">
+                      {searchQuery
+                        ? 'Try searching with a different name or key'
+                        : isManagerOrLead
+                        ? 'Initialize your first agile initiative below'
+                        : 'No agile projects have been assigned yet'}
+                    </p>
+                  </div>
                 </div>
               ) : (
                 filteredProjects.map((proj) => {

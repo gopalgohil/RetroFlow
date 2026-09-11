@@ -114,8 +114,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Workspace Quick Status Pill */}
           <div className="mt-6 p-3 rounded-xl bg-gradient-to-r from-indigo-50/70 via-slate-50 to-white border border-indigo-100/80 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-semibold text-slate-700">Sprint 42 Active</span>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  activeSessionsCount > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+                }`}
+              />
+              <span className="text-xs font-semibold text-slate-700">
+                {activeSessionsCount > 0
+                  ? `${activeSessionsCount} Live Session${activeSessionsCount !== 1 ? 's' : ''}`
+                  : 'Workspace Ready'}
+              </span>
             </div>
             <span className="text-[10px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-full border border-indigo-100 shadow-xs">
               Live Sync
