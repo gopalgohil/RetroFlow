@@ -700,9 +700,10 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 cursor-pointer"
             >
               <option value="Developer">Developer</option>
-              <option value="QA">QA Specialist</option>
+              <option value="QA">QA</option>
               <option value="Manager">Manager</option>
-              <option value="Viewer">Viewer</option>
+              <option value="DevOps">DevOps</option>
+              <option value="Project Lead">Project Lead</option>
             </select>
           </div>
 

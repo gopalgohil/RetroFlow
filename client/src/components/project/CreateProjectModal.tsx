@@ -655,9 +655,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                       className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                     >
                       <option value="Developer">Developer</option>
-                      <option value="QA">QA Specialist</option>
+                      <option value="QA">QA</option>
                       <option value="Manager">Manager</option>
-                      <option value="Viewer">Viewer</option>
+                      <option value="DevOps">DevOps</option>
+                      <option value="Project Lead">Project Lead</option>
                     </select>
                   </div>
 
@@ -722,9 +723,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                       className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                     >
                       <option value="Developer">Developer</option>
-                      <option value="QA">QA Specialist</option>
+                      <option value="QA">QA</option>
                       <option value="Manager">Manager</option>
-                      <option value="Viewer">Viewer</option>
+                      <option value="DevOps">DevOps</option>
+                      <option value="Project Lead">Project Lead</option>
                     </select>
                   </div>
                   <div className="sm:col-span-1">
