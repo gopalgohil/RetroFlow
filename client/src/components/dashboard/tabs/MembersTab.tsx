@@ -366,13 +366,9 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               </span>
                             )}
                           </div>
-                          {isPrimaryOwner ? (
-                            <span className="text-[10px] text-indigo-600 font-bold">
-                              Workspace Owner
-                            </span>
-                          ) : isLeadRole ? (
-                            <span className="text-[10px] text-sky-600 font-semibold">
-                              Project Lead
+                          {isPrimaryOwner || (isSelf && isAdmin) ? (
+                            <span className="text-[10px] text-slate-400">
+                              Admin
                             </span>
                           ) : (
                             <span className="text-[10px] text-slate-400">
@@ -562,19 +558,12 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                       {/* 6. Actions */}
                       {isAdmin && (
                         <td className="px-6 py-4 text-right">
-                          {isPrimaryOwner ? (
-                            <span
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-200 select-none"
-                              title="Primary Workspace Owner"
-                            >
-                              Owner
-                            </span>
-                          ) : isSelf ? (
+                          {isPrimaryOwner || isSelf ? (
                             <span
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 select-none"
-                              title="You cannot remove your own account"
+                              title="Admin account cannot be removed"
                             >
-                              You
+                              Admin
                             </span>
                           ) : (
                             <button
