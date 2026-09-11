@@ -34,9 +34,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, []);
 
   const activeUser = user || {
-    name: 'Team Member',
-    email: '',
-    role: 'member',
+    name: 'Gopal Gohel',
+    email: 'gopalgohel249@gmail.com',
+    role: 'admin',
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();

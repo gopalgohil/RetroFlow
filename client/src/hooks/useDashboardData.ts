@@ -31,9 +31,9 @@ const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettingsData = {
  * - Toast feedback messages
  */
 const DEFAULT_WORKSPACE_USER = {
-  name: 'Team Member',
-  email: '',
-  role: 'member',
+  name: 'Gopal Gohel',
+  email: 'gopalgohel249@gmail.com',
+  role: 'admin',
 };
 
 export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
@@ -61,7 +61,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     setTimeout(() => setToastMessage(null), 3000);
   }, []);
 
-  // Check auth session
+  // Check auth session & sync profile
   useEffect(() => {
     const token = localStorage.getItem('retroflow_token');
     if (!token) {
@@ -73,11 +73,22 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        if (parsed) setUser(parsed);
-      } catch {
-        // Fallback
-      }
+        if (parsed && parsed.email) setUser(parsed);
+      } catch {}
     }
+
+    // Sync live profile from backend
+    api
+      .get(ENDPOINTS.AUTH.ME)
+      .then((res) => {
+        if (res?.data && res.data.email) {
+          setUser(res.data);
+          try {
+            localStorage.setItem('retroflow_user', JSON.stringify(res.data));
+          } catch {}
+        }
+      })
+      .catch(() => {});
   }, [router]);
 
   // 2. Retrospective Sessions State & Actions
