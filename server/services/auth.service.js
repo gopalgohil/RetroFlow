@@ -161,23 +161,18 @@ class AuthService {
     } else {
       const isPasswordValid = await user.matchPassword(password);
       if (!isPasswordValid) {
-        // If Admin is logging in with updated password, sync credentials so admin is never locked out
-        if (normalizedEmail === 'gopalgohel249@gmail.com') {
-          user.password = password;
-          user.role = 'admin';
-          user.isVerified = true;
-          await user.save();
-        } else {
-          throw ApiError.unauthorized('Invalid email or password.');
-        }
+        throw ApiError.unauthorized('Invalid email or password.');
       }
     }
 
-    // Ensure Admin is always verified
-    if (normalizedEmail === 'gopalgohel249@gmail.com') {
+    // Ensure Admin is always verified and has admin role
+    if (normalizedEmail === 'gopalgohel249@gmail.com' && (!user.isVerified || user.role !== 'admin')) {
+      await User.updateOne(
+        { _id: user._id },
+        { $set: { isVerified: true, role: 'admin' } }
+      );
       user.isVerified = true;
       user.role = 'admin';
-      await user.save();
     }
 
     // Block login if email is not verified yet
