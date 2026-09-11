@@ -431,7 +431,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               <option value="Developer">Developer</option>
                               <option value="QA">QA Specialist</option>
                               <option value="Manager">Manager</option>
-                              <option value="Viewer">Viewer</option>
+                              <option value="DevOps">DevOps</option>
                               <option value="Project Lead">Project Lead</option>
                             </select>
                             {updatingRoleEmail === m.email && (
