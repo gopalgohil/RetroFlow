@@ -119,6 +119,12 @@ router.post(
 );
 
 /**
+ * @route   POST /api/projects/:id/verify-magic-invite
+ * @desc    Verify encrypted project magic invite token and issue genuine developer session
+ */
+router.post('/:id/verify-magic-invite', projectController.verifyMagicInvite);
+
+/**
  * @route   POST /api/projects/:id/export-action-items
  * @desc    Export retrospective action items into sprint backlog
  */

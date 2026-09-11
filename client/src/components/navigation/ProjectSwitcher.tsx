@@ -119,21 +119,20 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
       p.key.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Option B: Admin + Project Leads / Managers have permission to initialize new projects
+  // Admin + Project Leads / Managers have permission to initialize new projects
   const userEmail = currentUser?.email?.toLowerCase().trim();
+  const userRole = (currentUser?.role || '').toLowerCase();
   const isAdmin =
-    currentUser?.role?.toLowerCase() === 'admin' ||
-    userEmail === 'gopalgohel249@gmail.com' ||
-    Boolean(userEmail?.includes('admin'));
+    userRole === 'admin' ||
+    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
+    Boolean(userEmail && userEmail.includes('admin'));
   const isManagerOrLead =
     isAdmin ||
-    currentUser?.role?.toLowerCase() === 'manager' ||
-    currentUser?.role?.toLowerCase() === 'lead' ||
-    projects.some(
-      (p) =>
-        p.lead?.email?.toLowerCase().trim() === userEmail ||
-        p.members?.some((m) => m.email?.toLowerCase().trim() === userEmail && m.role === 'Manager')
-    );
+    userRole === 'manager' ||
+    userRole === 'project lead' ||
+    userRole === 'lead' ||
+    userRole.includes('manager') ||
+    userRole.includes('lead');
 
   const handleSelect = (project: Project) => {
     if (typeof window !== 'undefined') {

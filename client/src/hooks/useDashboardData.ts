@@ -31,9 +31,9 @@ const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettingsData = {
  * - Toast feedback messages
  */
 const DEFAULT_WORKSPACE_USER = {
-  name: 'Gopal Gohel',
-  email: 'gopalgohel249@gmail.com',
-  role: 'admin',
+  name: 'Team Member',
+  email: '',
+  role: 'member',
 };
 
 export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {

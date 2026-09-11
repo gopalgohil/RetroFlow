@@ -9,13 +9,16 @@ class ProjectController {
    * GET /api/projects
    */
   getAllProjects = asyncHandler(async (req, res) => {
-    const projects = await projectService.getAllProjects(req.user);
+    const user = req.user;
+    const userEmail = user?.email?.toLowerCase().trim();
+    const userRole = (user?.role || '').toLowerCase();
     const isAdmin =
-      !req.user ||
-      req.user.role?.toLowerCase() === 'admin' ||
-      req.user.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
-      req.user.email?.toLowerCase().includes('admin') ||
-      req.headers['x-user-role'] === 'admin';
+      Boolean(user) &&
+      (userRole === 'admin' ||
+        userEmail === 'gopalgohel249@gmail.com' ||
+        userEmail?.includes('admin'));
+
+    const projects = await projectService.getAllProjects(user);
 
     return res.status(200).json({
       success: true,
@@ -26,7 +29,7 @@ class ProjectController {
       data: projects,
       meta: {
         isGlobalView: isAdmin,
-        userRole: isAdmin ? 'admin' : (req.user?.role || 'member'),
+        userRole: isAdmin ? 'admin' : (user?.role || 'member'),
         total: projects.length,
       },
     });
@@ -54,42 +57,51 @@ class ProjectController {
    */
   createProject = asyncHandler(async (req, res) => {
     const user = req.user;
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required to initialize a project.',
+      });
+    }
+
+    const userEmail = user.email?.toLowerCase().trim();
+    const userRole = (user.role || '').toLowerCase();
     const isAdmin =
-      !user ||
-      user.role?.toLowerCase() === 'admin' ||
-      user.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
-      user.email?.toLowerCase().includes('admin') ||
-      req.headers['x-user-role'] === 'admin';
+      userRole === 'admin' ||
+      userEmail === 'gopalgohel249@gmail.com' ||
+      userEmail?.includes('admin');
 
-    // Option B: If not Admin, check if user is a Project Lead or Manager
-    if (!isAdmin && user?.email) {
-      const userEmail = user.email.toLowerCase().trim();
-      const userRole = (user.role || '').toLowerCase();
-      const isManagerOrLeadRole =
-        userRole === 'manager' ||
-        userRole === 'lead' ||
-        userRole === 'scrum_master';
+    const isManagerOrLeadRole =
+      userRole === 'manager' ||
+      userRole === 'project lead' ||
+      userRole === 'lead' ||
+      userRole === 'scrum_master';
 
-      if (!isManagerOrLeadRole) {
-        // Check if user is a lead or manager in any existing project in the workspace
-        const isExistingLeadOrManager = await Project.findOne({
-          $or: [
-            { 'lead.email': userEmail },
-            { members: { $elemMatch: { email: userEmail, role: 'Manager' } } },
-          ],
-        });
+    let canCreate = isAdmin || isManagerOrLeadRole;
 
-        if (!isExistingLeadOrManager) {
-          return res.status(403).json({
-            success: false,
-            message:
-              'Permission denied: Only Workspace Admins and Project Leads/Managers can initialize new Agile projects.',
-          });
-        }
+    if (!canCreate && userEmail) {
+      // Check if user is a lead or manager in any existing project in the workspace
+      const isExistingLeadOrManager = await Project.findOne({
+        $or: [
+          { 'lead.email': userEmail },
+          { members: { $elemMatch: { email: userEmail, role: 'Manager' } } },
+        ],
+      });
+
+      if (isExistingLeadOrManager) {
+        canCreate = true;
       }
     }
 
-    const project = await projectService.createProject(req.body, req.user?._id);
+    if (!canCreate) {
+      return res.status(403).json({
+        success: false,
+        message:
+          'Permission denied: Only Workspace Admins and Managers can initialize new Agile projects.',
+      });
+    }
+
+    const project = await projectService.createProject(req.body, user._id);
     return ApiResponse.created(res, project, 'Agile project initialized successfully');
   });
 
@@ -243,7 +255,17 @@ class ProjectController {
    */
   inviteMembers = asyncHandler(async (req, res) => {
     const result = await projectService.inviteMembers(req.params.id, req.body, req.user);
-    return ApiResponse.ok(res, result, result.message || 'Invitations dispatched successfully');
+    return ApiResponse.ok(res, result, result.message);
+  });
+
+  /**
+   * Verify an encrypted magic invite token for project
+   * POST /api/projects/:id/verify-magic-invite
+   */
+  verifyMagicInvite = asyncHandler(async (req, res) => {
+    const { token } = req.body;
+    const result = await projectService.verifyMagicInvite(req.params.id, token);
+    return ApiResponse.ok(res, result, `Welcome to ${result.project.name}, ${result.user.name}!`);
   });
 }
 

@@ -267,6 +267,15 @@ export class ProjectApiService {
     });
     return res.data;
   }
+
+  /**
+   * Verify an encrypted project magic invite token and activate genuine developer session
+   * POST /api/projects/:id/verify-magic-invite
+   */
+  static async verifyMagicInvite(projectId: string, token: string): Promise<any> {
+    const res = await api.post<any>(`${ENDPOINTS.PROJECTS}/${projectId}/verify-magic-invite`, { token });
+    return res.data;
+  }
 }
 
 export default ProjectApiService;

@@ -35,16 +35,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const activeUser = user || {
-    name: 'Gopal Gohel',
-    email: 'gopalgohel249@gmail.com',
-    role: 'admin',
+    name: 'Team Member',
+    email: '',
+    role: 'member',
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
   const isAdmin = Boolean(
     activeUser.role?.toLowerCase() === 'admin' ||
-    userEmail === 'gopalgohel249@gmail.com' ||
-    userEmail?.includes('admin')
+    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
+    (userEmail && userEmail.includes('admin'))
   );
 
   const navItems = [

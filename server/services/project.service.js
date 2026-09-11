@@ -2,8 +2,11 @@ import mongoose from 'mongoose';
 import Project from '../models/Project.js';
 import RetroBoard from '../models/RetroBoard.js';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 import env from '../config/env.js';
 import emailService from './email.service.js';
+import { generateToken } from '../utils/token.js';
+import { ApiError } from '../utils/ApiError.js';
 
 /**
  * Canonical Default Project Payload (Payment Gateway Integration)
@@ -870,19 +873,36 @@ class ProjectService {
       // Find member role if already assigned in project
       const member = project.members?.find((m) => m.email?.toLowerCase() === normalizedEmail);
       const role = member?.role || 'Developer';
+      const memberName = member?.name || normalizedEmail.split('@')[0];
+
+      // Generate secure 7-day magic token for 1-click entry
+      const magicToken = jwt.sign(
+        {
+          email: normalizedEmail,
+          name: memberName,
+          role: role.toLowerCase(),
+          projectId: project._id.toString(),
+          projectKey: project.key,
+          purpose: 'project_magic_invite',
+        },
+        env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      const memberInviteUrl = `${clientUrl}/projects/${project._id || project.key}?invite=${magicToken}`;
 
       const htmlContent = emailService.getProjectInvitationTemplate({
         projectName: project.name,
         projectKey: project.key,
         projectLead,
         role,
-        inviteUrl,
+        inviteUrl: memberInviteUrl,
         senderName,
         customMessage: message,
         recipientEmail: normalizedEmail,
       });
 
-      console.log(`\n📬 [Project Invitation Email dispatched to ${normalizedEmail}] for Project "${project.name}" (${inviteUrl})\n`);
+      console.log(`\n📬 [Project Invitation Email dispatched to ${normalizedEmail}] for Project "${project.name}" (${memberInviteUrl})\n`);
 
       await emailService.sendEmail({
         to: normalizedEmail,
@@ -890,7 +910,7 @@ class ProjectService {
         htmlContent,
       });
 
-      results.push({ email: normalizedEmail, status: 'sent', role });
+      results.push({ email: normalizedEmail, status: 'sent', role, magicToken, inviteUrl: memberInviteUrl });
     }
 
     return {
@@ -901,6 +921,70 @@ class ProjectService {
       invitationsCount: results.length,
       recipients: results,
       message: `Project invitation email${results.length > 1 ? 's' : ''} sent successfully`,
+    };
+  }
+
+  /**
+   * Verify an encrypted project magic invite token and return genuine session JWT for invited developer
+   */
+  async verifyMagicInvite(projectIdOrKey, magicToken) {
+    if (!magicToken) {
+      throw ApiError.badRequest('Magic invite token is required');
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(magicToken, env.JWT_SECRET);
+    } catch (err) {
+      throw ApiError.unauthorized('Invalid or expired project invitation link. Please request a new invitation.');
+    }
+
+    if (decoded.purpose !== 'project_magic_invite') {
+      throw ApiError.unauthorized('Invalid token purpose.');
+    }
+
+    const project = await this.getProjectByIdOrKey(projectIdOrKey);
+    if (!project) {
+      throw ApiError.notFound('Project not found.');
+    }
+
+    const normalizedEmail = decoded.email?.toLowerCase().trim();
+    if (!normalizedEmail) {
+      throw ApiError.badRequest('Invalid token payload: missing email.');
+    }
+
+    const matchedMember = project.members?.find(
+      (m) => m.email?.toLowerCase().trim() === normalizedEmail
+    );
+    const assignedRole = matchedMember?.role || decoded.role || 'Developer';
+    const memberName = matchedMember?.name || decoded.name || normalizedEmail.split('@')[0];
+
+    const guestId = `proj-member-${crypto.randomUUID().slice(0, 8)}`;
+    const token = generateToken(
+      {
+        id: guestId,
+        name: memberName,
+        email: normalizedEmail,
+        role: assignedRole.toLowerCase(),
+        isGuest: true,
+      },
+      '7d'
+    );
+
+    return {
+      valid: true,
+      token,
+      user: {
+        id: guestId,
+        name: memberName,
+        email: normalizedEmail,
+        role: assignedRole,
+      },
+      project: {
+        id: project._id.toString(),
+        key: project.key,
+        name: project.name,
+      },
     };
   }
 }

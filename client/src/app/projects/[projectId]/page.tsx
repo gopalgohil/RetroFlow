@@ -49,7 +49,7 @@ function ProjectDetailContent() {
   const [project, setProject] = useState<Project | null>(() => {
     return ProjectDataService.getProjectById(projectId) || null;
   });
-  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string }>(() => {
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('retroflow_user');
@@ -59,11 +59,7 @@ function ProjectDetailContent() {
         }
       } catch {}
     }
-    return {
-      name: 'Gopal Gohel',
-      email: 'gopalgohel249@gmail.com',
-      role: 'admin',
-    };
+    return null;
   });
   const [accessDeniedError, setAccessDeniedError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sprints' | 'retros' | 'team'>(
@@ -80,11 +76,39 @@ function ProjectDetailContent() {
       if (cached) setProject(JSON.parse(cached));
     } catch { }
 
-    try {
+    // Check for 1-click project magic invite token in URL
+    const inviteParam = searchParams.get('invite');
+    if (inviteParam) {
+      ProjectApiService.verifyMagicInvite(projectId, inviteParam)
+        .then((res: any) => {
+          if (res?.token && res?.user) {
+            localStorage.setItem('retroflow_token', res.token);
+            localStorage.setItem('retroflow_user', JSON.stringify(res.user));
+            setCurrentUser(res.user);
+            // Clean up the ?invite= parameter from the URL cleanly
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.delete('invite');
+            window.history.replaceState(null, '', currentUrl.pathname + currentUrl.search);
+          }
+        })
+        .catch((err: any) => {
+          console.warn('[ProjectDetail] Magic invite verification error:', err.message || err);
+        });
+    } else if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('retroflow_token');
       const saved = localStorage.getItem('retroflow_user');
-      if (saved) setCurrentUser(JSON.parse(saved));
-    } catch { }
-  }, [projectId]);
+      if (!token && !saved) {
+        // Redirect to login if user is not logged in and has no invite link
+        router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+        return;
+      }
+      if (saved) {
+        try {
+          setCurrentUser(JSON.parse(saved));
+        } catch { }
+      }
+    }
+  }, [projectId, searchParams, router]);
 
   // Instant seamless project selection with component-matched skeleton
   const handleSelectProject = (selectedProj: Project) => {
@@ -242,17 +266,17 @@ function ProjectDetailContent() {
   };
 
   const activeUser = currentUser || {
-    name: 'Gopal Gohel',
-    email: 'gopalgohel249@gmail.com',
-    role: 'admin',
+    name: 'Team Member',
+    email: '',
+    role: 'developer',
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
   const userRole = activeUser.role?.toLowerCase().trim();
   const isWorkspaceAdmin = Boolean(
     userRole === 'admin' ||
-    userEmail === 'gopalgohel249@gmail.com' ||
-    userEmail?.includes('admin')
+    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
+    (userEmail && userEmail.includes('admin'))
   );
 
   const isGlobalManagerOrLead = Boolean(

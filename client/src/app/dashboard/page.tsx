@@ -61,17 +61,17 @@ function DashboardContent() {
   } = useDashboardData(activeTab, searchQuery);
 
   const activeUser = user || {
-    name: 'Gopal Gohel',
-    email: 'gopalgohel249@gmail.com',
-    role: 'admin',
+    name: 'Team Member',
+    email: '',
+    role: 'member',
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
   const userRole = activeUser.role?.toLowerCase().trim();
   const isAdmin = Boolean(
     userRole === 'admin' ||
-    userEmail === 'gopalgohel249@gmail.com' ||
-    userEmail?.includes('admin')
+    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
+    (userEmail && userEmail.includes('admin'))
   );
 
   const isManagerOrLead = Boolean(
