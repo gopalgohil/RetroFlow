@@ -814,7 +814,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
             disabled={isSubmitting || !title.trim()}
             className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-600/25 disabled:opacity-50 transition-all hover:scale-[1.02] cursor-pointer"
           >
-            {isSubmitting ? 'Saving...' : initialData ? 'Save Changes' : 'Launch Retro Session →'}
+            {isSubmitting ? 'Saving...' : initialData ? 'Save Changes' : 'Create & Open Board →'}
           </button>
         </div>
       </div>

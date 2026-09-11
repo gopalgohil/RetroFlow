@@ -286,7 +286,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                           : 'bg-slate-900 hover:bg-slate-800 text-white'
                       }`}
                     >
-                      <span>Launch Board</span>
+                      <span>Open Board</span>
                       <ArrowUpRight className="w-3 h-3" />
                     </Link>
 

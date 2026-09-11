@@ -258,7 +258,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                     onClick={() => onLaunch(session)}
                     className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                   >
-                    <span>{isAdmin ? 'Launch Board' : 'Join Live Board'}</span>
+                    <span>{isAdmin ? 'Open Board' : 'Join Live Board'}</span>
                     <ExternalLink className="w-3 h-3" />
                   </button>
 
