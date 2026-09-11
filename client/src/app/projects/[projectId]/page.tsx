@@ -148,24 +148,12 @@ function ProjectDetailContent() {
       });
   };
 
-  // Sync tab with URL and immediately pull fresh live metrics on tab switch
+  // Sync tab with URL
   const handleTabChange = (newTab: 'overview' | 'sprints' | 'retros' | 'team') => {
     setActiveTab(newTab);
     const targetId = project?.id || projectId;
     const url = `/projects/${targetId}?tab=${newTab}`;
     window.history.pushState(null, '', url);
-
-    // Re-fetch project to guarantee fresh retrospective thoughts & action items
-    ProjectApiService.getProjectById(targetId)
-      .then((p) => {
-        if (p) {
-          setProject(p);
-          try {
-            sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
-          } catch { }
-        }
-      })
-      .catch(() => {});
   };
 
   useEffect(() => {
@@ -185,7 +173,7 @@ function ProjectDetailContent() {
       } catch { }
     }
 
-    // Live REST API request -> visible in browser Network tab!
+    // Live REST API request -> visible in browser Network tab on initial load
     ProjectApiService.getProjectById(projectId)
       .then((p) => {
         if (isMounted && p) {
@@ -214,7 +202,7 @@ function ProjectDetailContent() {
     };
   }, [projectId]);
 
-  // Real-time live synchronization for retrospective metrics (cardsCount, actionItemsCount, topicsCount)
+  // Industry-standard event-driven real-time synchronization via WebSockets (Zero HTTP polling)
   useEffect(() => {
     let socket: any = null;
     try {
@@ -253,44 +241,15 @@ function ProjectDetailContent() {
 
       socket.on('retro:metrics_updated', onMetricsUpdated);
 
-      // Periodic gentle sync when user is on retros or overview tabs to ensure 100% real-time consistency
-      const pollTimer = setInterval(() => {
-        if (activeTab === 'retros' || activeTab === 'overview') {
-          ProjectApiService.getProjectById(projectId)
-            .then((fresh) => {
-              if (fresh) {
-                setProject((current) => {
-                  if (JSON.stringify(current?.retrospectives) !== JSON.stringify(fresh.retrospectives)) {
-                    return fresh;
-                  }
-                  return current;
-                });
-              }
-            })
-            .catch(() => {});
-        }
-      }, 4000);
-
-      const handleWindowFocus = () => {
-        ProjectApiService.getProjectById(projectId)
-          .then((fresh) => {
-            if (fresh) setProject(fresh);
-          })
-          .catch(() => {});
-      };
-      window.addEventListener('focus', handleWindowFocus);
-
       return () => {
         if (socket) {
           socket.off('retro:metrics_updated', onMetricsUpdated);
         }
-        clearInterval(pollTimer);
-        window.removeEventListener('focus', handleWindowFocus);
       };
     } catch (e) {
       console.warn('[ProjectDetail] Live retro socket listener init:', e);
     }
-  }, [projectId, activeTab]);
+  }, [projectId]);
 
   const handleRetroSave = async (payload: CreateRetroPayload) => {
     try {
