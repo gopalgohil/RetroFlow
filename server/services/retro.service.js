@@ -875,6 +875,38 @@ class RetroService {
   }
 
   /**
+   * Move sticky card to another topic/question column
+   */
+  async moveCard(identifier, cardId, { topicId }) {
+    if (!cardId || !topicId) {
+      throw ApiError.badRequest('Card ID and target Topic ID are required');
+    }
+
+    const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+      ? { _id: identifier, 'cards.cardId': cardId }
+      : { shareToken: identifier, 'cards.cardId': cardId };
+
+    const updatedTime = new Date();
+
+    const retro = await RetroBoard.findOneAndUpdate(
+      query,
+      {
+        $set: {
+          'cards.$.topicId': topicId,
+          'cards.$.updatedAt': updatedTime,
+        },
+      },
+      { new: true }
+    );
+
+    if (!retro) {
+      throw ApiError.notFound('Card or retrospective session not found');
+    }
+
+    return { cardId, topicId, updatedAt: updatedTime };
+  }
+
+  /**
    * Delete a sticky card
    */
   async deleteCard(identifier, cardId) {

@@ -25,6 +25,7 @@ export interface UseRetroSessionReturn {
   addCard: (topicId: string, text: string) => Promise<void>;
   updateCard: (cardId: string, text: string) => Promise<void>;
   deleteCard: (cardId: string) => Promise<void>;
+  moveCard: (cardId: string, targetTopicId: string) => Promise<void>;
   voteCard: (cardId: string) => Promise<void>;
   canEditCard: (card: StickyCard) => boolean;
   canDeleteCard: (card: StickyCard) => boolean;
@@ -375,6 +376,12 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
       setCards((prev) => prev.filter((c) => c.id !== payload.cardId));
     };
 
+    const onCardMoved = (payload: { cardId: string; targetTopicId: string }) => {
+      setCards((prev) =>
+        prev.map((c) => (c.id === payload.cardId ? { ...c, topicId: payload.targetTopicId } : c))
+      );
+    };
+
     const onCardVoted = (payload: { cardId: string; votes: number; voters?: string[] }) => {
       setCards((prev) =>
         prev.map((c) => {
@@ -405,6 +412,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     socket.on('card:created', onCardCreated);
     socket.on('card:updated', onCardUpdated);
     socket.on('card:deleted', onCardDeleted);
+    socket.on('card:moved', onCardMoved);
     socket.on('card:voted', onCardVoted);
 
     return () => {
@@ -413,6 +421,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
       socket.off('card:created', onCardCreated);
       socket.off('card:updated', onCardUpdated);
       socket.off('card:deleted', onCardDeleted);
+      socket.off('card:moved', onCardMoved);
       socket.off('card:voted', onCardVoted);
     };
   }, [shareToken, currentAuthorName, currentUser?.email]);
@@ -622,6 +631,35 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     [shareToken]
   );
 
+  const moveCard = useCallback(
+    async (cardId: string, targetTopicId: string) => {
+      if (!shareToken || !cardId || !targetTopicId) return;
+
+      // Optimistic move in local state
+      setCards((prev) =>
+        prev.map((c) => (c.id === cardId ? { ...c, topicId: targetTopicId } : c))
+      );
+
+      const socket = getRetroSocket();
+      if (socket && socket.connected) {
+        socket.emit('card:move', {
+          shareToken,
+          cardId,
+          targetTopicId,
+        });
+      } else {
+        try {
+          await api.put(`${ENDPOINTS.RETROS}/${shareToken}/cards/${cardId}/move`, {
+            topicId: targetTopicId,
+          });
+        } catch (err) {
+          console.error('[RetroSession] Failed to move card:', err);
+        }
+      }
+    },
+    [shareToken]
+  );
+
   const voteCard = useCallback(
     async (cardId: string) => {
       if (!shareToken) return;
@@ -722,6 +760,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     addCard,
     updateCard,
     deleteCard,
+    moveCard,
     voteCard,
     canEditCard,
     canDeleteCard,

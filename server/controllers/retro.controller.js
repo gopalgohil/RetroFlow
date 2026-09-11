@@ -159,6 +159,21 @@ class RetroController {
   });
 
   /**
+   * Move card to another topic in retrospective
+   * PUT /api/retros/:id/cards/:cardId/move
+   */
+  moveCard = asyncHandler(async (req, res) => {
+    const moved = await retroService.moveCard(req.params.id, req.params.cardId, req.body);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.of('/retro').to(`retro:${req.params.id}`).emit('card:moved', moved);
+    }
+
+    return ApiResponse.ok(res, moved, 'Card moved successfully');
+  });
+
+  /**
    * Delete card from retrospective
    * DELETE /api/retros/:id/cards/:cardId
    */

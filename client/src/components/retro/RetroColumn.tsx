@@ -39,6 +39,7 @@ export interface RetroColumnProps {
   onUpdateCard: (cardId: string, text: string) => void;
   onDeleteCard: (cardId: string) => void;
   onVoteCard: (cardId: string) => void;
+  onMoveCard?: (cardId: string, targetTopicId: string) => void;
   onExportTopic?: () => void;
 }
 
@@ -58,10 +59,12 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   onUpdateCard,
   onDeleteCard,
   onVoteCard,
+  onMoveCard,
   onExportTopic,
 }) {
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [cardText, setCardText] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const ColumnIcon = ICON_MAP[topic.icon] || Smile;
 
@@ -78,8 +81,43 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
     setIsInputOpen(false);
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!isDragOver) setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    try {
+      const dataStr = e.dataTransfer.getData('application/json');
+      const cardId = e.dataTransfer.getData('text/plain') || (dataStr ? JSON.parse(dataStr).cardId : null);
+      if (cardId && onMoveCard) {
+        onMoveCard(cardId, topic.topicId);
+      }
+    } catch (err) {
+      console.error('[RetroColumn] Drop error:', err);
+    }
+  };
+
   return (
-    <div className="flex-1 min-w-[220px] rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 shadow-xs flex flex-col overflow-hidden transition-all">
+    <div
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`flex-1 min-w-[220px] rounded-2xl bg-white/95 backdrop-blur-sm border shadow-xs flex flex-col overflow-hidden transition-all duration-150 ${
+        isDragOver
+          ? 'border-indigo-400 ring-2 ring-indigo-400/30 scale-[1.01] shadow-md bg-indigo-50/20'
+          : 'border-slate-200/90'
+      }`}
+    >
       {/* Column Top Accent Header */}
       <div
         style={{
@@ -145,7 +183,13 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
           />
         ))}
 
-        {cards.length === 0 && !isInputOpen && (
+        {isDragOver && (
+          <div className="py-2.5 px-3 rounded-xl border-2 border-dashed border-indigo-400 bg-indigo-50/70 text-center text-xs font-semibold text-indigo-700 animate-pulse flex items-center justify-center gap-1.5 shadow-2xs">
+            <span>Drop feedback here</span>
+          </div>
+        )}
+
+        {cards.length === 0 && !isInputOpen && !isDragOver && (
           <div className="py-8 text-center text-slate-400 text-[11px] italic">
             No cards added yet.
           </div>

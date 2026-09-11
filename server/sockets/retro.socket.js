@@ -175,6 +175,48 @@ export function initRetroSocket(io) {
       }
     });
 
+    // Move Sticky Card between topics/questions
+    socket.on('card:move', async (payload, callback) => {
+      try {
+        const { shareToken, cardId, targetTopicId } = payload || {};
+
+        if (!shareToken || !cardId || !targetTopicId) {
+          if (callback) callback({ error: 'Share token, card ID, and target topic ID are required' });
+          return;
+        }
+
+        const updatedTime = new Date();
+
+        const updatedBoard = await RetroBoard.findOneAndUpdate(
+          { shareToken, 'cards.cardId': cardId },
+          {
+            $set: {
+              'cards.$.topicId': targetTopicId,
+              'cards.$.updatedAt': updatedTime,
+            },
+          },
+          { new: true }
+        );
+
+        if (!updatedBoard) {
+          if (callback) callback({ error: 'Card or session not found' });
+          return;
+        }
+
+        const roomName = `retro:${shareToken}`;
+        retroNamespace.to(roomName).emit('card:moved', {
+          cardId,
+          targetTopicId,
+          updatedAt: updatedTime,
+        });
+
+        if (callback) callback({ success: true, cardId, targetTopicId });
+      } catch (err) {
+        console.error('[Socket] card:move error:', err);
+        if (callback) callback({ error: 'Failed to move card' });
+      }
+    });
+
     // 4. Delete Sticky Card
     socket.on('card:delete', async (payload, callback) => {
       try {

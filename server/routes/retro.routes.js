@@ -108,6 +108,16 @@ router.put(
 );
 
 /**
+ * @route   PUT /api/retros/:id/cards/:cardId/move
+ * @desc    Move sticky card to another topic/question
+ */
+router.put(
+  '/:id/cards/:cardId/move',
+  optionalAuth,
+  retroController.moveCard
+);
+
+/**
  * @route   DELETE /api/retros/:id/cards/:cardId
  * @desc    Delete sticky card
  */

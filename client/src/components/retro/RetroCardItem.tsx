@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, memo } from 'react';
-import { Pencil, Trash2, Check, X, ThumbsUp } from 'lucide-react';
+import { Pencil, Trash2, Check, X, ThumbsUp, GripVertical } from 'lucide-react';
 import { StickyCard } from '@/types/retro';
 
 export interface RetroCardItemProps {
@@ -43,6 +43,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(card.text);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleStartEdit = () => {
     setEditText(card.text);
@@ -65,12 +66,26 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
 
   return (
     <div
+      draggable={!isEditing}
+      onDragStart={(e) => {
+        if (isEditing) return;
+        setIsDragging(true);
+        e.dataTransfer.setData('text/plain', card.id);
+        e.dataTransfer.setData(
+          'application/json',
+          JSON.stringify({ cardId: card.id, sourceTopicId: card.topicId })
+        );
+        e.dataTransfer.effectAllowed = 'move';
+      }}
+      onDragEnd={() => setIsDragging(false)}
       style={{
         backgroundColor: `${topicColor}08`,
         borderColor: `${topicColor}30`,
         borderLeftColor: topicColor,
       }}
-      className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 hover:z-30 ${
+      className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 hover:z-30 cursor-grab active:cursor-grabbing ${
+        isDragging ? 'opacity-40 scale-[0.98] ring-2 ring-indigo-500/50 shadow-md' : ''
+      } ${
         !isRevealed ? 'filter blur-xs select-none' : ''
       }`}
     >
@@ -220,29 +235,39 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
               </div>
             </div>
 
-            {/* Edit (Author Only) & Delete (Author or Facilitator Moderation) */}
-            {(canEdit || canDelete) && (
-              <div className="flex items-center gap-0.5">
-                {canEdit && (
-                  <button
-                    onClick={handleStartEdit}
-                    title="Edit your thought"
-                    className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
-                  >
-                    <Pencil className="w-3 h-3" />
-                  </button>
-                )}
-                {canDelete && (
-                  <button
-                    onClick={() => onDelete(card.id)}
-                    title={canEdit ? 'Delete your thought' : 'Moderate / Delete thought'}
-                    className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                )}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Drag Handle */}
+              <div
+                className="text-slate-300 group-hover:text-slate-500 hover:text-indigo-600 transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5"
+                title="Drag to move across questions"
+              >
+                <GripVertical className="w-3.5 h-3.5" />
               </div>
-            )}
+
+              {/* Edit (Author Only) & Delete (Author or Facilitator Moderation) */}
+              {(canEdit || canDelete) && (
+                <div className="flex items-center gap-0.5">
+                  {canEdit && (
+                    <button
+                      onClick={handleStartEdit}
+                      title="Edit your thought"
+                      className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={() => onDelete(card.id)}
+                      title={canEdit ? 'Delete your thought' : 'Moderate / Delete thought'}
+                      className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Card Body Text */}

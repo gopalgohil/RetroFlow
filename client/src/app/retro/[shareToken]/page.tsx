@@ -83,6 +83,7 @@ export default function LiveRetroBoardPage({
               onUpdateCard={session.updateCard}
               onDeleteCard={session.deleteCard}
               onVoteCard={session.voteCard}
+              onMoveCard={session.moveCard}
               onExportTopic={
                 session.canExportToSprint
                   ? () => {
