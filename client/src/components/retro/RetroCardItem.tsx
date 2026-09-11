@@ -14,9 +14,16 @@ export interface RetroCardItemProps {
   currentAuthorName?: string;
   remainingVotes: number;
   isFirstCard?: boolean;
+  isDragTarget?: boolean;
+  dropPosition?: 'above' | 'below' | null;
   onVote: (cardId: string) => void;
   onUpdate: (cardId: string, text: string) => void;
   onDelete: (cardId: string) => void;
+  onCardDragStart?: (cardId: string, e: React.DragEvent) => void;
+  onCardDragEnd?: () => void;
+  onCardDragOver?: (cardId: string, e: React.DragEvent) => void;
+  onCardDragLeave?: (cardId: string, e: React.DragEvent) => void;
+  onCardDrop?: (cardId: string, e: React.DragEvent) => void;
 }
 
 /**
@@ -37,9 +44,16 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   currentAuthorName,
   remainingVotes,
   isFirstCard = false,
+  isDragTarget = false,
+  dropPosition = null,
   onVote,
   onUpdate,
   onDelete,
+  onCardDragStart,
+  onCardDragEnd,
+  onCardDragOver,
+  onCardDragLeave,
+  onCardDrop,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(card.text);
@@ -70,25 +84,42 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
       onDragStart={(e) => {
         if (isEditing) return;
         setIsDragging(true);
-        e.dataTransfer.setData('text/plain', card.id);
-        e.dataTransfer.setData(
-          'application/json',
-          JSON.stringify({ cardId: card.id, sourceTopicId: card.topicId })
-        );
-        e.dataTransfer.effectAllowed = 'move';
+        if (onCardDragStart) {
+          onCardDragStart(card.id, e);
+        } else {
+          e.dataTransfer.setData('text/plain', card.id);
+          e.dataTransfer.setData(
+            'application/json',
+            JSON.stringify({ cardId: card.id, topicId: card.topicId })
+          );
+          e.dataTransfer.effectAllowed = 'move';
+        }
       }}
-      onDragEnd={() => setIsDragging(false)}
+      onDragEnd={() => {
+        setIsDragging(false);
+        onCardDragEnd?.();
+      }}
+      onDragOver={(e) => onCardDragOver?.(card.id, e)}
+      onDragLeave={(e) => onCardDragLeave?.(card.id, e)}
+      onDrop={(e) => onCardDrop?.(card.id, e)}
       style={{
         backgroundColor: `${topicColor}08`,
         borderColor: `${topicColor}30`,
         borderLeftColor: topicColor,
       }}
       className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 hover:z-30 cursor-grab active:cursor-grabbing ${
-        isDragging ? 'opacity-40 scale-[0.98] ring-2 ring-indigo-500/50 shadow-md' : ''
+        isDragging ? 'opacity-40 ring-1 ring-indigo-400/40' : ''
       } ${
         !isRevealed ? 'filter blur-xs select-none' : ''
       }`}
     >
+      {/* Precision Drop Insertion Line (Zero Layout Shift) */}
+      {isDragTarget && dropPosition === 'above' && (
+        <div className="absolute -top-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.8)] z-30 pointer-events-none animate-pulse" />
+      )}
+      {isDragTarget && dropPosition === 'below' && (
+        <div className="absolute -bottom-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.8)] z-30 pointer-events-none animate-pulse" />
+      )}
       {isEditing ? (
         <div className="space-y-2 animate-in fade-in duration-150">
           <textarea
@@ -239,7 +270,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
               {/* Drag Handle */}
               <div
                 className="text-slate-300 group-hover:text-slate-500 hover:text-indigo-600 transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5"
-                title="Drag to move across questions"
+                title="Drag to reorder card"
               >
                 <GripVertical className="w-3.5 h-3.5" />
               </div>

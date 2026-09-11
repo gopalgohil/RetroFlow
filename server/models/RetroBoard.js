@@ -75,6 +75,10 @@ const cardSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    order: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

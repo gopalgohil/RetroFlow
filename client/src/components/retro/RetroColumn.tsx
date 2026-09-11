@@ -40,6 +40,7 @@ export interface RetroColumnProps {
   onDeleteCard: (cardId: string) => void;
   onVoteCard: (cardId: string) => void;
   onMoveCard?: (cardId: string, targetTopicId: string) => void;
+  onReorderCards?: (topicId: string, cardIds: string[]) => void;
   onExportTopic?: () => void;
 }
 
@@ -60,11 +61,14 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   onDeleteCard,
   onVoteCard,
   onMoveCard,
+  onReorderCards,
   onExportTopic,
 }) {
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [cardText, setCardText] = useState('');
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
+  const [dragTargetId, setDragTargetId] = useState<string | null>(null);
+  const [dropPosition, setDropPosition] = useState<'above' | 'below' | null>(null);
 
   const ColumnIcon = ICON_MAP[topic.icon] || Smile;
 
@@ -81,43 +85,102 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
     setIsInputOpen(false);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (!isDragOver) setIsDragOver(true);
+  const handleCardDragStart = (cardId: string, e: React.DragEvent) => {
+    setDraggedCardId(cardId);
+    e.dataTransfer.setData('text/plain', cardId);
+    e.dataTransfer.setData(
+      'application/json',
+      JSON.stringify({ cardId, topicId: topic.topicId })
+    );
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-    setIsDragOver(false);
+  const handleCardDragEnd = () => {
+    setDraggedCardId(null);
+    setDragTargetId(null);
+    setDropPosition(null);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    try {
-      const dataStr = e.dataTransfer.getData('application/json');
-      const cardId = e.dataTransfer.getData('text/plain') || (dataStr ? JSON.parse(dataStr).cardId : null);
-      if (cardId && onMoveCard) {
-        onMoveCard(cardId, topic.topicId);
+  const handleCardDragOver = (targetCardId: string, e: React.DragEvent) => {
+    if (!draggedCardId || draggedCardId === targetCardId) {
+      if (dragTargetId !== null) {
+        setDragTargetId(null);
+        setDropPosition(null);
       }
-    } catch (err) {
-      console.error('[RetroColumn] Drop error:', err);
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offset = e.clientY - rect.top;
+    const isTopHalf = offset < rect.height / 2;
+    const pos = isTopHalf ? 'above' : 'below';
+
+    if (dragTargetId !== targetCardId || dropPosition !== pos) {
+      setDragTargetId(targetCardId);
+      setDropPosition(pos);
     }
   };
 
+  const handleCardDragLeave = (targetCardId: string, e: React.DragEvent) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    if (dragTargetId === targetCardId) {
+      setDragTargetId(null);
+      setDropPosition(null);
+    }
+  };
+
+  const handleCardDrop = (targetCardId: string, e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    let sourceCardId = draggedCardId;
+    let sourceTopicId = topic.topicId;
+
+    try {
+      const jsonStr = e.dataTransfer.getData('application/json');
+      if (jsonStr) {
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.cardId) sourceCardId = parsed.cardId;
+        if (parsed.topicId) sourceTopicId = parsed.topicId;
+      }
+    } catch {
+      // fallback
+    }
+
+    // STRICT SCOPING: Reject drop if not from the exact same topic/question
+    if (sourceTopicId !== topic.topicId || !sourceCardId || sourceCardId === targetCardId) {
+      handleCardDragEnd();
+      return;
+    }
+
+    const currentCards = [...cards];
+    const sourceIdx = currentCards.findIndex((c) => c.id === sourceCardId);
+    const targetIdx = currentCards.findIndex((c) => c.id === targetCardId);
+
+    if (sourceIdx === -1 || targetIdx === -1) {
+      handleCardDragEnd();
+      return;
+    }
+
+    const [movedCard] = currentCards.splice(sourceIdx, 1);
+    let insertIdx = currentCards.findIndex((c) => c.id === targetCardId);
+    if (dropPosition === 'below') {
+      insertIdx += 1;
+    }
+
+    currentCards.splice(insertIdx, 0, movedCard);
+    const newCardIds = currentCards.map((c) => c.id);
+
+    handleCardDragEnd();
+    onReorderCards?.(topic.topicId, newCardIds);
+  };
+
   return (
-    <div
-      onDragOver={handleDragOver}
-      onDragEnter={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className={`flex-1 min-w-[220px] rounded-2xl bg-white/95 backdrop-blur-sm border shadow-xs flex flex-col overflow-hidden transition-all duration-150 ${
-        isDragOver
-          ? 'border-indigo-400 ring-2 ring-indigo-400/30 scale-[1.01] shadow-md bg-indigo-50/20'
-          : 'border-slate-200/90'
-      }`}
-    >
+    <div className="flex-1 min-w-[220px] rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 shadow-xs flex flex-col overflow-hidden transition-all">
       {/* Column Top Accent Header */}
       <div
         style={{
@@ -177,19 +240,20 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             isCurrentAuthor={card.author === currentAuthorName}
             currentAuthorName={currentAuthorName}
             remainingVotes={remainingVotes}
+            isDragTarget={dragTargetId === card.id}
+            dropPosition={dragTargetId === card.id ? dropPosition : null}
             onVote={onVoteCard}
             onUpdate={onUpdateCard}
             onDelete={onDeleteCard}
+            onCardDragStart={handleCardDragStart}
+            onCardDragEnd={handleCardDragEnd}
+            onCardDragOver={handleCardDragOver}
+            onCardDragLeave={handleCardDragLeave}
+            onCardDrop={handleCardDrop}
           />
         ))}
 
-        {isDragOver && (
-          <div className="py-2.5 px-3 rounded-xl border-2 border-dashed border-indigo-400 bg-indigo-50/70 text-center text-xs font-semibold text-indigo-700 animate-pulse flex items-center justify-center gap-1.5 shadow-2xs">
-            <span>Drop feedback here</span>
-          </div>
-        )}
-
-        {cards.length === 0 && !isInputOpen && !isDragOver && (
+        {cards.length === 0 && !isInputOpen && (
           <div className="py-8 text-center text-slate-400 text-[11px] italic">
             No cards added yet.
           </div>

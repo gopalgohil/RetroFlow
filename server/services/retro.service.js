@@ -907,6 +907,58 @@ class RetroService {
   }
 
   /**
+   * Reorder sticky cards within a specific topic/question
+   */
+  async reorderCards(identifier, topicId, cardIds) {
+    if (!topicId || !Array.isArray(cardIds)) {
+      throw ApiError.badRequest('Topic ID and ordered cardIds array are required');
+    }
+
+    const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+      ? { _id: identifier }
+      : { shareToken: identifier };
+
+    const retro = await RetroBoard.findOne(query);
+    if (!retro) {
+      throw ApiError.notFound('Retrospective session not found');
+    }
+
+    const topicCards = (retro.cards || []).filter((c) => c.topicId === topicId);
+    const cardMap = new Map();
+    topicCards.forEach((c) => {
+      cardMap.set(c.cardId, c);
+    });
+
+    const orderedTopicCards = [];
+    cardIds.forEach((id, idx) => {
+      const card = cardMap.get(id);
+      if (card) {
+        card.order = idx;
+        orderedTopicCards.push(card);
+        cardMap.delete(id);
+      }
+    });
+
+    cardMap.forEach((card) => {
+      card.order = orderedTopicCards.length;
+      orderedTopicCards.push(card);
+    });
+
+    let topicIndex = 0;
+    retro.cards = retro.cards.map((c) => {
+      if (c.topicId === topicId) {
+        return orderedTopicCards[topicIndex++] || c;
+      }
+      return c;
+    });
+
+    retro.markModified('cards');
+    await retro.save();
+
+    return { topicId, cardIds };
+  }
+
+  /**
    * Delete a sticky card
    */
   async deleteCard(identifier, cardId) {

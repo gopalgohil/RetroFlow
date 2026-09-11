@@ -217,6 +217,28 @@ export function initRetroSocket(io) {
       }
     });
 
+    // Reorder Sticky Cards within a specific topic
+    socket.on('cards:reorder', async (payload, callback) => {
+      try {
+        const { shareToken, topicId, cardIds } = payload || {};
+
+        if (!shareToken || !topicId || !Array.isArray(cardIds)) {
+          if (callback) callback({ error: 'Share token, topic ID, and cardIds array are required' });
+          return;
+        }
+
+        const result = await retroService.reorderCards(shareToken, topicId, cardIds);
+
+        const roomName = `retro:${shareToken}`;
+        retroNamespace.to(roomName).emit('cards:reordered', result);
+
+        if (callback) callback({ success: true, ...result });
+      } catch (err) {
+        console.error('[Socket] cards:reorder error:', err);
+        if (callback) callback({ error: 'Failed to reorder cards' });
+      }
+    });
+
     // 4. Delete Sticky Card
     socket.on('card:delete', async (payload, callback) => {
       try {

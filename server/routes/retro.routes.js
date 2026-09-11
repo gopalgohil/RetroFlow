@@ -118,6 +118,16 @@ router.put(
 );
 
 /**
+ * @route   PUT /api/retros/:id/topics/:topicId/reorder-cards
+ * @desc    Reorder sticky cards within a specific topic
+ */
+router.put(
+  '/:id/topics/:topicId/reorder-cards',
+  optionalAuth,
+  retroController.reorderCards
+);
+
+/**
  * @route   DELETE /api/retros/:id/cards/:cardId
  * @desc    Delete sticky card
  */

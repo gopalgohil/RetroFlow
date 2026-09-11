@@ -174,6 +174,22 @@ class RetroController {
   });
 
   /**
+   * Reorder cards within a topic in retrospective
+   * PUT /api/retros/:id/topics/:topicId/reorder-cards
+   */
+  reorderCards = asyncHandler(async (req, res) => {
+    const { cardIds } = req.body;
+    const reordered = await retroService.reorderCards(req.params.id, req.params.topicId, cardIds);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.of('/retro').to(`retro:${req.params.id}`).emit('cards:reordered', reordered);
+    }
+
+    return ApiResponse.ok(res, reordered, 'Cards reordered successfully');
+  });
+
+  /**
    * Delete card from retrospective
    * DELETE /api/retros/:id/cards/:cardId
    */

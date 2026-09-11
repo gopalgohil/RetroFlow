@@ -26,6 +26,7 @@ export interface UseRetroSessionReturn {
   updateCard: (cardId: string, text: string) => Promise<void>;
   deleteCard: (cardId: string) => Promise<void>;
   moveCard: (cardId: string, targetTopicId: string) => Promise<void>;
+  reorderCards: (topicId: string, cardIds: string[]) => Promise<void>;
   voteCard: (cardId: string) => Promise<void>;
   canEditCard: (card: StickyCard) => boolean;
   canDeleteCard: (card: StickyCard) => boolean;
@@ -382,6 +383,31 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
       );
     };
 
+    const onCardsReordered = (payload: { topicId: string; cardIds: string[] }) => {
+      if (!payload?.topicId || !Array.isArray(payload?.cardIds)) return;
+      setCards((prev) => {
+        const thisTopicCards = prev.filter((c) => c.topicId === payload.topicId);
+        const cardMap = new Map(thisTopicCards.map((c) => [c.id, c]));
+        const reorderedTopicCards = payload.cardIds
+          .map((id) => cardMap.get(id))
+          .filter(Boolean) as StickyCard[];
+
+        thisTopicCards.forEach((c) => {
+          if (!payload.cardIds.includes(c.id)) {
+            reorderedTopicCards.push(c);
+          }
+        });
+
+        let topicIdx = 0;
+        return prev.map((c) => {
+          if (c.topicId === payload.topicId) {
+            return reorderedTopicCards[topicIdx++] || c;
+          }
+          return c;
+        });
+      });
+    };
+
     const onCardVoted = (payload: { cardId: string; votes: number; voters?: string[] }) => {
       setCards((prev) =>
         prev.map((c) => {
@@ -413,6 +439,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     socket.on('card:updated', onCardUpdated);
     socket.on('card:deleted', onCardDeleted);
     socket.on('card:moved', onCardMoved);
+    socket.on('cards:reordered', onCardsReordered);
     socket.on('card:voted', onCardVoted);
 
     return () => {
@@ -422,6 +449,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
       socket.off('card:updated', onCardUpdated);
       socket.off('card:deleted', onCardDeleted);
       socket.off('card:moved', onCardMoved);
+      socket.off('cards:reordered', onCardsReordered);
       socket.off('card:voted', onCardVoted);
     };
   }, [shareToken, currentAuthorName, currentUser?.email]);
@@ -660,6 +688,53 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     [shareToken]
   );
 
+  const reorderCards = useCallback(
+    async (topicId: string, cardIds: string[]) => {
+      if (!shareToken || !topicId || !Array.isArray(cardIds)) return;
+
+      // Optimistic reorder in local state
+      setCards((prev) => {
+        const thisTopicCards = prev.filter((c) => c.topicId === topicId);
+        const cardMap = new Map(thisTopicCards.map((c) => [c.id, c]));
+        const reorderedTopicCards = cardIds
+          .map((id) => cardMap.get(id))
+          .filter(Boolean) as StickyCard[];
+
+        thisTopicCards.forEach((c) => {
+          if (!cardIds.includes(c.id)) {
+            reorderedTopicCards.push(c);
+          }
+        });
+
+        let topicIdx = 0;
+        return prev.map((c) => {
+          if (c.topicId === topicId) {
+            return reorderedTopicCards[topicIdx++] || c;
+          }
+          return c;
+        });
+      });
+
+      const socket = getRetroSocket();
+      if (socket && socket.connected) {
+        socket.emit('cards:reorder', {
+          shareToken,
+          topicId,
+          cardIds,
+        });
+      } else {
+        try {
+          await api.put(`${ENDPOINTS.RETROS}/${shareToken}/topics/${topicId}/reorder-cards`, {
+            cardIds,
+          });
+        } catch (err) {
+          console.error('[RetroSession] Failed to reorder cards:', err);
+        }
+      }
+    },
+    [shareToken]
+  );
+
   const voteCard = useCallback(
     async (cardId: string) => {
       if (!shareToken) return;
@@ -761,6 +836,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     updateCard,
     deleteCard,
     moveCard,
+    reorderCards,
     voteCard,
     canEditCard,
     canDeleteCard,
