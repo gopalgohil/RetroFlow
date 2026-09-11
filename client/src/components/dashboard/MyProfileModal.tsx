@@ -6,7 +6,6 @@ import {
   User as UserIcon,
   KeyRound,
   CheckCircle2,
-  ShieldCheck,
   Calendar,
   FolderKanban,
   Eye,
@@ -283,7 +282,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
             }`}
           >
             <UserIcon className="w-3.5 h-3.5" />
-            <span>Profile Details & Access</span>
+            <span>Profile Details</span>
           </button>
 
           <button
@@ -359,60 +358,6 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                 </div>
               </div>
 
-              {/* Role & Permissions Card */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-50 to-indigo-50/30 border border-slate-200/90 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-indigo-600" />
-                    <h3 className="text-xs font-bold text-slate-900">Role & Access Privileges</h3>
-                  </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-white border border-slate-200 text-slate-700 shadow-2xs">
-                    {isAdmin ? 'Administrator Access' : 'Developer Access'}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
-                  {isAdmin ? (
-                    <>
-                      <div className="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-slate-100">
-                        <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                        <span>Create & Facilitate Retros</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-slate-100">
-                        <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                        <span>Manage Agile Projects</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-slate-100">
-                        <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                        <span>Invite & Whitelist Members</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-slate-100">
-                        <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                        <span>Workspace Settings & Rules</span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-slate-100">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Submit Live Feedback</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-slate-100">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Vote on Retro Topics</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-slate-100">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Assigned Project Initiatives</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-slate-100">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>Sprint Analytics & Insights</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
 
               {/* Account Summary */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
