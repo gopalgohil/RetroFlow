@@ -7,8 +7,6 @@ import {
   FolderPlus,
   Sparkles,
   Users,
-  CheckCircle2,
-  ShieldCheck,
   ChevronDown,
   Check,
 } from 'lucide-react';
@@ -18,7 +16,7 @@ import {
   CreateProjectPayload,
   Project,
 } from '@/types/project';
-import { MOCK_PROJECT_LEADS, ProjectDataService } from '@/services/mockProjectData';
+import { ProjectDataService } from '@/services/mockProjectData';
 import { ProjectApiService } from '@/services/projectApi';
 import { api, ENDPOINTS } from '@/lib/api';
 import { Modal, StatusPill, UserAvatar } from '@/components/ui';
@@ -47,28 +45,22 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   onProjectCreated,
 }) => {
   // Form State
+  // Form State
   const [name, setName] = useState('');
   const [key, setKey] = useState('');
   const [isKeyManuallyEdited, setIsKeyManuallyEdited] = useState(false);
   const [description, setDescription] = useState('');
   const type: ProjectType = 'scrum';
   const [availableLeads, setAvailableLeads] = useState<WorkspaceMemberOption[]>(DEFAULT_WORKSPACE_LEADS);
-  const [selectedLeadEmail, setSelectedLeadEmail] = useState<string>('gopalgohel249@gmail.com');
-  const [isLeadDropdownOpen, setIsLeadDropdownOpen] = useState(false);
-  const leadDropdownRef = React.useRef<HTMLDivElement>(null);
 
   // Team Member Dropdown selection state
   const [selectedMemberEmail, setSelectedMemberEmail] = useState<string>('');
   const [isMemberDropdownOpen, setIsMemberDropdownOpen] = useState(false);
-  const [isManualMemberEntry, setIsManualMemberEntry] = useState(false);
   const memberDropdownRef = React.useRef<HTMLDivElement>(null);
 
-  // Close dropdowns on outside click
+  // Close dropdown on outside click
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (leadDropdownRef.current && !leadDropdownRef.current.contains(event.target as Node)) {
-        setIsLeadDropdownOpen(false);
-      }
       if (memberDropdownRef.current && !memberDropdownRef.current.contains(event.target as Node)) {
         setIsMemberDropdownOpen(false);
       }
@@ -80,8 +72,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   // Dynamic Workspace Members fetch on Modal Open
   React.useEffect(() => {
     if (!isOpen) {
-      setIsLeadDropdownOpen(false);
       setIsMemberDropdownOpen(false);
+      setSelectedMemberEmail('');
+      setNewMemberRole('');
+      setMembers([]);
+      setMemberError('');
       return;
     }
 
@@ -148,27 +143,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
         const list = Array.from(combinedMap.values());
         setAvailableLeads(list);
-
-        if (currentUser?.email) {
-          setSelectedLeadEmail(currentUser.email);
-        } else if (list.length > 0) {
-          setSelectedLeadEmail(list[0].email);
-        }
-
-        const unadded = list.find((m) => !members.some((x) => x.email.toLowerCase() === m.email.toLowerCase()));
-        if (unadded) {
-          setSelectedMemberEmail(unadded.email);
-        } else if (list.length > 0) {
-          setSelectedMemberEmail(list[0].email);
-        }
       })
       .catch(() => {
-        if (currentUser?.email) {
-          setSelectedLeadEmail(currentUser.email);
-        }
-        if (DEFAULT_WORKSPACE_LEADS.length > 0) {
-          setSelectedMemberEmail(DEFAULT_WORKSPACE_LEADS[0].email);
-        }
+        setAvailableLeads(DEFAULT_WORKSPACE_LEADS);
       });
   }, [isOpen]);
 
@@ -178,9 +155,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   >([]);
 
   // Input states for adding new member
-  const [newMemberName, setNewMemberName] = useState('');
-  const [newMemberEmail, setNewMemberEmail] = useState('');
-  const [newMemberRole, setNewMemberRole] = useState<ProjectMemberRole>('Developer');
+  const [newMemberRole, setNewMemberRole] = useState<ProjectMemberRole | ''>('');
   const [memberError, setMemberError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -210,36 +185,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   const handleAddMember = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (isManualMemberEntry) {
-      if (!newMemberName.trim()) {
-        setMemberError('Please enter member full name');
-        return;
-      }
-      if (!newMemberEmail.trim() || !newMemberEmail.includes('@')) {
-        setMemberError('Please enter a valid work email');
-        return;
-      }
-      if (members.some((m) => m.email.toLowerCase() === newMemberEmail.toLowerCase())) {
-        setMemberError('Member with this email is already added');
-        return;
-      }
 
-      setMembers((prev) => [
-        ...prev,
-        {
-          name: newMemberName.trim(),
-          email: newMemberEmail.trim().toLowerCase(),
-          role: newMemberRole,
-        },
-      ]);
-      setNewMemberName('');
-      setNewMemberEmail('');
-      setMemberError('');
+    if (!selectedMemberEmail) {
+      setMemberError('Please select a team member');
       return;
     }
 
-    if (!selectedMemberEmail) {
-      setMemberError('Please select a workspace member');
+    if (!newMemberRole) {
+      setMemberError('Please select a role');
       return;
     }
 
@@ -258,25 +211,17 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
     const cleanName = chosen.name.replace(/\s*\(You\)\s*/i, '').trim();
 
-    const updated = [
-      ...members,
+    setMembers((prev) => [
+      ...prev,
       {
         name: cleanName,
         email: chosen.email.toLowerCase().trim(),
-        role: newMemberRole,
+        role: newMemberRole as ProjectMemberRole,
       },
-    ];
-
-    setMembers(updated);
+    ]);
+    setSelectedMemberEmail('');
+    setNewMemberRole('');
     setMemberError('');
-
-    // Preselect next unassigned member in dropdown
-    const nextUnassigned = availableLeads.find(
-      (l) => !updated.some((m) => m.email.toLowerCase() === l.email.toLowerCase())
-    );
-    if (nextUnassigned) {
-      setSelectedMemberEmail(nextUnassigned.email);
-    }
   };
 
   const handleRemoveMember = (email: string) => {
@@ -289,44 +234,32 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
     setIsSubmitting(true);
 
-    const chosenLead = availableLeads.find(
-      (l) => l.email.toLowerCase() === selectedLeadEmail.toLowerCase()
-    ) || {
-      id: 'lead-1',
-      name: 'Gopal',
-      email: selectedLeadEmail || 'gopalgohel249@gmail.com',
-      avatar: 'G',
-    };
+    // Determine lead: check if any member was assigned Project Lead or Manager, else default to Gopal
+    const designatedLead =
+      members.find((m) => m.role === 'Project Lead') ||
+      members.find((m) => m.role === 'Manager') ||
+      availableLeads[0] || {
+        id: 'lead-primary',
+        name: 'Gopal',
+        email: 'gopalgohel249@gmail.com',
+        avatar: 'G',
+      };
 
-    const cleanLeadName = chosenLead.name.replace(/\s*\(You\)\s*/i, '').trim();
-
-    // Automatically ensure the designated Project Lead is registered as Manager
-    const otherMembers = members.filter(
-      (m) => m.email.toLowerCase().trim() !== chosenLead.email.toLowerCase().trim()
-    );
-
-    const finalMembers = [
-      {
-        name: cleanLeadName,
-        email: chosenLead.email.toLowerCase().trim(),
-        role: 'Manager' as ProjectMemberRole,
-      },
-      ...otherMembers,
-    ];
+    const cleanLeadName = designatedLead.name.replace(/\s*\(You\)\s*/i, '').trim();
 
     const payload: CreateProjectPayload = {
       name: name.trim(),
       key: key.trim() || name.slice(0, 3).toUpperCase(),
       description: description.trim(),
       type,
-      leadId: chosenLead.id,
+      leadId: (designatedLead as any).id || 'lead-primary',
       lead: {
-        id: chosenLead.id,
+        id: (designatedLead as any).id || 'lead-primary',
         name: cleanLeadName,
-        email: chosenLead.email,
-        avatar: chosenLead.avatar || cleanLeadName.slice(0, 2).toUpperCase(),
+        email: designatedLead.email,
+        avatar: (designatedLead as any).avatar || cleanLeadName.slice(0, 2).toUpperCase(),
       },
-      members: finalMembers,
+      members,
       cadence: '2_weeks',
       customCadenceDays: 14,
     };
@@ -342,6 +275,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       setKey('');
       setIsKeyManuallyEdited(false);
       setDescription('');
+      setMembers([]);
+      setSelectedMemberEmail('');
+      setNewMemberRole('');
     } catch (err) {
       console.warn('[CreateProject] Fallback to local persistence:', err);
       const fallback = ProjectDataService.createProject(payload);
@@ -421,120 +357,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           />
         </div>
 
-        {/* Section 2: Project Lead / Manager */}
-        <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-800">
-            Project Lead / Manager
-          </label>
-            <div className="relative" ref={leadDropdownRef}>
-              {(() => {
-                const selectedLead =
-                  availableLeads.find(
-                    (l) => l.email.toLowerCase() === selectedLeadEmail.toLowerCase()
-                  ) || availableLeads[0];
-
-                return (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setIsLeadDropdownOpen((prev) => !prev)}
-                      className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-left transition-all flex items-center justify-between gap-2 cursor-pointer min-h-[44px]"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 pr-1">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
-                          {selectedLead?.avatar || 'PL'}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-800 truncate leading-tight">
-                            {selectedLead?.name || 'Select Lead'}
-                          </p>
-                          <p className="text-[10px] text-slate-400 font-mono truncate leading-tight mt-0.5">
-                            {selectedLead?.email}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80 flex items-center gap-1">
-                          <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                          <span>{selectedLead?.role || 'Admin'}</span>
-                        </span>
-                        <ChevronDown
-                          className={`w-4 h-4 text-slate-400 transition-transform duration-150 ${
-                            isLeadDropdownOpen ? 'rotate-180 text-indigo-600' : ''
-                          }`}
-                        />
-                      </div>
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {isLeadDropdownOpen && (
-                      <div className="absolute z-50 left-0 right-0 mt-1.5 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl space-y-1 max-h-56 overflow-y-auto">
-                        {availableLeads.map((lead) => {
-                          const isSelected =
-                            lead.email.toLowerCase() === selectedLeadEmail.toLowerCase();
-                          return (
-                            <button
-                              key={lead.email}
-                              type="button"
-                              onClick={() => {
-                                setSelectedLeadEmail(lead.email);
-                                setIsLeadDropdownOpen(false);
-                              }}
-                              className={`w-full p-2 rounded-lg flex items-center justify-between text-left transition-colors cursor-pointer ${
-                                isSelected
-                                  ? 'bg-indigo-50/80 border border-indigo-200/60 text-slate-900'
-                                  : 'hover:bg-slate-50 border border-transparent text-slate-700'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                <div
-                                  className={`w-7 h-7 rounded-lg text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs ${
-                                    isSelected
-                                      ? 'bg-gradient-to-tr from-indigo-600 to-violet-600'
-                                      : 'bg-slate-600'
-                                  }`}
-                                >
-                                  {lead.avatar || 'PL'}
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-xs font-semibold text-slate-900 truncate leading-tight">
-                                    {lead.name}
-                                  </p>
-                                  <p className="text-[10px] text-slate-400 font-mono truncate leading-tight mt-0.5">
-                                    {lead.email}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                <span
-                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold border flex items-center gap-1 ${
-                                    isSelected
-                                      ? 'bg-indigo-100/80 text-indigo-800 border-indigo-300'
-                                      : 'bg-slate-100 text-slate-600 border-slate-200'
-                                  }`}
-                                >
-                                  <ShieldCheck className="w-3 h-3 text-indigo-600 shrink-0" />
-                                  <span>{lead.role || 'Member'}</span>
-                                </span>
-                                {isSelected && (
-                                  <Check className="w-4 h-4 text-indigo-600 shrink-0 ml-0.5" />
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-            <p className="text-[11px] text-slate-400">Responsible for sprint planning & retros.</p>
-        </div>
-
-        {/* Section 4: Team Members with Roles */}
+        {/* Team Members with Roles */}
         <div className="space-y-3 pt-2 border-t border-slate-100">
           <div className="flex items-center justify-between">
             <label className="block text-xs font-bold text-slate-800 flex items-center gap-2">
@@ -546,238 +369,170 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
           {/* Add Member Selector Row */}
           <div className="p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/90 space-y-3">
-            {!isManualMemberEntry ? (
-              <div className="space-y-2">
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
-                  {/* Member Dropdown Picker */}
-                  <div className="sm:col-span-7 relative" ref={memberDropdownRef}>
-                    {(() => {
-                      const activeChoice = availableLeads.find(
-                        (l) => l.email.toLowerCase() === selectedMemberEmail.toLowerCase()
-                      ) || availableLeads[0];
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+              {/* Member Dropdown Picker */}
+              <div className="sm:col-span-7 relative" ref={memberDropdownRef}>
+                {(() => {
+                  const activeChoice = availableLeads.find(
+                    (l) => l.email.toLowerCase() === selectedMemberEmail.toLowerCase()
+                  );
 
-                      return (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setIsMemberDropdownOpen((prev) => !prev)}
-                            className="w-full px-3 py-2 bg-white border border-slate-200 hover:border-indigo-400 rounded-xl flex items-center justify-between transition-all text-left shadow-2xs cursor-pointer"
-                          >
-                            {activeChoice ? (
-                              <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
-                                  {activeChoice.avatar || activeChoice.name.slice(0, 2).toUpperCase()}
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-xs font-bold text-slate-900 truncate leading-tight">
-                                    {activeChoice.name}
-                                  </p>
-                                  <p className="text-[10px] text-slate-400 font-mono truncate leading-tight">
-                                    {activeChoice.email}
-                                  </p>
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-slate-400">Select workspace member...</span>
-                            )}
-
-                            <ChevronDown
-                              className={`w-4 h-4 text-slate-400 transition-transform duration-150 shrink-0 ${
-                                isMemberDropdownOpen ? 'rotate-180 text-indigo-600' : ''
-                              }`}
-                            />
-                          </button>
-
-                          {/* Dropdown Menu */}
-                          {isMemberDropdownOpen && (
-                            <div className="absolute z-50 left-0 right-0 mt-1.5 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl space-y-1 max-h-56 overflow-y-auto">
-                              {availableLeads.map((m) => {
-                                const isAdded = members.some(
-                                  (existing) => existing.email.toLowerCase() === m.email.toLowerCase()
-                                );
-                                const isSelected =
-                                  m.email.toLowerCase() === selectedMemberEmail.toLowerCase();
-
-                                return (
-                                  <button
-                                    key={m.email}
-                                    type="button"
-                                    disabled={isAdded}
-                                    onClick={() => {
-                                      setSelectedMemberEmail(m.email);
-                                      setIsMemberDropdownOpen(false);
-                                      setMemberError('');
-                                    }}
-                                    className={`w-full p-2 rounded-lg flex items-center justify-between text-left transition-colors ${
-                                      isAdded
-                                        ? 'opacity-50 bg-slate-50 cursor-not-allowed text-slate-400'
-                                        : isSelected
-                                        ? 'bg-indigo-50/80 border border-indigo-200/60 text-slate-900 cursor-pointer'
-                                        : 'hover:bg-slate-50 border border-transparent text-slate-700 cursor-pointer'
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                      <div className="w-6 h-6 rounded-md bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center shrink-0">
-                                        {m.avatar || m.name.slice(0, 2).toUpperCase()}
-                                      </div>
-                                      <div className="min-w-0">
-                                        <p className="text-xs font-semibold text-slate-900 truncate">
-                                          {m.name}
-                                        </p>
-                                        <p className="text-[10px] text-slate-400 font-mono truncate">
-                                          {m.email}
-                                        </p>
-                                      </div>
-                                    </div>
-
-                                    {isAdded ? (
-                                      <span className="text-[9px] font-bold text-slate-400 uppercase px-1.5 py-0.5 rounded bg-slate-100">
-                                        Added
-                                      </span>
-                                    ) : isSelected ? (
-                                      <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                                    ) : null}
-                                  </button>
-                                );
-                              })}
+                  return (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setIsMemberDropdownOpen((prev) => !prev)}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 hover:border-indigo-400 rounded-xl flex items-center justify-between transition-all text-left shadow-2xs cursor-pointer min-h-[42px]"
+                      >
+                        {activeChoice ? (
+                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
+                              {activeChoice.avatar || activeChoice.name.slice(0, 2).toUpperCase()}
                             </div>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-900 truncate leading-tight">
+                                {activeChoice.name}
+                              </p>
+                              <p className="text-[10px] text-slate-400 font-mono truncate leading-tight">
+                                {activeChoice.email}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2.5 text-slate-400">
+                            <div className="w-7 h-7 rounded-lg border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center shrink-0 text-slate-400">
+                              <Users className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="text-xs font-medium">Select team member...</span>
+                          </div>
+                        )}
 
-                  {/* Role Selector */}
-                  <div className="sm:col-span-3">
-                    <select
-                      value={newMemberRole}
-                      onChange={(e) => setNewMemberRole(e.target.value as ProjectMemberRole)}
-                      className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
-                    >
-                      <option value="Developer">Developer</option>
-                      <option value="QA">QA</option>
-                      <option value="Manager">Manager</option>
-                      <option value="DevOps">DevOps</option>
-                      <option value="Project Lead">Project Lead</option>
-                    </select>
-                  </div>
+                        <ChevronDown
+                          className={`w-4 h-4 text-slate-400 transition-transform duration-150 shrink-0 ${
+                            isMemberDropdownOpen ? 'rotate-180 text-indigo-600' : ''
+                          }`}
+                        />
+                      </button>
 
-                  {/* Add Button */}
-                  <div className="sm:col-span-2">
-                    <button
-                      type="button"
-                      onClick={() => handleAddMember()}
-                      className="w-full py-2 px-3 flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                      <span>Add</span>
-                    </button>
-                  </div>
-                </div>
+                      {/* Dropdown Menu */}
+                      {isMemberDropdownOpen && (
+                        <div className="absolute z-50 left-0 right-0 mt-1.5 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl space-y-1 max-h-56 overflow-y-auto">
+                          {availableLeads.map((m) => {
+                            const isAdded = members.some(
+                              (existing) => existing.email.toLowerCase() === m.email.toLowerCase()
+                            );
+                            const isSelected =
+                              Boolean(selectedMemberEmail) &&
+                              m.email.toLowerCase() === selectedMemberEmail.toLowerCase();
 
-                <div className="flex items-center justify-between text-[11px] pt-0.5 px-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsManualMemberEntry(true);
-                      setMemberError('');
-                    }}
-                    className="text-indigo-600 hover:text-indigo-700 hover:underline font-medium cursor-pointer"
-                  >
-                    + Or invite external member by email
-                  </button>
-                </div>
+                            return (
+                              <button
+                                key={m.email}
+                                type="button"
+                                disabled={isAdded}
+                                onClick={() => {
+                                  setSelectedMemberEmail(m.email);
+                                  setIsMemberDropdownOpen(false);
+                                  setMemberError('');
+                                }}
+                                className={`w-full p-2 rounded-lg flex items-center justify-between text-left transition-colors ${
+                                  isAdded
+                                    ? 'opacity-50 bg-slate-50 cursor-not-allowed text-slate-400'
+                                    : isSelected
+                                    ? 'bg-indigo-50/80 border border-indigo-200/60 text-slate-900 cursor-pointer'
+                                    : 'hover:bg-slate-50 border border-transparent text-slate-700 cursor-pointer'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                  <div className="w-6 h-6 rounded-md bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center shrink-0">
+                                    {m.avatar || m.name.slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-slate-900 truncate">
+                                      {m.name}
+                                    </p>
+                                    <p className="text-[10px] text-slate-400 font-mono truncate">
+                                      {m.email}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {isAdded ? (
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase px-1.5 py-0.5 rounded bg-slate-100">
+                                    Added
+                                  </span>
+                                ) : isSelected ? (
+                                  <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                                ) : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
-            ) : (
-              /* Manual Entry fallback */
-              <div className="space-y-2.5">
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                  <div className="sm:col-span-4">
-                    <input
-                      type="text"
-                      placeholder="Full Name"
-                      value={newMemberName}
-                      onChange={(e) => {
-                        setNewMemberName(e.target.value);
-                        setMemberError('');
-                      }}
-                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    />
-                  </div>
-                  <div className="sm:col-span-4">
-                    <input
-                      type="email"
-                      placeholder="work.email@retroflow.io"
-                      value={newMemberEmail}
-                      onChange={(e) => {
-                        setNewMemberEmail(e.target.value);
-                        setMemberError('');
-                      }}
-                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <select
-                      value={newMemberRole}
-                      onChange={(e) => setNewMemberRole(e.target.value as ProjectMemberRole)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
-                    >
-                      <option value="Developer">Developer</option>
-                      <option value="QA">QA</option>
-                      <option value="Manager">Manager</option>
-                      <option value="DevOps">DevOps</option>
-                      <option value="Project Lead">Project Lead</option>
-                    </select>
-                  </div>
-                  <div className="sm:col-span-1">
-                    <button
-                      type="button"
-                      onClick={() => handleAddMember()}
-                      className="w-full h-full min-h-[30px] flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors cursor-pointer"
-                      title="Add Member"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-[11px] pt-0.5 px-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsManualMemberEntry(false);
-                      setMemberError('');
-                    }}
-                    className="text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
-                  >
-                    ← Back to workspace members list
-                  </button>
-                </div>
+
+              {/* Role Selector */}
+              <div className="sm:col-span-3">
+                <select
+                  value={newMemberRole}
+                  onChange={(e) => {
+                    setNewMemberRole(e.target.value as ProjectMemberRole);
+                    setMemberError('');
+                  }}
+                  className={`w-full px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer min-h-[42px] ${
+                    !newMemberRole ? 'text-slate-400 font-normal' : 'text-slate-800'
+                  }`}
+                >
+                  <option value="" disabled>Select role...</option>
+                  <option value="Developer">Developer</option>
+                  <option value="QA">QA</option>
+                  <option value="Manager">Manager</option>
+                  <option value="DevOps">DevOps</option>
+                  <option value="Project Lead">Project Lead</option>
+                </select>
               </div>
-            )}
+
+              {/* Add Button */}
+              <div className="sm:col-span-2">
+                <button
+                  type="button"
+                  onClick={() => handleAddMember()}
+                  className="w-full py-2 px-3 flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs cursor-pointer min-h-[42px]"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Add</span>
+                </button>
+              </div>
+            </div>
 
             {memberError && <p className="text-[11px] text-rose-500 font-medium">{memberError}</p>}
           </div>
 
           {/* List of Current Members */}
-          <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
-            {members.map((m) => (
-              <div
-                key={m.email}
-                className="inline-flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-lg bg-white border border-slate-200 text-xs shadow-2xs hover:border-slate-300 transition-colors"
-              >
-                <UserAvatar name={m.name} size="xs" />
-                <span className="font-semibold text-slate-800">{m.name}</span>
-                <StatusPill status={m.role} />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveMember(m.email)}
-                  className="p-0.5 text-slate-400 hover:text-rose-500 rounded transition-colors cursor-pointer"
+          {members.length > 0 && (
+            <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
+              {members.map((m) => (
+                <div
+                  key={m.email}
+                  className="inline-flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-lg bg-white border border-slate-200 text-xs shadow-2xs hover:border-slate-300 transition-colors"
                 >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
+                  <UserAvatar name={m.name} size="xs" />
+                  <span className="font-semibold text-slate-800">{m.name}</span>
+                  <StatusPill status={m.role} />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveMember(m.email)}
+                    className="p-0.5 text-slate-400 hover:text-rose-500 rounded transition-colors cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Footer Actions */}
