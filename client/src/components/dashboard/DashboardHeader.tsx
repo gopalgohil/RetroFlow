@@ -105,7 +105,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </button>
 
           {/* Intuitive Project Switcher */}
-          <ProjectSwitcher />
+          <ProjectSwitcher user={activeUser} />
         </div>
 
         {/* Right: User Profile Dropdown Pill */}

@@ -545,6 +545,7 @@ function ProjectDetailContent() {
               currentProjectId={projectId}
               currentProject={project}
               onSelectProject={handleSelectProject}
+              user={currentUser}
             />
           </div>
 

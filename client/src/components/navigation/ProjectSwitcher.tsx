@@ -21,13 +21,31 @@ interface ProjectSwitcherProps {
   currentProject?: Project | null;
   onSelectProject?: (project: Project) => void;
   className?: string;
+  user?: { name?: string; email?: string; role?: string; projectRole?: string } | null;
 }
+
+const getProjectManager = (proj: Project | null | undefined) => {
+  if (!proj) return null;
+  // 1. Explicit Manager member
+  const managerMember = proj.members?.find((m) => (m.role || '').toLowerCase() === 'manager');
+  if (managerMember?.name) return { name: managerMember.name, role: 'Manager' };
+
+  // 2. Project Lead member
+  const leadMember = proj.members?.find((m) => (m.role || '').toLowerCase().includes('lead'));
+  if (leadMember?.name) return { name: leadMember.name, role: 'Lead' };
+
+  // 3. Fall back to proj.lead
+  if (proj.lead?.name) return { name: proj.lead.name, role: 'Lead' };
+
+  return null;
+};
 
 export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   currentProjectId,
   currentProject,
   onSelectProject,
   className = '',
+  user,
 }) => {
   const router = useRouter();
   const params = useParams();
@@ -135,9 +153,10 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   );
 
   // Admin + Managers have permission to initialize new projects
-  const userEmail = currentUser?.email?.toLowerCase().trim();
-  const userRole = (currentUser?.role || '').toLowerCase();
-  const userProjectRole = (currentUser?.projectRole || '').toLowerCase();
+  const effectiveUser = user || currentUser;
+  const userEmail = effectiveUser?.email?.toLowerCase().trim();
+  const userRole = (effectiveUser?.role || '').toLowerCase();
+  const userProjectRole = (effectiveUser?.projectRole || '').toLowerCase();
   const isAdmin =
     userRole === 'admin' ||
     (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
@@ -148,6 +167,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     userRole === 'manager' ||
     userRole.includes('manager');
   const canCreateProject = isManager;
+  const activeManager = getProjectManager(activeProject);
 
   const handleSelect = (project: Project) => {
     if (typeof window !== 'undefined') {
@@ -207,7 +227,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             </div>
           )}
 
-          <div className="flex flex-col min-w-0 max-w-[150px] sm:max-w-[200px]">
+          <div className="flex flex-col min-w-0 max-w-[160px] sm:max-w-[220px]">
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-bold text-slate-900 truncate">
                 {activeProject ? activeProject.name : 'Select Project'}
@@ -218,6 +238,12 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                 </span>
               )}
             </div>
+            {activeProject && activeManager && (
+              <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium truncate mt-0.5">
+                <span className="text-indigo-600 font-bold">{activeManager.role}:</span>
+                <span className="truncate text-slate-700 font-medium">{activeManager.name}</span>
+              </div>
+            )}
           </div>
 
           <ChevronDown
@@ -284,6 +310,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
               ) : (
                 filteredProjects.map((proj) => {
                   const isSelected = activeProject?.id === proj.id;
+                  const projManager = getProjectManager(proj);
                   return (
                     <button
                       key={proj.id}
@@ -298,22 +325,35 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                       <div className="flex items-center gap-2.5 min-w-0">
                         <UserAvatar name={proj.name} avatar={proj.key.slice(0, 3)} size="md" />
                         <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-xs font-bold truncate max-w-[150px]">{proj.name}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-xs font-bold truncate max-w-[130px]">{proj.name}</p>
                             <StatusPill status={proj.healthStatus} pulse />
+                            {projManager && (
+                              <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+                                {projManager.role}: {projManager.name.split(' ')[0]}
+                              </span>
+                            )}
                           </div>
-                          <div className="flex items-center gap-1 text-[10px] text-slate-500 mt-0.5">
-                            <span className="font-mono font-semibold uppercase">{proj.key}</span>
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5 flex-wrap">
+                            <span className="font-mono font-semibold uppercase text-slate-700">{proj.key}</span>
                             <span>•</span>
                             <span className="capitalize">{proj.type}</span>
                             <span>•</span>
                             <span>{proj.members.length} members</span>
+                            {projManager && (
+                              <>
+                                <span>•</span>
+                                <span className="text-slate-600 font-medium">
+                                  {projManager.role}: <strong className="font-semibold text-slate-800">{projManager.name}</strong>
+                                </span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
 
                       {isSelected && (
-                        <Check className="w-4 h-4 text-indigo-600 stroke-[2.5] shrink-0" />
+                        <Check className="w-4 h-4 text-indigo-600 stroke-[2.5] shrink-0 ml-2" />
                       )}
                     </button>
                   );

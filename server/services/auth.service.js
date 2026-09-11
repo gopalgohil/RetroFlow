@@ -203,8 +203,18 @@ class AuthService {
 
     const token = generateToken({ id: user._id, email: user.email, role: user.role || 'member' });
 
+    const isManagerInProjects = await Project.findOne({
+      isArchived: { $ne: true },
+      $or: [
+        { 'lead.email': normalizedEmail },
+        { members: { $elemMatch: { email: normalizedEmail, role: 'Manager' } } },
+      ],
+    });
+
     const effectiveRole =
       user.role === 'admin' || user.email === 'gopalgohel249@gmail.com'
+        ? 'Manager'
+        : user.projectRole === 'Manager' || isManagerInProjects
         ? 'Manager'
         : user.projectRole && user.projectRole !== 'Unassigned'
         ? user.projectRole
@@ -307,14 +317,44 @@ class AuthService {
         { 'members.email': email },
       ],
     })
-      .select('id key name')
+      .select('id key name lead members')
       .lean();
 
-    const effectiveProjectRole = isAdmin
-      ? 'Manager'
-      : user.projectRole && user.projectRole !== 'Unassigned'
-      ? user.projectRole
-      : 'Developer';
+    // Dynamically detect if user is assigned Manager or Lead in any active project
+    const isManagerInProjects = userProjects.some((p) => {
+      const isLead = p.lead?.email?.toLowerCase().trim() === email;
+      const isManagerMember = Array.isArray(p.members) && p.members.some(
+        (m) => m.email?.toLowerCase().trim() === email && (m.role || '').toLowerCase() === 'manager'
+      );
+      return isLead || isManagerMember;
+    });
+
+    const isLeadInProjects = userProjects.some((p) => {
+      const isLead = p.lead?.email?.toLowerCase().trim() === email;
+      const isLeadMember = Array.isArray(p.members) && p.members.some(
+        (m) => m.email?.toLowerCase().trim() === email && (m.role || '').toLowerCase().includes('lead')
+      );
+      return isLead || isLeadMember;
+    });
+
+    let effectiveProjectRole = 'Developer';
+    if (isAdmin) {
+      effectiveProjectRole = 'Manager';
+    } else if (user.projectRole && user.projectRole.toLowerCase() === 'manager') {
+      effectiveProjectRole = 'Manager';
+    } else if (isManagerInProjects) {
+      effectiveProjectRole = 'Manager';
+    } else if (user.projectRole && user.projectRole.toLowerCase().includes('lead')) {
+      effectiveProjectRole = 'Project Lead';
+    } else if (isLeadInProjects) {
+      effectiveProjectRole = 'Project Lead';
+    } else if (user.projectRole && user.projectRole !== 'Unassigned') {
+      effectiveProjectRole = user.projectRole;
+    }
+
+    if (effectiveProjectRole !== 'Developer' && user.projectRole !== effectiveProjectRole && !isAdmin) {
+      await User.updateOne({ _id: user._id }, { $set: { projectRole: effectiveProjectRole } });
+    }
 
     return {
       ...user.toObject(),

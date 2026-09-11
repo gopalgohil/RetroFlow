@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Project from '../models/Project.js';
 import RetroBoard from '../models/RetroBoard.js';
+import User from '../models/User.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import env from '../config/env.js';
@@ -573,6 +574,26 @@ class ProjectService {
       createdBy: userId,
     });
 
+    // Synchronize global projectRole in User collection for any assigned Managers/Leads
+    try {
+      const managerEmails = members
+        .filter((m) => {
+          const r = (m.role || '').toLowerCase();
+          return r === 'manager' || r.includes('lead');
+        })
+        .map((m) => m.email?.toLowerCase().trim())
+        .filter(Boolean);
+
+      if (managerEmails.length > 0) {
+        await User.updateMany(
+          { email: { $in: managerEmails }, role: { $ne: 'admin' } },
+          { $set: { projectRole: 'Manager' } }
+        );
+      }
+    } catch (err) {
+      console.error('[createProject] Failed to sync manager role to User:', err);
+    }
+
     return project;
   }
 
@@ -752,6 +773,18 @@ class ProjectService {
     });
 
     await project.save();
+
+    if ((memberData.role || '').toLowerCase() === 'manager') {
+      try {
+        await User.updateOne(
+          { email, role: { $ne: 'admin' } },
+          { $set: { projectRole: 'Manager' } }
+        );
+      } catch (err) {
+        console.error('[addMember] Failed to sync manager role to User:', err);
+      }
+    }
+
     return project;
   }
 
