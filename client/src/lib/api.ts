@@ -152,9 +152,22 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
     return data;
   } catch (err: any) {
     const isAbort =
+      Boolean(customConfig?.signal?.aborted) ||
+      Boolean(options?.signal?.aborted) ||
       err?.name === 'AbortError' ||
+      err?.name === 'CanceledError' ||
       err?.code === 20 ||
-      (err?.message && String(err.message).toLowerCase().includes('aborted'));
+      err?.code === 'ERR_CANCELED' ||
+      (typeof err === 'string' &&
+        (err.toLowerCase().includes('abort') ||
+          err.toLowerCase().includes('cancel') ||
+          err.toLowerCase().includes('unmount') ||
+          err.toLowerCase().includes('request triggered'))) ||
+      (err?.message &&
+        (String(err.message).toLowerCase().includes('aborted') ||
+          String(err.message).toLowerCase().includes('canceled') ||
+          String(err.message).toLowerCase().includes('cancelled') ||
+          String(err.message).toLowerCase().includes('unmount')));
 
     if (isAbort) {
       // Intentionally aborted requests (e.g. search debounce, component unmount, rapid tab switch)
@@ -163,7 +176,12 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
     }
 
     if (isDev) {
-      console.error(`❌ [API Error] ${endpoint}:`, err.message);
+      const errorMsg =
+        err?.message ||
+        (typeof err === 'string' ? err : null) ||
+        (typeof err?.data?.message === 'string' ? err.data.message : null) ||
+        'Unknown network error';
+      console.error(`❌ [API Error] ${endpoint}:`, errorMsg);
     }
     throw err;
   }

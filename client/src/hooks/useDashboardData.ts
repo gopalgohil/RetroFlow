@@ -88,7 +88,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const fetchSessions = useCallback(async () => {
     // Abort previous in-flight request if still running
     if (sessionsAbortRef.current) {
-      sessionsAbortRef.current.abort('New search or session request triggered');
+      sessionsAbortRef.current.abort();
     }
     const controller = new AbortController();
     sessionsAbortRef.current = controller;
@@ -185,7 +185,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     ) => {
       // Abort any existing in-flight request
       if (membersAbortRef.current) {
-        membersAbortRef.current.abort('New member request triggered');
+        membersAbortRef.current.abort();
       }
       const controller = new AbortController();
       membersAbortRef.current = controller;
@@ -360,8 +360,8 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   // 6. Cleanup active abort controllers on unmount
   useEffect(() => {
     return () => {
-      sessionsAbortRef.current?.abort('Component unmounted');
-      membersAbortRef.current?.abort('Component unmounted');
+      sessionsAbortRef.current?.abort();
+      membersAbortRef.current?.abort();
     };
   }, []);
 
