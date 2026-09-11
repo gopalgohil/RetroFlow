@@ -6,7 +6,7 @@
 export type ProjectType = 'scrum' | 'kanban';
 export type SprintCadence = '1_week' | '2_weeks' | '3_weeks' | 'custom';
 export type ProjectHealthStatus = 'on_track' | 'at_risk' | 'delayed';
-export type ProjectMemberRole = 'Manager' | 'Developer' | 'QA' | 'Viewer';
+export type ProjectMemberRole = 'Manager' | 'Developer' | 'QA' | 'QA / Tester' | 'DevOps' | 'Project Lead';
 
 export interface ProjectMember {
   id: string;

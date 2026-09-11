@@ -25,6 +25,7 @@ interface TeamSettingsTabProps {
   project: Project;
   onProjectUpdated: (updated: Project) => void;
   canManageProject?: boolean;
+  canDeleteProject?: boolean;
   currentUserRole?: string;
 }
 
@@ -36,6 +37,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
   project,
   onProjectUpdated,
   canManageProject = false,
+  canDeleteProject = false,
   currentUserRole = 'Developer',
 }) => {
   const router = useRouter();
@@ -522,17 +524,27 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setDeleteConfirmInput('');
-                  setDeleteError('');
-                  setIsDeleteModalOpen(true);
-                }}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer shrink-0"
-              >
-                Delete Project...
-              </button>
+              {canDeleteProject ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteConfirmInput('');
+                    setDeleteError('');
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer shrink-0"
+                >
+                  Delete Project...
+                </button>
+              ) : (
+                <div
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-100/60 border border-rose-200/80 text-rose-700 text-xs font-semibold shrink-0 cursor-not-allowed select-none"
+                  title="Project deletion is restricted to Admins and Managers. Project Leads cannot delete projects."
+                >
+                  <Lock className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Restricted to Admin & Manager</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

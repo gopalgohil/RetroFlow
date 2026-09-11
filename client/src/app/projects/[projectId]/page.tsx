@@ -273,18 +273,12 @@ function ProjectDetailContent() {
 
   const userEmail = activeUser.email?.toLowerCase().trim();
   const userRole = activeUser.role?.toLowerCase().trim();
+  const userProjectRole = (activeUser as any).projectRole;
+
   const isWorkspaceAdmin = Boolean(
     userRole === 'admin' ||
     (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
     (userEmail && userEmail.includes('admin'))
-  );
-
-  const isGlobalManagerOrLead = Boolean(
-    userRole === 'manager' ||
-    userRole === 'project lead' ||
-    userRole === 'team lead' ||
-    userRole?.includes('manager') ||
-    userRole?.includes('lead')
   );
 
   const isDesignatedLead = Boolean(
@@ -295,20 +289,63 @@ function ProjectDetailContent() {
     (m) => m.email?.toLowerCase().trim() === userEmail
   );
 
-  const isProjectManager = Boolean(
-    userMemberRecord &&
-    (userMemberRecord.role === 'Manager' ||
-      userMemberRecord.role?.toLowerCase().includes('manager') ||
-      userMemberRecord.role?.toLowerCase().includes('lead'))
-  );
-  const isUserProjectLead = isDesignatedLead || isProjectManager || isGlobalManagerOrLead;
+  // Effective role in this agile project context
+  const effectiveRole =
+    userMemberRecord?.role ||
+    userProjectRole ||
+    (isDesignatedLead ? 'Project Lead' : isWorkspaceAdmin ? 'Manager' : 'Developer');
 
-  const canManageProject = isWorkspaceAdmin || isGlobalManagerOrLead || isDesignatedLead || isProjectManager;
+  // Check Manager authority (allowed to create project, create retro, share link, delete project)
+  const isManager = Boolean(
+    isWorkspaceAdmin ||
+    effectiveRole === 'Manager' ||
+    userRole === 'manager' ||
+    userRole?.includes('manager') ||
+    userMemberRecord?.role === 'Manager'
+  );
+
+  // Check Project Lead authority (allowed to create retro, share link; STRICTLY CANNOT delete project)
+  const isProjectLead = Boolean(
+    !isManager && (
+      effectiveRole === 'Project Lead' ||
+      isDesignatedLead ||
+      userRole === 'project lead' ||
+      userRole === 'team lead' ||
+      userRole?.includes('lead') ||
+      userMemberRecord?.role === 'Project Lead'
+    )
+  );
+
+  // Check Developer / QA / DevOps (STRICTLY CANNOT share links, cannot create retro/projects, cannot delete)
+  const isDevOrQAOrDevOps = Boolean(
+    !isWorkspaceAdmin &&
+    !isManager &&
+    !isProjectLead &&
+    ['developer', 'qa', 'tester', 'devops'].some((r) =>
+      effectiveRole.toLowerCase().includes(r)
+    )
+  );
+
+  // 1. Link sharing (Project link & Retro links)
+  // Admin, Manager, and Project Lead CAN share; Developer, QA, DevOps STRICTLY CANNOT share
+  const canShare = Boolean((isWorkspaceAdmin || isManager || isProjectLead) && !isDevOrQAOrDevOps);
+
+  // 2. Project deletion (Danger Zone)
+  // Workspace Admin and Manager ONLY; Project Lead STRICTLY CANNOT delete project
+  const canDeleteProject = Boolean(isWorkspaceAdmin || isManager);
+
+  // 3. Retro creation
+  // Admin, Manager, and Project Lead CAN create retro; Developer, QA, DevOps CANNOT
+  const canCreateRetro = Boolean((isWorkspaceAdmin || isManager || isProjectLead) && !isDevOrQAOrDevOps);
+
+  // 4. Project management general (sprints, tabs)
+  const canManageProject = Boolean(isWorkspaceAdmin || isManager || isProjectLead);
 
   const currentUserRole =
-    isDesignatedLead ? 'Project Lead' :
-      isProjectManager ? 'Manager' :
-        userMemberRecord?.role || (isWorkspaceAdmin ? 'Admin' : isGlobalManagerOrLead ? 'Manager' : 'Developer');
+    isWorkspaceAdmin ? 'Admin' :
+    isManager ? 'Manager' :
+    isProjectLead ? 'Project Lead' :
+    effectiveRole;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex selection:bg-indigo-500 selection:text-white font-sans">
@@ -349,7 +386,7 @@ function ProjectDetailContent() {
 
           {/* Right Header CTAs */}
           <div className="flex items-center gap-2.5">
-            {project && canManageProject && (
+            {project && canShare && (
               <button
                 type="button"
                 onClick={() => setIsShareModalOpen(true)}
@@ -361,7 +398,7 @@ function ProjectDetailContent() {
               </button>
             )}
 
-            {canManageProject && (
+            {canCreateRetro && (
               <button
                 onClick={() => setIsCreateRetroOpen(true)}
                 className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.01] cursor-pointer"
@@ -444,7 +481,7 @@ function ProjectDetailContent() {
                         {project.healthStatus.replace('_', ' ')}
                       </span>
 
-                      {isUserProjectLead && (
+                      {isProjectLead && (
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
                           <span>You are Project Lead</span>
                         </span>
@@ -457,7 +494,7 @@ function ProjectDetailContent() {
                       <span>
                         Lead:{' '}
                         <strong className="text-slate-800">{project.lead?.name || 'Gopal'}</strong>
-                        {isUserProjectLead && <span className="text-indigo-600 font-bold ml-1">(You)</span>}
+                        {isProjectLead && <span className="text-indigo-600 font-bold ml-1">(You)</span>}
                       </span>
                       <span>•</span>
                       <span>
@@ -549,7 +586,7 @@ function ProjectDetailContent() {
                   project={project}
                   onCreateRetroClick={() => setIsCreateRetroOpen(true)}
                   onProjectUpdated={(up) => setProject({ ...up })}
-                  canManageProject={canManageProject}
+                  canManageProject={canShare}
                 />
               )}
 
@@ -558,6 +595,7 @@ function ProjectDetailContent() {
                   project={project}
                   onProjectUpdated={(up) => setProject({ ...up })}
                   canManageProject={canManageProject}
+                  canDeleteProject={canDeleteProject}
                   currentUserRole={currentUserRole}
                 />
               )}

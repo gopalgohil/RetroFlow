@@ -205,6 +205,7 @@ class AuthService {
         name: user.name,
         email: user.email,
         role: user.role || 'member',
+        projectRole: user.projectRole || (user.role === 'admin' ? 'Manager' : 'Developer'),
       },
       token,
     };

@@ -77,21 +77,36 @@ function DashboardContent() {
 
   const userEmail = activeUser.email?.toLowerCase().trim();
   const userRole = activeUser.role?.toLowerCase().trim();
+  const userProjectRole = (activeUser as any).projectRole;
+
   const isAdmin = Boolean(
     userRole === 'admin' ||
     (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
     (userEmail && userEmail.includes('admin'))
   );
 
-  const isManagerOrLead = Boolean(
+  const isManager = Boolean(
+    isAdmin ||
+    userProjectRole === 'Manager' ||
     userRole === 'manager' ||
-    userRole === 'project lead' ||
-    userRole === 'team lead' ||
-    userRole?.includes('manager') ||
-    userRole?.includes('lead')
+    userRole?.includes('manager')
   );
 
-  const canManageSessions = isAdmin || isManagerOrLead;
+  const isProjectLead = Boolean(
+    !isManager && (
+      userProjectRole === 'Project Lead' ||
+      userRole === 'project lead' ||
+      userRole === 'team lead' ||
+      userRole?.includes('lead')
+    )
+  );
+
+  // Admin and Manager can initialize projects; Project Leads & Developers cannot
+  const canCreateProject = isAdmin || isManager;
+
+  // Admin, Manager, and Project Lead can manage retros and share links
+  // Developer, QA, DevOps cannot create retros or share links
+  const canManageSessions = isAdmin || isManager || isProjectLead;
 
   // Welcome Toast Notification (triggered only once on fresh login)
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
@@ -206,7 +221,7 @@ function DashboardContent() {
               )}
 
               {activeTab === 'projects' && (
-                <ProjectsTab isAdmin={isAdmin} />
+                <ProjectsTab isAdmin={canCreateProject} />
               )}
 
               {activeTab === 'members' && (

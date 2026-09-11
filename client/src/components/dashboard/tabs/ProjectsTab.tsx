@@ -86,23 +86,25 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false }) => 
     return <ProjectsTabSkeleton />;
   }
 
-  // Admin + Managers / Project Leads have project creation permission
+  // Only Workspace Admins and Managers have project initialization permission
   const userRole = (currentUser?.role || '').toLowerCase();
   const userEmail = currentUser?.email?.toLowerCase().trim();
+  const userProjectRole = (currentUser as any)?.projectRole;
+
   const isWorkspaceAdmin = Boolean(
     isAdmin ||
     userRole === 'admin' ||
     (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
     (userEmail && userEmail.includes('admin'))
   );
-  const isManagerOrLead = Boolean(
+
+  const isManager = Boolean(
+    userProjectRole === 'Manager' ||
     userRole === 'manager' ||
-    userRole === 'project lead' ||
-    userRole === 'lead' ||
-    userRole.includes('manager') ||
-    userRole.includes('lead')
+    userRole.includes('manager')
   );
-  const canCreateProject = isWorkspaceAdmin || isManagerOrLead;
+
+  const canCreateProject = isWorkspaceAdmin || isManager;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">

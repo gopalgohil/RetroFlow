@@ -355,10 +355,12 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                         className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                           member.role === 'Manager'
                             ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : member.role === 'QA'
+                            : (member.role as string)?.includes('QA')
                             ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                            : member.role === 'Viewer'
-                            ? 'bg-slate-100 text-slate-600 border border-slate-200'
+                            : (member.role as string) === 'DevOps'
+                            ? 'bg-cyan-50 text-cyan-700 border border-cyan-200'
+                            : (member.role as string) === 'Project Lead'
+                            ? 'bg-sky-50 text-sky-700 border border-sky-200'
                             : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                         }`}
                       >

@@ -48,6 +48,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           (userEmail && userEmail.includes('admin'))
         );
 
+  const displayRole = isUserAdmin
+    ? 'Admin'
+    : (activeUser as any).projectRole || activeUser.role || 'Developer';
+
   const initials = activeUser.name
     ? activeUser.name
         .split(' ')
@@ -123,7 +127,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 {activeUser.name || 'Gopal'}
               </p>
               <p suppressHydrationWarning className="text-[11px] font-medium text-slate-400 capitalize leading-tight">
-                {isUserAdmin ? 'Admin' : 'Developer'}
+                {displayRole}
               </p>
             </div>
 
@@ -152,15 +156,24 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                       <p suppressHydrationWarning className="text-xs font-bold text-slate-900 truncate">
                         {activeUser.name || 'Gopal'}
                       </p>
-                      {isUserAdmin ? (
-                        <span suppressHydrationWarning className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0 leading-none">
-                          Admin
-                        </span>
-                      ) : (
-                        <span suppressHydrationWarning className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 leading-none">
-                          Developer
-                        </span>
-                      )}
+                      <span
+                        suppressHydrationWarning
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 leading-none ${
+                          displayRole.toLowerCase() === 'admin'
+                            ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                            : displayRole.toLowerCase() === 'manager'
+                            ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                            : displayRole.toLowerCase() === 'project lead'
+                            ? 'bg-sky-100 text-sky-800 border border-sky-200'
+                            : displayRole.toLowerCase().includes('qa') || displayRole.toLowerCase().includes('tester')
+                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                            : displayRole.toLowerCase() === 'devops'
+                            ? 'bg-cyan-100 text-cyan-800 border border-cyan-200'
+                            : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                        }`}
+                      >
+                        {displayRole}
+                      </span>
                     </div>
                     <p
                       suppressHydrationWarning

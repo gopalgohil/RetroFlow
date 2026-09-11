@@ -8,6 +8,29 @@ class RetroController {
    * POST /api/retros
    */
   createRetro = asyncHandler(async (req, res) => {
+    const user = req.user;
+    const userRole = (user?.role || '').toLowerCase();
+    const userEmail = user?.email?.toLowerCase().trim();
+    const isAdmin =
+      userRole === 'admin' ||
+      userEmail === 'gopalgohel249@gmail.com' ||
+      userEmail?.includes('admin');
+    const isManager =
+      user?.projectRole === 'Manager' ||
+      userRole === 'manager' ||
+      userRole.includes('manager');
+    const isLead =
+      user?.projectRole === 'Project Lead' ||
+      userRole === 'project lead' ||
+      userRole.includes('lead');
+
+    if (!isAdmin && !isManager && !isLead) {
+      return res.status(403).json({
+        success: false,
+        message: 'Permission denied: Developers, QA, and DevOps cannot create retrospective sessions.',
+      });
+    }
+
     const retro = await retroService.createRetro(req.user._id, req.body);
     return ApiResponse.created(res, retro, 'Retrospective session created successfully!');
   });
@@ -54,6 +77,29 @@ class RetroController {
    * POST /api/retros/:id/invite
    */
   inviteTeammate = asyncHandler(async (req, res) => {
+    const user = req.user;
+    const userRole = (user?.role || '').toLowerCase();
+    const userEmail = user?.email?.toLowerCase().trim();
+    const isAdmin =
+      userRole === 'admin' ||
+      userEmail === 'gopalgohel249@gmail.com' ||
+      userEmail?.includes('admin');
+    const isManager =
+      user?.projectRole === 'Manager' ||
+      userRole === 'manager' ||
+      userRole.includes('manager');
+    const isLead =
+      user?.projectRole === 'Project Lead' ||
+      userRole === 'project lead' ||
+      userRole.includes('lead');
+
+    if (!isAdmin && !isManager && !isLead) {
+      return res.status(403).json({
+        success: false,
+        message: 'Permission denied: Developers, QA, and DevOps cannot share or invite users to retrospectives.',
+      });
+    }
+
     const result = await retroService.inviteTeammate(req.params.id, req.user._id, req.body);
     return ApiResponse.ok(res, result, result.message);
   });

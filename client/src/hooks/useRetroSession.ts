@@ -223,7 +223,10 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     }
 
     // 2. Manager or Project/Team Lead
+    const projectRole = (currentUser as any)?.projectRole;
     if (
+      projectRole === 'Manager' ||
+      projectRole === 'Project Lead' ||
       role === 'manager' ||
       role === 'project lead' ||
       role === 'team lead' ||

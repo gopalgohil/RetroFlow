@@ -74,24 +74,20 @@ class ProjectController {
       userEmail === 'gopalgohel249@gmail.com' ||
       userEmail?.includes('admin');
 
-    const isManagerOrLeadRole =
+    const isManager =
+      user.projectRole === 'Manager' ||
       userRole === 'manager' ||
-      userRole === 'project lead' ||
-      userRole === 'lead' ||
-      userRole === 'scrum_master';
+      userRole.includes('manager');
 
-    let canCreate = isAdmin || isManagerOrLeadRole;
+    let canCreate = isAdmin || isManager;
 
     if (!canCreate && userEmail) {
-      // Check if user is a lead or manager in any existing project in the workspace
-      const isExistingLeadOrManager = await Project.findOne({
-        $or: [
-          { 'lead.email': userEmail },
-          { members: { $elemMatch: { email: userEmail, role: 'Manager' } } },
-        ],
+      // Check if user is assigned Manager in any existing project in the workspace
+      const isExistingManager = await Project.findOne({
+        members: { $elemMatch: { email: userEmail, role: 'Manager' } },
       });
 
-      if (isExistingLeadOrManager) {
+      if (isExistingManager) {
         canCreate = true;
       }
     }

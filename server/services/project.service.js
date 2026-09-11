@@ -303,6 +303,8 @@ class ProjectService {
     if (isAdmin) return;
 
     const isGlobalManagerOrLead =
+      currentUser.projectRole === 'Manager' ||
+      currentUser.projectRole === 'Project Lead' ||
       currentUser.role?.toLowerCase() === 'manager' ||
       currentUser.role?.toLowerCase() === 'project lead' ||
       currentUser.role?.toLowerCase() === 'team lead' ||
@@ -765,7 +767,32 @@ class ProjectService {
   async deleteProject(idOrKey, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
-    this.assertCanManage(project, currentUser);
+
+    const isAdmin =
+      currentUser?.role?.toLowerCase() === 'admin' ||
+      currentUser?.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
+      currentUser?.email?.toLowerCase().includes('admin');
+
+    const isManager =
+      currentUser?.projectRole === 'Manager' ||
+      currentUser?.role?.toLowerCase() === 'manager' ||
+      currentUser?.role?.toLowerCase().includes('manager');
+
+    if (!isAdmin && !isManager) {
+      const isProjectLead =
+        currentUser?.projectRole === 'Project Lead' ||
+        currentUser?.role?.toLowerCase() === 'project lead' ||
+        currentUser?.role?.toLowerCase().includes('lead') ||
+        project.lead?.email?.toLowerCase().trim() === currentUser?.email?.toLowerCase().trim();
+
+      const error = new Error(
+        isProjectLead
+          ? 'Access Denied: Project Leads cannot delete projects. Only Workspace Admins and Managers have deletion authority.'
+          : 'Access Denied: Only Workspace Admins and Managers can delete projects.'
+      );
+      error.statusCode = 403;
+      throw error;
+    }
 
     const totalProjects = await Project.countDocuments();
     if (totalProjects <= 1) {
