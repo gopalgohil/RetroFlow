@@ -429,7 +429,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               title="Assign project role"
                             >
                               <option value="Developer">Developer</option>
-                              <option value="QA">QA Specialist</option>
+                              <option value="QA">QA</option>
                               <option value="Manager">Manager</option>
                               <option value="DevOps">DevOps</option>
                               <option value="Project Lead">Project Lead</option>
