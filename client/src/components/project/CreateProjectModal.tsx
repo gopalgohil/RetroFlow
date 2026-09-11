@@ -9,6 +9,7 @@ import {
   Users,
   ChevronDown,
   Check,
+  AlertCircle,
 } from 'lucide-react';
 import {
   ProjectType,
@@ -77,6 +78,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       setNewMemberRole('');
       setMembers([]);
       setMemberError('');
+      setErrors({});
+      setTouched({});
       return;
     }
 
@@ -159,9 +162,63 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [memberError, setMemberError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Validation State
+  const [errors, setErrors] = useState<{
+    name?: string;
+    key?: string;
+    description?: string;
+    members?: string;
+    general?: string;
+  }>({});
+  const [touched, setTouched] = useState<{
+    name?: boolean;
+    key?: boolean;
+    description?: boolean;
+    members?: boolean;
+  }>({});
+
+  const validateForm = (currentMembers = members): boolean => {
+    const errs: {
+      name?: string;
+      key?: string;
+      description?: string;
+      members?: string;
+    } = {};
+
+    if (!name.trim()) {
+      errs.name = 'Project name is required and cannot be blank';
+    } else if (name.trim().length < 2) {
+      errs.name = 'Project name must be at least 2 characters';
+    }
+
+    if (!key.trim()) {
+      errs.key = 'Project key is required and cannot be blank';
+    } else if (key.trim().length < 2) {
+      errs.key = 'Project key must be at least 2 characters';
+    } else if (!/^[A-Z0-9]+$/i.test(key.trim())) {
+      errs.key = 'Project key must contain only letters and numbers';
+    }
+
+    if (!description.trim()) {
+      errs.description = 'Project description is required and cannot be blank';
+    } else if (description.trim().length < 5) {
+      errs.description = 'Project description must be at least 5 characters';
+    }
+
+    if (currentMembers.length === 0) {
+      errs.members = 'Please add at least one team member to this project';
+    }
+
+    setErrors((prev) => ({ ...prev, ...errs }));
+    return Object.keys(errs).length === 0;
+  };
+
   // Auto-generate 3-4 letter project key from project name
   const handleNameChange = (val: string) => {
     setName(val);
+    if (errors.name) {
+      setErrors((prev) => ({ ...prev, name: undefined, general: undefined }));
+    }
     if (!isKeyManuallyEdited) {
       const words = val.trim().split(/\s+/).filter(Boolean);
       let derivedKey = '';
@@ -175,12 +232,19 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         derivedKey = words[0].toUpperCase();
       }
       setKey(derivedKey);
+      if (derivedKey && errors.key) {
+        setErrors((prev) => ({ ...prev, key: undefined }));
+      }
     }
   };
 
   const handleKeyChange = (val: string) => {
     setIsKeyManuallyEdited(true);
-    setKey(val.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5));
+    const cleaned = val.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+    setKey(cleaned);
+    if (cleaned && errors.key) {
+      setErrors((prev) => ({ ...prev, key: undefined, general: undefined }));
+    }
   };
 
   const handleAddMember = (e?: React.FormEvent) => {
@@ -222,22 +286,67 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     setSelectedMemberEmail('');
     setNewMemberRole('');
     setMemberError('');
+    if (errors.members) {
+      setErrors((prev) => ({ ...prev, members: undefined, general: undefined }));
+    }
   };
 
   const handleRemoveMember = (email: string) => {
-    setMembers((prev) => prev.filter((m) => m.email !== email));
+    setMembers((prev) => {
+      const updated = prev.filter((m) => m.email !== email);
+      if (updated.length === 0 && touched.members) {
+        setErrors((errs) => ({
+          ...errs,
+          members: 'Please add at least one team member to this project',
+        }));
+      }
+      return updated;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+
+    setTouched({
+      name: true,
+      key: true,
+      description: true,
+      members: true,
+    });
+
+    let currentMembers = [...members];
+
+    // If user has selected a member and role in the dropdown row, auto-add it before validation
+    if (selectedMemberEmail && newMemberRole) {
+      const chosen = availableLeads.find(
+        (l) => l.email.toLowerCase() === selectedMemberEmail.toLowerCase()
+      );
+      if (chosen && !currentMembers.some((m) => m.email.toLowerCase() === chosen.email.toLowerCase())) {
+        const cleanName = chosen.name.replace(/\s*\(You\)\s*/i, '').trim();
+        const autoAdded = {
+          name: cleanName,
+          email: chosen.email.toLowerCase().trim(),
+          role: newMemberRole as ProjectMemberRole,
+        };
+        currentMembers.push(autoAdded);
+        setMembers(currentMembers);
+        setSelectedMemberEmail('');
+        setNewMemberRole('');
+        setMemberError('');
+      }
+    }
+
+    if (!validateForm(currentMembers)) {
+      return;
+    }
 
     setIsSubmitting(true);
+    setErrors((prev) => ({ ...prev, general: undefined }));
 
     // Determine lead: check if any member was assigned Project Lead or Manager, else default to Gopal
     const designatedLead =
-      members.find((m) => m.role === 'Project Lead') ||
-      members.find((m) => m.role === 'Manager') ||
+      currentMembers.find((m) => m.role === 'Project Lead') ||
+      currentMembers.find((m) => m.role === 'Manager') ||
       availableLeads[0] || {
         id: 'lead-primary',
         name: 'Gopal',
@@ -259,7 +368,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         email: designatedLead.email,
         avatar: (designatedLead as any).avatar || cleanLeadName.slice(0, 2).toUpperCase(),
       },
-      members,
+      members: currentMembers,
       cadence: '2_weeks',
       customCadenceDays: 14,
     };
@@ -284,18 +393,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       setMembers([]);
       setSelectedMemberEmail('');
       setNewMemberRole('');
-    } catch (err) {
-      console.warn('[CreateProject] Fallback to local persistence:', err);
-      const fallback = ProjectDataService.createProject(payload);
+      setErrors({});
+      setTouched({});
+    } catch (err: any) {
+      console.error('[CreateProject] API error:', err);
+      const apiMsg = err?.response?.data?.message || err?.message || 'Failed to initialize project in database';
+      setErrors((prev) => ({ ...prev, general: apiMsg }));
       setIsSubmitting(false);
-      if (typeof window !== 'undefined' && fallback?.id) {
-        localStorage.setItem('retroflow_active_project_id', fallback.id);
-        try {
-          sessionStorage.setItem(`retroflow_cached_project_${fallback.id}`, JSON.stringify(fallback));
-        } catch {}
-      }
-      onProjectCreated(fallback);
-      onClose();
     }
   };
 
@@ -315,7 +419,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       icon={<FolderPlus className="w-5 h-5" />}
       maxWidth="2xl"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+        {/* General Error Alert if Server / Network Fails */}
+        {errors.general && (
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{errors.general}</span>
+          </div>
+        )}
+
         {/* Section 1: Project Identity & Key */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2 space-y-1.5">
@@ -328,11 +440,30 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               placeholder="e.g. Payment Gateway Integration"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all"
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, name: true }));
+                if (!name.trim()) {
+                  setErrors((prev) => ({ ...prev, name: 'Project name is required and cannot be blank' }));
+                } else if (name.trim().length < 2) {
+                  setErrors((prev) => ({ ...prev, name: 'Project name must be at least 2 characters' }));
+                }
+              }}
+              className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
+                touched.name && errors.name
+                  ? 'border-rose-400 focus:ring-rose-500/30 focus:border-rose-500 bg-rose-50/20'
+                  : 'border-slate-200 focus:ring-indigo-500/30 focus:border-indigo-500'
+              }`}
             />
-            <p className="text-[11px] text-slate-400">
-              A clear, descriptive name for your initiative or product area.
-            </p>
+            {touched.name && errors.name ? (
+              <p className="text-[11px] text-rose-500 font-medium flex items-center gap-1 animate-in fade-in">
+                <AlertCircle className="w-3 h-3 shrink-0" />
+                <span>{errors.name}</span>
+              </p>
+            ) : (
+              <p className="text-[11px] text-slate-400">
+                A clear, descriptive name for your initiative or product area.
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -349,24 +480,71 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               placeholder="PGI"
               value={key}
               onChange={(e) => handleKeyChange(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono font-bold tracking-wider text-indigo-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all uppercase"
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, key: true }));
+                if (!key.trim()) {
+                  setErrors((prev) => ({ ...prev, key: 'Project key is required and cannot be blank' }));
+                } else if (key.trim().length < 2) {
+                  setErrors((prev) => ({ ...prev, key: 'Project key must be at least 2 characters' }));
+                }
+              }}
+              className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm font-mono font-bold tracking-wider text-indigo-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all uppercase ${
+                touched.key && errors.key
+                  ? 'border-rose-400 focus:ring-rose-500/30 focus:border-rose-500 bg-rose-50/20'
+                  : 'border-slate-200 focus:ring-indigo-500/30 focus:border-indigo-500'
+              }`}
             />
-            <p className="text-[11px] text-slate-400">Prefix for issues & sprints (e.g. PGI-12).</p>
+            {touched.key && errors.key ? (
+              <p className="text-[11px] text-rose-500 font-medium flex items-center gap-1 animate-in fade-in">
+                <AlertCircle className="w-3 h-3 shrink-0" />
+                <span>{errors.key}</span>
+              </p>
+            ) : (
+              <p className="text-[11px] text-slate-400">Prefix for issues & sprints (e.g. PGI).</p>
+            )}
           </div>
         </div>
 
         {/* Description */}
         <div className="space-y-1.5">
           <label className="block text-xs font-bold text-slate-800">
-            Project Description <span className="text-slate-400 font-normal">(Optional)</span>
+            Project Description <span className="text-rose-500">*</span>
           </label>
           <textarea
             rows={2}
+            required
             placeholder="Primary goals, technical scope, or architecture notes..."
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all resize-none"
+            onChange={(e) => {
+              setDescription(e.target.value);
+              if (errors.description) {
+                setErrors((prev) => ({ ...prev, description: undefined, general: undefined }));
+              }
+            }}
+            onBlur={() => {
+              setTouched((prev) => ({ ...prev, description: true }));
+              if (!description.trim()) {
+                setErrors((prev) => ({ ...prev, description: 'Project description is required and cannot be blank' }));
+              } else if (description.trim().length < 5) {
+                setErrors((prev) => ({ ...prev, description: 'Project description must be at least 5 characters' }));
+              }
+            }}
+            className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all resize-none ${
+              touched.description && errors.description
+                ? 'border-rose-400 focus:ring-rose-500/30 focus:border-rose-500 bg-rose-50/20'
+                : 'border-slate-200 focus:ring-indigo-500/30 focus:border-indigo-500'
+            }`}
           />
+          {touched.description && errors.description ? (
+            <p className="text-[11px] text-rose-500 font-medium flex items-center gap-1 animate-in fade-in">
+              <AlertCircle className="w-3 h-3 shrink-0" />
+              <span>{errors.description}</span>
+            </p>
+          ) : (
+            <p className="text-[11px] text-slate-400">
+              Briefly describe the initiative scope, objectives, and deliverables.
+            </p>
+          )}
         </div>
 
         {/* Team Members with Roles */}
@@ -374,10 +552,22 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           <div className="flex items-center justify-between">
             <label className="block text-xs font-bold text-slate-800 flex items-center gap-2">
               <Users className="w-3.5 h-3.5 text-indigo-600" />
-              Team Members & Initial Roles ({members.length})
+              <span>
+                Team Members & Initial Roles <span className="text-rose-500">*</span>
+              </span>
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
+                {members.length} added
+              </span>
             </label>
-            <span className="text-[11px] text-slate-400">Can be updated anytime</span>
+            <span className="text-[11px] text-slate-400">At least 1 member required</span>
           </div>
+
+          {touched.members && errors.members && members.length === 0 && (
+            <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+              <span>{errors.members}</span>
+            </div>
+          )}
 
           {/* Add Member Selector Row */}
           <div className="p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/90 space-y-3">
@@ -558,7 +748,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting || !name.trim()}
+            disabled={isSubmitting}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-md shadow-indigo-500/25 transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />

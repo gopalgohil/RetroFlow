@@ -10,7 +10,9 @@ const memberInputSchema = z.object({
     .string({ required_error: 'Member email is required' })
     .trim()
     .email('Please provide a valid work email'),
-  role: z.enum(['Manager', 'Developer', 'QA', 'Viewer']).default('Developer'),
+  role: z
+    .enum(['Manager', 'Developer', 'QA', 'QA / Tester', 'DevOps', 'Project Lead', 'Viewer'])
+    .default('Developer'),
 });
 
 export const createProjectSchema = z.object({
@@ -25,7 +27,11 @@ export const createProjectSchema = z.object({
     .min(2, 'Key must be at least 2 characters')
     .max(8, 'Key must be at most 8 characters')
     .regex(/^[A-Za-z0-9]+$/, 'Key must be alphanumeric'),
-  description: z.string().trim().max(1000).optional().default(''),
+  description: z
+    .string({ required_error: 'Project description is required' })
+    .trim()
+    .min(3, 'Project description must be at least 3 characters')
+    .max(1000, 'Project description must be under 1000 characters'),
   type: z.enum(['scrum', 'kanban']).default('scrum'),
   cadence: z.enum(['1_week', '2_weeks', '3_weeks', 'custom']).default('2_weeks'),
   customCadenceDays: z.coerce.number().min(1).max(90).optional(),
@@ -38,7 +44,10 @@ export const createProjectSchema = z.object({
       avatar: z.string().optional(),
     })
     .optional(),
-  members: z.array(memberInputSchema).optional().default([]),
+  members: z
+    .array(memberInputSchema)
+    .min(1, 'Please assign at least one team member to the project')
+    .default([]),
 });
 
 export const updateProjectSchema = z.object({
