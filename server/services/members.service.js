@@ -231,10 +231,16 @@ class MembersService {
   async removeWhitelistMember(userId, email) {
     const cleanEmail = email.toLowerCase().trim();
 
-    await RetroBoard.updateMany(
-      { createdBy: userId },
-      { $pull: { approvedMembers: cleanEmail } }
-    );
+    await Promise.all([
+      RetroBoard.updateMany(
+        { createdBy: userId },
+        { $pull: { approvedMembers: cleanEmail } }
+      ),
+      Project.updateMany(
+        {},
+        { $pull: { members: { email: cleanEmail } } }
+      ),
+    ]);
 
     return {
       email: cleanEmail,
