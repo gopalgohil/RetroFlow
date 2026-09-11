@@ -88,7 +88,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const fetchSessions = useCallback(async () => {
     // Abort previous in-flight request if still running
     if (sessionsAbortRef.current) {
-      sessionsAbortRef.current.abort();
+      sessionsAbortRef.current.abort('New search or session request triggered');
     }
     const controller = new AbortController();
     sessionsAbortRef.current = controller;
@@ -103,7 +103,14 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
       setSessions(list);
     } catch (err: any) {
-      if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || controller.signal.aborted) {
+      const isAborted =
+        err?.name === 'AbortError' ||
+        err?.name === 'CanceledError' ||
+        err?.code === 'ERR_CANCELED' ||
+        controller.signal.aborted ||
+        (err?.message && String(err.message).toLowerCase().includes('aborted'));
+
+      if (isAborted) {
         return;
       }
       console.error('Failed to load retrospectives:', err.message);
@@ -178,7 +185,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     ) => {
       // Abort any existing in-flight request
       if (membersAbortRef.current) {
-        membersAbortRef.current.abort();
+        membersAbortRef.current.abort('New member request triggered');
       }
       const controller = new AbortController();
       membersAbortRef.current = controller;
@@ -227,7 +234,14 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
           }
         }
       } catch (err: any) {
-        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || controller.signal.aborted) {
+        const isAborted =
+          err?.name === 'AbortError' ||
+          err?.name === 'CanceledError' ||
+          err?.code === 'ERR_CANCELED' ||
+          controller.signal.aborted ||
+          (err?.message && String(err.message).toLowerCase().includes('aborted'));
+
+        if (isAborted) {
           return;
         }
         console.error('Failed to load workspace members:', err.message);
@@ -342,6 +356,14 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       fetchSettings();
     }
   }, [activeTab, fetchSessions, fetchMembers, fetchSettings]);
+
+  // 6. Cleanup active abort controllers on unmount
+  useEffect(() => {
+    return () => {
+      sessionsAbortRef.current?.abort('Component unmounted');
+      membersAbortRef.current?.abort('Component unmounted');
+    };
+  }, []);
 
   return {
     user,

@@ -290,24 +290,26 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                       <ArrowUpRight className="w-3 h-3" />
                     </Link>
 
-                    <button
-                      type="button"
-                      onClick={() => handleShareClick(retro)}
-                      title="Share or Invite Teammates"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-indigo-50/70 hover:bg-indigo-100/90 text-indigo-700 border-indigo-200/80 hover:border-indigo-300 shadow-2xs"
-                    >
-                      {isCopied ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-                          <span className="text-emerald-700 font-bold">Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Share2 className="w-3.5 h-3.5 text-indigo-600" />
-                          <span>Share / Invite</span>
-                        </>
-                      )}
-                    </button>
+                    {canManageProject && (
+                      <button
+                        type="button"
+                        onClick={() => handleShareClick(retro)}
+                        title="Share or Invite Teammates"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-indigo-50/70 hover:bg-indigo-100/90 text-indigo-700 border-indigo-200/80 hover:border-indigo-300 shadow-2xs"
+                      >
+                        {isCopied ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                            <span className="text-emerald-700 font-bold">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="w-3.5 h-3.5 text-indigo-600" />
+                            <span>Share / Invite</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
 
                   {/* Right: Quick Action Buttons (Admin & Project Leads only) */}
@@ -339,12 +341,14 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         </div>
       )}
 
-      {/* Share / Invite Teammates Modal */}
-      <ShareInviteModal
-        isOpen={Boolean(invitingSession)}
-        onClose={() => setInvitingSession(null)}
-        session={invitingSession}
-      />
+      {/* Share / Invite Teammates Modal (Admin, Manager & Project Lead only) */}
+      {canManageProject && (
+        <ShareInviteModal
+          isOpen={Boolean(invitingSession)}
+          onClose={() => setInvitingSession(null)}
+          session={invitingSession}
+        />
+      )}
 
       {/* Edit Retrospective Modal */}
       {editingRetro && (

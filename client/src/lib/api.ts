@@ -151,6 +151,17 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
 
     return data;
   } catch (err: any) {
+    const isAbort =
+      err?.name === 'AbortError' ||
+      err?.code === 20 ||
+      (err?.message && String(err.message).toLowerCase().includes('aborted'));
+
+    if (isAbort) {
+      // Intentionally aborted requests (e.g. search debounce, component unmount, rapid tab switch)
+      // are normal cancellation lifecycle events and should not be logged as API errors.
+      throw err;
+    }
+
     if (isDev) {
       console.error(`❌ [API Error] ${endpoint}:`, err.message);
     }

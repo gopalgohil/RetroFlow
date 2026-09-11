@@ -248,10 +248,19 @@ function ProjectDetailContent() {
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
+  const userRole = activeUser.role?.toLowerCase().trim();
   const isWorkspaceAdmin = Boolean(
-    activeUser.role?.toLowerCase() === 'admin' ||
+    userRole === 'admin' ||
     userEmail === 'gopalgohel249@gmail.com' ||
     userEmail?.includes('admin')
+  );
+
+  const isGlobalManagerOrLead = Boolean(
+    userRole === 'manager' ||
+    userRole === 'project lead' ||
+    userRole === 'team lead' ||
+    userRole?.includes('manager') ||
+    userRole?.includes('lead')
   );
 
   const isDesignatedLead = Boolean(
@@ -262,15 +271,20 @@ function ProjectDetailContent() {
     (m) => m.email?.toLowerCase().trim() === userEmail
   );
 
-  const isProjectManager = Boolean(userMemberRecord && userMemberRecord.role === 'Manager');
-  const isUserProjectLead = isDesignatedLead || isProjectManager;
+  const isProjectManager = Boolean(
+    userMemberRecord &&
+    (userMemberRecord.role === 'Manager' ||
+      userMemberRecord.role?.toLowerCase().includes('manager') ||
+      userMemberRecord.role?.toLowerCase().includes('lead'))
+  );
+  const isUserProjectLead = isDesignatedLead || isProjectManager || isGlobalManagerOrLead;
 
-  const canManageProject = isWorkspaceAdmin || isDesignatedLead || isProjectManager;
+  const canManageProject = isWorkspaceAdmin || isGlobalManagerOrLead || isDesignatedLead || isProjectManager;
 
   const currentUserRole =
     isDesignatedLead ? 'Project Lead' :
       isProjectManager ? 'Manager' :
-        userMemberRecord?.role || (isWorkspaceAdmin ? 'Admin' : 'Developer');
+        userMemberRecord?.role || (isWorkspaceAdmin ? 'Admin' : isGlobalManagerOrLead ? 'Manager' : 'Developer');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex selection:bg-indigo-500 selection:text-white font-sans">
@@ -310,7 +324,7 @@ function ProjectDetailContent() {
 
           {/* Right Header CTAs */}
           <div className="flex items-center gap-2.5">
-            {project && (
+            {project && canManageProject && (
               <button
                 type="button"
                 onClick={() => setIsShareModalOpen(true)}
@@ -545,18 +559,20 @@ function ProjectDetailContent() {
         }
       />
 
-      {/* Share Project & Member Invite Modal */}
-      <ShareProjectModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        project={project}
-        onProjectUpdated={(updatedProject) => {
-          setProject(updatedProject);
-          try {
-            sessionStorage.setItem(`retroflow_cached_project_${updatedProject.id}`, JSON.stringify(updatedProject));
-          } catch { }
-        }}
-      />
+      {/* Share Project & Member Invite Modal (Admin, Manager & Project Lead only) */}
+      {canManageProject && (
+        <ShareProjectModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          project={project}
+          onProjectUpdated={(updatedProject) => {
+            setProject(updatedProject);
+            try {
+              sessionStorage.setItem(`retroflow_cached_project_${updatedProject.id}`, JSON.stringify(updatedProject));
+            } catch { }
+          }}
+        />
+      )}
     </div>
   );
 }

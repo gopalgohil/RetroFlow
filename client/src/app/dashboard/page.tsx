@@ -67,11 +67,22 @@ function DashboardContent() {
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
+  const userRole = activeUser.role?.toLowerCase().trim();
   const isAdmin = Boolean(
-    activeUser.role?.toLowerCase() === 'admin' ||
+    userRole === 'admin' ||
     userEmail === 'gopalgohel249@gmail.com' ||
     userEmail?.includes('admin')
   );
+
+  const isManagerOrLead = Boolean(
+    userRole === 'manager' ||
+    userRole === 'project lead' ||
+    userRole === 'team lead' ||
+    userRole?.includes('manager') ||
+    userRole?.includes('lead')
+  );
+
+  const canManageSessions = isAdmin || isManagerOrLead;
 
   // Welcome Toast Notification (triggered only once on fresh login)
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
@@ -159,7 +170,7 @@ function DashboardContent() {
           pendingApprovalsCount={0}
           onCreateClick={handleCreateRetro}
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
-          isAdmin={isAdmin}
+          isAdmin={canManageSessions}
         />
 
         {/* Dynamic View Body with Component Skeletons */}
@@ -177,7 +188,7 @@ function DashboardContent() {
                   onEdit={handleEditRetro}
                   onDelete={deleteSession}
                   onCreateNew={handleCreateRetro}
-                  isAdmin={isAdmin}
+                  isAdmin={canManageSessions}
                 />
               )}
 
