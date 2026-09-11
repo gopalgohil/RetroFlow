@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import RetroBoard from '../models/RetroBoard.js';
+import projectService from '../services/project.service.js';
 
 /**
  * Socket.io Real-Time Retrospective Collaboration Controller
@@ -84,6 +85,9 @@ export function initRetroSocket(io) {
         const roomName = `retro:${shareToken}`;
         // Broadcast to ALL sockets in the room (including sender)
         retroNamespace.to(roomName).emit('card:created', newCard);
+
+        // Dynamically sync real-time card and action item counts to parent projects
+        projectService.syncRetroBoardToProjects(shareToken, retroNamespace).catch(() => {});
 
         if (callback) callback({ success: true, card: newCard });
       } catch (err) {
@@ -194,6 +198,9 @@ export function initRetroSocket(io) {
 
         const roomName = `retro:${shareToken}`;
         retroNamespace.to(roomName).emit('card:deleted', { cardId });
+
+        // Dynamically sync real-time card and action item counts to parent projects
+        projectService.syncRetroBoardToProjects(shareToken, retroNamespace).catch(() => {});
 
         if (callback) callback({ success: true });
       } catch (err) {

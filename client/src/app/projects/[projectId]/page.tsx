@@ -22,6 +22,7 @@ import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
 import { CreateRetroPayload } from '@/types/retro';
 import { api, ENDPOINTS } from '@/lib/api';
+import { getRetroSocket } from '@/lib/socket';
 import {
   FolderKanban,
   Calendar,
@@ -147,12 +148,24 @@ function ProjectDetailContent() {
       });
   };
 
-  // Sync tab with URL
+  // Sync tab with URL and immediately pull fresh live metrics on tab switch
   const handleTabChange = (newTab: 'overview' | 'sprints' | 'retros' | 'team') => {
     setActiveTab(newTab);
     const targetId = project?.id || projectId;
     const url = `/projects/${targetId}?tab=${newTab}`;
     window.history.pushState(null, '', url);
+
+    // Re-fetch project to guarantee fresh retrospective thoughts & action items
+    ProjectApiService.getProjectById(targetId)
+      .then((p) => {
+        if (p) {
+          setProject(p);
+          try {
+            sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
+          } catch { }
+        }
+      })
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -200,6 +213,84 @@ function ProjectDetailContent() {
       isMounted = false;
     };
   }, [projectId]);
+
+  // Real-time live synchronization for retrospective metrics (cardsCount, actionItemsCount, topicsCount)
+  useEffect(() => {
+    let socket: any = null;
+    try {
+      socket = getRetroSocket();
+
+      const onMetricsUpdated = (data: {
+        shareToken: string;
+        cardsCount: number;
+        actionItemsCount: number;
+        topicsCount?: number;
+      }) => {
+        if (!data?.shareToken) return;
+        setProject((prev) => {
+          if (!prev || !prev.retrospectives) return prev;
+          let hasMatch = false;
+          const updatedRetros = prev.retrospectives.map((r) => {
+            if (r.shareToken === data.shareToken || r.id === data.shareToken) {
+              hasMatch = true;
+              return {
+                ...r,
+                cardsCount: data.cardsCount,
+                actionItemsCount: data.actionItemsCount,
+                topicsCount: data.topicsCount ?? r.topicsCount,
+              };
+            }
+            return r;
+          });
+          if (!hasMatch) return prev;
+          const updatedProj = { ...prev, retrospectives: updatedRetros };
+          try {
+            sessionStorage.setItem(`retroflow_cached_project_${updatedProj.id}`, JSON.stringify(updatedProj));
+          } catch { }
+          return updatedProj;
+        });
+      };
+
+      socket.on('retro:metrics_updated', onMetricsUpdated);
+
+      // Periodic gentle sync when user is on retros or overview tabs to ensure 100% real-time consistency
+      const pollTimer = setInterval(() => {
+        if (activeTab === 'retros' || activeTab === 'overview') {
+          ProjectApiService.getProjectById(projectId)
+            .then((fresh) => {
+              if (fresh) {
+                setProject((current) => {
+                  if (JSON.stringify(current?.retrospectives) !== JSON.stringify(fresh.retrospectives)) {
+                    return fresh;
+                  }
+                  return current;
+                });
+              }
+            })
+            .catch(() => {});
+        }
+      }, 4000);
+
+      const handleWindowFocus = () => {
+        ProjectApiService.getProjectById(projectId)
+          .then((fresh) => {
+            if (fresh) setProject(fresh);
+          })
+          .catch(() => {});
+      };
+      window.addEventListener('focus', handleWindowFocus);
+
+      return () => {
+        if (socket) {
+          socket.off('retro:metrics_updated', onMetricsUpdated);
+        }
+        clearInterval(pollTimer);
+        window.removeEventListener('focus', handleWindowFocus);
+      };
+    } catch (e) {
+      console.warn('[ProjectDetail] Live retro socket listener init:', e);
+    }
+  }, [projectId, activeTab]);
 
   const handleRetroSave = async (payload: CreateRetroPayload) => {
     try {

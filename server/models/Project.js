@@ -139,7 +139,7 @@ const projectMemberSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['Manager', 'Developer', 'QA', 'Viewer'],
+      trim: true,
       default: 'Developer',
     },
     avatar: {

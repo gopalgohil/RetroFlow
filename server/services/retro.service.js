@@ -1,6 +1,7 @@
 import RetroBoard from '../models/RetroBoard.js';
 import Project from '../models/Project.js';
 import User from '../models/User.js';
+import projectService from './project.service.js';
 import mongoose from 'mongoose';
 import { ApiError } from '../utils/ApiError.js';
 import env from '../config/env.js';
@@ -833,6 +834,10 @@ class RetroService {
       throw ApiError.notFound('Retrospective session not found');
     }
 
+    if (retro.shareToken) {
+      projectService.syncRetroBoardToProjects(retro.shareToken).catch(() => {});
+    }
+
     return newCard;
   }
 
@@ -889,6 +894,10 @@ class RetroService {
 
     if (!retro) {
       throw ApiError.notFound('Retrospective session not found');
+    }
+
+    if (retro.shareToken) {
+      projectService.syncRetroBoardToProjects(retro.shareToken).catch(() => {});
     }
 
     return { success: true, cardId };

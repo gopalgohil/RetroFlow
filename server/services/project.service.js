@@ -222,18 +222,171 @@ class ProjectService {
       };
     }
 
-    // High-performance lean query with virtual activeSprint hydration
-    const rawProjects = await Project.find(query).sort({ createdAt: -1 }).lean();
+    // High-performance query with live synced retrospective card & action item counts
+    const rawProjects = await Project.find(query).sort({ createdAt: -1 });
 
-    return rawProjects.map((p) => {
-      const id = p._id.toString();
-      const activeSprint = p.sprints?.find((s) => s.status === 'active') || p.sprints?.[0] || null;
-      return {
-        ...p,
-        id,
-        activeSprint,
+    const syncedProjects = await Promise.all(
+      rawProjects.map(async (p) => {
+        await this.syncProjectRetrospectives(p);
+        const id = p._id.toString();
+        const activeSprint = p.sprints?.find((s) => s.status === 'active') || p.sprints?.[0] || null;
+        return {
+          ...(p.toObject ? p.toObject() : p),
+          id,
+          activeSprint,
+        };
+      })
+    );
+
+    return syncedProjects;
+  }
+
+  /**
+   * Dynamically sync real-time card and action item metrics from live RetroBoard collection
+   */
+  async syncProjectRetrospectives(project) {
+    if (!project || !project.retrospectives || project.retrospectives.length === 0) {
+      return project;
+    }
+
+    try {
+      const shareTokens = project.retrospectives.map((r) => r.shareToken).filter(Boolean);
+      const idStrings = project.retrospectives
+        .map((r) => r.id)
+        .filter((id) => mongoose.Types.ObjectId.isValid(id));
+
+      const retroBoards = await RetroBoard.find({
+        $or: [
+          { shareToken: { $in: shareTokens } },
+          { _id: { $in: idStrings } },
+        ],
+      }).lean();
+
+      const boardMap = new Map();
+      retroBoards.forEach((b) => {
+        if (b.shareToken) boardMap.set(b.shareToken, b);
+        if (b._id) boardMap.set(b._id.toString(), b);
+      });
+
+      let hasChanges = false;
+      for (const retroItem of project.retrospectives) {
+        const liveBoard = boardMap.get(retroItem.shareToken) || boardMap.get(retroItem.id);
+        if (liveBoard) {
+          const totalCards = Array.isArray(liveBoard.cards) ? liveBoard.cards.length : 0;
+          const actionTopics = (liveBoard.topics || []).filter((t) => {
+            const title = (t.title || '').toLowerCase();
+            return title.includes('action') || title.includes('deliverable') || title.includes('task') || t.topicId === 'topic-3';
+          });
+          const actionTopicIds = new Set(actionTopics.map((t) => t.topicId));
+
+          const actionItemsCount = Array.isArray(liveBoard.cards)
+            ? liveBoard.cards.filter((c) => actionTopicIds.has(c.topicId)).length
+            : 0;
+
+          const topicsCount = (liveBoard.topics || []).length;
+
+          if (
+            retroItem.cardsCount !== totalCards ||
+            retroItem.actionItemsCount !== actionItemsCount ||
+            retroItem.topicsCount !== topicsCount
+          ) {
+            retroItem.cardsCount = totalCards;
+            retroItem.actionItemsCount = actionItemsCount;
+            retroItem.topicsCount = topicsCount;
+            hasChanges = true;
+          }
+        }
+      }
+
+      if (hasChanges && project._id) {
+        await Project.updateOne(
+          { _id: project._id },
+          { $set: { retrospectives: project.retrospectives } }
+        ).catch(() => {});
+      }
+    } catch (err) {
+      console.warn('[ProjectService] Error syncing retrospectives metrics:', err.message);
+    }
+
+    return project;
+  }
+
+  /**
+   * Sync a specific retro board's live metrics across all parent projects
+   */
+  async syncRetroBoardToProjects(shareTokenOrId, retroNamespace = null) {
+    if (!shareTokenOrId) return null;
+    try {
+      const query = mongoose.Types.ObjectId.isValid(shareTokenOrId) && shareTokenOrId.length === 24
+        ? { $or: [{ _id: shareTokenOrId }, { shareToken: shareTokenOrId }] }
+        : { shareToken: shareTokenOrId };
+
+      const board = await RetroBoard.findOne(query).lean();
+      if (!board) return null;
+
+      const totalCards = Array.isArray(board.cards) ? board.cards.length : 0;
+      const actionTopics = (board.topics || []).filter((t) => {
+        const title = (t.title || '').toLowerCase();
+        return (
+          title.includes('action') ||
+          title.includes('deliverable') ||
+          title.includes('task') ||
+          t.topicId === 'topic-3'
+        );
+      });
+      const actionTopicIds = new Set(actionTopics.map((t) => t.topicId));
+      const actionItemsCount = Array.isArray(board.cards)
+        ? board.cards.filter((c) => actionTopicIds.has(c.topicId)).length
+        : 0;
+      const topicsCount = (board.topics || []).length;
+
+      const identifierConditions = [];
+      if (board.shareToken) identifierConditions.push({ 'retrospectives.shareToken': board.shareToken });
+      if (board._id) {
+        identifierConditions.push({ 'retrospectives.id': board._id.toString() });
+        identifierConditions.push({ 'retrospectives.id': board.id });
+      }
+
+      if (identifierConditions.length > 0) {
+        await Project.updateMany(
+          { $or: identifierConditions },
+          {
+            $set: {
+              'retrospectives.$[elem].cardsCount': totalCards,
+              'retrospectives.$[elem].actionItemsCount': actionItemsCount,
+              'retrospectives.$[elem].topicsCount': topicsCount,
+            },
+          },
+          {
+            arrayFilters: [
+              {
+                $or: [
+                  ...(board.shareToken ? [{ 'elem.shareToken': board.shareToken }] : []),
+                  ...(board._id ? [{ 'elem.id': board._id.toString() }] : []),
+                  ...(board.id ? [{ 'elem.id': board.id }] : []),
+                ],
+              },
+            ],
+          }
+        ).catch(() => {});
+      }
+
+      const payload = {
+        shareToken: board.shareToken,
+        cardsCount: totalCards,
+        actionItemsCount,
+        topicsCount,
       };
-    });
+
+      if (retroNamespace) {
+        retroNamespace.emit('retro:metrics_updated', payload);
+      }
+
+      return payload;
+    } catch (err) {
+      console.warn('[ProjectService] Error in syncRetroBoardToProjects:', err.message);
+      return null;
+    }
   }
 
   /**
@@ -257,6 +410,9 @@ class ProjectService {
     }
 
     if (!project) return null;
+
+    // Dynamically calculate and sync live retrospective counts before checking permissions
+    await this.syncProjectRetrospectives(project);
 
     // Admin has unrestricted master access to all projects
     const isAdmin =
