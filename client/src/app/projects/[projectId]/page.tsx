@@ -7,6 +7,8 @@ import {
   Sidebar,
   CustomizeRetroModal,
   WelcomeToast,
+  MyProfileModal,
+  LogoutConfirmModal,
 } from '@/components/dashboard';
 import { ProjectSwitcher } from '@/components/navigation/ProjectSwitcher';
 import {
@@ -37,6 +39,9 @@ import {
   Search,
   Bell,
   Menu,
+  ChevronDown,
+  LogOut,
+  User as UserIcon,
 } from 'lucide-react';
 
 function ProjectDetailContent() {
@@ -61,7 +66,12 @@ function ProjectDetailContent() {
     }
     return ProjectDataService.getProjectById(projectId) || null;
   });
-  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(() => {
+  const [currentUser, setCurrentUser] = useState<{
+    name: string;
+    email: string;
+    role?: string;
+    projectRole?: string;
+  } | null>(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('retroflow_user');
@@ -81,6 +91,73 @@ function ProjectDetailContent() {
   const [isCreateRetroOpen, setIsCreateRetroOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isSwitchingProject, setIsSwitchingProject] = useState(false);
+
+  // Profile dropdown & logout confirmation modals state
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const profileDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Handle outside click & Escape key to close profile dropdown
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // Sync live profile from backend dynamically
+  useEffect(() => {
+    const syncProfile = () => {
+      api
+        .get(ENDPOINTS.AUTH.ME)
+        .then((res) => {
+          if (res?.data && res.data.email) {
+            setCurrentUser(res.data);
+            try {
+              localStorage.setItem('retroflow_user', JSON.stringify(res.data));
+            } catch {}
+          }
+        })
+        .catch(() => {});
+    };
+
+    syncProfile();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncProfile();
+      }
+    };
+    window.addEventListener('focus', syncProfile);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('focus', syncProfile);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // Logout handler
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('retroflow_token');
+      localStorage.removeItem('retroflow_user');
+      localStorage.removeItem('retroflow_active_project_id');
+      sessionStorage.clear();
+      router.push('/login');
+    }
+  };
 
   useEffect(() => {
     try {
@@ -409,6 +486,24 @@ function ProjectDetailContent() {
   // 4. Project management general (sprints, tabs)
   const canManageProject = Boolean(isWorkspaceAdmin || isManager || isProjectLead);
 
+  const initials = activeUser.name
+    ? activeUser.name
+        .split(' ')
+        .filter(Boolean)
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'G';
+
+  const displayRole = isWorkspaceAdmin
+    ? 'Admin'
+    : (activeUser as any).projectRole &&
+      (activeUser as any).projectRole !== 'member' &&
+      (activeUser as any).projectRole !== 'Unassigned'
+    ? (activeUser as any).projectRole
+    : effectiveRole || 'Developer';
+
   const currentUserRole =
     isWorkspaceAdmin ? 'Admin' :
     isManager ? 'Manager' :
@@ -428,7 +523,7 @@ function ProjectDetailContent() {
         activeSessionsCount={1}
         user={activeUser}
         isAdmin={isWorkspaceAdmin}
-        onLogout={() => router.push('/login')}
+        onLogout={() => setIsLogoutModalOpen(true)}
         isOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
@@ -477,14 +572,121 @@ function ProjectDetailContent() {
               </button>
             )}
 
-            <Link
-              href="/dashboard"
-              className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors text-xs font-semibold"
-              title="Return to Main Workspace"
-            >
-              <span className="hidden md:inline">Dashboard</span>
-              <span className="md:hidden">Back</span>
-            </Link>
+            {/* User Profile Dropdown Pill */}
+            <div className="relative shrink-0" ref={profileDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
+                aria-expanded={isProfileDropdownOpen}
+                aria-haspopup="true"
+                className="flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-2.5 pr-2.5 sm:pr-3 py-1.5 rounded-2xl bg-white hover:bg-slate-50/90 border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer select-none"
+              >
+                {/* User Initials Avatar */}
+                <div
+                  suppressHydrationWarning
+                  className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
+                >
+                  {initials}
+                </div>
+
+                {/* User Name & Role */}
+                <div className="text-left hidden sm:block">
+                  <p suppressHydrationWarning className="text-xs font-bold text-slate-900 leading-tight">
+                    {activeUser.name || 'Gopal'}
+                  </p>
+                  <p suppressHydrationWarning className="text-[11px] font-medium text-slate-400 capitalize leading-tight">
+                    {displayRole}
+                  </p>
+                </div>
+
+                {/* Chevron icon toggles up/down on open */}
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                    isProfileDropdownOpen ? 'rotate-180 text-indigo-600' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isProfileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-slate-200/90 shadow-xl shadow-slate-900/10 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  {/* Profile Overview Box */}
+                  <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 mb-1">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        suppressHydrationWarning
+                        className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
+                      >
+                        {initials}
+                      </div>
+                      <div className="overflow-hidden flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <p suppressHydrationWarning className="text-xs font-bold text-slate-900 truncate">
+                            {activeUser.name || 'Gopal'}
+                          </p>
+                          <span
+                            suppressHydrationWarning
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 leading-none ${
+                              displayRole.toLowerCase() === 'admin'
+                                ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                                : displayRole.toLowerCase() === 'manager'
+                                ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                : displayRole.toLowerCase() === 'project lead'
+                                ? 'bg-sky-100 text-sky-800 border border-sky-200'
+                                : displayRole.toLowerCase().includes('qa') || displayRole.toLowerCase().includes('tester')
+                                ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                : displayRole.toLowerCase() === 'devops'
+                                ? 'bg-cyan-100 text-cyan-800 border border-cyan-200'
+                                : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            }`}
+                          >
+                            {displayRole}
+                          </span>
+                        </div>
+                        <p
+                          suppressHydrationWarning
+                          className="text-[11px] text-slate-500 font-medium truncate mt-0.5"
+                          title={activeUser.email}
+                        >
+                          {activeUser.email || 'gopalgohel249@gmail.com'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action items */}
+                  <div className="pt-1 space-y-0.5">
+                    {/* My Profile Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileDropdownOpen(false);
+                        setIsProfileModalOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50/70 transition-colors cursor-pointer text-left group"
+                    >
+                      <UserIcon className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                      <span>My Profile</span>
+                    </button>
+
+                    <div className="my-1 h-px bg-slate-100" />
+
+                    {/* Logout Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileDropdownOpen(false);
+                        setIsLogoutModalOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+                    >
+                      <LogOut className="w-4 h-4 text-rose-500" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -705,6 +907,25 @@ function ProjectDetailContent() {
           }}
         />
       )}
+
+      {/* My Profile Modal */}
+      <MyProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={activeUser}
+        onUserUpdated={(updated) => setCurrentUser((prev) => ({ ...(prev || {}), ...updated }))}
+      />
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          setIsLogoutModalOpen(false);
+          handleLogout();
+        }}
+        user={activeUser}
+      />
     </div>
   );
 }
