@@ -164,7 +164,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     hasPrevPage: false,
   });
   const [membersPage, setMembersPage] = useState<number>(1);
-  const [membersLimit, setMembersLimit] = useState<number>(5);
+  const [membersLimit, setMembersLimit] = useState<number>(10);
   const [membersSearch, setMembersSearch] = useState<string>('');
   const [isMembersLoading, setIsMembersLoading] = useState(false);
   const membersAbortRef = useRef<AbortController | null>(null);

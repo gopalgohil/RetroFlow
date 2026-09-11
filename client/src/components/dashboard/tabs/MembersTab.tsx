@@ -51,7 +51,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   members,
   pagination,
   currentPage = 1,
-  currentLimit = 5,
+  currentLimit = 10,
   searchQuery = '',
   isLoading,
   onRefresh,
@@ -457,9 +457,9 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                     onChange={(e) => onLimitChange(Number(e.target.value))}
                     className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                   >
-                    <option value={5}>5 per page</option>
                     <option value={10}>10 per page</option>
                     <option value={20}>20 per page</option>
+                    <option value={50}>50 per page</option>
                   </select>
                 </div>
               )}

@@ -13,7 +13,7 @@ class MembersController {
    */
   getMembers = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 5;
+    const limit = parseInt(req.query.limit, 10) || 10;
     const search = req.query.search || '';
 
     const result = await membersService.getWorkspaceMembers(req.user._id, {

@@ -13,7 +13,7 @@ class MembersService {
    * @param {string|ObjectId} userId - Requesting facilitator ID
    * @returns {Promise<Array>} List of formatted workspace members
    */
-  async getWorkspaceMembers(userId, { page = 1, limit = 5, search = '' } = {}) {
+  async getWorkspaceMembers(userId, { page = 1, limit = 10, search = '' } = {}) {
     // 1. Concurrently fetch registered users, facilitator retros, and active projects
     const [users, retros, projects] = await Promise.all([
       User.find({}, 'name email role createdAt isVerified').lean(),
