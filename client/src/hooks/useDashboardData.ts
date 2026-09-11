@@ -78,17 +78,32 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     }
 
     // Sync live profile from backend
-    api
-      .get(ENDPOINTS.AUTH.ME)
-      .then((res) => {
-        if (res?.data && res.data.email) {
-          setUser(res.data);
-          try {
-            localStorage.setItem('retroflow_user', JSON.stringify(res.data));
-          } catch {}
-        }
-      })
-      .catch(() => {});
+    const syncProfile = () => {
+      api
+        .get(ENDPOINTS.AUTH.ME)
+        .then((res) => {
+          if (res?.data && res.data.email) {
+            setUser(res.data);
+            try {
+              localStorage.setItem('retroflow_user', JSON.stringify(res.data));
+            } catch {}
+          }
+        })
+        .catch(() => {});
+    };
+
+    syncProfile();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncProfile();
+      }
+    };
+    window.addEventListener('focus', syncProfile);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('focus', syncProfile);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [router]);
 
   // 2. Retrospective Sessions State & Actions
@@ -348,6 +363,16 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
               : m
           )
         );
+        setUser((prevUser) => {
+          if (prevUser && prevUser.email && prevUser.email.toLowerCase() === email.toLowerCase()) {
+            const updated = { ...prevUser, projectRole: newRole };
+            try {
+              localStorage.setItem('retroflow_user', JSON.stringify(updated));
+            } catch {}
+            return updated;
+          }
+          return prevUser;
+        });
         showToast(`Role updated to ${newRole} for ${email}`);
       } catch (err: any) {
         showToast(err.message || 'Failed to update member role');

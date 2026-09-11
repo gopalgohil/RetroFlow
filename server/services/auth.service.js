@@ -39,6 +39,8 @@ class AuthService {
         name: name.trim(),
         email: normalizedEmail,
         password,
+        role: 'member',
+        projectRole: 'Developer',
         isVerified: false,
         verificationOtp: otp,
         verificationOtpExpires: otpExpires,
@@ -153,6 +155,7 @@ class AuthService {
         email: normalizedEmail,
         password,
         role: 'admin',
+        projectRole: 'Manager',
         isVerified: true,
       });
       console.log(`\n👑 [Admin Account Auto-Provisioned] ${normalizedEmail} successfully initialized as verified Admin.\n`);
@@ -169,10 +172,11 @@ class AuthService {
     if (normalizedEmail === 'gopalgohel249@gmail.com' && (!user.isVerified || user.role !== 'admin')) {
       await User.updateOne(
         { _id: user._id },
-        { $set: { isVerified: true, role: 'admin' } }
+        { $set: { isVerified: true, role: 'admin', projectRole: 'Manager' } }
       );
       user.isVerified = true;
       user.role = 'admin';
+      user.projectRole = 'Manager';
     }
 
     // Block login if email is not verified yet
@@ -199,13 +203,20 @@ class AuthService {
 
     const token = generateToken({ id: user._id, email: user.email, role: user.role || 'member' });
 
+    const effectiveRole =
+      user.role === 'admin' || user.email === 'gopalgohel249@gmail.com'
+        ? 'Manager'
+        : user.projectRole && user.projectRole !== 'Unassigned'
+        ? user.projectRole
+        : 'Developer';
+
     return {
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role || 'member',
-        projectRole: user.projectRole || (user.role === 'admin' ? 'Manager' : 'Developer'),
+        projectRole: effectiveRole,
       },
       token,
     };
@@ -284,19 +295,30 @@ class AuthService {
       throw ApiError.notFound('User profile not found.');
     }
 
+    const email = user.email.toLowerCase().trim();
+    const isAdmin = user.role === 'admin' || email === 'gopalgohel249@gmail.com' || email.includes('admin');
+
     // Retrieve active projects the user participates in or created
     const userProjects = await Project.find({
       isArchived: { $ne: true },
       $or: [
         { createdBy: userId },
-        { 'teamMembers.email': user.email.toLowerCase().trim() },
+        { 'lead.email': email },
+        { 'members.email': email },
       ],
     })
       .select('id key name')
       .lean();
 
+    const effectiveProjectRole = isAdmin
+      ? 'Manager'
+      : user.projectRole && user.projectRole !== 'Unassigned'
+      ? user.projectRole
+      : 'Developer';
+
     return {
       ...user.toObject(),
+      projectRole: effectiveProjectRole,
       activeProjectsCount: userProjects.length,
       activeProjects: userProjects.map((p) => ({ id: p._id?.toString() || p.id, key: p.key, name: p.name })),
     };

@@ -61,7 +61,12 @@ function DashboardContent() {
     saveSettings,
   } = useDashboardData(activeTab, searchQuery);
 
-  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    name: string;
+    email: string;
+    role?: string;
+    projectRole?: string;
+  } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -198,7 +203,7 @@ function DashboardContent() {
           isAdmin={canManageSessions}
           user={activeUser}
           onLogout={handleLogout}
-          onUserUpdated={(updated) => setCurrentUser(updated)}
+          onUserUpdated={(updated) => setCurrentUser((prev) => ({ ...(prev || {}), ...updated }))}
         />
 
         {/* Dynamic View Body with Component Skeletons */}

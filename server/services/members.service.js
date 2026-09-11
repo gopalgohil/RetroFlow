@@ -73,7 +73,7 @@ class MembersService {
       const roleList = Array.from(stats.roles);
       const projectRole = isAdmin
         ? 'Admin'
-        : u.projectRole
+        : u.projectRole && u.projectRole !== 'Unassigned'
         ? u.projectRole
         : stats.isLead
         ? 'Project Lead'

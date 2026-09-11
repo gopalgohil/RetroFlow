@@ -14,9 +14,9 @@ interface DashboardHeaderProps {
   onOpenMobileMenu: () => void;
   isAdmin?: boolean;
   isLoading?: boolean;
-  user?: { name?: string; email?: string; role?: string } | null;
+  user?: { name?: string; email?: string; role?: string; projectRole?: string } | null;
   onLogout?: () => void;
-  onUserUpdated?: (updated: { name: string; email: string; role?: string }) => void;
+  onUserUpdated?: (updated: { name: string; email: string; role?: string; projectRole?: string }) => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -50,7 +50,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const displayRole = isUserAdmin
     ? 'Admin'
-    : (activeUser as any).projectRole || activeUser.role || 'Developer';
+    : (activeUser as any).projectRole &&
+      (activeUser as any).projectRole !== 'member' &&
+      (activeUser as any).projectRole !== 'Unassigned'
+    ? (activeUser as any).projectRole
+    : 'Developer';
 
   const initials = activeUser.name
     ? activeUser.name

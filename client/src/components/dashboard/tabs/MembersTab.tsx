@@ -421,7 +421,9 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               value={
                                 m.projectRole === 'QA Specialist' || m.projectRole === 'QA'
                                   ? 'QA'
-                                  : m.projectRole || 'Developer'
+                                  : m.projectRole && m.projectRole !== 'Unassigned'
+                                  ? m.projectRole
+                                  : 'Developer'
                               }
                               onChange={(e) => handleRoleSelect(m.email, e.target.value)}
                               disabled={updatingRoleEmail === m.email}
@@ -439,7 +441,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                             )}
                           </div>
                         ) : (
-                          <StatusPill status={m.projectRole || 'Developer'} />
+                          <StatusPill status={m.projectRole && m.projectRole !== 'Unassigned' ? m.projectRole : 'Developer'} />
                         )}
                       </td>
 
@@ -633,7 +635,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                     <span>{memberToRemove.projectsCount} {memberToRemove.projectsCount === 1 ? 'Project' : 'Projects'}</span>
                   </span>
                 )}
-                <StatusPill status={memberToRemove.projectRole || memberToRemove.role || 'Developer'} />
+                <StatusPill status={memberToRemove.projectRole && memberToRemove.projectRole !== 'Unassigned' ? memberToRemove.projectRole : memberToRemove.role || 'Developer'} />
               </div>
             </div>
 

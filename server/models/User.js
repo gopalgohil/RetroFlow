@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
     },
     projectRole: {
       type: String,
-      default: 'Unassigned',
+      default: 'Developer',
     },
     isVerified: {
       type: Boolean,

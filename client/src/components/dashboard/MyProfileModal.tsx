@@ -23,8 +23,9 @@ interface MyProfileModalProps {
     name?: string;
     email?: string;
     role?: string;
+    projectRole?: string;
   } | null;
-  onUserUpdated?: (updated: { name: string; email: string; role?: string }) => void;
+  onUserUpdated?: (updated: { name: string; email: string; role?: string; projectRole?: string }) => void;
 }
 
 export const MyProfileModal: React.FC<MyProfileModalProps> = ({
@@ -41,6 +42,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
     name: string;
     email: string;
     role: string;
+    projectRole?: string;
     isVerified: boolean;
     createdAt?: string;
     activeProjectsCount?: number;
@@ -49,6 +51,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
     name: user?.name || 'Gopal',
     email: user?.email || 'gopalgohel249@gmail.com',
     role: user?.role || 'admin',
+    projectRole: (user as any)?.projectRole || 'Developer',
     isVerified: true,
     activeProjectsCount: 0,
     activeProjects: [],
@@ -96,6 +99,9 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
           setProfileData(res.data);
           if (res.data.name) {
             setName(res.data.name);
+          }
+          if (onUserUpdated && res.data.email) {
+            onUserUpdated(res.data);
           }
         }
       })
@@ -160,6 +166,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
           name: updatedUser.name,
           email: profileData.email,
           role: profileData.role,
+          projectRole: profileData.projectRole,
         });
       }
 
@@ -220,6 +227,13 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
       })
     : 'September 2026';
 
+  const userProjectRole =
+    (profileData as any).projectRole ||
+    (user as any)?.projectRole ||
+    'Developer';
+
+  const displayRole = isAdmin ? 'Admin' : userProjectRole;
+
   return (
     <div
       className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
@@ -240,15 +254,23 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                 <h2 className="text-lg font-bold text-slate-900 leading-tight">
                   {profileData.name || 'Gopal'}
                 </h2>
-                {isAdmin ? (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-indigo-100 text-indigo-700 border border-indigo-200">
-                    Admin
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
-                    Developer
-                  </span>
-                )}
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                    isAdmin || displayRole.toLowerCase() === 'admin'
+                      ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
+                      : displayRole.toLowerCase() === 'manager'
+                      ? 'bg-blue-100 text-blue-800 border-blue-200'
+                      : displayRole.toLowerCase() === 'project lead'
+                      ? 'bg-sky-100 text-sky-800 border-sky-200'
+                      : displayRole.toLowerCase().includes('qa') || displayRole.toLowerCase().includes('tester')
+                      ? 'bg-purple-100 text-purple-800 border-purple-200'
+                      : displayRole.toLowerCase() === 'devops'
+                      ? 'bg-cyan-100 text-cyan-800 border-cyan-200'
+                      : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                  }`}
+                >
+                  {displayRole}
+                </span>
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <p className="text-xs text-slate-500 font-medium">{profileData.email}</p>
@@ -376,7 +398,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                   </div>
                   <div className="mt-1 flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-bold text-slate-800">
-                      {profileData.activeProjectsCount || 1}
+                      {profileData.activeProjectsCount || 0}
                     </span>
                     {profileData.activeProjects && profileData.activeProjects.length > 0 && (
                       <span className="px-2 py-0.5 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold">
