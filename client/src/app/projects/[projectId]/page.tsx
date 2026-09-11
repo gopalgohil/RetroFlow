@@ -422,8 +422,7 @@ function ProjectDetailContent() {
 
   const isWorkspaceAdmin = Boolean(
     userRole === 'admin' ||
-    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
-    (userEmail && userEmail.includes('admin'))
+    (userEmail && userEmail === 'gopalgohel249@gmail.com')
   );
 
   const isDesignatedLead = Boolean(

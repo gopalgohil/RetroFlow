@@ -39,14 +39,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const userEmail = activeUser.email?.toLowerCase().trim();
   const userRole = activeUser.role?.toLowerCase().trim();
-  const isUserAdmin =
-    isAdmin !== undefined
-      ? isAdmin
-      : Boolean(
-          userRole === 'admin' ||
-          (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
-          (userEmail && userEmail.includes('admin'))
-        );
+  const isRealAdmin = Boolean(
+    userRole === 'admin' ||
+    (userEmail && userEmail === 'gopalgohel249@gmail.com')
+  );
+
+  const isUserAdmin = isAdmin !== undefined ? (isAdmin && isRealAdmin) : isRealAdmin;
 
   const displayRole = isUserAdmin
     ? 'Admin'

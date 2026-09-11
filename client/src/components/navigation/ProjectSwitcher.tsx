@@ -159,8 +159,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   const userProjectRole = (effectiveUser?.projectRole || '').toLowerCase();
   const isAdmin =
     userRole === 'admin' ||
-    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
-    Boolean(userEmail && userEmail.includes('admin'));
+    (userEmail && userEmail === 'gopalgohel249@gmail.com');
   const isManager =
     isAdmin ||
     userProjectRole === 'manager' ||

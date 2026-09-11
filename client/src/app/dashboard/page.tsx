@@ -86,8 +86,7 @@ function DashboardContent() {
 
   const isAdmin = Boolean(
     userRole === 'admin' ||
-    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
-    (userEmail && userEmail.includes('admin'))
+    (userEmail && userEmail === 'gopalgohel249@gmail.com')
   );
 
   const isManager = Boolean(
@@ -200,7 +199,7 @@ function DashboardContent() {
           pendingApprovalsCount={0}
           onCreateClick={handleCreateRetro}
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
-          isAdmin={canManageSessions}
+          isAdmin={isAdmin}
           user={activeUser}
           onLogout={handleLogout}
           onUserUpdated={(updated) => setCurrentUser((prev) => ({ ...(prev || {}), ...updated }))}
