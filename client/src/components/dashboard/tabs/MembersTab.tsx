@@ -14,9 +14,11 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  FolderKanban,
 } from 'lucide-react';
 import { TeamMember, PaginationMeta } from '@/types/retro';
 import { useDebounce } from '@/hooks/useDebounce';
+import { UserAvatar, StatusPill } from '@/components/ui';
 
 interface MembersTabProps {
   members: TeamMember[];
@@ -223,88 +225,214 @@ export const MembersTab: React.FC<MembersTabProps> = ({
           </div>
         </div>
 
-        {/* Members List or Skeleton Loader */}
-        {isLoading ? (
-          <div className="divide-y divide-slate-100 px-5 sm:px-6">
-            {Array.from({ length: currentLimit || 5 }).map((_, idx) => (
-              <div
-                key={idx}
-                className="py-3.5 flex items-center justify-between gap-4 animate-pulse"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  {/* Skeleton Avatar */}
-                  <div className="w-9 h-9 rounded-xl bg-slate-200/80 shrink-0" />
-                  {/* Skeleton Name & Email */}
-                  <div className="space-y-1.5 min-w-0">
-                    <div className="h-3.5 w-28 sm:w-36 bg-slate-200/80 rounded-md" />
-                    <div className="h-2.5 w-36 sm:w-48 bg-slate-100 rounded-md" />
-                  </div>
-                </div>
-
-                {/* Skeleton Role & Status Pills */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="h-6 w-24 bg-slate-100 rounded-lg" />
-                  <div className="h-5 w-14 bg-slate-100 rounded-full" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : members.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-xs animate-in fade-in duration-150">
-            {localSearch
-              ? `No contributors found matching "${localSearch}". Try clearing search.`
-              : 'No team members found. Whitelist developers using the input above.'}
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100 px-5 sm:px-6 animate-in fade-in duration-150">
-            {members.map((m) => (
-              <div key={m.id || m.email} className="py-3.5 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xs flex items-center justify-center shrink-0 uppercase shadow-2xs">
-                    {m.name ? m.name.charAt(0) : m.email.charAt(0)}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-900 truncate">
-                      {m.name || m.email}
-                      {m.email === currentEmail && (
-                        <span className="ml-1.5 text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
-                          You
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-[11px] text-slate-400 truncate">{m.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100/80 px-2.5 py-0.5 rounded-lg">
-                    {m.role}
-                  </span>
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${
-                      m.status === 'active'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}
+        {/* Members Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-slate-600">
+            <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200/60">
+              <tr>
+                <th className="px-6 py-3.5">Member Name</th>
+                <th className="px-6 py-3.5">Assigned Projects</th>
+                <th className="px-6 py-3.5">Project Role</th>
+                <th className="px-6 py-3.5">Status</th>
+                <th className="px-6 py-3.5 text-right">Activity</th>
+                {isAdmin && (
+                  <th className="px-6 py-3.5 text-right">Actions</th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {isLoading ? (
+                Array.from({ length: currentLimit || 5 }).map((_, idx) => (
+                  <tr key={idx} className="animate-pulse">
+                    <td className="px-6 py-4 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-slate-200/80 shrink-0" />
+                      <div className="space-y-1.5">
+                        <div className="h-3.5 w-28 bg-slate-200/80 rounded-md" />
+                        <div className="h-2.5 w-16 bg-slate-100 rounded-md" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-6 w-24 bg-slate-100 rounded-lg" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-6 w-20 bg-slate-100 rounded-lg" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-5 w-14 bg-slate-100 rounded-full" />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="h-4 w-12 bg-slate-100 rounded ml-auto" />
+                    </td>
+                    {isAdmin && (
+                      <td className="px-6 py-4 text-right">
+                        <div className="h-7 w-16 bg-slate-100 rounded-xl ml-auto" />
+                      </td>
+                    )}
+                  </tr>
+                ))
+              ) : members.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={isAdmin ? 6 : 5}
+                    className="py-12 text-center text-slate-400 text-xs"
                   >
-                    {m.status}
-                  </span>
+                    {localSearch
+                      ? `No contributors found matching "${localSearch}". Try clearing search.`
+                      : 'No team members found. Whitelist developers using the input above.'}
+                  </td>
+                </tr>
+              ) : (
+                members.map((m, index) => {
+                  const isLeadOrAdmin =
+                    m.isPrimaryLead ||
+                    m.role?.toLowerCase().includes('admin') ||
+                    m.projectRole?.toLowerCase().includes('lead');
 
-                  {isAdmin && onRemoveMember && m.email !== currentEmail && (
-                    <button
-                      type="button"
-                      onClick={() => onRemoveMember(m.email)}
-                      title="Remove from Whitelist"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer ml-1"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                  return (
+                    <tr key={m.id || m.email} className="hover:bg-slate-50/50 transition-colors">
+                      {/* 1. Member Name (with avatar & online status) */}
+                      <td className="px-6 py-4 flex items-center gap-3">
+                        <UserAvatar
+                          name={m.name || m.email}
+                          avatar={m.avatar}
+                          size="md"
+                          status="online"
+                        />
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-slate-900">{m.name || m.email}</p>
+                            {m.email === currentEmail && (
+                              <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                                You
+                              </span>
+                            )}
+                          </div>
+                          {isLeadOrAdmin ? (
+                            <span className="text-[10px] text-indigo-600 font-semibold">
+                              Project Lead
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-slate-400">
+                              Team Member
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* 2. Assigned Projects (NO EMAIL COLUMN - Replaced with Project Count & Themed Hover Popover) */}
+                      <td className="px-6 py-4">
+                        {typeof m.projectsCount === 'number' && m.projectsCount > 0 ? (
+                          <div className="relative group inline-block hover:z-50">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs group-hover:bg-indigo-100/90 group-hover:border-indigo-300 group-hover:shadow-xs transition-all cursor-pointer select-none">
+                              <FolderKanban className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                              <span>{m.projectsCount} {m.projectsCount === 1 ? 'Project' : 'Projects'}</span>
+                            </span>
+
+                            {/* RetroFlow Themed Floating Popover */}
+                            <div
+                              className={`absolute left-0 ${
+                                index >= 2 ? 'bottom-full mb-2.5' : 'top-full mt-2.5'
+                              } z-50 w-64 bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-xl shadow-indigo-950/15 p-3.5 pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out`}
+                            >
+                              {/* Popover Header */}
+                              <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                                <div className="flex items-center gap-1.5">
+                                  <div className="w-5 h-5 rounded-md bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                                    <FolderKanban className="w-3 h-3" />
+                                  </div>
+                                  <span className="text-[11px] font-bold text-slate-900 tracking-tight">
+                                    Assigned Projects
+                                  </span>
+                                </div>
+                                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+                                  {m.projectsCount}
+                                </span>
+                              </div>
+
+                              {/* Project List */}
+                              <div className="pt-2 space-y-1.5 max-h-48 overflow-y-auto pr-0.5">
+                                {m.projectNames && m.projectNames.length > 0 ? (
+                                  m.projectNames.map((pName, pIdx) => (
+                                    <div
+                                      key={pIdx}
+                                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50/90 hover:bg-indigo-50/50 border border-slate-200/70 transition-colors"
+                                    >
+                                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                                      <span className="text-xs font-semibold text-slate-800 truncate">
+                                        {pName}
+                                      </span>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-[11px] text-slate-400 italic py-1">
+                                    No assigned projects
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Caret Arrow */}
+                              {index >= 2 ? (
+                                <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-white border-r border-b border-slate-200/90 rotate-45" />
+                              ) : (
+                                <div className="absolute -top-1.5 left-6 w-3 h-3 bg-white border-l border-t border-slate-200/90 rotate-45" />
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-400 border border-slate-200">
+                            0 Projects
+                          </span>
+                        )}
+                      </td>
+
+                      {/* 3. Project Role */}
+                      <td className="px-6 py-4">
+                        <StatusPill status={m.projectRole || m.role || 'Developer'} />
+                      </td>
+
+                      {/* 4. Status */}
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold text-[11px]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          Active
+                        </span>
+                      </td>
+
+                      {/* 5. Activity */}
+                      <td className="px-6 py-4 text-right">
+                        <span className="text-slate-400 text-[11px] font-mono">Synced</span>
+                      </td>
+
+                      {/* 6. Actions */}
+                      {isAdmin && (
+                        <td className="px-6 py-4 text-right">
+                          {isLeadOrAdmin || m.email === currentEmail ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 select-none"
+                              title="Designated Project Lead cannot be removed"
+                            >
+                              Primary Lead
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => onRemoveMember && onRemoveMember(m.email)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-rose-300 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
+                              title={`Remove ${m.name || m.email} from whitelist`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 transition-colors" />
+                              <span>Remove</span>
+                            </button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
 
         {/* Enterprise Backend Pagination Footer */}
         {totalItems > 0 && (

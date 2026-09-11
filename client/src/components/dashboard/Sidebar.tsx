@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -33,6 +33,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
 }) => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const activeUser = user || {
     name: 'Team Member',
@@ -41,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
-  const isAdmin = Boolean(
+  const isAdmin = mounted && Boolean(
     activeUser.role?.toLowerCase() === 'admin' ||
     (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
     (userEmail && userEmail.includes('admin'))
@@ -148,9 +153,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       }`}
                     />
                     <div className="text-left">
-                      <p>{item.label}</p>
+                      <p suppressHydrationWarning>{item.label}</p>
                       {item.sublabel && !isActive && (
-                        <p className="text-[10px] font-normal text-slate-400">{item.sublabel}</p>
+                        <p suppressHydrationWarning className="text-[10px] font-normal text-slate-400">{item.sublabel}</p>
                       )}
                     </div>
                   </div>

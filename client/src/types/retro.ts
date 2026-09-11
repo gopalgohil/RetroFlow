@@ -98,6 +98,11 @@ export interface TeamMember {
   status: 'active' | 'pending' | 'whitelisted';
   isWhitelisted: boolean;
   joinedAt: string;
+  avatar?: string;
+  projectRole?: string;
+  projectsCount?: number;
+  projectNames?: string[];
+  isPrimaryLead?: boolean;
 }
 
 export interface WorkspaceSettingsData {
