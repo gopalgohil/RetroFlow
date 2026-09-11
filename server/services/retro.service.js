@@ -568,7 +568,7 @@ class RetroService {
 
     const clientUrl = env.CLIENT_URL || 'http://localhost:3000';
     const inviteUrl = `${clientUrl}/retro/${retro.shareToken}?invite=${magicToken}`;
-    const senderName = retro.createdBy?.name || 'Your Agile Facilitator';
+    const senderName = retro.createdBy?.name || 'Your Workspace Admin';
 
     const htmlContent = emailService.getRetroInvitationTemplate({
       retroTitle: retro.title,

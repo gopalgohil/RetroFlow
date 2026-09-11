@@ -123,21 +123,27 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           </span>
           <span
             className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
-              isFacilitator
+              userRole?.toLowerCase() === 'admin'
+                ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                : userRole?.toLowerCase() === 'manager'
+                ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                : isFacilitator
                 ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
                 : userRole?.toLowerCase() === 'qa'
                 ? 'bg-purple-100 text-purple-800 border border-purple-200'
                 : userRole?.toLowerCase() === 'developer'
                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                : userRole?.toLowerCase() === 'manager'
-                ? 'bg-blue-100 text-blue-800 border border-blue-200'
                 : verifiedGuestEmail
                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                 : 'bg-slate-200 text-slate-700 border border-slate-300'
             }`}
           >
-            {isFacilitator
-              ? 'Facilitator'
+            {userRole?.toLowerCase() === 'admin'
+              ? 'Admin'
+              : userRole?.toLowerCase() === 'manager'
+              ? 'Manager'
+              : isFacilitator
+              ? 'Admin'
               : userRole
               ? userRole.toUpperCase()
               : verifiedGuestEmail

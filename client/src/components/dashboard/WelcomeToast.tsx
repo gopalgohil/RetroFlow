@@ -121,7 +121,7 @@ export const WelcomeToast: React.FC<WelcomeToastProps> = ({
 
           <p className="text-[11px] sm:text-xs text-slate-600 font-medium truncate mt-0.5 leading-tight">
             {isAdmin
-              ? `Welcome back, ${displayName}! Full facilitator access enabled.`
+              ? `Welcome back, ${displayName}! Full admin access enabled.`
               : `Welcome back, ${displayName}!`}
           </p>
         </div>

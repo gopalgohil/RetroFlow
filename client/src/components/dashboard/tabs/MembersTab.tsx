@@ -170,7 +170,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
             <div>
               <h3 className="text-sm font-bold text-slate-900">Instant Whitelist Access</h3>
               <p className="text-xs text-slate-500">
-                Developers on this whitelist bypass facilitator waiting room approvals.
+                Developers on this whitelist bypass admin waiting room approvals.
               </p>
             </div>
           </div>

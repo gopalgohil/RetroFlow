@@ -691,7 +691,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 max-w-md">
-                    Keep retrospective feedback cards blurred until the facilitator chooses to reveal them to avoid team bias.
+                    Keep retrospective feedback cards blurred until the admin chooses to reveal them to avoid team bias.
                   </p>
                 </div>
                 <input
@@ -742,7 +742,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 max-w-md">
-                    Guests and unauthorized teammates must be explicitly accepted by the session facilitator before entering.
+                    Guests and unauthorized teammates must be explicitly accepted by the session admin before entering.
                   </p>
                 </div>
                 <input

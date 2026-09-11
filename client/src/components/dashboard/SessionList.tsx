@@ -157,7 +157,7 @@ export const SessionList: React.FC<SessionListProps> = ({
             <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
               {isAdmin
                 ? 'Create your first custom agile retrospective session with customized topics, voting limits, and live sync.'
-                : 'You will see live sprint retrospectives here as soon as your Scrum Master or Facilitator invites you.'}
+                : 'You will see live sprint retrospectives here as soon as your Scrum Master or Admin invites you.'}
             </p>
           </div>
           {isAdmin && (

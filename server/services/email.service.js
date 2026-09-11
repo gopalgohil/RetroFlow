@@ -246,7 +246,7 @@ class EmailService {
   getRetroInvitationTemplate({
     retroTitle,
     inviteUrl,
-    senderName = 'Your Agile Facilitator',
+    senderName = 'Your Workspace Admin',
     description = '',
     customMessage = '',
     topics = [],

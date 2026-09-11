@@ -91,7 +91,7 @@ class MembersService {
         id: String(u._id),
         name: u.name,
         email: u.email,
-        role: isAdmin ? 'Facilitator & Admin' : 'Team Member',
+        role: isAdmin ? 'Admin' : 'Team Member',
         projectRole,
         projectsCount: stats.count,
         projectNames: stats.names,
