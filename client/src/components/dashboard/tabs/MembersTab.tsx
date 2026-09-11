@@ -30,7 +30,6 @@ export const AVAILABLE_PROJECT_ROLES = [
   { id: 'Manager', label: 'Manager', dotColor: 'bg-indigo-500', description: 'Agile planning & sprint oversight' },
   { id: 'DevOps', label: 'DevOps', dotColor: 'bg-cyan-500', description: 'CI/CD pipelines, cloud infra & deployments' },
   { id: 'Project Lead', label: 'Project Lead', dotColor: 'bg-sky-500', description: 'Technical leadership & project delivery' },
-  { id: 'Viewer', label: 'Viewer', dotColor: 'bg-slate-400', description: 'Read-only board observer' },
 ] as const;
 
 interface MembersTabProps {
