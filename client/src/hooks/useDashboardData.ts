@@ -308,11 +308,13 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const removeWhitelistMember = useCallback(
     async (email: string) => {
       try {
+        setMembers((prev) => prev.filter((m) => m.email.toLowerCase() !== email.toLowerCase()));
         await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}`);
-        showToast(`Developer ${email} removed from whitelist.`);
+        showToast(`Developer ${email} removed from workspace.`);
         await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {
-        showToast(err.message || 'Failed to remove member from whitelist');
+        showToast(err.message || 'Failed to remove member from workspace');
+        await fetchMembers(membersPage, membersLimit, membersSearch);
       }
     },
     [fetchMembers, membersPage, membersLimit, membersSearch, showToast]

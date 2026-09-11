@@ -228,22 +228,36 @@ class MembersService {
   }
 
   /**
-   * Remove developer email from whitelisted contributor list across facilitator retros
+   * Remove developer email from workspace: removes from User collection, all projects, and retro boards
    * @param {string|ObjectId} userId - Facilitator user ID
    * @param {string} email - Developer email to remove
    */
   async removeWhitelistMember(userId, email) {
     const cleanEmail = email.toLowerCase().trim();
 
+    // Guard: Prevent removing primary workspace admin
+    if (cleanEmail === 'gopalgohel249@gmail.com') {
+      throw new Error('Primary Workspace Admin cannot be removed.');
+    }
+
+    const targetUser = await User.findOne({ email: cleanEmail });
+    if (targetUser && targetUser.role === 'admin') {
+      throw new Error('Workspace Admin accounts cannot be removed.');
+    }
+
     await Promise.all([
+      // 1. Remove from all retro boards approved members
       RetroBoard.updateMany(
-        { createdBy: userId },
+        {},
         { $pull: { approvedMembers: cleanEmail } }
       ),
+      // 2. Remove from all projects team rosters
       Project.updateMany(
         {},
         { $pull: { members: { email: cleanEmail } } }
       ),
+      // 3. Permanently remove user account from User collection
+      User.deleteOne({ email: cleanEmail }),
     ]);
 
     return {
