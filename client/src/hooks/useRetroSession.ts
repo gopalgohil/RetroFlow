@@ -357,8 +357,8 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
             text: newCard.text,
             author: newCard.author,
             authorEmail: newCard.authorEmail,
-            votes: newCard.votes || 1,
-            voters: newCard.voters || [],
+            votes: typeof newCard.votes === 'number' ? newCard.votes : 0,
+            voters: Array.isArray(newCard.voters) ? newCard.voters : [],
             createdAt: newCard.createdAt,
           },
         ];
@@ -547,7 +547,8 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
                 text: c.text,
                 author: c.author,
                 authorEmail: c.authorEmail,
-                votes: c.votes || 1,
+                votes: typeof c.votes === 'number' ? c.votes : 0,
+                voters: Array.isArray(c.voters) ? c.voters : [],
               },
             ]);
           }

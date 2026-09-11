@@ -69,7 +69,7 @@ const cardSchema = new mongoose.Schema(
     },
     votes: {
       type: Number,
-      default: 1,
+      default: 0,
     },
     voters: {
       type: [String],

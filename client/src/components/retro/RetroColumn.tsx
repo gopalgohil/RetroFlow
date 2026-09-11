@@ -127,10 +127,11 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 
       {/* Sticky Cards Scrollable List */}
       <div className="p-2 sm:p-2.5 space-y-2 min-h-[220px] max-h-[calc(100vh-230px)] overflow-y-auto">
-        {cards.map((card) => (
+        {cards.map((card, idx) => (
           <RetroCardItem
             key={card.id}
             card={card}
+            isFirstCard={idx === 0}
             topicColor={topic.color}
             isRevealed={isRevealed}
             canEdit={canEditCard(card)}
@@ -142,7 +143,6 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             onUpdate={onUpdateCard}
             onDelete={onDeleteCard}
           />
-
         ))}
 
         {cards.length === 0 && !isInputOpen && (

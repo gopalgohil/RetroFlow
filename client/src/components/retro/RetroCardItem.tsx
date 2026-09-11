@@ -13,6 +13,7 @@ export interface RetroCardItemProps {
   isCurrentAuthor: boolean;
   currentAuthorName?: string;
   remainingVotes: number;
+  isFirstCard?: boolean;
   onVote: (cardId: string) => void;
   onUpdate: (cardId: string, text: string) => void;
   onDelete: (cardId: string) => void;
@@ -35,6 +36,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   isCurrentAuthor,
   currentAuthorName,
   remainingVotes,
+  isFirstCard = false,
   onVote,
   onUpdate,
   onDelete,
@@ -68,7 +70,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
         borderColor: `${topicColor}30`,
         borderLeftColor: topicColor,
       }}
-      className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 ${
+      className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 hover:z-30 ${
         !isRevealed ? 'filter blur-xs select-none' : ''
       }`}
     >
@@ -140,8 +142,18 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 <span>{card.votes || 0}</span>
               </button>
 
-              {/* Voters List Popover on Thumb Hover */}
-              <div className="absolute left-0 bottom-full mb-2 hidden group-hover/vote-popover:flex flex-col z-50 bg-white rounded-xl shadow-xl border border-slate-200/90 p-2.5 min-w-[160px] max-w-[240px] pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+              {/* Voters List Popover on Thumb Hover (Opens downwards for first card to prevent top container clipping) */}
+              <div
+                className={`absolute left-0 ${
+                  isFirstCard ? 'top-full mt-1.5' : 'bottom-full mb-2'
+                } hidden group-hover/vote-popover:flex flex-col z-50 bg-white rounded-xl shadow-xl border border-slate-200/90 p-2.5 min-w-[160px] max-w-[240px] pointer-events-auto animate-in fade-in zoom-in-95 duration-150`}
+              >
+                {/* Visual tooltip caret arrow */}
+                {isFirstCard ? (
+                  <div className="absolute -top-1 left-3 w-2 h-2 bg-white border-t border-l border-slate-200 rotate-45" />
+                ) : (
+                  <div className="absolute -bottom-1 left-3 w-2 h-2 bg-white border-b border-r border-slate-200 rotate-45" />
+                )}
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1.5 mb-1.5 border-b border-slate-100 flex items-center justify-between">
                   <span className="flex items-center gap-1">
                     <ThumbsUp className="w-3 h-3 text-indigo-600" />

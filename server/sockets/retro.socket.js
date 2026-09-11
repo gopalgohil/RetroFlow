@@ -64,8 +64,8 @@ export function initRetroSocket(io) {
           text: text.trim(),
           author: (author || currentUser?.name || 'Developer').trim(),
           authorEmail: authorEmail || currentUser?.email || '',
-          votes: 1,
-          voters: authorEmail ? [authorEmail] : [],
+          votes: 0,
+          voters: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         };
