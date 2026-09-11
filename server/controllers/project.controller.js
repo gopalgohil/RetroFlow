@@ -74,8 +74,9 @@ class ProjectController {
       userEmail === 'gopalgohel249@gmail.com' ||
       userEmail?.includes('admin');
 
+    const userProjectRole = (user.projectRole || '').toLowerCase();
     const isManager =
-      user.projectRole === 'Manager' ||
+      userProjectRole === 'manager' ||
       userRole === 'manager' ||
       userRole.includes('manager');
 

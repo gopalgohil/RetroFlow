@@ -92,7 +92,7 @@ function DashboardContent() {
 
   const isManager = Boolean(
     isAdmin ||
-    userProjectRole === 'Manager' ||
+    userProjectRole?.toLowerCase() === 'manager' ||
     userRole === 'manager' ||
     userRole?.includes('manager')
   );
@@ -226,7 +226,7 @@ function DashboardContent() {
               )}
 
               {activeTab === 'projects' && (
-                <ProjectsTab isAdmin={canCreateProject} />
+                <ProjectsTab isAdmin={canCreateProject} user={activeUser} />
               )}
 
               {activeTab === 'members' && (

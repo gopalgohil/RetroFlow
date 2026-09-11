@@ -18,22 +18,41 @@ import { ProjectsTabSkeleton } from '@/components/dashboard/DashboardSkeletons';
 
 interface ProjectsTabProps {
   isAdmin?: boolean;
+  user?: { name?: string; email?: string; role?: string; projectRole?: string } | null;
 }
 
-export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false }) => {
+export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user = null }) => {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ email?: string; name?: string; role?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    email?: string;
+    name?: string;
+    role?: string;
+    projectRole?: string;
+  } | null>(() => {
+    if (user) return user;
+    if (typeof window !== 'undefined') {
+      try {
+        const savedUser = localStorage.getItem('retroflow_user');
+        if (savedUser) return JSON.parse(savedUser);
+      } catch {}
+    }
+    return null;
+  });
   const [filterMode, setFilterMode] = useState<'all' | 'managed'>('all');
 
   useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem('retroflow_user');
-      if (savedUser) setCurrentUser(JSON.parse(savedUser));
-    } catch {}
-  }, []);
+    if (user) {
+      setCurrentUser(user);
+    } else {
+      try {
+        const savedUser = localStorage.getItem('retroflow_user');
+        if (savedUser) setCurrentUser(JSON.parse(savedUser));
+      } catch {}
+    }
+  }, [user]);
 
   const fetchProjects = React.useCallback(async () => {
     setIsLoading(true);
@@ -70,9 +89,10 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false }) => 
   }
 
   // Only Workspace Admins and Managers have project initialization permission
-  const userRole = (currentUser?.role || '').toLowerCase();
-  const userEmail = currentUser?.email?.toLowerCase().trim();
-  const userProjectRole = (currentUser as any)?.projectRole;
+  const activeUser = user || currentUser;
+  const userRole = (activeUser?.role || '').toLowerCase();
+  const userEmail = activeUser?.email?.toLowerCase().trim();
+  const userProjectRole = ((activeUser as any)?.projectRole || '').toLowerCase();
 
   const isWorkspaceAdmin = Boolean(
     isAdmin ||
@@ -82,7 +102,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false }) => 
   );
 
   const isManager = Boolean(
-    userProjectRole === 'Manager' ||
+    isWorkspaceAdmin ||
+    userProjectRole === 'manager' ||
     userRole === 'manager' ||
     userRole.includes('manager')
   );

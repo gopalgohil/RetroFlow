@@ -36,16 +36,34 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ email?: string; name?: string; role?: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    email?: string;
+    name?: string;
+    role?: string;
+    projectRole?: string;
+  } | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('retroflow_user');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return null;
+  });
 
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('retroflow_user');
-      if (saved) setCurrentUser(JSON.parse(saved));
-    } catch {}
-  }, []);
+    const syncUser = () => {
+      try {
+        const saved = localStorage.getItem('retroflow_user');
+        if (saved) setCurrentUser(JSON.parse(saved));
+      } catch {}
+    };
+    syncUser();
+    window.addEventListener('focus', syncUser);
+    return () => window.removeEventListener('focus', syncUser);
+  }, [isOpen]);
 
   // Active project resolution
   const resolvedProjectId =
@@ -116,20 +134,20 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
       p.key.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Admin + Project Leads / Managers have permission to initialize new projects
+  // Admin + Managers have permission to initialize new projects
   const userEmail = currentUser?.email?.toLowerCase().trim();
   const userRole = (currentUser?.role || '').toLowerCase();
+  const userProjectRole = (currentUser?.projectRole || '').toLowerCase();
   const isAdmin =
     userRole === 'admin' ||
     (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
     Boolean(userEmail && userEmail.includes('admin'));
-  const isManagerOrLead =
+  const isManager =
     isAdmin ||
+    userProjectRole === 'manager' ||
     userRole === 'manager' ||
-    userRole === 'project lead' ||
-    userRole === 'lead' ||
-    userRole.includes('manager') ||
-    userRole.includes('lead');
+    userRole.includes('manager');
+  const canCreateProject = isManager;
 
   const handleSelect = (project: Project) => {
     if (typeof window !== 'undefined') {
@@ -257,7 +275,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                     <p className="text-[11px] text-slate-400 max-w-[220px] mx-auto leading-tight">
                       {searchQuery
                         ? 'Try searching with a different name or key'
-                        : isManagerOrLead
+                        : canCreateProject
                         ? 'Initialize your first agile initiative below'
                         : 'No agile projects have been assigned yet'}
                     </p>
@@ -303,8 +321,8 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
               )}
             </div>
 
-            {/* Bottom Footer Action: + New Project CTA (Admin & Project Leads only) */}
-            {isManagerOrLead && (
+            {/* Bottom Footer Action: + New Project CTA (Admin & Managers only) */}
+            {canCreateProject && (
               <div className="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
                 <button
                   type="button"
