@@ -382,6 +382,12 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false }) => 
         onClose={() => setIsCreateModalOpen(false)}
         onProjectCreated={(newProj) => {
           fetchProjects();
+          if (typeof window !== 'undefined' && newProj) {
+            localStorage.setItem('retroflow_active_project_id', newProj.id);
+            try {
+              sessionStorage.setItem(`retroflow_cached_project_${newProj.id}`, JSON.stringify(newProj));
+            } catch {}
+          }
           router.push(`/projects/${newProj.id}`);
         }}
       />

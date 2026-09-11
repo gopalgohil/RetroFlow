@@ -405,10 +405,6 @@ class ProjectService {
       project = await Project.findOne({ key: idOrKey.toUpperCase() });
     }
 
-    if (!project) {
-      project = (await Project.findOne({ key: 'RET' })) || (await Project.findOne());
-    }
-
     if (!project) return null;
 
     // Dynamically calculate and sync live retrospective counts before checking permissions

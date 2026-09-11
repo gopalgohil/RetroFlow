@@ -121,7 +121,6 @@ export class ProjectDataService {
     const projects = this.getProjects();
     return (
       projects.find((p) => p.id === id || p.key.toLowerCase() === id.toLowerCase()) ||
-      projects[0] ||
       null
     );
   }

@@ -48,6 +48,17 @@ function ProjectDetailContent() {
   const tabParam = searchParams.get('tab') || 'overview';
 
   const [project, setProject] = useState<Project | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed?.id === projectId || parsed?.key?.toLowerCase() === projectId.toLowerCase()) {
+            return parsed;
+          }
+        }
+      } catch {}
+    }
     return ProjectDataService.getProjectById(projectId) || null;
   });
   const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role?: string } | null>(() => {
@@ -74,7 +85,12 @@ function ProjectDetailContent() {
   useEffect(() => {
     try {
       const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
-      if (cached) setProject(JSON.parse(cached));
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.id === projectId || parsed?.key?.toLowerCase() === projectId.toLowerCase()) {
+          setProject(parsed);
+        }
+      }
     } catch { }
 
     // Check for 1-click project magic invite token in URL
@@ -121,7 +137,7 @@ function ProjectDetailContent() {
         sessionStorage.setItem(`retroflow_cached_project_${selectedProj.id}`, JSON.stringify(selectedProj));
       } catch { }
     }
-    window.history.pushState(null, '', `/projects/${selectedProj.id}?tab=${activeTab}`);
+    router.push(`/projects/${selectedProj.id}?tab=${activeTab}`);
 
     // Component-matched skeleton smoothly renders while updating project
     setTimeout(() => {
@@ -148,11 +164,10 @@ function ProjectDetailContent() {
       });
   };
 
-  // Sync tab with URL
+  // Sync tab with URL without ever altering the active projectId
   const handleTabChange = (newTab: 'overview' | 'sprints' | 'retros' | 'team') => {
     setActiveTab(newTab);
-    const targetId = project?.id || projectId;
-    const url = `/projects/${targetId}?tab=${newTab}`;
+    const url = `/projects/${projectId}?tab=${newTab}`;
     window.history.pushState(null, '', url);
   };
 
@@ -161,11 +176,14 @@ function ProjectDetailContent() {
     setAccessDeniedError(null);
 
     // If current project doesn't match URL projectId, check cache or mock first
-    if (!project || project.id !== projectId) {
+    if (!project || (project.id !== projectId && project.key?.toLowerCase() !== projectId.toLowerCase())) {
       try {
         const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
         if (cached) {
-          setProject(JSON.parse(cached));
+          const parsed = JSON.parse(cached);
+          if (parsed?.id === projectId || parsed?.key?.toLowerCase() === projectId.toLowerCase()) {
+            setProject(parsed);
+          }
         } else {
           const fallback = ProjectDataService.getProjectById(projectId);
           if (fallback) setProject(fallback);
@@ -429,7 +447,8 @@ function ProjectDetailContent() {
 
             {/* Intuitive Project Switcher with instant callback */}
             <ProjectSwitcher
-              currentProjectId={project?.id || projectId}
+              currentProjectId={projectId}
+              currentProject={project}
               onSelectProject={handleSelectProject}
             />
           </div>

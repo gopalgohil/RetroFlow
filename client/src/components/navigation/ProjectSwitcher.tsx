@@ -17,12 +17,14 @@ import { UserAvatar, StatusPill } from '@/components/ui';
 
 interface ProjectSwitcherProps {
   currentProjectId?: string;
+  currentProject?: Project | null;
   onSelectProject?: (project: Project) => void;
   className?: string;
 }
 
 export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   currentProjectId,
+  currentProject,
   onSelectProject,
   className = '',
 }) => {
@@ -105,15 +107,28 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
+  const allProjects = React.useMemo(() => {
+    if (currentProject && !projects.some((p) => p.id === currentProject.id || p.key.toLowerCase() === currentProject.key.toLowerCase())) {
+      return [currentProject, ...projects];
+    }
+    return projects;
+  }, [projects, currentProject]);
+
   const activeProject =
-    projects.find(
+    (currentProject &&
+      (currentProject.id === resolvedProjectId ||
+        currentProject.key.toLowerCase() === resolvedProjectId.toLowerCase())
+      ? currentProject
+      : null) ||
+    allProjects.find(
       (p) =>
         p.id === resolvedProjectId || p.key.toLowerCase() === resolvedProjectId.toLowerCase()
     ) ||
-    projects[0] ||
+    currentProject ||
+    allProjects[0] ||
     null;
 
-  const filteredProjects = projects.filter(
+  const filteredProjects = allProjects.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.key.toLowerCase().includes(searchQuery.toLowerCase())
@@ -213,7 +228,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             <div className="p-3 border-b border-slate-100 bg-slate-50/70 space-y-2">
               <div className="flex items-center justify-between px-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  {isAdmin ? 'Agile Projects' : 'My Projects'} ({projects.length})
+                  {isAdmin ? 'Agile Projects' : 'My Projects'} ({allProjects.length})
                 </span>
                 <span className="text-[10px] font-semibold text-indigo-600">RetroFlow Pro</span>
               </div>

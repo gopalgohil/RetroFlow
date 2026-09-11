@@ -268,6 +268,12 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       // Live REST API POST request -> visible in browser Network tab!
       const created = await ProjectApiService.createProject(payload);
       setIsSubmitting(false);
+      if (typeof window !== 'undefined' && created?.id) {
+        localStorage.setItem('retroflow_active_project_id', created.id);
+        try {
+          sessionStorage.setItem(`retroflow_cached_project_${created.id}`, JSON.stringify(created));
+        } catch {}
+      }
       onProjectCreated(created);
       onClose();
       // Reset form
@@ -282,6 +288,12 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       console.warn('[CreateProject] Fallback to local persistence:', err);
       const fallback = ProjectDataService.createProject(payload);
       setIsSubmitting(false);
+      if (typeof window !== 'undefined' && fallback?.id) {
+        localStorage.setItem('retroflow_active_project_id', fallback.id);
+        try {
+          sessionStorage.setItem(`retroflow_cached_project_${fallback.id}`, JSON.stringify(fallback));
+        } catch {}
+      }
       onProjectCreated(fallback);
       onClose();
     }
