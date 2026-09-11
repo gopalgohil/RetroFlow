@@ -54,6 +54,7 @@ function DashboardContent() {
     onMembersSearchChange,
     addWhitelistMember,
     removeWhitelistMember,
+    updateMemberRole,
     settings,
     isSettingsLoading,
     isSavingSettings,
@@ -163,6 +164,7 @@ function DashboardContent() {
         setActiveTab={switchTab}
         activeSessionsCount={activeSessionsCount}
         user={activeUser}
+        isAdmin={isAdmin}
         onLogout={handleLogout}
         isOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
@@ -221,7 +223,8 @@ function DashboardContent() {
                   onSearchChange={onMembersSearchChange}
                   onWhitelistAdded={addWhitelistMember}
                   onRemoveMember={removeWhitelistMember}
-                  currentEmail={user?.email}
+                  onUpdateMemberRole={updateMemberRole}
+                  currentEmail={activeUser.email}
                   isAdmin={isAdmin}
                 />
               )}

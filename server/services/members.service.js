@@ -16,7 +16,7 @@ class MembersService {
   async getWorkspaceMembers(userId, { page = 1, limit = 10, search = '' } = {}) {
     // 1. Concurrently fetch registered users, facilitator retros, and active projects
     const [users, retros, projects] = await Promise.all([
-      User.find({}, 'name email role createdAt isVerified').lean(),
+      User.find({}, 'name email role projectRole createdAt isVerified').lean(),
       RetroBoard.find({ createdBy: userId }, 'approvedMembers').lean(),
       Project.find({}, 'name key members lead').lean(),
     ]);
@@ -73,6 +73,10 @@ class MembersService {
       const roleList = Array.from(stats.roles);
       const projectRole = isAdmin
         ? 'Admin'
+        : u.projectRole
+        ? u.projectRole
+        : stats.isLead
+        ? 'Project Lead'
         : roleList.length > 0
         ? roleList[0]
         : 'Developer';
@@ -245,6 +249,40 @@ class MembersService {
     return {
       email: cleanEmail,
       removed: true,
+    };
+  }
+
+  /**
+   * Update member project role
+   * @param {string|ObjectId} userId - Facilitator user ID
+   * @param {string} email - Member email to update
+   * @param {string} role - New role
+   */
+  async updateMemberRole(userId, email, role) {
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanRole = (role || 'Developer').trim();
+
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) {
+      throw new Error(`User with email "${cleanEmail}" not found.`);
+    }
+
+    if (user.role === 'admin' || cleanEmail === 'gopalgohel249@gmail.com') {
+      throw new Error('Admin role cannot be modified.');
+    }
+
+    user.projectRole = cleanRole;
+    await user.save();
+
+    // Also update this member's role across any projects they are part of
+    await Project.updateMany(
+      { 'members.email': cleanEmail },
+      { $set: { 'members.$.role': cleanRole } }
+    );
+
+    return {
+      email: cleanEmail,
+      projectRole: cleanRole,
     };
   }
 }

@@ -6,3 +6,7 @@ export const whitelistMemberSchema = z.object({
     .trim()
     .email('Please provide a valid email address'),
 });
+
+export const updateMemberRoleSchema = z.object({
+  role: z.string({ required_error: 'Role is required' }).trim().min(1, 'Role cannot be empty'),
+});

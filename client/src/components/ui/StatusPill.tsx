@@ -83,6 +83,42 @@ export const StatusPill: React.FC<StatusPillProps> = ({
           defaultLabel: 'Action Item',
           hasDot: false,
         };
+      case 'unassigned':
+        return {
+          pill: 'bg-amber-50/90 text-amber-800 border-amber-300/90',
+          dot: 'bg-amber-500',
+          defaultLabel: 'Unassigned',
+          hasDot: true,
+        };
+      case 'devops':
+        return {
+          pill: 'bg-cyan-50 text-cyan-800 border-cyan-200',
+          dot: 'bg-cyan-500',
+          defaultLabel: 'DevOps',
+          hasDot: false,
+        };
+      case 'designer':
+        return {
+          pill: 'bg-purple-50 text-purple-700 border-purple-200',
+          dot: 'bg-purple-500',
+          defaultLabel: 'Designer',
+          hasDot: false,
+        };
+      case 'admin':
+        return {
+          pill: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+          dot: 'bg-indigo-600',
+          defaultLabel: 'Admin',
+          hasDot: false,
+        };
+      case 'project lead':
+      case 'project_lead':
+        return {
+          pill: 'bg-sky-50 text-sky-800 border-sky-300',
+          dot: 'bg-sky-600',
+          defaultLabel: 'Project Lead',
+          hasDot: false,
+        };
       case 'story':
         return {
           pill: 'bg-blue-50 text-blue-800 border-blue-200',

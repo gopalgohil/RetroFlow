@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Users,
   Shield,
@@ -14,6 +14,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  Check,
   FolderKanban,
   AlertTriangle,
 } from 'lucide-react';
@@ -21,6 +23,15 @@ import { TeamMember, PaginationMeta } from '@/types/retro';
 import { useDebounce } from '@/hooks/useDebounce';
 import { UserAvatar, StatusPill } from '@/components/ui';
 import { Modal } from '@/components/ui/Modal';
+
+export const AVAILABLE_PROJECT_ROLES = [
+  { id: 'Developer', label: 'Developer', dotColor: 'bg-emerald-500', description: 'Sprint delivery & code changes' },
+  { id: 'QA', label: 'QA / Tester', dotColor: 'bg-amber-500', description: 'Quality assurance & bug validation' },
+  { id: 'Manager', label: 'Manager', dotColor: 'bg-indigo-500', description: 'Agile planning & sprint oversight' },
+  { id: 'DevOps', label: 'DevOps', dotColor: 'bg-cyan-500', description: 'CI/CD pipelines, cloud infra & deployments' },
+  { id: 'Project Lead', label: 'Project Lead', dotColor: 'bg-sky-500', description: 'Technical leadership & project delivery' },
+  { id: 'Viewer', label: 'Viewer', dotColor: 'bg-slate-400', description: 'Read-only board observer' },
+] as const;
 
 interface MembersTabProps {
   members: TeamMember[];
@@ -35,6 +46,7 @@ interface MembersTabProps {
   onSearchChange?: (newQuery: string) => void;
   onWhitelistAdded: (email: string) => Promise<void>;
   onRemoveMember?: (email: string) => Promise<void>;
+  onUpdateMemberRole?: (email: string, role: string) => Promise<void>;
   currentEmail?: string;
   isAdmin?: boolean;
 }
@@ -60,6 +72,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   onSearchChange,
   onWhitelistAdded,
   onRemoveMember,
+  onUpdateMemberRole,
   currentEmail,
   isAdmin = true,
 }) => {
@@ -69,6 +82,46 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   const [isRemoving, setIsRemoving] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const debouncedSearch = useDebounce(localSearch, 350);
+
+  // Role dropdown state
+  const [activeRoleDropdownEmail, setActiveRoleDropdownEmail] = useState<string | null>(null);
+  const [updatingRoleEmail, setUpdatingRoleEmail] = useState<string | null>(null);
+  const roleDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close role dropdown on outside click or Escape key
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(e.target as Node)) {
+        setActiveRoleDropdownEmail(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActiveRoleDropdownEmail(null);
+      }
+    };
+
+    if (activeRoleDropdownEmail) {
+      document.addEventListener('mousedown', handleOutsideClick);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeRoleDropdownEmail]);
+
+  const handleRoleSelect = async (memberEmail: string, newRole: string) => {
+    setActiveRoleDropdownEmail(null);
+    if (!onUpdateMemberRole) return;
+
+    setUpdatingRoleEmail(memberEmail);
+    try {
+      await onUpdateMemberRole(memberEmail, newRole);
+    } finally {
+      setUpdatingRoleEmail(null);
+    }
+  };
 
   // Sync local search when external prop changes
   useEffect(() => {
@@ -389,9 +442,102 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                         )}
                       </td>
 
-                      {/* 3. Project Role */}
+                      {/* 3. Project Role (Interactive Dropdown for Admin) */}
                       <td className="px-6 py-4">
-                        <StatusPill status={m.projectRole || m.role || 'Developer'} />
+                        {isLeadOrAdmin || m.email === currentEmail ? (
+                          <div className="inline-flex items-center" title="Admin role is permanent">
+                            <StatusPill status="admin" label="ADMIN" />
+                          </div>
+                        ) : isAdmin ? (
+                          <div
+                            className="relative inline-block"
+                            ref={activeRoleDropdownEmail === m.email ? roleDropdownRef : null}
+                          >
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setActiveRoleDropdownEmail(
+                                  activeRoleDropdownEmail === m.email ? null : m.email
+                                )
+                              }
+                              disabled={updatingRoleEmail === m.email}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border transition-all cursor-pointer select-none group ${
+                                activeRoleDropdownEmail === m.email
+                                  ? 'bg-indigo-50/90 border-indigo-300 ring-2 ring-indigo-500/20 shadow-xs'
+                                  : 'bg-white hover:bg-slate-50 border-slate-200/90 hover:border-slate-300 shadow-2xs'
+                              }`}
+                              title="Click to assign or change role"
+                            >
+                              {updatingRoleEmail === m.email ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-600 uppercase tracking-wider py-0.5">
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                  <span>Updating...</span>
+                                </span>
+                              ) : (
+                                <>
+                                  <StatusPill status={m.projectRole || 'Developer'} />
+                                  <ChevronDown
+                                    className={`w-3 h-3 text-slate-400 group-hover:text-slate-700 transition-transform duration-150 ${
+                                      activeRoleDropdownEmail === m.email ? 'rotate-180 text-indigo-600' : ''
+                                    }`}
+                                  />
+                                </>
+                              )}
+                            </button>
+
+                            {/* Floating Role Dropdown Menu */}
+                            {activeRoleDropdownEmail === m.email && (
+                              <div
+                                className={`absolute left-0 ${
+                                  index >= 2 ? 'bottom-full mb-2' : 'top-full mt-2'
+                                } z-50 w-56 bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-xl shadow-indigo-950/15 p-2 animate-in fade-in zoom-in-95 duration-150`}
+                              >
+                                <div className="px-2.5 py-1.5 border-b border-slate-100 mb-1">
+                                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                    Assign Project Role
+                                  </p>
+                                </div>
+                                <div className="space-y-0.5">
+                                  {AVAILABLE_PROJECT_ROLES.map((roleOption) => {
+                                    const currentRole = (m.projectRole || 'Developer').toLowerCase();
+                                    const isSelected = currentRole === roleOption.id.toLowerCase();
+                                    return (
+                                      <button
+                                        key={roleOption.id}
+                                        type="button"
+                                        onClick={() => handleRoleSelect(m.email, roleOption.id)}
+                                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition-colors cursor-pointer ${
+                                          isSelected
+                                            ? 'bg-indigo-50 text-indigo-900 font-bold'
+                                            : 'text-slate-700 hover:bg-slate-50'
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span
+                                            className={`w-2 h-2 rounded-full ${roleOption.dotColor} shrink-0`}
+                                          />
+                                          <div>
+                                            <p className="text-xs font-bold leading-tight">
+                                              {roleOption.label}
+                                            </p>
+                                            <p className="text-[10px] text-slate-400 font-normal leading-tight mt-0.5">
+                                              {roleOption.description}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        {isSelected && (
+                                          <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                                        )}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <StatusPill status={m.projectRole || 'Developer'} />
+                        )}
                       </td>
 
                       {/* 4. Status */}

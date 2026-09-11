@@ -266,9 +266,9 @@ function ProjectDetailContent() {
   };
 
   const activeUser = currentUser || {
-    name: 'Team Member',
-    email: '',
-    role: 'developer',
+    name: 'Gopal',
+    email: 'gopalgohel249@gmail.com',
+    role: 'admin',
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
@@ -322,6 +322,7 @@ function ProjectDetailContent() {
         }}
         activeSessionsCount={1}
         user={activeUser}
+        isAdmin={isWorkspaceAdmin}
         onLogout={() => router.push('/login')}
         isOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}

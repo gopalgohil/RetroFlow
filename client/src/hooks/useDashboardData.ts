@@ -318,6 +318,25 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [fetchMembers, membersPage, membersLimit, membersSearch, showToast]
   );
 
+  const updateMemberRole = useCallback(
+    async (email: string, newRole: string) => {
+      try {
+        await api.patch(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}/role`, { role: newRole });
+        setMembers((prev) =>
+          prev.map((m) =>
+            m.email.toLowerCase() === email.toLowerCase()
+              ? { ...m, projectRole: newRole }
+              : m
+          )
+        );
+        showToast(`Role updated to ${newRole} for ${email}`);
+      } catch (err: any) {
+        showToast(err.message || 'Failed to update member role');
+        throw err;
+      }
+    },
+    [showToast]
+  );
 
   // 4. Workspace Settings State & Actions
   const [settings, setSettings] = useState<WorkspaceSettingsData>(DEFAULT_WORKSPACE_SETTINGS);
@@ -400,6 +419,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     onMembersSearchChange: handleSearchChange,
     addWhitelistMember,
     removeWhitelistMember,
+    updateMemberRole,
     // Settings
     settings,
     isSettingsLoading,

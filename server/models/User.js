@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'member'],
       default: 'member',
     },
+    projectRole: {
+      type: String,
+      default: 'Unassigned',
+    },
     isVerified: {
       type: Boolean,
       default: false,

@@ -57,6 +57,23 @@ class MembersController {
       `Developer ${result.email} removed from whitelist successfully`
     );
   });
+
+  /**
+   * Update a member's role
+   * PATCH /api/members/:email/role
+   */
+  updateMemberRole = asyncHandler(async (req, res) => {
+    const result = await membersService.updateMemberRole(
+      req.user._id,
+      req.params.email,
+      req.body.role
+    );
+    return ApiResponse.ok(
+      res,
+      result,
+      `Role updated to ${result.projectRole} for ${result.email}`
+    );
+  });
 }
 
 

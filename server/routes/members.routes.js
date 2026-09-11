@@ -2,7 +2,7 @@ import { Router } from 'express';
 import membersController from '../controllers/members.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
-import { whitelistMemberSchema } from '../validations/members.validation.js';
+import { whitelistMemberSchema, updateMemberRoleSchema } from '../validations/members.validation.js';
 
 const router = Router();
 
@@ -23,6 +23,18 @@ router.post(
   protect,
   validate(whitelistMemberSchema),
   membersController.addWhitelistMember
+);
+
+/**
+ * @route   PATCH /api/members/:email/role
+ * @desc    Update a member's project role in workspace
+ * @access  Private (Authenticated facilitator)
+ */
+router.patch(
+  '/:email/role',
+  protect,
+  validate(updateMemberRoleSchema),
+  membersController.updateMemberRole
 );
 
 /**

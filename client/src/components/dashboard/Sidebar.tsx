@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ interface SidebarProps {
   setActiveTab: (tab: string) => void;
   activeSessionsCount: number;
   user?: { name: string; email: string; role?: string } | null;
+  isAdmin?: boolean;
   onLogout?: () => void;
   isOpen: boolean;
   onCloseMobile?: () => void;
@@ -24,15 +25,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setActiveTab,
   activeSessionsCount,
   user,
+  isAdmin: propIsAdmin,
   isOpen,
   onCloseMobile,
 }) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const activeUser = user || {
     name: 'Gopal',
     email: 'gopalgohel249@gmail.com',
@@ -40,24 +36,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
-  const isAdmin = mounted && Boolean(
-    activeUser.role?.toLowerCase() === 'admin' ||
-    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
-    (userEmail && userEmail.includes('admin'))
-  );
+  const userRole = activeUser.role?.toLowerCase().trim();
+  const isAdmin =
+    propIsAdmin !== undefined
+      ? propIsAdmin
+      : Boolean(
+          userRole === 'admin' ||
+          (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
+          (userEmail && userEmail.includes('admin'))
+        );
 
   const navItems = [
     {
       id: 'sessions',
-      label: isAdmin ? 'Retrospective Sessions' : 'My Retrospectives',
+      label: 'Retrospective Sessions',
       icon: LayoutDashboard,
       badge: activeSessionsCount > 0 ? `${activeSessionsCount} Live` : undefined,
     },
     {
       id: 'projects',
-      label: isAdmin ? 'Agile Projects' : 'My Projects',
+      label: 'Agile Projects',
       icon: FolderKanban,
-      sublabel: isAdmin ? 'Sprints & Delivery' : 'Assigned Initiatives',
+      sublabel: 'Sprints & Delivery',
     },
     {
       id: 'members',
