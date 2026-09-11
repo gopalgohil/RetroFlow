@@ -39,9 +39,6 @@ interface WorkspaceMemberOption {
 
 const DEFAULT_WORKSPACE_LEADS: WorkspaceMemberOption[] = [
   { id: 'lead-gopal', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com', role: 'Admin', avatar: 'GG' },
-  { id: 'lead-sarah', name: 'Sarah Jenkins', email: 'sarah.j@retroflow.io', role: 'Team Member', avatar: 'SJ' },
-  { id: 'lead-marcus', name: 'Marcus Chen', email: 'marcus.c@retroflow.io', role: 'Team Member', avatar: 'MC' },
-  { id: 'lead-priya', name: 'Priya Sharma', email: 'priya.s@retroflow.io', role: 'Team Member', avatar: 'PS' },
 ];
 
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
@@ -178,10 +175,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   // Team Members State
   const [members, setMembers] = useState<
     Array<{ name: string; email: string; role: ProjectMemberRole }>
-  >([
-    { name: 'Sarah Jenkins', email: 'sarah.j@retroflow.io', role: 'Developer' },
-    { name: 'Marcus Chen', email: 'marcus.c@retroflow.io', role: 'QA' },
-  ]);
+  >([]);
 
   // Input states for adding new member
   const [newMemberName, setNewMemberName] = useState('');

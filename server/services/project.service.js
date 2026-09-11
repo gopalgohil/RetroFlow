@@ -27,10 +27,6 @@ const CANONICAL_PGI_PROJECT = {
   },
   members: [
     { id: 'm-1', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com', role: 'Manager', avatar: 'GG' },
-    { id: 'm-2', name: 'Sarah Jenkins', email: 'sarah.j@retroflow.io', role: 'Developer', avatar: 'SJ' },
-    { id: 'm-3', name: 'Marcus Chen', email: 'marcus.c@retroflow.io', role: 'Developer', avatar: 'MC' },
-    { id: 'm-4', name: 'Priya Sharma', email: 'priya.s@retroflow.io', role: 'QA', avatar: 'PS' },
-    { id: 'm-5', name: 'David Miller', email: 'david.m@retroflow.io', role: 'Viewer', avatar: 'DM' },
   ],
   velocityHistory: [
     { sprintName: 'Sprint 10', committedPoints: 35, completedPoints: 34 },
@@ -98,7 +94,7 @@ const CANONICAL_PGI_PROJECT = {
           priority: 'high',
           status: 'done',
           storyPoints: 5,
-          assignee: { name: 'Sarah Jenkins', avatar: 'SJ' },
+          assignee: { name: 'Gopal Gohel', avatar: 'GG' },
           createdAt: new Date('2026-09-02'),
         },
         {
@@ -108,7 +104,7 @@ const CANONICAL_PGI_PROJECT = {
           priority: 'critical',
           status: 'in_progress',
           storyPoints: 8,
-          assignee: { name: 'Marcus Chen', avatar: 'MC' },
+          assignee: { name: 'Gopal Gohel', avatar: 'GG' },
           createdAt: new Date('2026-09-04'),
         },
         {
@@ -118,7 +114,7 @@ const CANONICAL_PGI_PROJECT = {
           priority: 'medium',
           status: 'todo',
           storyPoints: 5,
-          assignee: { name: 'Priya Sharma', avatar: 'PS' },
+          assignee: { name: 'Gopal Gohel', avatar: 'GG' },
           createdAt: new Date('2026-09-05'),
         },
       ],
@@ -143,7 +139,7 @@ const CANONICAL_PGI_PROJECT = {
           priority: 'high',
           status: 'todo',
           storyPoints: 8,
-          assignee: { name: 'Marcus Chen', avatar: 'MC' },
+          assignee: { name: 'Gopal Gohel', avatar: 'GG' },
           createdAt: new Date('2026-09-07'),
         },
         {
@@ -153,7 +149,7 @@ const CANONICAL_PGI_PROJECT = {
           priority: 'medium',
           status: 'todo',
           storyPoints: 5,
-          assignee: { name: 'Sarah Jenkins', avatar: 'SJ' },
+          assignee: { name: 'Gopal Gohel', avatar: 'GG' },
           createdAt: new Date('2026-09-07'),
         },
       ],

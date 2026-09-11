@@ -11,8 +11,6 @@ const STORAGE_KEY = 'retroflow_projects_store_v2';
 
 export const MOCK_PROJECT_LEADS = [
   { id: 'lead-1', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com', role: 'Manager' as const, avatar: 'GG' },
-  { id: 'lead-2', name: 'Sarah Jenkins', email: 'sarah.j@retroflow.io', role: 'Manager' as const, avatar: 'SJ' },
-  { id: 'lead-3', name: 'Alex Rivera', email: 'alex.r@retroflow.io', role: 'Manager' as const, avatar: 'AR' },
 ];
 
 /**
@@ -35,10 +33,6 @@ export const INITIAL_PROJECTS: Project[] = [
     },
     members: [
       { id: 'm-1', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com', role: 'Manager', avatar: 'GG', joinedAt: '2026-06-01' },
-      { id: 'm-2', name: 'Sarah Jenkins', email: 'sarah.j@retroflow.io', role: 'Developer', avatar: 'SJ', joinedAt: '2026-06-05' },
-      { id: 'm-3', name: 'Marcus Chen', email: 'marcus.c@retroflow.io', role: 'Developer', avatar: 'MC', joinedAt: '2026-06-12' },
-      { id: 'm-4', name: 'Priya Sharma', email: 'priya.s@retroflow.io', role: 'QA', avatar: 'PS', joinedAt: '2026-06-15' },
-      { id: 'm-5', name: 'David Miller', email: 'david.m@retroflow.io', role: 'Viewer', avatar: 'DM', joinedAt: '2026-07-01' },
     ],
     velocityHistory: [
       { sprintName: 'Sprint 10', committedPoints: 35, completedPoints: 34 },

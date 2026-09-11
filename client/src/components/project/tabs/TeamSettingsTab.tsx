@@ -30,9 +30,6 @@ interface TeamSettingsTabProps {
 
 const DEFAULT_WORKSPACE_MEMBERS = [
   { id: 'lead-gopal', name: 'Gopal Gohel', email: 'gopalgohel249@gmail.com' },
-  { id: 'lead-sarah', name: 'Sarah Jenkins', email: 'sarah.j@retroflow.io' },
-  { id: 'lead-marcus', name: 'Marcus Chen', email: 'marcus.c@retroflow.io' },
-  { id: 'lead-priya', name: 'Priya Sharma', email: 'priya.s@retroflow.io' },
 ];
 
 export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
