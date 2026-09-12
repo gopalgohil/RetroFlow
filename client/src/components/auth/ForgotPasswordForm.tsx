@@ -24,6 +24,8 @@ export const ForgotPasswordForm: React.FC = () => {
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isAccountNotFound, setIsAccountNotFound] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
@@ -67,9 +69,18 @@ export const ForgotPasswordForm: React.FC = () => {
       setStep(2);
       setCountdown(60);
       setCanResend(false);
+      setIsRedirecting(false);
+      setIsAccountNotFound(false);
       setSuccessMessage(data.message || `A 6-digit OTP code has been sent to ${email}`);
     } catch (err: any) {
-      setGeneralError(err.message || 'Unable to send OTP. Please check your email.');
+      const isNotFound =
+        err.status === 404 ||
+        err.message?.toLowerCase().includes('not found') ||
+        err.message?.toLowerCase().includes('not registered') ||
+        err.message?.toLowerCase().includes('create an account');
+
+      setIsAccountNotFound(Boolean(isNotFound));
+      setGeneralError(err.message || 'Account not found. Please create an account first.');
     } finally {
       setIsLoading(false);
     }
@@ -106,6 +117,7 @@ export const ForgotPasswordForm: React.FC = () => {
         newPassword: validation.data.password,
       });
 
+      setIsRedirecting(true);
       setSuccessMessage('🎉 Password reset successfully! Redirecting you to sign in...');
 
       // Redirect to login page after 1.5 seconds
@@ -113,6 +125,7 @@ export const ForgotPasswordForm: React.FC = () => {
         router.push(`/login?reset=true&email=${encodeURIComponent(email)}`);
       }, 1500);
     } catch (err: any) {
+      setIsRedirecting(false);
       setGeneralError(err.message || 'Failed to reset password. Please check your OTP.');
     } finally {
       setIsLoading(false);
@@ -145,7 +158,23 @@ export const ForgotPasswordForm: React.FC = () => {
       />
 
       {/* General Alert messages */}
-      {generalError && <Alert variant="error" message={generalError} />}
+      {generalError && (
+        <Alert variant="error">
+          <div className="space-y-1.5">
+            <p>{generalError}</p>
+            {isAccountNotFound && (
+              <p className="pt-0.5">
+                <Link
+                  href={`/signup?email=${encodeURIComponent(email)}`}
+                  className="inline-flex items-center font-semibold text-rose-800 underline hover:text-rose-950 transition-colors"
+                >
+                  Create an account now &rarr;
+                </Link>
+              </p>
+            )}
+          </div>
+        </Alert>
+      )}
       {successMessage && <Alert variant="success" message={successMessage} />}
 
       {/* Step 1: Request OTP */}
@@ -159,6 +188,8 @@ export const ForgotPasswordForm: React.FC = () => {
             onChange={(e) => {
               setEmail(e.target.value);
               if (fieldErrors.email) setFieldErrors({});
+              if (generalError) setGeneralError(null);
+              if (isAccountNotFound) setIsAccountNotFound(false);
             }}
             error={fieldErrors.email}
             required
@@ -224,7 +255,11 @@ export const ForgotPasswordForm: React.FC = () => {
           <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
             <button
               type="button"
-              onClick={() => setStep(1)}
+              onClick={() => {
+                setStep(1);
+                setIsRedirecting(false);
+                setSuccessMessage(null);
+              }}
               className="text-indigo-600 hover:underline font-medium"
             >
               Change Email
@@ -245,11 +280,11 @@ export const ForgotPasswordForm: React.FC = () => {
           <Button
             type="submit"
             variant="primary"
-            isLoading={isLoading}
-            disabled={isLoading || Boolean(successMessage)}
+            isLoading={isLoading || isRedirecting}
+            disabled={isLoading || isRedirecting}
             className="w-full py-3 text-sm font-semibold rounded-xl shadow-md shadow-indigo-600/20"
           >
-            {successMessage ? 'Redirecting to Sign In...' : 'Reset Password'}
+            {isRedirecting ? 'Redirecting to Sign In...' : 'Reset Password'}
           </Button>
         </form>
       )}

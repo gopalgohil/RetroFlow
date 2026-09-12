@@ -240,7 +240,11 @@ class AuthService {
 
     const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
-      throw ApiError.notFound('No registered account found with this email address.');
+      throw ApiError.notFound('Account not found! Please create an account first.');
+    }
+
+    if (!user.isVerified) {
+      throw ApiError.badRequest('This account has not been registered or verified yet. Please create and verify your account first.');
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
