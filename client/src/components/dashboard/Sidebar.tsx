@@ -55,7 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'projects',
-      label: 'Agile Projects',
+      label: 'My Projects',
       icon: FolderKanban,
       sublabel: 'Sprints & Delivery',
     },

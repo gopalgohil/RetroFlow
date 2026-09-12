@@ -91,6 +91,7 @@ function ProjectDetailContent() {
   const [isCreateRetroOpen, setIsCreateRetroOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isSwitchingProject, setIsSwitchingProject] = useState(false);
+  const [isTabTransitioning, setIsTabTransitioning] = useState(false);
 
   // Profile dropdown & logout confirmation modals state
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -243,9 +244,14 @@ function ProjectDetailContent() {
 
   // Sync tab with URL without ever altering the active projectId
   const handleTabChange = (newTab: 'overview' | 'sprints' | 'retros' | 'team') => {
+    if (newTab === activeTab) return;
+    setIsTabTransitioning(true);
     setActiveTab(newTab);
     const url = `/projects/${projectId}?tab=${newTab}`;
     window.history.pushState(null, '', url);
+    setTimeout(() => {
+      setIsTabTransitioning(false);
+    }, 280);
   };
 
   useEffect(() => {
@@ -515,9 +521,7 @@ function ProjectDetailContent() {
       <Sidebar
         activeTab="projects"
         setActiveTab={(t) => {
-          if (t === 'sessions' || t === 'members' || t === 'settings') {
-            router.push(`/dashboard?tab=${t}`);
-          }
+          router.push(`/dashboard?tab=${t}`);
         }}
         activeSessionsCount={1}
         user={activeUser}
@@ -718,7 +722,7 @@ function ProjectDetailContent() {
               </button>
             </div>
           </div>
-        ) : !project || isSwitchingProject ? (
+        ) : !project || isSwitchingProject || isTabTransitioning ? (
           <ProjectDetailSkeleton activeTab={activeTab} />
         ) : (
           <>

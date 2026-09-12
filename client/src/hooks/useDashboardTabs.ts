@@ -18,7 +18,7 @@ interface UseDashboardTabsOptions {
  */
 export function useDashboardTabs({
   defaultTab = 'sessions',
-  transitionDuration = 220,
+  transitionDuration = 380,
 }: UseDashboardTabsOptions = {}) {
   const searchParams = useSearchParams();
 
@@ -53,10 +53,16 @@ export function useDashboardTabs({
   // 3. Switch tab with clean URL pushState (Zero RSC re-render jitter)
   const switchTab = useCallback(
     (targetTab: string) => {
-      if (targetTab === activeTab) return;
       if (!DASHBOARD_TABS.includes(targetTab as DashboardTab)) return;
 
       const validTab = targetTab as DashboardTab;
+      if (validTab === activeTab) {
+        // Smooth refresh transition if clicking the same active tab
+        setIsTransitioning(true);
+        setTimeout(() => setIsTransitioning(false), transitionDuration);
+        return;
+      }
+
       setIsTransitioning(true);
       setActiveTab(validTab);
 
