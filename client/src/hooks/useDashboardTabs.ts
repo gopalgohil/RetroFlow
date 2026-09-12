@@ -53,16 +53,11 @@ export function useDashboardTabs({
   // 3. Switch tab with clean URL pushState (Zero RSC re-render jitter)
   const switchTab = useCallback(
     (targetTab: string) => {
+      // If user is already on this tab, do nothing (prevent duplicate API calls & re-renders)
+      if (targetTab === activeTab) return;
       if (!DASHBOARD_TABS.includes(targetTab as DashboardTab)) return;
 
       const validTab = targetTab as DashboardTab;
-      if (validTab === activeTab) {
-        // Smooth refresh transition if clicking the same active tab
-        setIsTransitioning(true);
-        setTimeout(() => setIsTransitioning(false), transitionDuration);
-        return;
-      }
-
       setIsTransitioning(true);
       setActiveTab(validTab);
 

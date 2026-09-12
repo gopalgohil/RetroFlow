@@ -21,10 +21,13 @@ interface ProjectsTabProps {
   user?: { name?: string; email?: string; role?: string; projectRole?: string } | null;
 }
 
+// In-memory cache to prevent skeleton flickering and duplicate network calls on tab switching
+let inMemoryProjectsCache: Project[] | null = null;
+
 export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user = null }) => {
   const router = useRouter();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [projects, setProjects] = useState<Project[]>(() => inMemoryProjectsCache || []);
+  const [isLoading, setIsLoading] = useState(() => inMemoryProjectsCache === null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     email?: string;
@@ -55,14 +58,21 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   }, [user]);
 
   const fetchProjects = React.useCallback(async () => {
-    setIsLoading(true);
+    // Only show full skeleton loader on initial cold load if no cache exists
+    if (!inMemoryProjectsCache) {
+      setIsLoading(true);
+    }
     try {
       // Live REST API request directly from MongoDB Atlas
       const list = await ProjectApiService.getProjects(true);
-      setProjects(Array.isArray(list) ? list : []);
+      const safeList = Array.isArray(list) ? list : [];
+      inMemoryProjectsCache = safeList;
+      setProjects(safeList);
     } catch (err) {
       console.warn('[ProjectsTab] Live API request error:', err);
-      setProjects([]);
+      if (!inMemoryProjectsCache) {
+        setProjects([]);
+      }
     } finally {
       setIsLoading(false);
     }
