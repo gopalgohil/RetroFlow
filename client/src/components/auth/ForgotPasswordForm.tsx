@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input, Button, Alert } from '@/components/ui';
 import { AuthHeader, AuthFooterLink } from '@/components/auth';
@@ -11,6 +12,8 @@ import {
 import { api, ENDPOINTS } from '@/lib/api';
 
 export const ForgotPasswordForm: React.FC = () => {
+  const router = useRouter();
+  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -34,6 +37,15 @@ export const ForgotPasswordForm: React.FC = () => {
     }
     return () => clearTimeout(timer);
   }, [step, countdown]);
+
+  // Clean up redirect timer on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +106,12 @@ export const ForgotPasswordForm: React.FC = () => {
         newPassword: validation.data.password,
       });
 
-      setSuccessMessage('Your password has been reset successfully! You can now sign in.');
+      setSuccessMessage('🎉 Password reset successfully! Redirecting you to sign in...');
+
+      // Redirect to login page after 1.5 seconds
+      redirectTimerRef.current = setTimeout(() => {
+        router.push(`/login?reset=true&email=${encodeURIComponent(email)}`);
+      }, 1500);
     } catch (err: any) {
       setGeneralError(err.message || 'Failed to reset password. Please check your OTP.');
     } finally {
@@ -229,9 +246,10 @@ export const ForgotPasswordForm: React.FC = () => {
             type="submit"
             variant="primary"
             isLoading={isLoading}
+            disabled={isLoading || Boolean(successMessage)}
             className="w-full py-3 text-sm font-semibold rounded-xl shadow-md shadow-indigo-600/20"
           >
-            Reset Password
+            {successMessage ? 'Redirecting to Sign In...' : 'Reset Password'}
           </Button>
         </form>
       )}

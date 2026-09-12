@@ -13,6 +13,7 @@ export interface LoginFormProps {
   onGoogleSignIn?: () => void;
   initialEmail?: string;
   initialVerified?: boolean;
+  initialReset?: boolean;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({
@@ -20,6 +21,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onGoogleSignIn,
   initialEmail = '',
   initialVerified = false,
+  initialReset = false,
 }) => {
   const router = useRouter();
 
@@ -30,6 +32,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   });
 
   const [isVerifiedParam, setIsVerifiedParam] = useState(initialVerified);
+  const [isResetSuccessParam, setIsResetSuccessParam] = useState(initialReset);
 
   // Read URL search parameters on client without triggering Next.js Suspense fallback bailout
   useEffect(() => {
@@ -37,11 +40,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       const params = new URLSearchParams(window.location.search);
       const email = params.get('email');
       const verified = params.get('verified') === 'true';
+      const reset = params.get('reset') === 'true';
       if (email && !initialEmail) {
         setFormData((prev) => ({ ...prev, email }));
       }
       if (verified) {
         setIsVerifiedParam(true);
+      }
+      if (reset) {
+        setIsResetSuccessParam(true);
       }
     }
   }, [initialEmail]);
@@ -130,6 +137,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {isVerifiedParam && (
         <Alert variant="success">
           🎉 Your email has been verified successfully! Please sign in to access your workspace.
+        </Alert>
+      )}
+
+      {/* Password Reset Success Alert if redirected after reset */}
+      {isResetSuccessParam && (
+        <Alert variant="success">
+          🎉 Your password has been reset successfully! Please sign in with your new password.
         </Alert>
       )}
 
