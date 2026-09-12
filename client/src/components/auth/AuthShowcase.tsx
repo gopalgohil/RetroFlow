@@ -2,44 +2,27 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Badge } from '../ui/Badge';
-import { RetroNoteCard, RetroNoteCardProps } from './RetroNoteCard';
 
 export interface AuthShowcaseProps {
   title?: string;
   subtitle?: string;
   tagline?: string;
+  imageSrc?: string;
+  imageAlt?: string;
   sprintTitle?: string;
   sprintFacilitator?: string;
-  notes?: RetroNoteCardProps[];
+  notes?: any[];
 }
-
-const DEFAULT_NOTES: RetroNoteCardProps[] = [
-  {
-    categoryTitle: 'What went well',
-    categoryVariant: 'success',
-    content: 'The new CI pipeline significantly reduced deploy friction. Great job team!',
-    author: 'Dave',
-  },
-  {
-    categoryTitle: 'What to improve',
-    categoryVariant: 'danger',
-    content: 'Daily standups are running over 15 minutes. We need to keep updates concise.',
-    author: 'Alice',
-    upvotes: 3,
-  },
-];
 
 export const AuthShowcase: React.FC<AuthShowcaseProps> = ({
   title = 'RetroFlow',
   subtitle = 'Continuous Improvement for Modern Agile Teams',
   tagline = 'Empowering teams to reflect, align, and act.',
-  sprintTitle = 'Sprint 42 Retrospective',
-  sprintFacilitator = 'Facilitated by Sarah · 8 participants',
-  notes = DEFAULT_NOTES,
+  imageSrc = '/auth-illustration.png',
+  imageAlt = 'Agile Team Retrospective & Innovation',
 }) => {
   return (
-    <div className="relative flex flex-col justify-between h-full w-full bg-[#eef3fb] p-8 sm:p-12 lg:p-16 select-none overflow-hidden">
+    <div className="relative flex flex-col justify-between h-full w-full bg-[#eef3fb] p-8 sm:p-12 lg:p-14 select-none overflow-hidden">
       {/* Background ambient lighting */}
       <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-200/50 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-200/50 rounded-full blur-3xl pointer-events-none" />
@@ -73,35 +56,30 @@ export const AuthShowcase: React.FC<AuthShowcaseProps> = ({
         </p>
       </div>
 
-      {/* Middle Interactive Preview Card */}
-      <div className="relative z-10 my-auto py-8">
-        <div className="w-full max-w-xl mx-auto rounded-2xl bg-white border border-slate-200/90 shadow-xl shadow-indigo-950/5 p-6 sm:p-7">
-          {/* Card Header */}
-          <div className="flex items-start justify-between gap-4 pb-5 border-b border-slate-100">
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                {sprintTitle}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                {sprintFacilitator}
-              </p>
-            </div>
-            <Badge variant="live">
-              LIVE Retrospective
-            </Badge>
+      {/* Middle Illustration Showcase Card */}
+      <div className="relative z-10 my-auto py-4">
+        <div className="w-full max-w-lg mx-auto rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/75 shadow-lg shadow-indigo-950/5 p-6 sm:p-8 flex flex-col items-center text-center">
+          <div className="w-full max-w-[400px] flex items-center justify-center">
+            <img
+              src={imageSrc}
+              alt={imageAlt}
+              className="w-full h-auto max-h-72 object-contain filter drop-shadow-sm hover:scale-[1.02] transition-transform duration-300"
+            />
           </div>
 
-          {/* Retrospective Columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
-            {notes.map((note, index) => (
-              <RetroNoteCard key={index} {...note} />
-            ))}
+          <div className="mt-6 space-y-2">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+              Collaborative Sprint Retrospectives
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
+              Unite your team to reflect on past sprints, spark innovative solutions, and continuously improve team performance.
+            </p>
           </div>
         </div>
       </div>
 
       {/* Bottom Tagline */}
-      <div className="relative z-10 pt-4">
+      <div className="relative z-10 pt-2">
         <p className="text-xs sm:text-sm text-slate-500 font-normal">
           {tagline}
         </p>
