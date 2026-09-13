@@ -11,10 +11,9 @@ import {
 } from 'lucide-react';
 import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
-import { ProjectDataService } from '@/services/mockProjectData';
 import { CreateProjectModal } from '@/components/project/CreateProjectModal';
 import { UserAvatar, StatusPill, ProgressBar } from '@/components/ui';
-import { ProjectsTabSkeleton } from '@/components/dashboard/DashboardSkeletons';
+import { ProjectsTabSkeleton, ProjectCardsSkeleton } from '@/components/dashboard/DashboardSkeletons';
 
 interface ProjectsTabProps {
   isAdmin?: boolean;
@@ -45,6 +44,16 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     return null;
   });
   const [filterMode, setFilterMode] = useState<'all' | 'managed'>('all');
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
+
+  const handleFilterChange = (mode: 'all' | 'managed') => {
+    if (mode === filterMode) return;
+    setIsFilterLoading(true);
+    setFilterMode(mode);
+    setTimeout(() => {
+      setIsFilterLoading(false);
+    }, 280);
+  };
 
   useEffect(() => {
     if (user) {
@@ -166,7 +175,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 border border-slate-200/80 rounded-xl w-fit">
           <button
             type="button"
-            onClick={() => setFilterMode('all')}
+            onClick={() => handleFilterChange('all')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               filterMode === 'all'
                 ? 'bg-white text-slate-900 shadow-xs'
@@ -177,7 +186,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
           </button>
           <button
             type="button"
-            onClick={() => setFilterMode('managed')}
+            onClick={() => handleFilterChange('managed')}
             className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               filterMode === 'managed'
                 ? 'bg-white text-slate-900 shadow-xs'
@@ -197,13 +206,20 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
           </button>
         </div>
 
-        <p className="text-xs text-slate-400">
-          Showing <strong className="text-slate-700">{displayedProjects.length}</strong> active initiatives
-        </p>
+        {isFilterLoading ? (
+          <div className="h-4 w-36 rounded bg-slate-200/80 animate-pulse" />
+        ) : (
+          <p className="text-xs text-slate-400">
+            Showing <strong className="text-slate-700">{displayedProjects.length}</strong> active initiatives
+          </p>
+        )}
       </div>
 
       {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {isFilterLoading ? (
+        <ProjectCardsSkeleton count={displayedProjects.length > 0 ? Math.min(displayedProjects.length, 3) : 3} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayedProjects.length === 0 ? (
             <div className="col-span-full p-12 text-center rounded-2xl bg-white border border-slate-200 space-y-3">
               <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold mx-auto shadow-2xs">
@@ -398,6 +414,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         })
       )}
       </div>
+      )}
 
       {/* Create Project Modal */}
       <CreateProjectModal

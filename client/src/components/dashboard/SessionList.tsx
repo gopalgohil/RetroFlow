@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { RetroBoard } from '@/types/retro';
 import { ShareInviteModal } from './ShareInviteModal';
+import { SessionCardsSkeleton } from './DashboardSkeletons';
 
 interface SessionListProps {
   sessions: RetroBoard[];
@@ -55,6 +56,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   isAdmin = true,
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('active');
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [invitingSession, setInvitingSession] = useState<RetroBoard | null>(null);
@@ -69,6 +71,15 @@ export const SessionList: React.FC<SessionListProps> = ({
     }
     return true;
   });
+
+  const handleTabClick = (tabId: 'all' | 'active' | 'upcoming' | 'completed') => {
+    if (tabId === activeFilter) return;
+    setIsFilterLoading(true);
+    setActiveFilter(tabId);
+    setTimeout(() => {
+      setIsFilterLoading(false);
+    }, 280);
+  };
 
   const handleCopyLink = (shareToken: string) => {
     const inviteUrl = `${window.location.origin}/retro/${shareToken}`;
@@ -92,6 +103,8 @@ export const SessionList: React.FC<SessionListProps> = ({
     });
   };
 
+  const isCardsLoading = isLoading || isFilterLoading;
+
   return (
     <div className="space-y-6">
       {/* Session Filter Tabs Bar */}
@@ -107,7 +120,7 @@ export const SessionList: React.FC<SessionListProps> = ({
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveFilter(tab.id as any)}
+                onClick={() => handleTabClick(tab.id as any)}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   isActive
                     ? 'bg-indigo-600 text-white shadow-xs'
@@ -120,32 +133,22 @@ export const SessionList: React.FC<SessionListProps> = ({
           })}
         </div>
 
-        <span className="text-xs font-semibold text-slate-500">
-          Showing {filteredSessions.length} of {sessions.length} Retros
-        </span>
+        {isCardsLoading ? (
+          <div className="h-4 w-28 rounded bg-slate-200/80 animate-pulse" />
+        ) : (
+          <span className="text-xs font-semibold text-slate-500">
+            Showing {filteredSessions.length} of {sessions.length} Retros
+          </span>
+        )}
       </div>
 
       {/* Loading Skeleton */}
-      {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs animate-pulse space-y-4"
-            >
-              <div className="h-4 bg-slate-200 rounded-md w-2/3" />
-              <div className="h-3 bg-slate-100 rounded-md w-1/3" />
-              <div className="flex gap-2 pt-2">
-                <div className="h-6 w-20 bg-slate-100 rounded-full" />
-                <div className="h-6 w-20 bg-slate-100 rounded-full" />
-              </div>
-            </div>
-          ))}
-        </div>
+      {isCardsLoading && (
+        <SessionCardsSkeleton count={filteredSessions.length > 0 ? Math.min(filteredSessions.length, 4) : 4} />
       )}
 
       {/* Empty State */}
-      {!isLoading && filteredSessions.length === 0 && (
+      {!isCardsLoading && filteredSessions.length === 0 && (
         <div className="p-12 rounded-2xl bg-white border border-dashed border-slate-300 text-center space-y-4 max-w-lg mx-auto">
           <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center font-black text-lg">
             RF
@@ -172,7 +175,7 @@ export const SessionList: React.FC<SessionListProps> = ({
       )}
 
       {/* Sessions Grid */}
-      {!isLoading && filteredSessions.length > 0 && (
+      {!isCardsLoading && filteredSessions.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {filteredSessions.map((session) => (
             <div

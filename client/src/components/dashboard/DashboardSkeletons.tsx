@@ -56,49 +56,59 @@ export const SessionsSkeleton: React.FC = () => {
       </div>
 
       {/* Sessions Grid Skeleton (4 Cards) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4"
-          >
-            {/* Top Row: Status pill & Date */}
-            <div className="flex items-center justify-between">
-              <div className="h-5 w-20 rounded-full bg-emerald-100/70" />
-              <div className="h-3.5 w-24 rounded bg-slate-100" />
-            </div>
+      <SessionCardsSkeleton count={4} />
+    </div>
+  );
+};
 
-            {/* Title & Description */}
-            <div className="space-y-2">
-              <div className="h-5 w-3/4 rounded-lg bg-slate-200" />
-              <div className="h-3.5 w-full rounded bg-slate-100" />
-              <div className="h-3.5 w-2/3 rounded bg-slate-100" />
-            </div>
+/**
+ * SessionCardsSkeleton:
+ * Standalone grid skeleton of Retrospective Session cards
+ */
+export const SessionCardsSkeleton: React.FC<{ count?: number }> = ({ count = 4 }) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-pulse">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4"
+        >
+          {/* Top Row: Status pill & Date */}
+          <div className="flex items-center justify-between">
+            <div className="h-5 w-20 rounded-full bg-emerald-100/70" />
+            <div className="h-3.5 w-24 rounded bg-slate-100" />
+          </div>
 
-            {/* Configured Topics */}
-            <div className="space-y-2 pt-1">
-              <div className="h-2.5 w-28 rounded bg-slate-100" />
-              <div className="flex flex-wrap gap-1.5">
-                <div className="h-6 w-28 rounded-lg bg-indigo-50 border border-indigo-100" />
-                <div className="h-6 w-24 rounded-lg bg-emerald-50 border border-emerald-100" />
-                <div className="h-6 w-20 rounded-lg bg-rose-50 border border-rose-100" />
-              </div>
-            </div>
+          {/* Title & Description */}
+          <div className="space-y-2">
+            <div className="h-5 w-3/4 rounded-lg bg-slate-200" />
+            <div className="h-3.5 w-full rounded bg-slate-100" />
+            <div className="h-3.5 w-2/3 rounded bg-slate-100" />
+          </div>
 
-            {/* Footer Buttons */}
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-28 rounded-xl bg-indigo-200/80" />
-                <div className="h-8 w-28 rounded-xl bg-slate-100" />
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-7 h-7 rounded-lg bg-slate-100" />
-                <div className="w-7 h-7 rounded-lg bg-slate-100" />
-              </div>
+          {/* Configured Topics */}
+          <div className="space-y-2 pt-1">
+            <div className="h-2.5 w-28 rounded bg-slate-100" />
+            <div className="flex flex-wrap gap-1.5">
+              <div className="h-6 w-28 rounded-lg bg-indigo-50 border border-indigo-100" />
+              <div className="h-6 w-24 rounded-lg bg-emerald-50 border border-emerald-100" />
+              <div className="h-6 w-20 rounded-lg bg-rose-50 border border-rose-100" />
             </div>
           </div>
-        ))}
-      </div>
+
+          {/* Footer Buttons */}
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-28 rounded-xl bg-indigo-200/80" />
+              <div className="h-8 w-28 rounded-xl bg-slate-100" />
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-7 h-7 rounded-lg bg-slate-100" />
+              <div className="w-7 h-7 rounded-lg bg-slate-100" />
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
@@ -320,65 +330,108 @@ export const ProjectsTabSkeleton: React.FC = () => {
       </div>
 
       {/* Project Cards Grid Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-4 flex flex-col justify-between"
-          >
-            <div className="space-y-4">
-              {/* Card Header: Icon + Name + Status */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-indigo-100/70 shrink-0" />
-                  <div className="space-y-1.5">
-                    <div className="h-5 w-36 bg-slate-200 rounded-md" />
-                    <div className="h-3.5 w-20 bg-slate-100 rounded" />
-                  </div>
+      <ProjectCardsSkeleton count={3} />
+    </div>
+  );
+};
+
+/**
+ * ProjectCardsSkeleton:
+ * Standalone grid skeleton of Agile Project cards
+ */
+export const ProjectCardsSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-4 flex flex-col justify-between"
+        >
+          <div className="space-y-4">
+            {/* Card Header: Icon + Name + Status */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-indigo-100/70 shrink-0" />
+                <div className="space-y-1.5">
+                  <div className="h-5 w-36 bg-slate-200 rounded-md" />
+                  <div className="h-3.5 w-20 bg-slate-100 rounded" />
                 </div>
-                <div className="h-6 w-16 rounded-full bg-emerald-100/70" />
               </div>
+              <div className="h-6 w-16 rounded-full bg-emerald-100/70" />
+            </div>
 
-              {/* Project Lead Pill Box */}
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2.5">
-                <div className="w-6 h-6 rounded-lg bg-slate-200 shrink-0" />
-                <div className="space-y-1 flex-1">
-                  <div className="h-2.5 w-16 bg-slate-200 rounded" />
-                  <div className="h-3 w-24 bg-slate-300 rounded" />
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-1.5 pt-1">
-                <div className="h-3 w-full bg-slate-100 rounded" />
-                <div className="h-3 w-4/5 bg-slate-100 rounded" />
-              </div>
-
-              {/* Sprint Progress Box */}
-              <div className="p-3 rounded-2xl bg-slate-50/70 border border-slate-100 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="h-3.5 w-20 bg-slate-200 rounded" />
-                  <div className="h-3.5 w-16 bg-slate-200 rounded" />
-                </div>
-                <div className="h-2 w-full bg-slate-200 rounded-full" />
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-2 pt-1">
-                {[1, 2, 3].map((s) => (
-                  <div key={s} className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-center space-y-1">
-                    <div className="h-2 w-10 bg-slate-200 rounded mx-auto" />
-                    <div className="h-4 w-6 bg-slate-300 rounded mx-auto" />
-                  </div>
-                ))}
+            {/* Project Lead Pill Box */}
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2.5">
+              <div className="w-6 h-6 rounded-lg bg-slate-200 shrink-0" />
+              <div className="space-y-1 flex-1">
+                <div className="h-2.5 w-16 bg-slate-200 rounded" />
+                <div className="h-3 w-24 bg-slate-300 rounded" />
               </div>
             </div>
 
-            {/* Bottom CTA Button */}
-            <div className="h-11 w-full rounded-2xl bg-slate-200/80 mt-2" />
+            {/* Description */}
+            <div className="space-y-1.5 pt-1">
+              <div className="h-3 w-full bg-slate-100 rounded" />
+              <div className="h-3 w-4/5 bg-slate-100 rounded" />
+            </div>
+
+            {/* Sprint Progress Box */}
+            <div className="p-3 rounded-2xl bg-slate-50/70 border border-slate-100 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="h-3.5 w-20 bg-slate-200 rounded" />
+                <div className="h-3.5 w-16 bg-slate-200 rounded" />
+              </div>
+              <div className="h-2 w-full bg-slate-200 rounded-full" />
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              {[1, 2, 3].map((s) => (
+                <div key={s} className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-center space-y-1">
+                  <div className="h-2 w-10 bg-slate-200 rounded mx-auto" />
+                  <div className="h-4 w-6 bg-slate-300 rounded mx-auto" />
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
+
+          {/* Bottom CTA Button */}
+          <div className="h-11 w-full rounded-2xl bg-slate-200/80 mt-2" />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/**
+ * SprintCardsSkeleton:
+ * Standalone list skeleton of Sprint cards
+ */
+export const SprintCardsSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => {
+  return (
+    <div className="space-y-4 animate-pulse">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="rounded-2xl bg-white border border-slate-200/90 shadow-xs p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+        >
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-200 shrink-0" />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-36 rounded-md bg-slate-200" />
+                <div className="h-5 w-20 rounded-full bg-slate-100" />
+              </div>
+              <div className="h-3.5 w-72 rounded bg-slate-100" />
+              <div className="flex items-center gap-2 pt-1">
+                <div className="h-4 w-36 rounded bg-slate-100" />
+                <div className="h-4 w-28 rounded bg-slate-100" />
+              </div>
+            </div>
+          </div>
+          <div className="h-8 w-44 rounded-xl bg-slate-100 shrink-0" />
+        </div>
+      ))}
     </div>
   );
 };

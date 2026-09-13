@@ -19,6 +19,7 @@ import { ProjectDataService } from '@/services/mockProjectData';
 import { StatusPill, ProgressBar, UserAvatar, ConfirmDialog } from '@/components/ui';
 import { EditSprintDatesModal } from '@/components/project/EditSprintDatesModal';
 import { formatDateDMY } from '@/lib/dateUtils';
+import { SprintCardsSkeleton } from '@/components/dashboard/DashboardSkeletons';
 
 interface SprintsTabProps {
   project: Project;
@@ -32,6 +33,16 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   canManageProject = true,
 }) => {
   const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('all');
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
+
+  const handleFilterChange = (tab: 'all' | 'active' | 'upcoming' | 'completed') => {
+    if (tab === filter) return;
+    setIsFilterLoading(true);
+    setFilter(tab);
+    setTimeout(() => {
+      setIsFilterLoading(false);
+    }, 280);
+  };
   const [expandedSprintIds, setExpandedSprintIds] = useState<string[]>([
     project.sprints.find((s) => s.status === 'active')?.id || project.sprints[0]?.id || '',
   ]);
@@ -139,7 +150,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
           {(['all', 'active', 'upcoming', 'completed'] as const).map((tab) => (
             <button
               key={tab}
-              onClick={() => setFilter(tab)}
+              onClick={() => handleFilterChange(tab)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
                 filter === tab
                   ? 'bg-white text-indigo-600 shadow-xs'
@@ -153,7 +164,10 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
       </div>
 
       {/* Sprints List */}
-      <div className="space-y-4">
+      {isFilterLoading ? (
+        <SprintCardsSkeleton count={filteredSprints.length > 0 ? Math.min(filteredSprints.length, 3) : 3} />
+      ) : (
+        <div className="space-y-4">
         {filteredSprints.map((sprint) => {
           const isExpanded = expandedSprintIds.includes(sprint.id);
 
@@ -435,6 +449,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
           );
         })}
       </div>
+      )}
 
       {/* Reusable Confirmation Dialog for Start / Complete */}
       {confirmSprint && (
