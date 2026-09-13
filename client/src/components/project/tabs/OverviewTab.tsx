@@ -49,8 +49,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   const activeSprint =
     project.activeSprint ||
-    project.sprints.find((s) => s.status === 'active') ||
-    project.sprints[0];
+    (project.sprints || []).find((s) => s.status === 'active') ||
+    (project.sprints || [])[0];
 
   const totalTasks = activeSprint?.items?.length || 0;
   const completedTasks = activeSprint?.items?.filter((it) => it.status === 'done').length || 0;
@@ -123,31 +123,42 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         {/* Metric 2: Active Sprint Days Left */}
         <MetricCard
           title="Sprint Timeline"
-          value={`${activeSprint?.daysLeft ?? 0} Days`}
-          unit="remaining"
+          value={activeSprint ? `${activeSprint.daysLeft ?? 0} Days` : 'No Sprint'}
+          unit={activeSprint ? 'remaining' : ''}
           icon={<Clock className="w-4 h-4" />}
-          variant="indigo"
-          progress={{
-            current: activeSprint?.completedStoryPoints ?? 0,
-            total: activeSprint?.totalStoryPoints ?? 1,
-            label: activeSprint?.name ? activeSprint.name.split(' - ')[0] : 'Sprint Active',
-          }}
+          variant={activeSprint ? 'indigo' : 'default'}
+          progress={
+            activeSprint
+              ? {
+                  current: activeSprint.completedStoryPoints ?? 0,
+                  total: activeSprint.totalStoryPoints || 1,
+                  label: activeSprint.name ? activeSprint.name.split(' - ')[0] : 'Sprint Active',
+                }
+              : undefined
+          }
+          subtitle={!activeSprint ? 'No active sprint running for this project.' : undefined}
         />
 
         {/* Metric 3: Sprint Tasks Progress */}
         <MetricCard
           title="Tasks Progress"
-          value={`${completedTasks} / ${totalTasks}`}
+          value={activeSprint ? `${completedTasks} / ${totalTasks}` : '0 / 0'}
           unit="completed"
           icon={<CheckCircle2 className="w-4 h-4" />}
-          variant={completedTasks === totalTasks && totalTasks > 0 ? 'success' : 'indigo'}
-          progress={{
-            current: completedTasks,
-            total: totalTasks || 1,
-            label: `${totalTasks} sprint items`,
-          }}
+          variant={activeSprint && completedTasks === totalTasks && totalTasks > 0 ? 'success' : 'indigo'}
+          progress={
+            activeSprint
+              ? {
+                  current: completedTasks,
+                  total: totalTasks || 1,
+                  label: `${totalTasks} sprint items`,
+                }
+              : undefined
+          }
           subtitle={
-            totalTasks === 0
+            !activeSprint
+              ? 'No active sprint in progress.'
+              : totalTasks === 0
               ? 'No tasks assigned in this sprint yet.'
               : `${todoTasks} remaining task${todoTasks !== 1 ? 's' : ''} in active cycle.`
           }

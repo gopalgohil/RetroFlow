@@ -206,7 +206,6 @@ const projectSchema = new mongoose.Schema(
       uppercase: true,
       trim: true,
       maxlength: 10,
-      index: true,
     },
     description: {
       type: String,
@@ -260,7 +259,7 @@ const projectSchema = new mongoose.Schema(
       transform: (doc, ret) => {
         ret.id = ret._id.toString();
         // Virtual active sprint resolution
-        ret.activeSprint = ret.sprints?.find((s) => s.status === 'active') || ret.sprints?.[0];
+        ret.activeSprint = ret.sprints?.find((s) => s.status === 'active') || ret.sprints?.[0] || null;
         return ret;
       },
     },

@@ -55,7 +55,7 @@ export class ProjectDataService {
     const projects = this.getStoredProjects();
     return projects.map((p) => ({
       ...p,
-      activeSprint: p.sprints.find((s) => s.status === 'active') || p.sprints[0],
+      activeSprint: (p.sprints || []).find((s) => s.status === 'active') || (p.sprints || [])[0] || undefined,
     }));
   }
 
@@ -71,22 +71,6 @@ export class ProjectDataService {
     const projects = this.getStoredProjects();
     const leadUser =
       MOCK_PROJECT_LEADS.find((l) => l.id === payload.leadId) || MOCK_PROJECT_LEADS[0];
-
-    const initialSprint: Sprint = {
-      id: `sprint-${Date.now()}`,
-      projectId: `proj-${payload.key.toLowerCase()}`,
-      name: `Sprint 1 - Foundation & Kickoff`,
-      number: 1,
-      status: 'active',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
-      goal: `Kickoff sprint for ${payload.name} deliverables.`,
-      daysLeft: payload.cadence === '1_week' ? 7 : payload.cadence === '3_weeks' ? 21 : 14,
-      totalStoryPoints: 20,
-      completedStoryPoints: 0,
-      openBlockers: 0,
-      items: [],
-    };
 
     const newProject: Project = {
       id: `proj-${Date.now()}`,
@@ -126,12 +110,10 @@ export class ProjectDataService {
           joinedAt: new Date().toISOString(),
         })),
       ],
-      sprints: [initialSprint],
-      activeSprint: initialSprint,
+      sprints: [],
+      activeSprint: undefined,
       retrospectives: [],
-      velocityHistory: [
-        { sprintName: 'Sprint 1', committedPoints: 20, completedPoints: 0 },
-      ],
+      velocityHistory: [],
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
     };

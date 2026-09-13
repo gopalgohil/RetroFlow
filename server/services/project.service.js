@@ -506,21 +506,6 @@ class ProjectService {
       'GG';
     const leadId = payload.lead?.id || `lead-${Date.now()}`;
 
-    const initialSprint = {
-      id: `sprint-${crypto.randomUUID().slice(0, 8)}`,
-      name: `Sprint 1 - Foundation & Kickoff`,
-      number: 1,
-      status: 'active',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
-      goal: `Kickoff sprint for ${payload.name} objectives and deliverables.`,
-      daysLeft: payload.cadence === '1_week' ? 7 : payload.cadence === '3_weeks' ? 21 : 14,
-      totalStoryPoints: 20,
-      completedStoryPoints: 0,
-      openBlockers: 0,
-      items: [],
-    };
-
     // Filter out if lead email is already in payload.members to avoid duplicate entries
     const otherMembers = (payload.members || []).filter(
       (m) => m.email?.toLowerCase().trim() !== leadEmail
@@ -564,14 +549,11 @@ class ProjectService {
         email: leadEmail,
         avatar: leadAvatar,
       },
-      createdBy: userId,
       members,
-      sprints: [initialSprint],
+      sprints: [],
       retrospectives: [],
-      velocityHistory: [
-        { sprintName: 'Sprint 1', committedPoints: 20, completedPoints: 0 },
-      ],
-      createdBy: userId,
+      velocityHistory: [],
+      createdBy: mongoose.Types.ObjectId.isValid(userId) ? userId : null,
     });
 
     // Synchronize global projectRole in User collection for any assigned Managers/Leads

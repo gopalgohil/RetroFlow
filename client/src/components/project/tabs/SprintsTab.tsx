@@ -43,9 +43,10 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
       setIsFilterLoading(false);
     }, 380);
   };
-  const [expandedSprintIds, setExpandedSprintIds] = useState<string[]>([
-    project.sprints.find((s) => s.status === 'active')?.id || project.sprints[0]?.id || '',
-  ]);
+  const [expandedSprintIds, setExpandedSprintIds] = useState<string[]>(() => {
+    const active = (project.sprints || []).find((s) => s.status === 'active')?.id || project.sprints?.[0]?.id;
+    return active ? [active] : [];
+  });
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [editingDatesSprint, setEditingDatesSprint] = useState<Sprint | null>(null);
 
@@ -136,7 +137,8 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     setConfirmSprint(null);
   };
 
-  const filteredSprints = project.sprints.filter((s) => {
+  const allSprints = project.sprints || [];
+  const filteredSprints = allSprints.filter((s) => {
     if (filter === 'all') return true;
     return s.status === filter;
   });
@@ -157,7 +159,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              {tab === 'all' ? `All Sprints (${project.sprints.length})` : tab}
+              {tab === 'all' ? `All Sprints (${allSprints.length})` : tab}
             </button>
           ))}
         </div>
@@ -166,6 +168,23 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
       {/* Sprints List */}
       {isFilterLoading ? (
         <SprintCardsSkeleton count={filteredSprints.length > 0 ? Math.min(filteredSprints.length, 3) : 3} />
+      ) : filteredSprints.length === 0 ? (
+        allSprints.length === 0 ? (
+          <div className="p-12 text-center rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-3 shadow-2xs">
+              <Layers className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900">No Sprints Yet</h3>
+            <p className="text-xs text-slate-500 max-w-sm mt-1 leading-relaxed">
+              No sprints have been created for this project yet. Sprints will appear here when planned or linked with a retrospective session.
+            </p>
+          </div>
+        ) : (
+          <div className="p-10 text-center rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col items-center justify-center">
+            <p className="text-sm font-bold text-slate-700 capitalize">No {filter} sprints found</p>
+            <p className="text-xs text-slate-400 mt-1">Select another filter tab or click "All Sprints" to view the backlog.</p>
+          </div>
+        )
       ) : (
         <div className="space-y-4">
         {filteredSprints.map((sprint) => {

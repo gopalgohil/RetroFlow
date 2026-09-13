@@ -257,8 +257,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
           displayedProjects.map((project) => {
             const activeSprint =
               project.activeSprint ||
-              project.sprints.find((s) => s.status === 'active') ||
-              project.sprints[0];
+              (project.sprints || []).find((s) => s.status === 'active') ||
+              (project.sprints || [])[0];
 
             const userEmail = currentUser?.email?.toLowerCase().trim();
             // Resolve designated project manager
@@ -339,7 +339,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   </p>
 
                 {/* Active Sprint Highlights */}
-                {activeSprint && (
+                {activeSprint ? (
                   <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/70 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold text-slate-700 truncate max-w-[150px]">
@@ -367,6 +367,10 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                         % complete
                       </span>
                     </div>
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-xl bg-slate-50/60 border border-dashed border-slate-200 text-center">
+                    <span className="text-xs text-slate-400 font-medium">No active sprint</span>
                   </div>
                 )}
 
