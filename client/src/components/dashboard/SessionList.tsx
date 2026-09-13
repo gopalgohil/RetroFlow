@@ -78,7 +78,7 @@ export const SessionList: React.FC<SessionListProps> = ({
     setActiveFilter(tabId);
     setTimeout(() => {
       setIsFilterLoading(false);
-    }, 280);
+    }, 380);
   };
 
   const handleCopyLink = (shareToken: string) => {

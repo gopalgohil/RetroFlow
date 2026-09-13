@@ -17,7 +17,13 @@ import {
   RetrosTab,
   TeamSettingsTab,
 } from '@/components/project/tabs';
-import { ProjectDetailSkeleton } from '@/components/project/ProjectSkeletons';
+import {
+  ProjectDetailSkeleton,
+  OverviewTabSkeleton,
+  SprintsTabSkeleton,
+  RetrosTabSkeleton,
+  TeamTabSkeleton,
+} from '@/components/project/ProjectSkeletons';
 import { ShareProjectModal } from '@/components/project/ShareProjectModal';
 import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
@@ -251,7 +257,7 @@ function ProjectDetailContent() {
     window.history.pushState(null, '', url);
     setTimeout(() => {
       setIsTabTransitioning(false);
-    }, 280);
+    }, 380);
   };
 
   useEffect(() => {
@@ -722,7 +728,7 @@ function ProjectDetailContent() {
               </button>
             </div>
           </div>
-        ) : !project || isSwitchingProject || isTabTransitioning ? (
+        ) : !project || isSwitchingProject ? (
           <ProjectDetailSkeleton activeTab={activeTab} />
         ) : (
           <>
@@ -845,40 +851,51 @@ function ProjectDetailContent() {
 
             {/* 5. Dynamic Tab View Content */}
             <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto">
-              {activeTab === 'overview' && (
-                <OverviewTab
-                  project={project}
-                  onNavigateToTab={(t) => handleTabChange(t as any)}
-                  canManageProject={canManageProject}
-                  currentUserRole={currentUserRole}
-                />
-              )}
+              {isTabTransitioning ? (
+                <>
+                  {activeTab === 'overview' && <OverviewTabSkeleton />}
+                  {activeTab === 'sprints' && <SprintsTabSkeleton />}
+                  {activeTab === 'retros' && <RetrosTabSkeleton />}
+                  {activeTab === 'team' && <TeamTabSkeleton />}
+                </>
+              ) : (
+                <>
+                  {activeTab === 'overview' && (
+                    <OverviewTab
+                      project={project}
+                      onNavigateToTab={(t) => handleTabChange(t as any)}
+                      canManageProject={canManageProject}
+                      currentUserRole={currentUserRole}
+                    />
+                  )}
 
-              {activeTab === 'sprints' && (
-                <SprintsTab
-                  project={project}
-                  onProjectUpdated={(up) => setProject({ ...up })}
-                  canManageProject={canManageProject}
-                />
-              )}
+                  {activeTab === 'sprints' && (
+                    <SprintsTab
+                      project={project}
+                      onProjectUpdated={(up) => setProject({ ...up })}
+                      canManageProject={canManageProject}
+                    />
+                  )}
 
-              {activeTab === 'retros' && (
-                <RetrosTab
-                  project={project}
-                  onCreateRetroClick={() => setIsCreateRetroOpen(true)}
-                  onProjectUpdated={(up) => setProject({ ...up })}
-                  canManageProject={canShare}
-                />
-              )}
+                  {activeTab === 'retros' && (
+                    <RetrosTab
+                      project={project}
+                      onCreateRetroClick={() => setIsCreateRetroOpen(true)}
+                      onProjectUpdated={(up) => setProject({ ...up })}
+                      canManageProject={canShare}
+                    />
+                  )}
 
-              {activeTab === 'team' && (
-                <TeamSettingsTab
-                  project={project}
-                  onProjectUpdated={(up) => setProject({ ...up })}
-                  canManageProject={canManageProject}
-                  canDeleteProject={canDeleteProject}
-                  currentUserRole={currentUserRole}
-                />
+                  {activeTab === 'team' && (
+                    <TeamSettingsTab
+                      project={project}
+                      onProjectUpdated={(up) => setProject({ ...up })}
+                      canManageProject={canManageProject}
+                      canDeleteProject={canDeleteProject}
+                      currentUserRole={currentUserRole}
+                    />
+                  )}
+                </>
               )}
             </main>
           </>

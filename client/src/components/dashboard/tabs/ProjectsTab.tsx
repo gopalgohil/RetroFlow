@@ -52,7 +52,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     setFilterMode(mode);
     setTimeout(() => {
       setIsFilterLoading(false);
-    }, 280);
+    }, 380);
   };
 
   useEffect(() => {

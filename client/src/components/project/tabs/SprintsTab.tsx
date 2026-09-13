@@ -41,7 +41,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     setFilter(tab);
     setTimeout(() => {
       setIsFilterLoading(false);
-    }, 280);
+    }, 380);
   };
   const [expandedSprintIds, setExpandedSprintIds] = useState<string[]>([
     project.sprints.find((s) => s.status === 'active')?.id || project.sprints[0]?.id || '',
