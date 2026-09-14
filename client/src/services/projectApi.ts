@@ -5,7 +5,7 @@
  */
 
 import { api, ENDPOINTS } from '@/lib/api';
-import { Project, CreateProjectPayload, ProjectMemberRole } from '@/types/project';
+import { Project, CreateProjectPayload, ProjectMemberRole, EnrichedActionItem } from '@/types/project';
 
 export interface ApiResponseWrapper<T> {
   success: boolean;
@@ -305,6 +305,48 @@ export class ProjectApiService {
    */
   static async verifyMagicInvite(projectId: string, token: string): Promise<any> {
     const res = await api.post<any>(`${ENDPOINTS.PROJECTS}/${projectId}/verify-magic-invite`, { token });
+    return res.data;
+  }
+
+  /**
+   * Fetch action items assigned to the current user (or all team items if requested by Admin/Manager)
+   * GET /api/projects/my/action-items
+   */
+  static async getMyActionItems(
+    options: { all?: boolean; projectId?: string; status?: string; priority?: string; search?: string } | boolean = false
+  ): Promise<EnrichedActionItem[]> {
+    const params: Record<string, string> = {};
+    if (typeof options === 'boolean') {
+      if (options) params.all = 'true';
+    } else if (options) {
+      if (options.all) params.all = 'true';
+      if (options.projectId) params.projectId = options.projectId;
+      if (options.status) params.status = options.status;
+      if (options.priority) params.priority = options.priority;
+      if (options.search) params.search = options.search;
+    }
+
+    const res = await api.get<ApiResponseWrapper<EnrichedActionItem[]>>(
+      `${ENDPOINTS.PROJECTS}/my/action-items`,
+      { params }
+    );
+    return res.data || [];
+  }
+
+  /**
+   * Update status of an individual action item
+   * PATCH /api/projects/my/action-items/:itemId/status
+   */
+  static async updateActionItemStatus(
+    itemId: string,
+    status: 'todo' | 'in_progress' | 'done',
+    projectId?: string | null,
+    sprintId?: string | null
+  ): Promise<any> {
+    const res = await api.patch<ApiResponseWrapper<any>>(
+      `${ENDPOINTS.PROJECTS}/my/action-items/${itemId}/status`,
+      { status }
+    );
     return res.data;
   }
 }

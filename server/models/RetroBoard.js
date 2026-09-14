@@ -75,6 +75,21 @@ const cardSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    status: {
+      type: String,
+      enum: ['todo', 'in_progress', 'done'],
+      default: 'todo',
+    },
+    dueDate: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    priority: {
+      type: String,
+      enum: ['low', 'medium', 'high', 'critical'],
+      default: 'medium',
+    },
     order: {
       type: Number,
       default: 0,

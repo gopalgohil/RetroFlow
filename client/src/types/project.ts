@@ -19,21 +19,32 @@ export interface ProjectMember {
 
 export interface BacklogItem {
   id: string;
-  projectId: string;
-  sprintId: string | null; // null means in project backlog
+  projectId?: string | null;
+  sprintId?: string | null; // null means in project backlog
   title: string;
   description?: string;
   type: 'story' | 'task' | 'bug' | 'action_item';
   priority: 'low' | 'medium' | 'high' | 'critical';
   status: 'todo' | 'in_progress' | 'done';
+  dueDate?: string | null;
   storyPoints?: number;
   assignee?: {
     name: string;
     avatar?: string;
+    email?: string;
   };
   sourceRetroId?: string;
   sourceRetroTitle?: string;
   createdAt: string;
+}
+
+export interface EnrichedActionItem extends BacklogItem {
+  projectKey?: string;
+  projectName?: string;
+  sprintName?: string;
+  sprintStatus?: string;
+  sourceRetroShareToken?: string;
+  isDirectRetroCard?: boolean;
 }
 
 export interface Sprint {

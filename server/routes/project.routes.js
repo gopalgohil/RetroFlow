@@ -21,6 +21,18 @@ const router = Router();
 router.get('/', optionalAuth, projectController.getAllProjects);
 
 /**
+ * @route   GET /api/projects/my/action-items
+ * @desc    Get action items assigned to the current user
+ */
+router.get('/my/action-items', optionalAuth, projectController.getMyActionItems);
+
+/**
+ * @route   PATCH /api/projects/my/action-items/:itemId/status
+ * @desc    Update status of an action item
+ */
+router.patch('/my/action-items/:itemId/status', optionalAuth, projectController.updateActionItemStatus);
+
+/**
  * @route   GET /api/projects/:id
  * @desc    Get single project by ID or key (e.g. /api/projects/proj-pgi or /api/projects/PGI)
  */

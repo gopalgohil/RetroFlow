@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
   FolderKanban,
+  CheckSquare,
   Users,
   Settings,
 } from 'lucide-react';
@@ -13,8 +14,10 @@ interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   activeSessionsCount: number;
-  user?: { name: string; email: string; role?: string } | null;
+  openActionItemsCount?: number;
+  user?: { name: string; email: string; role?: string; projectRole?: string } | null;
   isAdmin?: boolean;
+  canViewMembers?: boolean;
   onLogout?: () => void;
   isOpen: boolean;
   onCloseMobile?: () => void;
@@ -24,27 +27,73 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   setActiveTab,
   activeSessionsCount,
+  openActionItemsCount = 0,
   user,
   isAdmin: propIsAdmin,
+  canViewMembers: propCanViewMembers,
   isOpen,
   onCloseMobile,
 }) => {
   const activeUser = user || {
-    name: 'Gopal',
-    email: 'gopalgohel249@gmail.com',
-    role: 'admin',
+    name: '',
+    email: '',
+    role: 'member',
+    projectRole: 'Developer',
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
-  const userRole = activeUser.role?.toLowerCase().trim();
+  const userRole = (activeUser.role || '').toLowerCase().trim();
+  const userProjectRole = ((activeUser as any).projectRole || '').toLowerCase().trim();
+
+  const isDevOrQAOrDevOps = Boolean(
+    ['developer', 'qa', 'tester', 'devops', 'member'].some(
+      (r) => userRole?.includes(r) || userProjectRole?.includes(r)
+    )
+  );
+
   const isAdmin =
     propIsAdmin !== undefined
       ? propIsAdmin
       : Boolean(
           userRole === 'admin' ||
-          (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
-          (userEmail && userEmail.includes('admin'))
+          (userEmail && userEmail === 'gopalgohel249@gmail.com')
         );
+
+  const isManager = Boolean(
+    isAdmin ||
+    userProjectRole === 'manager' ||
+    userRole === 'manager' ||
+    userRole.includes('manager')
+  );
+
+  // Check if role is Project Lead, Developer, QA, or DevOps
+  const isProjectLead = Boolean(
+    !isManager && (
+      userProjectRole === 'project lead' ||
+      userProjectRole === 'team lead' ||
+      userProjectRole.includes('lead') ||
+      userRole === 'project lead' ||
+      userRole === 'team lead' ||
+      userRole.includes('lead')
+    )
+  );
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Strictly Workspace Admin and Manager only!
+  // Project Lead, Developer, QA Engineer, and DevOps are explicitly excluded from Team Directory
+  // Guarded by isMounted to guarantee 100% hydration matching between SSR and initial client render
+  const canViewMembers =
+    isMounted &&
+    (propCanViewMembers !== undefined
+      ? propCanViewMembers
+      : (isAdmin || isManager) && !isProjectLead && !isDevOrQAOrDevOps);
+
+  const showSettings = isMounted && isAdmin;
 
   const navItems = [
     {
@@ -60,12 +109,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
       sublabel: 'Sprints & Delivery',
     },
     {
-      id: 'members',
-      label: isAdmin ? 'Team Members & Whitelist' : 'Team Directory',
-      icon: Users,
-      sublabel: isAdmin ? 'Access Controls' : 'Collaborators',
+      id: 'action_items',
+      label: 'Action Items',
+      icon: CheckSquare,
+      sublabel: 'Retrospective Deliverables',
+      badge: openActionItemsCount > 0 ? `${openActionItemsCount} Open` : undefined,
     },
-    ...(isAdmin
+    ...(canViewMembers
+      ? [
+          {
+            id: 'members',
+            label: isAdmin ? 'Team Members & Whitelist' : 'Team Directory',
+            icon: Users,
+            sublabel: isAdmin ? 'Access Controls' : 'Collaborators',
+          },
+        ]
+      : []),
+    ...(showSettings
       ? [
           {
             id: 'settings',

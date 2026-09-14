@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Sidebar,
   DashboardHeader,
   CustomizeRetroModal,
   TabSkeleton,
+  DashboardLayoutSkeleton,
   SessionsTab,
   ProjectsTab,
+  ActionItemsTab,
   MembersTab,
   SettingsTab,
   WelcomeToast,
@@ -75,9 +77,10 @@ function DashboardContent() {
   }, [user]);
 
   const activeUser = currentUser || user || {
-    name: 'Gopal',
-    email: 'gopalgohel249@gmail.com',
-    role: 'admin',
+    name: '',
+    email: '',
+    role: 'member',
+    projectRole: 'Developer',
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
@@ -105,12 +108,30 @@ function DashboardContent() {
     )
   );
 
+  // Check if role is Developer, QA, or DevOps
+  const isDevOrQAOrDevOps = Boolean(
+    ['developer', 'qa', 'tester', 'devops', 'member'].some(
+      (r) => userRole?.includes(r) || userProjectRole?.toLowerCase()?.includes(r)
+    )
+  );
+
   // Admin and Manager can initialize projects; Project Leads & Developers cannot
   const canCreateProject = isAdmin || isManager;
 
   // Admin, Manager, and Project Lead can manage retros and share links
   // Developer, QA, DevOps cannot create retros or share links
   const canManageSessions = isAdmin || isManager || isProjectLead;
+
+  // Strictly Workspace Admin and Manager only!
+  // Project Lead, Developer, QA Engineer, and DevOps are explicitly excluded from Team Directory
+  const canViewMembers = (isAdmin || isManager) && !isProjectLead && !isDevOrQAOrDevOps;
+
+  // Live open action items count badge (updated when Action Items tab is active or item statuses change)
+  const [openActionItemsCount, setOpenActionItemsCount] = useState(0);
+
+  const handleActionItemsCountChange = useCallback((count: number) => {
+    setOpenActionItemsCount((prev) => (prev === count ? prev : count));
+  }, []);
 
   // Welcome Toast Notification (triggered only once on fresh login)
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
@@ -183,8 +204,10 @@ function DashboardContent() {
         activeTab={activeTab}
         setActiveTab={switchTab}
         activeSessionsCount={activeSessionsCount}
+        openActionItemsCount={openActionItemsCount}
         user={activeUser}
         isAdmin={isAdmin}
+        canViewMembers={canViewMembers}
         onLogout={handleLogout}
         isOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
@@ -229,24 +252,54 @@ function DashboardContent() {
                 <ProjectsTab isAdmin={canCreateProject} user={activeUser} />
               )}
 
-              {activeTab === 'members' && (
-                <MembersTab
-                  members={members}
-                  pagination={membersPagination}
-                  currentPage={membersPage}
-                  currentLimit={membersLimit}
-                  searchQuery={membersSearch}
-                  isLoading={isMembersLoading}
-                  onRefresh={() => fetchMembers(membersPage, membersLimit, membersSearch)}
-                  onPageChange={onMembersPageChange}
-                  onLimitChange={onMembersLimitChange}
-                  onSearchChange={onMembersSearchChange}
-                  onWhitelistAdded={addWhitelistMember}
-                  onRemoveMember={removeWhitelistMember}
-                  onUpdateMemberRole={updateMemberRole}
-                  currentEmail={activeUser.email}
+              {activeTab === 'action_items' && (
+                <ActionItemsTab
+                  user={activeUser}
                   isAdmin={isAdmin}
+                  isManager={isManager}
+                  onActionItemsCountChange={handleActionItemsCountChange}
                 />
+              )}
+
+              {activeTab === 'members' && (
+                canViewMembers ? (
+                  <MembersTab
+                    members={members}
+                    pagination={membersPagination}
+                    currentPage={membersPage}
+                    currentLimit={membersLimit}
+                    searchQuery={membersSearch}
+                    isLoading={isMembersLoading}
+                    onRefresh={() => fetchMembers(membersPage, membersLimit, membersSearch)}
+                    onPageChange={onMembersPageChange}
+                    onLimitChange={onMembersLimitChange}
+                    onSearchChange={onMembersSearchChange}
+                    onWhitelistAdded={addWhitelistMember}
+                    onRemoveMember={removeWhitelistMember}
+                    onUpdateMemberRole={updateMemberRole}
+                    currentEmail={activeUser.email}
+                    isAdmin={isAdmin}
+                  />
+                ) : (
+                  <div className="p-12 rounded-3xl bg-white border border-slate-200/80 text-center space-y-4 max-w-md mx-auto shadow-xs">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
+                      🛡️
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="text-base font-bold text-slate-900">Access Restricted</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Team Directory and Access Control management is reserved for Workspace Administrators and Managers.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => switchTab('action_items')}
+                      className="py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                    >
+                      Go to Action Items
+                    </button>
+                  </div>
+                )
               )}
 
               {activeTab === 'settings' && (
@@ -302,16 +355,7 @@ function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-          <div className="flex items-center gap-3 text-slate-500 text-sm font-medium">
-            <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-            <span>Loading RetroFlow workspace...</span>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<DashboardLayoutSkeleton />}>
       <DashboardContent />
     </Suspense>
   );

@@ -31,29 +31,17 @@ const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettingsData = {
  * - Toast feedback messages
  */
 const DEFAULT_WORKSPACE_USER = {
-  name: 'Gopal',
-  email: 'gopalgohel249@gmail.com',
-  role: 'admin',
+  name: '',
+  email: '',
+  role: 'member',
+  projectRole: 'Developer',
 };
 
 export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const router = useRouter();
 
-  // 1. User Authentication State - synchronously initialized to prevent role flicker
-  const [user, setUser] = useState<{ name: string; email: string; role?: string }>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const storedUser = localStorage.getItem('retroflow_user');
-        if (storedUser) {
-          const parsed = JSON.parse(storedUser);
-          if (parsed && (parsed.email || parsed.name)) {
-            return parsed;
-          }
-        }
-      } catch {}
-    }
-    return DEFAULT_WORKSPACE_USER;
-  });
+  // 1. User Authentication State - initialized consistently to prevent SSR hydration mismatch
+  const [user, setUser] = useState<{ name: string; email: string; role?: string; projectRole?: string }>(DEFAULT_WORKSPACE_USER);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -73,7 +61,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        if (parsed && parsed.email) setUser(parsed);
+        if (parsed && (parsed.email || parsed.name)) setUser(parsed);
       } catch {}
     }
 

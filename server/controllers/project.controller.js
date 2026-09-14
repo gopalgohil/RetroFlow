@@ -267,6 +267,29 @@ class ProjectController {
     const result = await projectService.verifyMagicInvite(req.params.id, token);
     return ApiResponse.ok(res, result, `Welcome to ${result.project.name}, ${result.user.name}!`);
   });
+
+  /**
+   * Get action items assigned to the current user (or all team items if requested by Admin/Manager)
+   * GET /api/projects/my/action-items
+   */
+  getMyActionItems = asyncHandler(async (req, res) => {
+    const items = await projectService.getMyActionItems(req.user, req.query);
+    return ApiResponse.ok(res, items, 'Assigned action items retrieved successfully');
+  });
+
+  /**
+   * Update action item status
+   * PATCH /api/projects/my/action-items/:itemId/status
+   */
+  updateActionItemStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    const result = await projectService.updateActionItemStatus(
+      req.params.itemId,
+      status,
+      req.user
+    );
+    return ApiResponse.ok(res, result, 'Action item status updated successfully');
+  });
 }
 
 export const projectController = new ProjectController();

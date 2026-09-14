@@ -76,6 +76,7 @@ export const exportActionItemsSchema = z.object({
         assignee: z
           .object({
             name: z.string(),
+            email: z.string().optional(),
             avatar: z.string().optional(),
           })
           .optional(),

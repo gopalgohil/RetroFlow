@@ -59,15 +59,8 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     name?: string;
     role?: string;
     projectRole?: string;
-  } | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('retroflow_user');
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return null;
-  });
+  } | null>(null);
+  const [activeStoredProjectId, setActiveStoredProjectId] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +69,8 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
       try {
         const saved = localStorage.getItem('retroflow_user');
         if (saved) setCurrentUser(JSON.parse(saved));
+        const storedProj = localStorage.getItem('retroflow_active_project_id');
+        if (storedProj) setActiveStoredProjectId(storedProj);
       } catch {}
     };
     syncUser();
@@ -87,9 +82,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   const resolvedProjectId =
     currentProjectId ||
     (params?.projectId as string) ||
-    (typeof window !== 'undefined'
-      ? localStorage.getItem('retroflow_active_project_id')
-      : null) ||
+    activeStoredProjectId ||
     '';
 
   useEffect(() => {

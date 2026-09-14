@@ -32,9 +32,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const activeUser = user || {
-    name: 'Gopal',
-    email: 'gopalgohel249@gmail.com',
-    role: 'admin',
+    name: '',
+    email: '',
+    role: 'member',
+    projectRole: 'Developer',
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();

@@ -423,9 +423,10 @@ function ProjectDetailContent() {
   };
 
   const activeUser = currentUser || {
-    name: 'Gopal',
-    email: 'gopalgohel249@gmail.com',
-    role: 'admin',
+    name: '',
+    email: '',
+    role: 'member',
+    projectRole: 'Developer',
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();

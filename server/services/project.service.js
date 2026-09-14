@@ -874,6 +874,7 @@ class ProjectService {
       assignee: item.assignee?.name
         ? {
             name: item.assignee.name.trim(),
+            email: item.assignee.email ? item.assignee.email.toLowerCase().trim() : undefined,
             avatar:
               item.assignee.avatar ||
               item.assignee.name
@@ -910,6 +911,255 @@ class ProjectService {
       exportedCount: newItems.length,
       targetSprint: sprint,
     };
+  }
+
+  /**
+   * Retrieve action items assigned to the current user (or all team items if requested by Admin/Manager)
+   */
+  async getMyActionItems(currentUser = null, options = {}) {
+    const userEmail = currentUser?.email?.toLowerCase().trim();
+    const userName = currentUser?.name?.toLowerCase().trim();
+    const userRole = currentUser?.role?.toLowerCase().trim();
+    const userProjectRole = currentUser?.projectRole?.toLowerCase().trim();
+
+    const isAdmin =
+      !currentUser ||
+      userRole === 'admin' ||
+      userEmail === 'gopalgohel249@gmail.com' ||
+      userEmail?.includes('admin');
+
+    const isManager =
+      isAdmin ||
+      userRole === 'manager' ||
+      userRole?.includes('manager') ||
+      userProjectRole === 'manager';
+
+    const fetchAll = (options.all === true || options.all === 'true') && isManager;
+
+    // 1. Fetch accessible projects
+    let projectQuery = {};
+    if (!isAdmin && userEmail) {
+      projectQuery = {
+        $or: [
+          { 'lead.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+          { 'members.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+          ...(currentUser?._id ? [{ createdBy: currentUser._id }] : []),
+        ],
+      };
+    }
+
+    const projects = await Project.find(projectQuery).lean();
+    const actionItems = [];
+    const seenCardIds = new Set();
+
+    // Collect action items from project sprints
+    for (const proj of projects) {
+      const sprints = proj.sprints || [];
+      for (const sprint of sprints) {
+        const items = sprint.items || [];
+        for (const item of items) {
+          // If not fetching all, strictly filter by assigned user email or name
+          if (!fetchAll) {
+            if (!userEmail && !userName) continue;
+
+            const assigneeEmail = item.assignee?.email?.toLowerCase().trim();
+            const assigneeName = item.assignee?.name?.toLowerCase().trim();
+
+            const isAssigned =
+              (assigneeEmail && userEmail && assigneeEmail === userEmail) ||
+              (assigneeName && userName && (assigneeName === userName || assigneeName.includes(userName) || userName.includes(assigneeName)));
+
+            if (!isAssigned) continue;
+          }
+
+          if (item.sourceRetroId) {
+            seenCardIds.add(item.id);
+            seenCardIds.add(`${item.sourceRetroId}-${item.title}`);
+          }
+
+          actionItems.push({
+            ...item,
+            id: item.id || `item-${Date.now()}`,
+            dueDate: item.dueDate || sprint.endDate || null,
+            priority: item.priority || 'medium',
+            status: item.status || 'todo',
+            projectId: proj._id ? proj._id.toString() : proj.id,
+            projectKey: proj.key,
+            projectName: proj.name,
+            sprintId: sprint.id,
+            sprintName: sprint.name,
+            sprintStatus: sprint.status,
+            isDirectRetroCard: false,
+          });
+        }
+      }
+    }
+
+    // 2. Collect direct action cards from accessible Retrospective Sessions (Action Items topic)
+    let retroQuery = {};
+    if (!isAdmin && userEmail) {
+      retroQuery = {
+        $or: [
+          { approvedMembers: { $in: [userEmail, new RegExp(`^${userEmail}$`, 'i')] } },
+          { 'cards.authorEmail': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+          ...(currentUser?._id ? [{ createdBy: currentUser._id }] : []),
+        ],
+      };
+    }
+
+    const retros = await RetroBoard.find(retroQuery).lean();
+    for (const retro of retros) {
+      const actionTopic = (retro.topics || []).find((t) => {
+        const tLower = (t.title || '').toLowerCase();
+        return tLower.includes('action') || t.icon === 'target';
+      });
+
+      if (!actionTopic) continue;
+
+      const matchingCards = (retro.cards || []).filter(
+        (c) => c.topicId === actionTopic.topicId
+      );
+
+      for (const card of matchingCards) {
+        // Prevent duplicate if already exported to a sprint backlog
+        if (seenCardIds.has(card.cardId) || seenCardIds.has(`${retro._id.toString()}-${card.text}`)) {
+          continue;
+        }
+
+        if (!fetchAll) {
+          if (!userEmail && !userName) continue;
+
+          const authorEmail = card.authorEmail?.toLowerCase().trim();
+          const authorName = card.author?.toLowerCase().trim();
+          const cardText = (card.text || '').toLowerCase();
+
+          const isAssigned =
+            (authorEmail && userEmail && authorEmail === userEmail) ||
+            (authorName && userName && (authorName === userName || authorName.includes(userName) || userName.includes(authorName))) ||
+            (userName && cardText.includes(`@${userName}`));
+
+          if (!isAssigned) continue;
+        }
+
+        const matchingProject = projects.find(
+          (p) =>
+            (retro.projectId && (p._id.toString() === retro.projectId.toString() || p.id === retro.projectId.toString())) ||
+            (retro.projectKey && p.key?.toUpperCase() === retro.projectKey.toUpperCase())
+        );
+
+        actionItems.push({
+          id: card.cardId,
+          title: card.text,
+          description: `Retrospective item from session "${retro.title}"`,
+          type: 'action_item',
+          status: card.status || 'todo',
+          priority: card.priority || 'medium',
+          dueDate: card.dueDate || (retro.scheduledDate ? new Date(new Date(retro.scheduledDate).getTime() + 7 * 86400000).toISOString().split('T')[0] : null),
+          storyPoints: 3,
+          assignee: {
+            name: card.author || 'Assigned Member',
+            email: card.authorEmail || undefined,
+            avatar: (card.author || 'U').slice(0, 2).toUpperCase(),
+          },
+          sourceRetroId: retro._id.toString(),
+          sourceRetroTitle: retro.title,
+          sourceRetroShareToken: retro.shareToken,
+          projectId: matchingProject ? (matchingProject._id ? matchingProject._id.toString() : matchingProject.id) : retro.projectId ? retro.projectId.toString() : null,
+          projectKey: matchingProject?.key || retro.projectKey || 'RETRO',
+          projectName: matchingProject?.name || retro.title,
+          sprintId: retro.sprintId || null,
+          sprintName: retro.sprintName || 'Retro Action Items',
+          isDirectRetroCard: true,
+          createdAt: card.createdAt || retro.createdAt,
+        });
+      }
+    }
+
+    // Filter by options if provided
+    let filtered = actionItems;
+    if (options.projectId && options.projectId !== 'all') {
+      const pid = options.projectId.toString().toLowerCase();
+      filtered = filtered.filter(
+        (it) =>
+          it.projectId?.toLowerCase() === pid ||
+          it.projectKey?.toLowerCase() === pid
+      );
+    }
+
+    if (options.status && options.status !== 'all') {
+      const statusLower = options.status.toLowerCase();
+      filtered = filtered.filter((it) => it.status === statusLower);
+    }
+
+    if (options.priority && options.priority !== 'all') {
+      const prioLower = options.priority.toLowerCase();
+      filtered = filtered.filter((it) => it.priority === prioLower);
+    }
+
+    if (options.search) {
+      const q = options.search.toLowerCase().trim();
+      filtered = filtered.filter(
+        (it) =>
+          it.title?.toLowerCase().includes(q) ||
+          it.description?.toLowerCase().includes(q) ||
+          it.sourceRetroTitle?.toLowerCase().includes(q) ||
+          it.projectName?.toLowerCase().includes(q) ||
+          it.projectKey?.toLowerCase().includes(q) ||
+          it.assignee?.name?.toLowerCase().includes(q) ||
+          it.assignee?.email?.toLowerCase().includes(q) ||
+          it.sprintName?.toLowerCase().includes(q)
+      );
+    }
+
+    // Sort by createdAt descending
+    filtered.sort(
+      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
+
+    return filtered;
+  }
+
+  /**
+   * Update the status of an action item (whether in sprint backlog or direct retro card)
+   */
+  async updateActionItemStatus(itemId, status, currentUser = null) {
+    if (!['todo', 'in_progress', 'done'].includes(status)) {
+      throw new Error(`Invalid status "${status}". Allowed: todo, in_progress, done`);
+    }
+
+    // 1. Search in Project Sprints
+    const project = await Project.findOne({ 'sprints.items.id': itemId });
+    if (project) {
+      for (const sprint of project.sprints) {
+        const item = sprint.items.find((i) => i.id === itemId);
+        if (item) {
+          item.status = status;
+          if (status === 'done') {
+            item.completedAt = new Date();
+          }
+          // Recalculate completedStoryPoints
+          sprint.completedStoryPoints = sprint.items
+            .filter((i) => i.status === 'done')
+            .reduce((acc, i) => acc + (i.storyPoints || 0), 0);
+          await project.save();
+          return { item, type: 'sprint_item', projectKey: project.key };
+        }
+      }
+    }
+
+    // 2. Search in RetroBoard cards
+    const retro = await RetroBoard.findOne({ 'cards.cardId': itemId });
+    if (retro) {
+      const card = retro.cards.find((c) => c.cardId === itemId);
+      if (card) {
+        card.status = status;
+        card.updatedAt = new Date();
+        await retro.save();
+        return { item: card, type: 'retro_card', retroTitle: retro.title };
+      }
+    }
+
+    throw new Error(`Action item with ID "${itemId}" not found.`);
   }
 
   /**

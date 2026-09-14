@@ -12,14 +12,6 @@ import {
   Clock,
   Check,
   AlertTriangle,
-  Smile,
-  Frown,
-  Lightbulb,
-  Puzzle,
-  Rocket,
-  Anchor,
-  Target,
-  Flag,
 } from 'lucide-react';
 import { RetroBoard } from '@/types/retro';
 import { ShareInviteModal } from './ShareInviteModal';
@@ -35,16 +27,6 @@ interface SessionListProps {
   isAdmin?: boolean;
 }
 
-const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
-  smile: Smile,
-  frown: Frown,
-  bulb: Lightbulb,
-  puzzle: Puzzle,
-  rocket: Rocket,
-  anchor: Anchor,
-  target: Target,
-  flag: Flag,
-};
 
 export const SessionList: React.FC<SessionListProps> = ({
   sessions,
@@ -227,31 +209,6 @@ export const SessionList: React.FC<SessionListProps> = ({
                 )}
               </div>
 
-              {/* Color-Coded Topics Summary */}
-              <div className="space-y-2 mb-5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Configured Topics ({session.topics?.length || 0}):
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {session.topics?.map((topic) => {
-                    const TopicIcon = ICON_MAP[topic.icon] || Smile;
-                    return (
-                      <span
-                        key={topic.topicId}
-                        style={{
-                          backgroundColor: `${topic.color}12`,
-                          color: topic.color,
-                          borderColor: `${topic.color}30`,
-                        }}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold"
-                      >
-                        <TopicIcon className="w-3 h-3" />
-                        <span>{topic.title}</span>
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
 
               {/* Card Footer Actions */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">

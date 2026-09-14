@@ -33,16 +33,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     name?: string;
     role?: string;
     projectRole?: string;
-  } | null>(() => {
-    if (user) return user;
-    if (typeof window !== 'undefined') {
-      try {
-        const savedUser = localStorage.getItem('retroflow_user');
-        if (savedUser) return JSON.parse(savedUser);
-      } catch {}
-    }
-    return null;
-  });
+  } | null>(user || null);
   const [filterMode, setFilterMode] = useState<'all' | 'managed'>('all');
   const [isFilterLoading, setIsFilterLoading] = useState(false);
 

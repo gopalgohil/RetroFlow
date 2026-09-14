@@ -37,6 +37,11 @@ const backlogItemSchema = new mongoose.Schema(
       enum: ['todo', 'in_progress', 'done'],
       default: 'todo',
     },
+    dueDate: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     storyPoints: {
       type: Number,
       default: 3,
@@ -45,6 +50,7 @@ const backlogItemSchema = new mongoose.Schema(
     },
     assignee: {
       name: { type: String, trim: true },
+      email: { type: String, trim: true, lowercase: true },
       avatar: { type: String, trim: true },
     },
     sourceRetroId: { type: String },
