@@ -125,7 +125,7 @@ function ProjectDetailContent() {
     };
   }, []);
 
-  // Sync live profile from backend dynamically
+  // Sync live profile from backend once on initial mount
   useEffect(() => {
     const syncProfile = () => {
       api
@@ -142,17 +142,6 @@ function ProjectDetailContent() {
     };
 
     syncProfile();
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        syncProfile();
-      }
-    };
-    window.addEventListener('focus', syncProfile);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      window.removeEventListener('focus', syncProfile);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, []);
 
   // Logout handler

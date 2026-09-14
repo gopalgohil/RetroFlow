@@ -65,7 +65,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       } catch {}
     }
 
-    // Sync live profile from backend
+    // Sync live profile from backend once on initial mount
     const syncProfile = () => {
       api
         .get(ENDPOINTS.AUTH.ME)
@@ -81,17 +81,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     };
 
     syncProfile();
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        syncProfile();
-      }
-    };
-    window.addEventListener('focus', syncProfile);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      window.removeEventListener('focus', syncProfile);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, [router]);
 
   // 2. Retrospective Sessions State & Actions
