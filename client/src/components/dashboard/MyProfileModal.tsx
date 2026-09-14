@@ -100,9 +100,6 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
           if (res.data.name) {
             setName(res.data.name);
           }
-          if (onUserUpdated && res.data.email) {
-            onUserUpdated(res.data);
-          }
         }
       })
       .catch(() => {
@@ -115,7 +112,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, user]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
