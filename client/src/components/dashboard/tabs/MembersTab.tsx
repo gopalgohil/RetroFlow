@@ -84,7 +84,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   const [updatingRoleEmail, setUpdatingRoleEmail] = useState<string | null>(null);
   const [approvingEmail, setApprovingEmail] = useState<string | null>(null);
   const [rejectingEmail, setRejectingEmail] = useState<string | null>(null);
-  const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
   const [memberToReject, setMemberToReject] = useState<TeamMember | null>(null);
 
   const handleRoleSelect = async (memberEmail: string, newRole: string) => {
@@ -170,122 +169,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
           <span>Refresh Roster</span>
         </button>
       </div>
-
-      {/* Pending Access Requests Banner Card (Admin Only) */}
-      {isAdmin && pendingRequests && pendingRequests.length > 0 && (
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-amber-50/90 via-white to-orange-50/60 border border-amber-200/90 shadow-xs space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-amber-200/60">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold relative shrink-0">
-                <Clock className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping" />
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-extrabold text-slate-900">Pending Access Requests</h3>
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
-                    {pendingRequests.length} Waiting
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  New developer registrations waiting for one-time workspace administrator approval.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Pending List */}
-          <div className="divide-y divide-amber-100/80">
-            {pendingRequests.map((applicant) => {
-              const selectedRole = selectedRoles[applicant.email] || applicant.projectRole || 'Developer';
-              const isApproving = approvingEmail === applicant.email;
-              const isRejecting = rejectingEmail === applicant.email;
-
-              return (
-                <div
-                  key={applicant.email}
-                  className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 first:pt-1 last:pb-1"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <UserAvatar name={applicant.name || applicant.email} avatar={applicant.avatar} size="md" />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-bold text-slate-900 truncate">
-                          {applicant.name || 'New Contributor'}
-                        </span>
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                          Pending Approval
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-slate-500 truncate flex items-center gap-1.5 mt-0.5">
-                        <span>{applicant.email}</span>
-                        <span>•</span>
-                        <span>Registered {applicant.joinedAt ? new Date(applicant.joinedAt).toLocaleDateString() : 'recently'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-                    {/* Role Selector */}
-                    <div className="flex items-center gap-1.5">
-                      <label className="text-[11px] font-semibold text-slate-500 hidden sm:inline">Role:</label>
-                      <select
-                        value={selectedRole}
-                        onChange={(e) =>
-                          setSelectedRoles((prev) => ({ ...prev, [applicant.email]: e.target.value }))
-                        }
-                        disabled={isApproving || isRejecting}
-                        className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-2xs"
-                      >
-                        <option value="Developer">Developer</option>
-                        <option value="QA">QA Engineer</option>
-                        <option value="Project Lead">Project Lead</option>
-                        <option value="DevOps">DevOps</option>
-                        <option value="Manager">Manager</option>
-                      </select>
-                    </div>
-
-                    {/* Accept Button */}
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        if (!onApproveMember) return;
-                        setApprovingEmail(applicant.email);
-                        try {
-                          await onApproveMember(applicant.email, selectedRole);
-                        } finally {
-                          setApprovingEmail(null);
-                        }
-                      }}
-                      disabled={isApproving || isRejecting}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
-                    >
-                      {isApproving ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                      )}
-                      <span>Accept</span>
-                    </button>
-
-                    {/* Reject Button */}
-                    <button
-                      type="button"
-                      onClick={() => setMemberToReject(applicant)}
-                      disabled={isApproving || isRejecting}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
-                    >
-                      <X className="w-3.5 h-3.5 stroke-[2.5]" />
-                      <span>Reject</span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Whitelist Quick Add Form Card (Admin Only) */}
       {isAdmin && (
@@ -607,6 +490,46 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                             >
                               Admin
                             </span>
+                          ) : m.status === 'pending' || !m.isApproved ? (
+                            <div className="inline-flex items-center gap-2 justify-end">
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (!onApproveMember) return;
+                                  setApprovingEmail(m.email);
+                                  try {
+                                    await onApproveMember(m.email, m.projectRole || 'Developer');
+                                  } finally {
+                                    setApprovingEmail(null);
+                                  }
+                                }}
+                                disabled={approvingEmail === m.email || rejectingEmail === m.email}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+                                title={`Approve ${m.name || m.email} to join workspace`}
+                              >
+                                {approvingEmail === m.email ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                                )}
+                                <span>Accept</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setMemberToReject(m)}
+                                disabled={approvingEmail === m.email || rejectingEmail === m.email}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+                                title={`Reject access request for ${m.name || m.email}`}
+                              >
+                                {rejectingEmail === m.email ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                                )}
+                                <span>Reject</span>
+                              </button>
+                            </div>
                           ) : (
                             <button
                               type="button"

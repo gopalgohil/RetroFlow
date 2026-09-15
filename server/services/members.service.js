@@ -175,6 +175,15 @@ class MembersService {
 
     let allMembers = Array.from(memberMap.values());
 
+    // Sort members: 1. Owner, 2. Pending Approval, 3. Active members by joinedAt desc
+    allMembers.sort((a, b) => {
+      if (a.isPrimaryLead) return -1;
+      if (b.isPrimaryLead) return 1;
+      if (a.status === 'pending' && b.status !== 'pending') return -1;
+      if (b.status === 'pending' && a.status !== 'pending') return 1;
+      return new Date(b.joinedAt || 0) - new Date(a.joinedAt || 0);
+    });
+
     // 5. Apply search filtering if specified
     if (search && typeof search === 'string' && search.trim()) {
       const q = search.trim().toLowerCase();
@@ -327,9 +336,8 @@ class MembersService {
    * @param {string} email - Applicant developer email
    * @param {string} assignedRole - Role to assign (e.g. Developer, QA, etc.)
    */
-  async approveMember(adminUserId, email, assignedRole = 'Developer') {
+  async approveMember(adminUserId, email, assignedRole) {
     const cleanEmail = email.toLowerCase().trim();
-    const cleanRole = (assignedRole || 'Developer').trim();
 
     const user = await User.findOne({ email: cleanEmail });
     if (!user) {
@@ -337,7 +345,9 @@ class MembersService {
     }
 
     user.isApproved = true;
-    user.projectRole = cleanRole;
+    if (assignedRole && typeof assignedRole === 'string' && assignedRole.trim()) {
+      user.projectRole = assignedRole.trim();
+    }
     await user.save();
 
     // Whitelist in all retrospective boards
