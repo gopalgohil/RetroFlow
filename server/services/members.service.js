@@ -339,6 +339,7 @@ class MembersService {
     }
 
     user.projectRole = cleanRole;
+    user.role = 'member';
     await user.save();
 
     // Also update this member's role across any projects they are part of
@@ -346,6 +347,21 @@ class MembersService {
       { 'members.email': cleanEmail },
       { $set: { 'members.$.role': cleanRole } }
     );
+
+    // If demoted from Manager/Lead to Developer/QA/DevOps, remove them from project.lead if assigned
+    const isDemoted = !['Manager', 'Project Lead'].includes(cleanRole);
+    if (isDemoted) {
+      await Project.updateMany(
+        { 'lead.email': cleanEmail },
+        {
+          $set: {
+            'lead.name': 'Gopal',
+            'lead.email': 'gopalgohel249@gmail.com',
+            'lead.avatar': 'GG',
+          },
+        }
+      );
+    }
 
     return {
       email: cleanEmail,
