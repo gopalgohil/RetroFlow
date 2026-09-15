@@ -2,6 +2,7 @@
 
 import React, { memo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff, Share2, Sparkles } from 'lucide-react';
 
 export interface RetroHeaderProps {
@@ -22,7 +23,6 @@ export interface RetroHeaderProps {
   onOpenInvite: () => void;
   onEndSession?: () => void;
 }
-
 
 /**
  * Reusable Session Header Component
@@ -46,37 +46,39 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
   onOpenInvite,
   onEndSession,
 }) {
+  const router = useRouter();
+
+  const handleGoBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else if (projectId || projectKey) {
+      router.push(`/projects/${projectId || projectKey}?tab=retros`);
+    } else {
+      router.push('/dashboard?tab=sessions');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
       {/* Left: Role-based Navigation + Session Identity */}
       <div className="flex items-center gap-2.5 sm:gap-3.5">
-        {/* If linked to an Agile Project, show prominent Project Dashboard button */}
-        {projectId || projectKey ? (
-          <Link
-            href={`/projects/${projectId || projectKey}`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-all text-xs font-bold shadow-2xs group cursor-pointer"
-            title="Back to Project Dashboard (Sprints & Delivery)"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
-            <span className="hidden sm:inline text-slate-500 font-medium">Project:</span>
-            <span className="font-mono text-indigo-600 font-extrabold uppercase">
-              {projectKey || 'Overview'}
-            </span>
-          </Link>
-        ) : (
-          <Link
-            href="/dashboard"
-            className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-            title="Back to Workspace Dashboard"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-        )}
+        {/* Smart Back button: returns directly to Retrospective Session tab */}
+        <button
+          type="button"
+          onClick={handleGoBack}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-all text-xs font-bold shadow-2xs group cursor-pointer"
+          title="Back to Retrospective Sessions"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+          <span className="text-slate-600 font-bold">
+            {projectKey ? `Project ${projectKey}` : 'Retrospectives'}
+          </span>
+        </button>
 
-        {/* Brand Logo - clickable back to main workspace dashboard */}
+        {/* Brand Logo - clickable back to main workspace dashboard retrospectives */}
         <Link
-          href="/dashboard"
-          title="RetroFlow Workspace Dashboard"
+          href="/dashboard?tab=sessions"
+          title="RetroFlow Retrospective Sessions"
           className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 hover:opacity-90 text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0 select-none transition-transform hover:scale-105"
         >
           RF

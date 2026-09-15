@@ -106,7 +106,7 @@ class MembersService {
 
       memberMap.set(emailLower, {
         id: String(u._id),
-        name: u.name,
+        name: u.name || u.email.split('@')[0],
         email: u.email,
         role: isAdmin ? 'Admin' : 'Team Member',
         projectRole,
@@ -208,7 +208,10 @@ class MembersService {
         (m) =>
           (m.name && m.name.toLowerCase().includes(q)) ||
           (m.email && m.email.toLowerCase().includes(q)) ||
-          (m.role && m.role.toLowerCase().includes(q))
+          (m.role && m.role.toLowerCase().includes(q)) ||
+          (m.projectRole && m.projectRole.toLowerCase().includes(q)) ||
+          (m.status && m.status.toLowerCase().includes(q)) ||
+          (Array.isArray(m.projectNames) && m.projectNames.some((p) => p && p.toLowerCase().includes(q)))
       );
     }
 

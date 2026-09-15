@@ -79,7 +79,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchQuery);
-  const debouncedSearch = useDebounce(localSearch, 350);
+  const debouncedSearch = useDebounce(localSearch, 400);
 
   const [updatingRoleEmail, setUpdatingRoleEmail] = useState<string | null>(null);
   const [approvingEmail, setApprovingEmail] = useState<string | null>(null);
@@ -102,12 +102,41 @@ export const MembersTab: React.FC<MembersTabProps> = ({
     setLocalSearch(searchQuery);
   }, [searchQuery]);
 
-  // Debounce search query changes to trigger backend request
+  // Debounce search query changes:
+  // Requires at least 3 letters before triggering search.
+  // When removing characters (< 3), only fires a single reset if a search was previously active.
   useEffect(() => {
-    if (debouncedSearch !== searchQuery && onSearchChange) {
-      onSearchChange(debouncedSearch.trim());
+    if (!onSearchChange) return;
+    const trimmed = debouncedSearch.trim();
+
+    if (trimmed.length >= 3) {
+      if (trimmed !== searchQuery) {
+        onSearchChange(trimmed);
+      }
+    } else {
+      // 0, 1, or 2 characters: only trigger a reset if search was previously active
+      if (searchQuery !== '') {
+        onSearchChange('');
+      }
     }
   }, [debouncedSearch, searchQuery, onSearchChange]);
+
+  // Instant search on Enter key press
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const clean = localSearch.trim();
+      if (clean.length >= 3) {
+        if (clean !== searchQuery && onSearchChange) {
+          onSearchChange(clean);
+        }
+      } else if (clean.length === 0) {
+        if (searchQuery !== '' && onSearchChange) {
+          onSearchChange('');
+        }
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,10 +154,15 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
   const handleClearSearch = () => {
     setLocalSearch('');
-    if (onSearchChange) {
+    if (onSearchChange && searchQuery !== '') {
       onSearchChange('');
     }
   };
+
+  // Show table-only skeleton when actively loading or when user has typed 3+ letters and debouncing is in flight
+  const trimmedLocal = localSearch.trim();
+  const isSearchDebouncing = trimmedLocal.length >= 3 && trimmedLocal !== searchQuery;
+  const showTableSkeleton = isLoading || isSearchDebouncing;
 
   // Pagination calculations
   const totalItems = pagination?.totalItems ?? members.length;
@@ -230,7 +264,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
           {/* Live Search Bar */}
           <div className="relative w-full sm:w-64">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
-              {isLoading || localSearch !== debouncedSearch ? (
+              {showTableSkeleton ? (
                 <Loader2 className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
               ) : (
                 <Search className="w-3.5 h-3.5 text-slate-400" />
@@ -240,6 +274,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               type="text"
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Search members..."
               className="w-full pl-8 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
             />
@@ -272,8 +307,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                Array.from({ length: currentLimit || 5 }).map((_, idx) => (
+              {showTableSkeleton ? (
+                Array.from({ length: 4 }).map((_, idx) => (
                   <tr key={idx} className="animate-pulse">
                     <td className="px-6 py-4 flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-200/80 shrink-0" />

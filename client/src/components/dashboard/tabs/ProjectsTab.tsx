@@ -321,8 +321,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                         </h3>
                         <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono mt-0.5">
                           <span>{project.key}</span>
-                          <span>•</span>
-                          <span className="capitalize">{project.type}</span>
                         </div>
                       </div>
                     </div>
@@ -346,12 +344,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       </div>
                     </div>
 
-                    {isCurrentLead ? (
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shrink-0 shadow-2xs">
-                        <span>You are Manager</span>
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-slate-400 font-mono truncate max-w-[110px]">
+                    {managerEmail && (
+                      <span className="text-[10px] text-slate-400 font-mono truncate max-w-[140px]">
                         {managerEmail}
                       </span>
                     )}

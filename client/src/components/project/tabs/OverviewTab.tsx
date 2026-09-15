@@ -59,41 +59,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Project Lead Recognition Banner */}
-      {isUserLead && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-violet-500/10 border border-amber-300/70 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-200">
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-black uppercase tracking-wider text-amber-900">
-                You are Manager
-              </p>
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-200/80 text-amber-950 border border-amber-300">
-                Full Control
-              </span>
-            </div>
-            <p className="text-xs text-slate-600 mt-0.5">
-              Welcome, <strong>{currentUser?.name || 'Manager'}</strong>! You have manager privileges to plan sprints, track velocity, and launch retrospectives for <strong>{project.name}</strong>.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => onNavigateToTab('sprints')}
-              className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs transition-colors cursor-pointer"
-            >
-              Plan Sprints
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigateToTab('retros')}
-              className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
-            >
-              Retrospectives
-            </button>
-          </div>
-        </div>
-      )}
       {/* 1. Reusable KPI Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Health Status */}

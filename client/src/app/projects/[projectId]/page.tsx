@@ -59,17 +59,6 @@ function ProjectDetailContent() {
   const tabParam = searchParams.get('tab') || 'overview';
 
   const [project, setProject] = useState<Project | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed?.id === projectId || parsed?.key?.toLowerCase() === projectId.toLowerCase()) {
-            return parsed;
-          }
-        }
-      } catch {}
-    }
     return ProjectDataService.getProjectById(projectId) || null;
   });
   const [currentUser, setCurrentUser] = useState<{
@@ -77,18 +66,7 @@ function ProjectDetailContent() {
     email: string;
     role?: string;
     projectRole?: string;
-  } | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('retroflow_user');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed && (parsed.email || parsed.name)) return parsed;
-        }
-      } catch {}
-    }
-    return null;
-  });
+  } | null>(null);
   const [accessDeniedError, setAccessDeniedError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sprints' | 'retros' | 'team'>(
     (tabParam as any) || 'overview'
@@ -739,31 +717,6 @@ function ProjectDetailContent() {
                       <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
                         {project.name}
                       </h1>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
-                        {project.key}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize flex items-center gap-1.5 ${project.healthStatus === 'on_track'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${project.healthStatus === 'on_track' ? 'bg-emerald-500' : 'bg-amber-500'
-                            }`}
-                        />
-                        {project.healthStatus.replace('_', ' ')}
-                      </span>
-
-                      {isManager ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
-                          <span>You are Manager</span>
-                        </span>
-                      ) : isProjectLead ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
-                          <span>You are Project Lead</span>
-                        </span>
-                      ) : null}
                     </div>
 
                     <p className="text-xs text-slate-500 max-w-2xl">{project.description}</p>
@@ -775,10 +728,6 @@ function ProjectDetailContent() {
                           {project.members?.find((m) => (m.role || '').toLowerCase() === 'manager')?.name || project.lead?.name || 'Gopal'}
                         </strong>
                         {(isManager || isProjectLead) && <span className="text-indigo-600 font-bold ml-1">(You)</span>}
-                      </span>
-                      <span>•</span>
-                      <span>
-                        Type: <strong className="text-slate-700 uppercase">{project.type}</strong>
                       </span>
                       <span>•</span>
                       <span>{project.members.length} team members</span>

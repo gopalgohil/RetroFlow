@@ -203,7 +203,6 @@ function DashboardContent() {
   const isCurrentTabLoading =
     isTransitioning ||
     (activeTab === 'sessions' && isSessionsLoading) ||
-    (activeTab === 'members' && isMembersLoading) ||
     (activeTab === 'settings' && isSettingsLoading);
 
   // Check if unapproved developer account

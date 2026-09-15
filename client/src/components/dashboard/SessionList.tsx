@@ -198,7 +198,7 @@ export const SessionList: React.FC<SessionListProps> = ({
               </div>
 
               {/* Title & Description */}
-              <div className="space-y-1 mb-4">
+              <div className="space-y-1 mb-3">
                 <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
                   {session.title}
                 </h3>
@@ -208,6 +208,99 @@ export const SessionList: React.FC<SessionListProps> = ({
                   </p>
                 )}
               </div>
+
+              {/* Agenda Topics / Questions (Image 1 Matching with Dynamic Card Counts) */}
+              {(() => {
+                const topicsList =
+                  session.topics && session.topics.length > 0
+                    ? session.topics
+                    : [
+                        { title: 'What could be improved?', color: '#F43F5E' },
+                        { title: 'What went well?', color: '#10B981' },
+                        { title: 'Action Items', color: '#0EA5E9' },
+                      ];
+
+                const colorMap: Record<string, { bg: string; text: string; border: string; badgeBg: string; badgeText: string }> = {
+                  '#10B981': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200/80', badgeBg: 'bg-emerald-200/70', badgeText: 'text-emerald-900' },
+                  '#F43F5E': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200/80', badgeBg: 'bg-rose-200/70', badgeText: 'text-rose-900' },
+                  '#0EA5E9': { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200/80', badgeBg: 'bg-sky-200/70', badgeText: 'text-sky-900' },
+                  '#F59E0B': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200/80', badgeBg: 'bg-amber-200/70', badgeText: 'text-amber-900' },
+                  '#4F46E5': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200/80', badgeBg: 'bg-indigo-200/70', badgeText: 'text-indigo-900' },
+                  '#8B5CF6': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200/80', badgeBg: 'bg-purple-200/70', badgeText: 'text-purple-900' },
+                  '#EC4899': { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200/80', badgeBg: 'bg-pink-200/70', badgeText: 'text-pink-900' },
+                  '#06B6D4': { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200/80', badgeBg: 'bg-teal-200/70', badgeText: 'text-teal-900' },
+                };
+
+                return (
+                  <div className="space-y-1.5 mb-4">
+                    <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
+                      AGENDA TOPICS:
+                    </p>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {topicsList.map((t: any, idx: number) => {
+                        let theme = colorMap[t.color];
+                        if (!theme) {
+                          const titleLower = (t.title || '').toLowerCase();
+                          if (
+                            titleLower.includes('improve') ||
+                            titleLower.includes('bad') ||
+                            titleLower.includes('frown') ||
+                            titleLower.includes('problem')
+                          ) {
+                            theme = colorMap['#F43F5E'];
+                          } else if (
+                            titleLower.includes('well') ||
+                            titleLower.includes('good') ||
+                            titleLower.includes('win') ||
+                            titleLower.includes('smile')
+                          ) {
+                            theme = colorMap['#10B981'];
+                          } else if (
+                            titleLower.includes('action') ||
+                            titleLower.includes('item') ||
+                            titleLower.includes('task') ||
+                            titleLower.includes('target')
+                          ) {
+                            theme = colorMap['#0EA5E9'];
+                          } else {
+                            const fallbackColors = [
+                              colorMap['#F43F5E'],
+                              colorMap['#10B981'],
+                              colorMap['#0EA5E9'],
+                              colorMap['#8B5CF6'],
+                            ];
+                            theme = fallbackColors[idx % fallbackColors.length];
+                          }
+                        }
+
+                        // Calculate dynamic card count for this topic
+                        const cardCount = Array.isArray(session.cards)
+                          ? session.cards.filter(
+                              (c) =>
+                                (t.topicId && c.topicId === t.topicId) ||
+                                (t.id && c.topicId === t.id) ||
+                                (t.title && c.topicId?.toLowerCase() === t.title.toLowerCase())
+                            ).length
+                          : 0;
+
+                        return (
+                          <span
+                            key={t.topicId || idx}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all inline-flex items-center gap-1.5 ${theme.bg} ${theme.text} ${theme.border}`}
+                          >
+                            <span>{t.title}</span>
+                            <span
+                              className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-extrabold ${theme.badgeBg} ${theme.badgeText}`}
+                            >
+                              {cardCount}
+                            </span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
 
               {/* Card Footer Actions */}
