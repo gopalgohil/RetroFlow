@@ -170,14 +170,14 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
           </p>
         </div>
 
-        {canManageProject && (
+        {canManageProject && (project.retrospectives?.length || 0) > 0 && (
           <button
             type="button"
             onClick={onCreateRetroClick}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.01] cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>New Retro for {project.key}</span>
+            <span>Create Retrospective</span>
           </button>
         )}
       </div>
@@ -194,10 +194,10 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
             <button
               type="button"
               onClick={onCreateRetroClick}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-600/20 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Launch First Retro</span>
+              <span>Create Retrospective</span>
             </button>
           )}
         </div>
