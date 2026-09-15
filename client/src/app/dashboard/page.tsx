@@ -209,6 +209,7 @@ function DashboardContent() {
   const isPendingApproval = Boolean(
     activeUser.email &&
     !isAdmin &&
+    !isManager &&
     activeUser.isApproved === false
   );
 

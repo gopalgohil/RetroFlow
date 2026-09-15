@@ -129,6 +129,8 @@ function ProjectDetailContent() {
       currentUser.email &&
       (currentUser as any).isApproved === false &&
       currentUser.role !== 'admin' &&
+      currentUser.role !== 'manager' &&
+      (currentUser as any).projectRole !== 'Manager' &&
       currentUser.email !== 'gopalgohel249@gmail.com'
     ) {
       router.push('/dashboard');
