@@ -28,6 +28,51 @@ interface MyProfileModalProps {
   onUserUpdated?: (updated: { name: string; email: string; role?: string; projectRole?: string }) => void;
 }
 
+interface ProfileState {
+  name: string;
+  email: string;
+  role: string;
+  projectRole?: string;
+  isVerified: boolean;
+  createdAt?: string;
+  activeProjectsCount?: number;
+  activeProjects?: Array<{ id: string; key: string; name: string }>;
+}
+
+const getInitialProfileData = (u: MyProfileModalProps['user']): ProfileState => {
+  let fallbackName = u?.name || '';
+  let fallbackEmail = u?.email || '';
+  let fallbackRole = u?.role || 'member';
+  let fallbackProjectRole = (u as any)?.projectRole || 'Developer';
+
+  if (typeof window !== 'undefined' && (!fallbackEmail || !fallbackName)) {
+    try {
+      const saved = localStorage.getItem('retroflow_user');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed) {
+          if (!fallbackName && parsed.name) fallbackName = parsed.name;
+          if (!fallbackEmail && parsed.email) fallbackEmail = parsed.email;
+          if (!u?.role && parsed.role) fallbackRole = parsed.role;
+          if (!(u as any)?.projectRole && (parsed.projectRole || parsed.role)) {
+            fallbackProjectRole = parsed.projectRole || parsed.role;
+          }
+        }
+      }
+    } catch {}
+  }
+
+  return {
+    name: fallbackName || 'Member',
+    email: fallbackEmail || '',
+    role: fallbackRole,
+    projectRole: fallbackProjectRole,
+    isVerified: true,
+    activeProjectsCount: 0,
+    activeProjects: [],
+  };
+};
+
 export const MyProfileModal: React.FC<MyProfileModalProps> = ({
   isOpen,
   onClose,
@@ -36,26 +81,9 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
 
-  // Profile fields
+  // Profile fields initialized strictly with the current user context (zero flash of other users)
   const [name, setName] = useState(user?.name || '');
-  const [profileData, setProfileData] = useState<{
-    name: string;
-    email: string;
-    role: string;
-    projectRole?: string;
-    isVerified: boolean;
-    createdAt?: string;
-    activeProjectsCount?: number;
-    activeProjects?: Array<{ id: string; key: string; name: string }>;
-  }>({
-    name: user?.name || 'Gopal',
-    email: user?.email || 'gopalgohel249@gmail.com',
-    role: user?.role || 'admin',
-    projectRole: (user as any)?.projectRole || 'Developer',
-    isVerified: true,
-    activeProjectsCount: 0,
-    activeProjects: [],
-  });
+  const [profileData, setProfileData] = useState<ProfileState>(() => getInitialProfileData(user));
 
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isSavingName, setIsSavingName] = useState(false);
@@ -73,11 +101,22 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
   const [passwordSuccessMessage, setPasswordSuccessMessage] = useState('');
   const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
 
-  // Fetch fresh profile data on open
+  // Fetch fresh profile data on open & immediately sync current user props
   useEffect(() => {
     if (!isOpen) return;
 
-    setName(user?.name || '');
+    // Instant local synchronization from active user prop and stored session
+    const current = getInitialProfileData(user);
+    setProfileData((prev) => ({
+      ...prev,
+      ...current,
+      name: user?.name || current.name,
+      email: user?.email || current.email,
+      role: user?.role || current.role,
+      projectRole: (user as any)?.projectRole || current.projectRole,
+    }));
+    setName(user?.name || current.name || '');
+
     setNameSuccessMessage('');
     setNameErrorMessage('');
     setPasswordSuccessMessage('');
@@ -112,22 +151,28 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
-  const isAdmin =
-    profileData.role === 'admin' ||
-    profileData.email === 'gopalgohel249@gmail.com' ||
-    profileData.email?.toLowerCase().includes('admin');
+  const userEmail = profileData.email?.toLowerCase().trim();
+  const userRole = profileData.role?.toLowerCase().trim();
+  const isAdmin = Boolean(
+    userRole === 'admin' ||
+    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
+    userEmail?.includes('admin')
+  );
 
-  const initials = (profileData.name || user?.name || 'AD')
+  const displayName = profileData.name || user?.name || 'Member';
+  const displayEmail = profileData.email || user?.email || '';
+
+  const initials = displayName
     .split(' ')
     .filter(Boolean)
     .map((n) => n[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 2) || 'U';
 
   // Handle Save Name
   const handleSaveName = async (e: React.FormEvent) => {
@@ -249,7 +294,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-slate-900 leading-tight">
-                  {profileData.name || 'Gopal'}
+                  {displayName}
                 </h2>
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
@@ -270,7 +315,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <p className="text-xs text-slate-500 font-medium">{profileData.email}</p>
+                <p className="text-xs text-slate-500 font-medium">{displayEmail}</p>
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                   <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                   Verified
@@ -372,11 +417,10 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                   Email Address
                 </label>
                 <div className="mt-1.5 flex items-center justify-between px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
-                  <span className="font-semibold text-slate-800">{profileData.email}</span>
+                  <span className="font-semibold text-slate-800">{displayEmail}</span>
                   <span className="text-[11px] text-slate-400 font-medium">Primary Login</span>
                 </div>
               </div>
-
 
               {/* Account Summary */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -521,4 +565,5 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
     </div>
   );
 };
+
 export default MyProfileModal;
