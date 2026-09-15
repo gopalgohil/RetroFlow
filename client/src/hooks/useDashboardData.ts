@@ -375,12 +375,32 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
   const approveMember = useCallback(
     async (email: string, role: string = 'Developer') => {
+      const cleanEmail = email.toLowerCase().trim();
+
+      // 1. Optimistic UI update immediately so user doesn't need to refresh
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.email.toLowerCase().trim() === cleanEmail
+            ? {
+                ...m,
+                status: 'active',
+                isApproved: true,
+                projectRole: role || m.projectRole || 'Developer',
+              }
+            : m
+        )
+      );
+      setPendingRequests((prev) =>
+        prev.filter((m) => m.email.toLowerCase().trim() !== cleanEmail)
+      );
+
       try {
         await api.patch(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}/approve`, { role });
-        showToast(`Access approved for ${email} as ${role}!`);
+        showToast(`Access approved for ${email}!`);
         await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {
         showToast(err.message || 'Failed to approve developer request');
+        await fetchMembers(membersPage, membersLimit, membersSearch);
         throw err;
       }
     },
@@ -389,12 +409,23 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
   const rejectMember = useCallback(
     async (email: string) => {
+      const cleanEmail = email.toLowerCase().trim();
+
+      // 1. Optimistic UI update immediately
+      setMembers((prev) =>
+        prev.filter((m) => m.email.toLowerCase().trim() !== cleanEmail)
+      );
+      setPendingRequests((prev) =>
+        prev.filter((m) => m.email.toLowerCase().trim() !== cleanEmail)
+      );
+
       try {
         await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}/reject`);
         showToast(`Registration request for ${email} rejected.`);
         await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {
         showToast(err.message || 'Failed to reject developer request');
+        await fetchMembers(membersPage, membersLimit, membersSearch);
         throw err;
       }
     },

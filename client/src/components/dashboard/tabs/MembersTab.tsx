@@ -504,30 +504,28 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                                   }
                                 }}
                                 disabled={approvingEmail === m.email || rejectingEmail === m.email}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+                                className="inline-flex items-center justify-center min-w-[64px] px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
                                 title={`Approve ${m.name || m.email} to join workspace`}
                               >
                                 {approvingEmail === m.email ? (
                                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                 ) : (
-                                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                                  <span>Accept</span>
                                 )}
-                                <span>Accept</span>
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() => setMemberToReject(m)}
                                 disabled={approvingEmail === m.email || rejectingEmail === m.email}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+                                className="inline-flex items-center justify-center min-w-[64px] px-3 py-1.5 rounded-xl border border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
                                 title={`Reject access request for ${m.name || m.email}`}
                               >
                                 {rejectingEmail === m.email ? (
                                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                 ) : (
-                                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                                  <span>Reject</span>
                                 )}
-                                <span>Reject</span>
                               </button>
                             </div>
                           ) : (
