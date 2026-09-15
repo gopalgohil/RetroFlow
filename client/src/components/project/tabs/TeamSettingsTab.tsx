@@ -342,7 +342,14 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
               {project.members.map((member) => (
                 <tr key={member.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 flex items-center gap-3">
-                    <UserAvatar name={member.name} avatar={member.avatar} size="md" status="online" />
+                    <UserAvatar
+                      name={member.name}
+                      email={member.email}
+                      title={member.email}
+                      avatar={member.avatar}
+                      size="md"
+                      status="online"
+                    />
                     <div>
                       <p className="font-bold text-slate-900">{member.name}</p>
                       {project.lead.email === member.email && (
@@ -865,7 +872,13 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <UserAvatar name={memberToRemove.name} avatar={memberToRemove.avatar} size="md" />
+                <UserAvatar
+                  name={memberToRemove.name}
+                  email={memberToRemove.email}
+                  title={memberToRemove.email}
+                  avatar={memberToRemove.avatar}
+                  size="md"
+                />
                 <div>
                   <p className="font-bold text-slate-900">{memberToRemove.name}</p>
                   <p className="text-[11px] text-slate-500">{memberToRemove.email}</p>

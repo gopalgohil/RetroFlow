@@ -721,7 +721,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                   key={m.email}
                   className="inline-flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-lg bg-white border border-slate-200 text-xs shadow-2xs hover:border-slate-300 transition-colors"
                 >
-                  <UserAvatar name={m.name} size="xs" />
+                  <UserAvatar name={m.name} email={m.email} title={m.email} size="xs" />
                   <span className="font-semibold text-slate-800">{m.name}</span>
                   <StatusPill status={m.role} />
                   <button

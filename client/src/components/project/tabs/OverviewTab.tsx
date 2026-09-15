@@ -250,7 +250,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 key={member.id}
                 className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center gap-2.5"
               >
-                <UserAvatar name={member.name} avatar={member.avatar} size="md" status="online" />
+                <UserAvatar
+                  name={member.name}
+                  email={member.email}
+                  title={member.email}
+                  avatar={member.avatar}
+                  size="md"
+                  status="online"
+                />
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-slate-900 truncate">{member.name}</p>
                   <StatusPill status={member.role} />

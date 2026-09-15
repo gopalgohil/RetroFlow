@@ -328,6 +328,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                       <td className="px-6 py-4 flex items-center gap-3">
                         <UserAvatar
                           name={m.name || m.email}
+                          email={m.email}
+                          title={m.email}
                           avatar={m.avatar}
                           size="md"
                           status="online"
@@ -677,7 +679,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <UserAvatar name={memberToRemove.name || memberToRemove.email} avatar={memberToRemove.avatar} size="md" />
+                <UserAvatar name={memberToRemove.name || memberToRemove.email} email={memberToRemove.email} title={memberToRemove.email} avatar={memberToRemove.avatar} size="md" />
                 <div>
                   <p className="font-bold text-slate-900">{memberToRemove.name || memberToRemove.email}</p>
                   <p className="text-[11px] text-slate-500">{memberToRemove.email}</p>
@@ -751,7 +753,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <UserAvatar name={memberToReject.name || memberToReject.email} avatar={memberToReject.avatar} size="md" />
+                <UserAvatar name={memberToReject.name || memberToReject.email} email={memberToReject.email} title={memberToReject.email} avatar={memberToReject.avatar} size="md" />
                 <div>
                   <p className="font-bold text-slate-900">{memberToReject.name || memberToReject.email}</p>
                   <p className="text-[11px] text-slate-500">{memberToReject.email}</p>
