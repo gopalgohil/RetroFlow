@@ -77,13 +77,6 @@ export const AuthShowcase: React.FC<AuthShowcaseProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Bottom Tagline */}
-      <div className="relative z-10 pt-2">
-        <p className="text-xs sm:text-sm text-slate-500 font-normal">
-          {tagline}
-        </p>
-      </div>
     </div>
   );
 };

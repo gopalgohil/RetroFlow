@@ -51,16 +51,6 @@ export default function AuthLayout({
         <div className="my-auto py-4 flex items-center justify-center">
           {children}
         </div>
-
-        {/* Mobile / General Footer */}
-        <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-          <span>© {new Date().getFullYear()} RetroFlow Inc.</span>
-          <div className="flex gap-4">
-            <a href="#" className="hover:text-slate-600">Privacy</a>
-            <a href="#" className="hover:text-slate-600">Terms</a>
-            <a href="#" className="hover:text-slate-600">Help</a>
-          </div>
-        </div>
       </div>
     </div>
   );
