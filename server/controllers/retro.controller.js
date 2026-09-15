@@ -68,7 +68,7 @@ class RetroController {
    * DELETE /api/retros/:id
    */
   deleteRetro = asyncHandler(async (req, res) => {
-    const result = await retroService.deleteRetro(req.params.id, req.user._id);
+    const result = await retroService.deleteRetro(req.params.id, req.user);
     return ApiResponse.ok(res, result, 'Retrospective session removed successfully.');
   });
 

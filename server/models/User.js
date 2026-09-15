@@ -40,6 +40,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    hasLoggedIn: {
+      type: Boolean,
+      default: false,
+    },
+    lastLogin: {
+      type: Date,
+      default: null,
+    },
     verificationOtp: {
       type: String,
       default: null,

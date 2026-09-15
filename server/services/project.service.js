@@ -1190,10 +1190,20 @@ class ProjectService {
       currentUser?.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
       currentUser?.email?.toLowerCase().includes('admin');
 
+    const email = currentUser?.email?.toLowerCase()?.trim();
+    const isProjectMemberManager = Boolean(
+      email &&
+      Array.isArray(project.members) &&
+      project.members.some(
+        (m) => m.email?.toLowerCase()?.trim() === email && m.role?.toLowerCase()?.includes('manager')
+      )
+    );
+
     const isManager =
       currentUser?.projectRole === 'Manager' ||
       currentUser?.role?.toLowerCase() === 'manager' ||
-      currentUser?.role?.toLowerCase().includes('manager');
+      currentUser?.role?.toLowerCase()?.includes('manager') ||
+      isProjectMemberManager;
 
     if (!isAdmin && !isManager) {
       const isProjectLead =

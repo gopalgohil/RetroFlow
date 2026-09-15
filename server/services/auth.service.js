@@ -51,6 +51,7 @@ class AuthService {
         projectRole: 'Developer',
         isVerified: false,
         isApproved: isPreApproved,
+        hasLoggedIn: false,
         verificationOtp: otp,
         verificationOtpExpires: otpExpires,
       });
@@ -209,6 +210,12 @@ class AuthService {
         { email: user.email, requiresVerification: true }
       );
     }
+
+    // Mark user as having logged in so their verified account now registers in workspace directory/pending requests
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { hasLoggedIn: true, lastLogin: new Date() } }
+    );
 
     const token = generateToken({ id: user._id, email: user.email, role: user.role || 'member' });
 

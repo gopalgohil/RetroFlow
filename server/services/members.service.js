@@ -15,8 +15,20 @@ class MembersService {
    */
   async getWorkspaceMembers(userId, { page = 1, limit = 10, search = '' } = {}) {
     // 1. Concurrently fetch registered users, facilitator retros, and active projects
+    // Only return users who are verified & have logged in, pre-approved users, or workspace admins.
+    // Unverified users currently on the OTP screen will NEVER appear in the admin dashboard!
     const [users, retros, projects] = await Promise.all([
-      User.find({}, 'name email role projectRole isApproved createdAt isVerified').lean(),
+      User.find(
+        {
+          $or: [
+            { role: 'admin' },
+            { email: 'gopalgohel249@gmail.com' },
+            { isApproved: true },
+            { isVerified: true, hasLoggedIn: true },
+          ],
+        },
+        'name email role projectRole isApproved createdAt isVerified hasLoggedIn'
+      ).lean(),
       RetroBoard.find({ createdBy: userId }, 'approvedMembers').lean(),
       Project.find({}, 'name key members lead').lean(),
     ]);
@@ -87,6 +99,11 @@ class MembersService {
         ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
         : (u.name?.[0] || u.email[0]).toUpperCase();
 
+      // Exclude users who are still on the OTP screen or haven't logged in yet
+      if (!isAdmin && !u.isApproved && (!u.isVerified || !u.hasLoggedIn)) {
+        return;
+      }
+
       memberMap.set(emailLower, {
         id: String(u._id),
         name: u.name,
@@ -97,7 +114,7 @@ class MembersService {
         projectNames: stats.names,
         isPrimaryLead: emailLower === 'gopalgohel249@gmail.com',
         avatar,
-        status: !u.isVerified ? 'unverified' : (!u.isApproved && !isAdmin) ? 'pending' : 'active',
+        status: (!u.isApproved && !isAdmin) ? 'pending' : 'active',
         isApproved: Boolean(isAdmin || u.isApproved),
         isWhitelisted: true,
         joinedAt: u.createdAt,

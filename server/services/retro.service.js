@@ -523,13 +523,35 @@ class RetroService {
   }
 
   /**
-   * Delete a retrospective session
+   * Delete a retrospective session (Admins, Managers, or Session Creator)
    */
-  async deleteRetro(retroId, userId) {
-    const retro = await RetroBoard.findOneAndDelete({ _id: retroId, createdBy: userId });
+  async deleteRetro(retroId, currentUser) {
+    const userId = currentUser?._id || currentUser;
+    const userRole = (currentUser?.role || '').toLowerCase();
+    const userEmail = (currentUser?.email || '').toLowerCase().trim();
+    const userProjectRole = currentUser?.projectRole;
+
+    const isAdmin =
+      userRole === 'admin' ||
+      userEmail === 'gopalgohel249@gmail.com' ||
+      userEmail.includes('admin');
+
+    const isManager =
+      userProjectRole === 'Manager' ||
+      userRole === 'manager' ||
+      userRole.includes('manager');
+
+    let retro;
+    if (isAdmin || isManager) {
+      // Workspace Admins and Managers can delete any retro session
+      retro = await RetroBoard.findByIdAndDelete(retroId);
+    } else {
+      // Regular facilitators can only delete sessions they created
+      retro = await RetroBoard.findOneAndDelete({ _id: retroId, createdBy: userId });
+    }
 
     if (!retro) {
-      throw ApiError.notFound('Retrospective session not found or already deleted.');
+      throw ApiError.notFound('Retrospective session not found or you do not have permission to delete it.');
     }
 
     return { id: retroId, deleted: true };
