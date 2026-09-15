@@ -18,7 +18,6 @@ import {
   Flag,
   Calendar,
   EyeOff,
-  ShieldCheck,
   ChevronUp,
   ChevronDown,
   Check,
@@ -88,7 +87,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   projectContext,
 }) => {
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'topics' | 'process' | 'options'>('topics');
+  const [activeTab, setActiveTab] = useState<'general' | 'topics' | 'process'>('topics');
 
   useEffect(() => {
     setMounted(true);
@@ -101,7 +100,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const [revealMode, setRevealMode] = useState(false);
   const [votingLimit, setVotingLimit] = useState(5);
   const [approvalRequired, setApprovalRequired] = useState(false);
-  const [whitelistInput, setWhitelistInput] = useState('');
   const [approvedMembers, setApprovedMembers] = useState<string[]>([]);
   const [backgroundTheme, setBackgroundTheme] = useState<'sailboat' | 'standard' | 'space' | 'mountain' | 'minimal'>('standard');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -283,21 +281,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     );
   };
 
-  const handleAddWhitelistEmail = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      const val = whitelistInput.trim().toLowerCase();
-      if (val && !approvedMembers.includes(val) && val.includes('@')) {
-        setApprovedMembers((prev) => [...prev, val]);
-        setWhitelistInput('');
-      }
-    }
-  };
-
-  const handleRemoveWhitelistEmail = (email: string) => {
-    setApprovedMembers((prev) => prev.filter((e) => e !== email));
-  };
-
   const handleSave = async () => {
     if (!title.trim()) {
       setErrorMessage('Please provide a retrospective session title.');
@@ -395,13 +378,12 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           </div>
         )}
 
-        {/* 4 Navigation Tabs */}
+        {/* Navigation Tabs */}
         <div className="px-6 border-b border-slate-200 bg-white flex items-center gap-8">
           {[
             { id: 'general', label: 'GENERAL' },
             { id: 'topics', label: 'TOPICS' },
             { id: 'process', label: 'PROCESS' },
-            { id: 'options', label: 'OPTIONS' },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -725,74 +707,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                   onChange={(e) => setVotingLimit(Number(e.target.value))}
                   className="w-full accent-indigo-600 cursor-pointer"
                 />
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: OPTIONS (Waiting room & whitelist) */}
-          {activeTab === 'options' && (
-            <div className="max-w-2xl space-y-6 animate-in fade-in duration-150">
-              {/* Approval Required Toggle */}
-              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                      Require Admin Approval to Join (Waiting Room)
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 max-w-md">
-                    Guests and unauthorized teammates must be explicitly accepted by the session admin before entering.
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={approvalRequired}
-                  onChange={(e) => setApprovalRequired(e.target.checked)}
-                  className="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                />
-              </div>
-
-              {/* Permanent Whitelist Emails */}
-              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
-                <div>
-                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                    Whitelisted Teammates (Auto-Approved)
-                  </span>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Type email and press Enter to allow permanent access without waiting room approval.
-                  </p>
-                </div>
-
-                <input
-                  type="email"
-                  value={whitelistInput}
-                  onChange={(e) => setWhitelistInput(e.target.value)}
-                  onKeyDown={handleAddWhitelistEmail}
-                  placeholder="e.g. teammate@company.com (Press Enter)"
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
-                />
-
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {approvedMembers.map((email) => (
-                    <span
-                      key={email}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-xs text-indigo-700 font-medium"
-                    >
-                      {email}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveWhitelistEmail(email)}
-                        className="hover:text-rose-600 cursor-pointer"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                  {approvedMembers.length === 0 && (
-                    <span className="text-xs text-slate-400 italic">No whitelisted members added yet.</span>
-                  )}
-                </div>
               </div>
             </div>
           )}
