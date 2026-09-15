@@ -45,12 +45,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const userRole = (activeUser.role || '').toLowerCase().trim();
   const userProjectRole = ((activeUser as any).projectRole || '').toLowerCase().trim();
 
-  const isDevOrQAOrDevOps = Boolean(
-    ['developer', 'qa', 'tester', 'devops', 'member'].some(
-      (r) => userRole?.includes(r) || userProjectRole?.includes(r)
-    )
-  );
-
   const isAdmin =
     propIsAdmin !== undefined
       ? propIsAdmin
@@ -75,6 +69,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       userRole === 'project lead' ||
       userRole === 'team lead' ||
       userRole.includes('lead')
+    )
+  );
+
+  const isDevOrQAOrDevOps = Boolean(
+    !isAdmin &&
+    !isManager &&
+    !isProjectLead &&
+    ['developer', 'qa', 'tester', 'devops'].some(
+      (r) => userProjectRole?.includes(r) || (userRole !== 'member' && userRole?.includes(r))
     )
   );
 

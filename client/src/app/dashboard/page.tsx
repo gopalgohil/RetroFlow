@@ -110,8 +110,11 @@ function DashboardContent() {
 
   // Check if role is Developer, QA, or DevOps
   const isDevOrQAOrDevOps = Boolean(
-    ['developer', 'qa', 'tester', 'devops', 'member'].some(
-      (r) => userRole?.includes(r) || userProjectRole?.toLowerCase()?.includes(r)
+    !isAdmin &&
+    !isManager &&
+    !isProjectLead &&
+    ['developer', 'qa', 'tester', 'devops'].some(
+      (r) => (userRole !== 'member' && userRole?.includes(r)) || userProjectRole?.toLowerCase()?.includes(r)
     )
   );
 

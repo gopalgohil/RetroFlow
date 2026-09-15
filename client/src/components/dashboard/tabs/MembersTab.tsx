@@ -336,8 +336,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               Admin
                             </span>
                           ) : (
-                            <span className="text-[10px] text-slate-400">
-                              Team Member
+                            <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50/80 px-1.5 py-0.5 rounded">
+                              {m.projectRole && m.projectRole !== 'Unassigned' ? m.projectRole : 'Developer'}
                             </span>
                           )}
                         </div>
