@@ -122,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ? [
           {
             id: 'members',
-            label: isAdmin ? 'Team Members & Whitelist' : 'Team Directory',
+            label: isAdmin ? 'Team Members' : 'Team Directory',
             icon: Users,
             sublabel: isAdmin ? 'Access Controls' : 'Collaborators',
           },

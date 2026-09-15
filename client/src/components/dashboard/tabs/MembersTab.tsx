@@ -140,7 +140,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         <div>
           <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
             <Users className="w-5 h-5 text-indigo-600" />
-            {isAdmin ? 'Team Members & Whitelist Roster' : 'Team Directory'}
+            {isAdmin ? 'Team Members' : 'Team Directory'}
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             {isAdmin
