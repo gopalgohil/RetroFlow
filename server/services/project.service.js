@@ -756,6 +756,16 @@ class ProjectService {
 
     await project.save();
 
+    // Automatically synchronize new member into approvedMembers for all retros of this project
+    try {
+      await RetroBoard.updateMany(
+        { projectId: project._id },
+        { $addToSet: { approvedMembers: email } }
+      );
+    } catch (err) {
+      console.error('[addMember] Failed to sync approvedMembers in RetroBoard:', err);
+    }
+
     if ((memberData.role || '').toLowerCase() === 'manager') {
       try {
         await User.updateOne(
@@ -796,6 +806,17 @@ class ProjectService {
 
     project.members.splice(memberIndex, 1);
     await project.save();
+
+    // Synchronize removal from approvedMembers in project retros
+    try {
+      await RetroBoard.updateMany(
+        { projectId: project._id },
+        { $pull: { approvedMembers: memberToRemove.email.toLowerCase() } }
+      );
+    } catch (err) {
+      console.error('[removeMember] Failed to remove member from RetroBoard approvedMembers:', err);
+    }
+
     return project;
   }
 
