@@ -52,6 +52,7 @@ class MembersController {
    */
   removeWhitelistMember = asyncHandler(async (req, res) => {
     const result = await membersService.removeWhitelistMember(req.user._id, req.params.email);
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     return ApiResponse.ok(
       res,
       result,
@@ -74,6 +75,7 @@ class MembersController {
     );
 
     const successful = settled.filter((s) => s.status === 'fulfilled').length;
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     return ApiResponse.ok(
       res,
       { count: successful, total: emails.length },
@@ -91,6 +93,7 @@ class MembersController {
       req.params.email,
       req.body.role
     );
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     return ApiResponse.ok(
       res,
       result,
@@ -116,6 +119,7 @@ class MembersController {
       req.params.email,
       role
     );
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     return ApiResponse.ok(
       res,
       result,
@@ -139,6 +143,7 @@ class MembersController {
       req.user._id,
       req.params.email
     );
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     return ApiResponse.ok(
       res,
       result,

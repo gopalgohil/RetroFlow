@@ -646,25 +646,20 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               </button>
               <button
                 type="button"
-                disabled={isRemoving}
                 onClick={async () => {
                   if (!memberToRemove || !onRemoveMember) return;
+                  const targetEmail = memberToRemove.email;
+                  setMemberToRemove(null);
                   try {
-                    setIsRemoving(true);
-                    await onRemoveMember(memberToRemove.email);
-                    setMemberToRemove(null);
-                  } finally {
-                    setIsRemoving(false);
+                    await onRemoveMember(targetEmail);
+                  } catch (err) {
+                    console.error('Failed to remove member:', err);
                   }
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
               >
-                {isRemoving ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Trash2 className="w-3.5 h-3.5" />
-                )}
-                <span>{isRemoving ? 'Removing...' : 'Remove Member'}</span>
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Remove Member</span>
               </button>
             </>
           }
@@ -726,23 +721,18 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 type="button"
                 onClick={async () => {
                   if (!memberToReject || !onRejectMember) return;
-                  setRejectingEmail(memberToReject.email);
+                  const targetEmail = memberToReject.email;
+                  setMemberToReject(null);
                   try {
-                    await onRejectMember(memberToReject.email);
-                    setMemberToReject(null);
-                  } finally {
-                    setRejectingEmail(null);
+                    await onRejectMember(targetEmail);
+                  } catch (err) {
+                    console.error('Failed to reject member:', err);
                   }
                 }}
-                disabled={!!rejectingEmail}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
               >
-                {rejectingEmail ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
-                )}
-                <span>{rejectingEmail ? 'Rejecting...' : 'Reject Request'}</span>
+                <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Reject Request</span>
               </button>
             </>
           }

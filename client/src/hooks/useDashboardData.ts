@@ -179,6 +179,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const [membersSearch, setMembersSearch] = useState<string>('');
   const [isMembersLoading, setIsMembersLoading] = useState(false);
   const membersAbortRef = useRef<AbortController | null>(null);
+  const removedMemberEmailsRef = useRef<Set<string>>(new Set());
 
   const membersPageRef = useRef(membersPage);
   membersPageRef.current = membersPage;
@@ -227,26 +228,47 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
         if (controller.signal.aborted) return;
 
         if (res.data) {
+          const filterRemoved = (list: any[]) =>
+            list.filter(
+              (m) =>
+                m &&
+                m.email &&
+                !removedMemberEmailsRef.current.has(m.email.toLowerCase().trim())
+            );
+
           if (Array.isArray(res.data)) {
-            setMembers(res.data);
+            const sanitized = filterRemoved(res.data);
+            setMembers(sanitized);
             setPendingRequests([]);
             setMembersPagination({
               page: pageToUse,
               limit: limitToUse,
-              totalItems: res.data.length,
-              totalPages: Math.ceil(res.data.length / limitToUse) || 1,
+              totalItems: sanitized.length,
+              totalPages: Math.ceil(sanitized.length / limitToUse) || 1,
               hasNextPage: false,
               hasPrevPage: false,
             });
           } else if (res.data.members && Array.isArray(res.data.members)) {
-            setMembers(res.data.members);
-            if (res.data.pendingRequests && Array.isArray(res.data.pendingRequests)) {
-              setPendingRequests(res.data.pendingRequests);
-            } else {
-              setPendingRequests([]);
-            }
+            const sanitizedMembers = filterRemoved(res.data.members);
+            const sanitizedPending =
+              res.data.pendingRequests && Array.isArray(res.data.pendingRequests)
+                ? filterRemoved(res.data.pendingRequests)
+                : [];
+
+            setMembers(sanitizedMembers);
+            setPendingRequests(sanitizedPending);
+
             if (res.data.pagination) {
-              setMembersPagination(res.data.pagination);
+              const removedCount = res.data.members.length - sanitizedMembers.length;
+              const newTotal = Math.max(0, (res.data.pagination.totalItems || 0) - removedCount);
+              const newLimit = res.data.pagination.limit || limitToUse;
+              const newPages = Math.max(1, Math.ceil(newTotal / newLimit));
+              setMembersPagination({
+                ...res.data.pagination,
+                totalItems: newTotal,
+                totalPages: newPages,
+                hasNextPage: (res.data.pagination.page || pageToUse) < newPages,
+              });
             }
           }
         }
@@ -299,8 +321,10 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
   const addWhitelistMember = useCallback(
     async (email: string) => {
+      const cleanEmail = email.toLowerCase().trim();
+      removedMemberEmailsRef.current.delete(cleanEmail);
       try {
-        await api.post(ENDPOINTS.MEMBERS, { email });
+        await api.post(ENDPOINTS.MEMBERS, { email: cleanEmail });
         showToast(`Developer ${email} whitelisted successfully!`);
         await fetchMembers(1, membersLimit, membersSearch);
       } catch (err: any) {
@@ -313,12 +337,27 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
   const removeWhitelistMember = useCallback(
     async (email: string) => {
+      const cleanEmail = email.toLowerCase().trim();
+      removedMemberEmailsRef.current.add(cleanEmail);
+
+      // 1. Instant optimistic UI update so contributor disappears immediately
+      setMembers((prev) => prev.filter((m) => m.email.toLowerCase().trim() !== cleanEmail));
+      setPendingRequests((prev) => prev.filter((m) => m.email.toLowerCase().trim() !== cleanEmail));
+      setMembersPagination((prev) => {
+        const newTotal = Math.max(0, prev.totalItems - 1);
+        return {
+          ...prev,
+          totalItems: newTotal,
+          totalPages: Math.max(1, Math.ceil(newTotal / (prev.limit || 10))),
+        };
+      });
+
       try {
-        setMembers((prev) => prev.filter((m) => m.email.toLowerCase() !== email.toLowerCase()));
-        await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}`);
+        await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(cleanEmail)}`);
         showToast(`Developer ${email} removed from workspace.`);
         await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {
+        removedMemberEmailsRef.current.delete(cleanEmail);
         showToast(err.message || 'Failed to remove member from workspace');
         await fetchMembers(membersPage, membersLimit, membersSearch);
       }
@@ -329,13 +368,28 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const bulkRemoveMembers = useCallback(
     async (emails: string[]) => {
       if (!Array.isArray(emails) || emails.length === 0) return;
+      const cleanList = emails.map((e) => e.toLowerCase().trim());
+      const emailSet = new Set(cleanList);
+      cleanList.forEach((e) => removedMemberEmailsRef.current.add(e));
+
+      // Instant optimistic UI update
+      setMembers((prev) => prev.filter((m) => !emailSet.has(m.email.toLowerCase().trim())));
+      setPendingRequests((prev) => prev.filter((m) => !emailSet.has(m.email.toLowerCase().trim())));
+      setMembersPagination((prev) => {
+        const newTotal = Math.max(0, prev.totalItems - emailSet.size);
+        return {
+          ...prev,
+          totalItems: newTotal,
+          totalPages: Math.max(1, Math.ceil(newTotal / (prev.limit || 10))),
+        };
+      });
+
       try {
-        const emailSet = new Set(emails.map((e) => e.toLowerCase()));
-        setMembers((prev) => prev.filter((m) => !emailSet.has(m.email.toLowerCase())));
-        await api.post('/api/members/bulk-remove', { emails });
+        await api.post('/api/members/bulk-remove', { emails: cleanList });
         showToast(`Successfully removed ${emails.length} contributor(s) from workspace.`);
         await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {
+        cleanList.forEach((e) => removedMemberEmailsRef.current.delete(e));
         showToast(err.message || 'Failed to remove selected members');
         await fetchMembers(membersPage, membersLimit, membersSearch);
       }
@@ -410,6 +464,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const rejectMember = useCallback(
     async (email: string) => {
       const cleanEmail = email.toLowerCase().trim();
+      removedMemberEmailsRef.current.add(cleanEmail);
 
       // 1. Optimistic UI update immediately
       setMembers((prev) =>
@@ -418,12 +473,21 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       setPendingRequests((prev) =>
         prev.filter((m) => m.email.toLowerCase().trim() !== cleanEmail)
       );
+      setMembersPagination((prev) => {
+        const newTotal = Math.max(0, prev.totalItems - 1);
+        return {
+          ...prev,
+          totalItems: newTotal,
+          totalPages: Math.max(1, Math.ceil(newTotal / (prev.limit || 10))),
+        };
+      });
 
       try {
-        await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}/reject`);
+        await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(cleanEmail)}/reject`);
         showToast(`Registration request for ${email} rejected.`);
         await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {
+        removedMemberEmailsRef.current.delete(cleanEmail);
         showToast(err.message || 'Failed to reject developer request');
         await fetchMembers(membersPage, membersLimit, membersSearch);
         throw err;

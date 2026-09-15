@@ -255,14 +255,17 @@ class MembersService {
       throw new Error('Primary Workspace Owner cannot be removed.');
     }
 
-    const targetUser = await User.findOne({ email: cleanEmail });
+    const escapedEmail = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const emailRegex = new RegExp(`^${escapedEmail}$`, 'i');
+
+    const targetUser = await User.findOne({ email: emailRegex });
     if (targetUser && String(targetUser._id) === String(userId)) {
       throw new Error('You cannot remove your own account from the workspace.');
     }
 
     // Reassign project lead if this member was the designated lead of any projects
     await Project.updateMany(
-      { 'lead.email': cleanEmail },
+      { 'lead.email': emailRegex },
       {
         $set: {
           lead: {
@@ -276,18 +279,18 @@ class MembersService {
     );
 
     await Promise.all([
-      // 1. Remove from all retro boards approved members
+      // 1. Remove from all retro boards approved members (case-insensitive)
       RetroBoard.updateMany(
         {},
-        { $pull: { approvedMembers: cleanEmail } }
+        { $pull: { approvedMembers: emailRegex } }
       ),
-      // 2. Remove from all projects team rosters
+      // 2. Remove from all projects team rosters (case-insensitive)
       Project.updateMany(
         {},
-        { $pull: { members: { email: cleanEmail } } }
+        { $pull: { members: { email: emailRegex } } }
       ),
       // 3. Permanently remove user account from User collection
-      User.deleteOne({ email: cleanEmail }),
+      User.deleteMany({ email: emailRegex }),
     ]);
 
     return {
@@ -376,7 +379,10 @@ class MembersService {
       throw new Error('Primary Workspace Owner cannot be rejected.');
     }
 
-    const user = await User.findOne({ email: cleanEmail });
+    const escapedEmail = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const emailRegex = new RegExp(`^${escapedEmail}$`, 'i');
+
+    const user = await User.findOne({ email: emailRegex });
     if (!user) {
       throw new Error(`User with email "${cleanEmail}" not found.`);
     }
@@ -385,7 +391,11 @@ class MembersService {
       throw new Error('Admin users cannot be rejected.');
     }
 
-    await User.deleteOne({ email: cleanEmail });
+    await Promise.all([
+      RetroBoard.updateMany({}, { $pull: { approvedMembers: emailRegex } }),
+      Project.updateMany({}, { $pull: { members: { email: emailRegex } } }),
+      User.deleteMany({ email: emailRegex }),
+    ]);
 
     return {
       email: cleanEmail,

@@ -81,6 +81,9 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
 
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
     ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     ...(userEmail ? { 'x-user-email': userEmail } : {}),
     ...(userRole ? { 'x-user-role': userRole } : {}),
@@ -88,6 +91,7 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
   };
 
   const config: RequestInit = {
+    cache: 'no-store',
     ...customConfig,
     headers: defaultHeaders,
   };
@@ -196,7 +200,14 @@ export const api = {
    * HTTP GET Request
    */
   get: <T = any>(endpoint: string, options?: RequestOptions) =>
-    request<T>(endpoint, { ...options, method: 'GET' }),
+    request<T>(endpoint, {
+      ...options,
+      method: 'GET',
+      params: {
+        _t: Date.now(),
+        ...(options?.params || {}),
+      },
+    }),
 
   /**
    * HTTP POST Request
