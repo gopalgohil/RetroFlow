@@ -81,9 +81,6 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
 
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0',
     ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     ...(userEmail ? { 'x-user-email': userEmail } : {}),
     ...(userRole ? { 'x-user-role': userRole } : {}),

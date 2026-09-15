@@ -59,6 +59,9 @@ app.use(
       'X-Requested-With',
       'Accept',
       'Origin',
+      'Cache-Control',
+      'Pragma',
+      'Expires',
     ],
   })
 );
