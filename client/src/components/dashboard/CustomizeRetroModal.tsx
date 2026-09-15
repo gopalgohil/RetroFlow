@@ -17,7 +17,6 @@ import {
   Target,
   Flag,
   Calendar,
-  EyeOff,
   ChevronUp,
   ChevronDown,
   Check,
@@ -87,7 +86,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   projectContext,
 }) => {
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'topics' | 'process'>('topics');
+  const [activeTab, setActiveTab] = useState<'general' | 'topics'>('topics');
 
   useEffect(() => {
     setMounted(true);
@@ -383,7 +382,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           {[
             { id: 'general', label: 'GENERAL' },
             { id: 'topics', label: 'TOPICS' },
-            { id: 'process', label: 'PROCESS' },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -656,57 +654,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                   </div>
                   <span>Add New Topic Column</span>
                 </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: PROCESS */}
-          {activeTab === 'process' && (
-            <div className="max-w-2xl space-y-6 animate-in fade-in duration-150">
-              {/* Reveal Mode Toggle */}
-              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <EyeOff className="w-4 h-4 text-indigo-600" />
-                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                      Reveal Cards Mode (Silent Brainstorming)
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 max-w-md">
-                    Keep retrospective feedback cards blurred until the admin chooses to reveal them to avoid team bias.
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={revealMode}
-                  onChange={(e) => setRevealMode(e.target.checked)}
-                  className="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                />
-              </div>
-
-              {/* Voting Limits */}
-              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                      Voting Limits per Developer
-                    </span>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Restrict how many votes each participant can cast during the prioritization phase.
-                    </p>
-                  </div>
-                  <span className="font-mono text-base font-bold text-indigo-600 px-3 py-1 bg-indigo-50 rounded-lg border border-indigo-200">
-                    {votingLimit} Votes
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="15"
-                  value={votingLimit}
-                  onChange={(e) => setVotingLimit(Number(e.target.value))}
-                  className="w-full accent-indigo-600 cursor-pointer"
-                />
               </div>
             </div>
           )}
