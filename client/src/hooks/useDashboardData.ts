@@ -35,13 +35,20 @@ const DEFAULT_WORKSPACE_USER = {
   email: '',
   role: 'member',
   projectRole: 'Developer',
+  isApproved: false,
 };
 
 export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const router = useRouter();
 
   // 1. User Authentication State - initialized consistently to prevent SSR hydration mismatch
-  const [user, setUser] = useState<{ name: string; email: string; role?: string; projectRole?: string }>(DEFAULT_WORKSPACE_USER);
+  const [user, setUser] = useState<{
+    name: string;
+    email: string;
+    role?: string;
+    projectRole?: string;
+    isApproved?: boolean;
+  }>(DEFAULT_WORKSPACE_USER);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -158,6 +165,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
   // 3. Team Members & Whitelist State & Actions
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<TeamMember[]>([]);
   const [membersPagination, setMembersPagination] = useState<PaginationMeta>({
     page: 1,
     limit: 5,
@@ -221,6 +229,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
         if (res.data) {
           if (Array.isArray(res.data)) {
             setMembers(res.data);
+            setPendingRequests([]);
             setMembersPagination({
               page: pageToUse,
               limit: limitToUse,
@@ -231,6 +240,11 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
             });
           } else if (res.data.members && Array.isArray(res.data.members)) {
             setMembers(res.data.members);
+            if (res.data.pendingRequests && Array.isArray(res.data.pendingRequests)) {
+              setPendingRequests(res.data.pendingRequests);
+            } else {
+              setPendingRequests([]);
+            }
             if (res.data.pagination) {
               setMembersPagination(res.data.pagination);
             }
@@ -359,6 +373,34 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [showToast]
   );
 
+  const approveMember = useCallback(
+    async (email: string, role: string = 'Developer') => {
+      try {
+        await api.patch(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}/approve`, { role });
+        showToast(`Access approved for ${email} as ${role}!`);
+        await fetchMembers(membersPage, membersLimit, membersSearch);
+      } catch (err: any) {
+        showToast(err.message || 'Failed to approve developer request');
+        throw err;
+      }
+    },
+    [fetchMembers, membersPage, membersLimit, membersSearch, showToast]
+  );
+
+  const rejectMember = useCallback(
+    async (email: string) => {
+      try {
+        await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}/reject`);
+        showToast(`Registration request for ${email} rejected.`);
+        await fetchMembers(membersPage, membersLimit, membersSearch);
+      } catch (err: any) {
+        showToast(err.message || 'Failed to reject developer request');
+        throw err;
+      }
+    },
+    [fetchMembers, membersPage, membersLimit, membersSearch, showToast]
+  );
+
   // 4. Workspace Settings State & Actions
   const [settings, setSettings] = useState<WorkspaceSettingsData>(DEFAULT_WORKSPACE_SETTINGS);
   const [isSettingsLoading, setIsSettingsLoading] = useState(false);
@@ -429,6 +471,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     activeSessionsCount: sessions.filter((s) => s.status === 'active').length,
     // Members
     members,
+    pendingRequests,
     membersPagination,
     membersPage,
     membersLimit,
@@ -442,6 +485,8 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     removeWhitelistMember,
     bulkRemoveMembers,
     updateMemberRole,
+    approveMember,
+    rejectMember,
     // Settings
     settings,
     isSettingsLoading,

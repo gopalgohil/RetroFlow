@@ -1,5 +1,6 @@
 import { asyncHandler } from '../middlewares/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
+import { ApiError } from '../utils/ApiError.js';
 import membersService from '../services/members.service.js';
 
 /**
@@ -94,6 +95,54 @@ class MembersController {
       res,
       result,
       `Role updated to ${result.projectRole} for ${result.email}`
+    );
+  });
+
+  /**
+   * Approve a pending developer access request
+   * PATCH /api/members/:email/approve
+   */
+  approveMember = asyncHandler(async (req, res) => {
+    const isAdmin =
+      req.user.role === 'admin' ||
+      req.user.email === 'gopalgohel249@gmail.com';
+    if (!isAdmin) {
+      throw ApiError.forbidden('Only workspace administrators can approve access requests.');
+    }
+
+    const { role = 'Developer' } = req.body || {};
+    const result = await membersService.approveMember(
+      req.user._id,
+      req.params.email,
+      role
+    );
+    return ApiResponse.ok(
+      res,
+      result,
+      `Access approved for ${result.name} (${result.email}) as ${result.projectRole}`
+    );
+  });
+
+  /**
+   * Reject and delete a pending developer access request
+   * DELETE /api/members/:email/reject
+   */
+  rejectMember = asyncHandler(async (req, res) => {
+    const isAdmin =
+      req.user.role === 'admin' ||
+      req.user.email === 'gopalgohel249@gmail.com';
+    if (!isAdmin) {
+      throw ApiError.forbidden('Only workspace administrators can reject access requests.');
+    }
+
+    const result = await membersService.rejectMember(
+      req.user._id,
+      req.params.email
+    );
+    return ApiResponse.ok(
+      res,
+      result,
+      `Registration request for ${result.email} rejected and removed.`
     );
   });
 }

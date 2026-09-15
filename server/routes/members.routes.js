@@ -59,5 +59,27 @@ router.delete(
   membersController.removeWhitelistMember
 );
 
+/**
+ * @route   PATCH /api/members/:email/approve
+ * @desc    Approve a pending developer access request
+ * @access  Private (Admin only)
+ */
+router.patch(
+  '/:email/approve',
+  protect,
+  membersController.approveMember
+);
+
+/**
+ * @route   DELETE /api/members/:email/reject
+ * @desc    Reject and delete a pending developer access request
+ * @access  Private (Admin only)
+ */
+router.delete(
+  '/:email/reject',
+  protect,
+  membersController.rejectMember
+);
+
 export default router;
 

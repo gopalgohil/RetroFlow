@@ -95,8 +95,9 @@ export interface TeamMember {
   name: string;
   email: string;
   role: string;
-  status: 'active' | 'pending' | 'whitelisted';
+  status: 'active' | 'pending' | 'whitelisted' | 'unverified';
   isWhitelisted: boolean;
+  isApproved?: boolean;
   joinedAt: string;
   avatar?: string;
   projectRole?: string;

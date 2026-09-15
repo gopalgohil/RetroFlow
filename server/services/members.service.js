@@ -16,7 +16,7 @@ class MembersService {
   async getWorkspaceMembers(userId, { page = 1, limit = 10, search = '' } = {}) {
     // 1. Concurrently fetch registered users, facilitator retros, and active projects
     const [users, retros, projects] = await Promise.all([
-      User.find({}, 'name email role projectRole createdAt isVerified').lean(),
+      User.find({}, 'name email role projectRole isApproved createdAt isVerified').lean(),
       RetroBoard.find({ createdBy: userId }, 'approvedMembers').lean(),
       Project.find({}, 'name key members lead').lean(),
     ]);
@@ -97,7 +97,8 @@ class MembersService {
         projectNames: stats.names,
         isPrimaryLead: emailLower === 'gopalgohel249@gmail.com',
         avatar,
-        status: u.isVerified ? 'active' : 'pending',
+        status: !u.isVerified ? 'unverified' : (!u.isApproved && !isAdmin) ? 'pending' : 'active',
+        isApproved: Boolean(isAdmin || u.isApproved),
         isWhitelisted: true,
         joinedAt: u.createdAt,
       });
@@ -193,8 +194,13 @@ class MembersService {
     const startIndex = (pageNum - 1) * limitNum;
     const paginatedMembers = allMembers.slice(startIndex, startIndex + limitNum);
 
+    const pendingRequests = Array.from(memberMap.values()).filter(
+      (m) => m.status === 'pending'
+    );
+
     return {
       members: paginatedMembers,
+      pendingRequests,
       pagination: {
         page: pageNum,
         limit: limitNum,
@@ -312,6 +318,68 @@ class MembersService {
     return {
       email: cleanEmail,
       projectRole: cleanRole,
+    };
+  }
+
+  /**
+   * Approves a pending developer access request permanently
+   * @param {string|ObjectId} adminUserId - Admin user ID
+   * @param {string} email - Applicant developer email
+   * @param {string} assignedRole - Role to assign (e.g. Developer, QA, etc.)
+   */
+  async approveMember(adminUserId, email, assignedRole = 'Developer') {
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanRole = (assignedRole || 'Developer').trim();
+
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) {
+      throw new Error(`User with email "${cleanEmail}" not found.`);
+    }
+
+    user.isApproved = true;
+    user.projectRole = cleanRole;
+    await user.save();
+
+    // Whitelist in all retrospective boards
+    await RetroBoard.updateMany(
+      {},
+      { $addToSet: { approvedMembers: cleanEmail } }
+    );
+
+    return {
+      email: cleanEmail,
+      name: user.name,
+      projectRole: user.projectRole,
+      isApproved: true,
+    };
+  }
+
+  /**
+   * Rejects a pending developer access request and deletes their registration
+   * @param {string|ObjectId} adminUserId - Admin user ID
+   * @param {string} email - Applicant developer email
+   */
+  async rejectMember(adminUserId, email) {
+    const cleanEmail = email.toLowerCase().trim();
+
+    if (cleanEmail === 'gopalgohel249@gmail.com') {
+      throw new Error('Primary Workspace Owner cannot be rejected.');
+    }
+
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) {
+      throw new Error(`User with email "${cleanEmail}" not found.`);
+    }
+
+    if (user.role === 'admin') {
+      throw new Error('Admin users cannot be rejected.');
+    }
+
+    await User.deleteOne({ email: cleanEmail });
+
+    return {
+      email: cleanEmail,
+      rejected: true,
     };
   }
 }

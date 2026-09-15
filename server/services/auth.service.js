@@ -34,6 +34,13 @@ class AuthService {
       user.verificationOtpExpires = otpExpires;
       await user.save();
     } else {
+      // Check if email was pre-approved via Instant Member Access / retro whitelists
+      const isPreApproved = Boolean(
+        normalizedEmail === 'gopalgohel249@gmail.com' ||
+        normalizedEmail.includes('admin') ||
+        (await RetroBoard.exists({ approvedMembers: normalizedEmail }))
+      );
+
       // Create new unverified user
       user = await User.create({
         name: name.trim(),
@@ -42,6 +49,7 @@ class AuthService {
         role: 'member',
         projectRole: 'Developer',
         isVerified: false,
+        isApproved: isPreApproved,
         verificationOtp: otp,
         verificationOtpExpires: otpExpires,
       });
@@ -227,6 +235,7 @@ class AuthService {
         email: user.email,
         role: user.role || 'member',
         projectRole: effectiveRole,
+        isApproved: Boolean(user.role === 'admin' || user.email === 'gopalgohel249@gmail.com' || user.isApproved),
       },
       token,
     };
@@ -363,6 +372,7 @@ class AuthService {
     return {
       ...user.toObject(),
       projectRole: effectiveProjectRole,
+      isApproved: Boolean(isAdmin || user.isApproved),
       activeProjectsCount: userProjects.length,
       activeProjects: userProjects.map((p) => ({ id: p._id?.toString() || p.id, key: p.key, name: p.name })),
     };

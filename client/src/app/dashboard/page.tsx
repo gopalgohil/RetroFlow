@@ -18,7 +18,8 @@ import {
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
 import { useDashboardTabs } from '@/hooks/useDashboardTabs';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { CheckCircle2 } from 'lucide-react';
+import { api, ENDPOINTS } from '@/lib/api';
+import { CheckCircle2, Clock, RefreshCw, LogOut } from 'lucide-react';
 
 /**
  * DashboardContent Component
@@ -45,6 +46,7 @@ function DashboardContent() {
     saveSession,
     activeSessionsCount,
     members,
+    pendingRequests,
     membersPagination,
     membersPage,
     membersLimit,
@@ -57,6 +59,8 @@ function DashboardContent() {
     addWhitelistMember,
     removeWhitelistMember,
     updateMemberRole,
+    approveMember,
+    rejectMember,
     settings,
     isSettingsLoading,
     isSavingSettings,
@@ -68,6 +72,7 @@ function DashboardContent() {
     email: string;
     role?: string;
     projectRole?: string;
+    isApproved?: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -81,6 +86,7 @@ function DashboardContent() {
     email: '',
     role: 'member',
     projectRole: 'Developer',
+    isApproved: false,
   };
 
   const userEmail = activeUser.email?.toLowerCase().trim();
@@ -200,6 +206,183 @@ function DashboardContent() {
     (activeTab === 'members' && isMembersLoading) ||
     (activeTab === 'settings' && isSettingsLoading);
 
+  // Check if unapproved developer account
+  const isPendingApproval = Boolean(
+    activeUser.email &&
+    !isAdmin &&
+    activeUser.isApproved === false
+  );
+
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [approvalCheckMessage, setApprovalCheckMessage] = useState<string | null>(null);
+
+  const handleCheckApprovalStatus = async () => {
+    setIsCheckingStatus(true);
+    setApprovalCheckMessage(null);
+    try {
+      const res = await api.get(ENDPOINTS.AUTH.ME);
+      if (res.data) {
+        if (res.data.isApproved) {
+          setCurrentUser(res.data);
+          try {
+            localStorage.setItem('retroflow_user', JSON.stringify(res.data));
+          } catch {}
+          setApprovalCheckMessage('Congratulations! Your account has been approved.');
+        } else {
+          setApprovalCheckMessage('Your account is still pending administrator review. Please check back shortly.');
+        }
+      }
+    } catch {
+      setApprovalCheckMessage('Unable to verify approval status at this time. Please try again.');
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
+
+  if (isPendingApproval) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white flex flex-col justify-between selection:bg-amber-500 selection:text-white relative overflow-hidden font-sans">
+        {/* Subtle Ambient Glows */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Minimal Top Header */}
+        <header className="px-6 py-4 border-b border-white/10 flex items-center justify-between backdrop-blur-md relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-white text-base shadow-md">
+              RF
+            </div>
+            <div>
+              <span className="font-extrabold text-base tracking-tight text-white">RetroFlow</span>
+              <span className="text-[10px] uppercase font-bold text-amber-400 ml-2 tracking-wider px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20">
+                Access Review
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>{activeUser.email}</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-slate-200 transition-colors cursor-pointer border border-white/10"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Log Out</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Center Content Card */}
+        <main className="flex-1 flex items-center justify-center p-6 relative z-10">
+          <div className="max-w-xl w-full rounded-3xl bg-slate-800/70 border border-white/10 p-8 sm:p-10 backdrop-blur-xl shadow-2xl space-y-6 text-center animate-in zoom-in-95 duration-300">
+            {/* Glowing Icon */}
+            <div className="relative mx-auto w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-400/20 to-orange-500/20 border border-amber-400/30 flex items-center justify-center shadow-lg">
+              <Clock className="w-10 h-10 text-amber-400 animate-pulse" />
+              <div className="absolute -inset-1 bg-amber-400/10 rounded-3xl blur-md pointer-events-none" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400/10 text-amber-400 border border-amber-400/30 tracking-wide uppercase">
+                Account Pending Approval
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                One-Time Workspace Review
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+                Welcome, <span className="text-white font-semibold">{activeUser.name || 'Developer'}</span>! Your registration is complete and email verified. Workspace Administrator approval is required before accessing Retrospectives and Projects.
+              </p>
+            </div>
+
+            {/* Checklist / Progress Steps */}
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4 text-left space-y-3">
+              <div className="flex items-center gap-3 text-xs">
+                <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                  ✓
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-white">Email Address Verified</p>
+                  <p className="text-[11px] text-slate-400 truncate">{activeUser.email}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 text-xs">
+                <div className="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 animate-pulse">
+                  ⏳
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-white">Administrator Review</p>
+                  <p className="text-[11px] text-slate-400">Waiting for Workspace Admin to accept your request.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 text-xs opacity-60">
+                <div className="w-6 h-6 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center font-bold text-xs shrink-0">
+                  3
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-white">Permanent Workspace Access</p>
+                  <p className="text-[11px] text-slate-400">Once accepted, you will have full access on all future logins.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Message Feedback */}
+            {approvalCheckMessage && (
+              <div
+                className={`p-3 rounded-xl text-xs font-semibold border animate-in fade-in duration-200 ${
+                  approvalCheckMessage.includes('approved')
+                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                    : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                }`}
+              >
+                {approvalCheckMessage}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleCheckApprovalStatus}
+                disabled={isCheckingStatus}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs font-bold transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${isCheckingStatus ? 'animate-spin' : ''}`} />
+                <span>{isCheckingStatus ? 'Checking Status...' : 'Check Approval Status'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 text-xs font-bold transition-all border border-white/10 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out</span>
+              </button>
+            </div>
+
+            {/* Contact Support info */}
+            <p className="text-[11px] text-slate-400 pt-2 border-t border-white/5">
+              Need immediate access? Contact workspace owner at{' '}
+              <a href="mailto:gopalgohel249@gmail.com" className="text-indigo-400 underline font-medium hover:text-indigo-300">
+                gopalgohel249@gmail.com
+              </a>
+            </p>
+          </div>
+        </main>
+
+        {/* Minimal Footer */}
+        <footer className="px-6 py-3 text-center text-[11px] text-slate-400 border-t border-white/5 relative z-10">
+          RetroFlow &bull; Enterprise Agile Retrospectives &bull; gopalgohel249@gmail.com
+        </footer>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex selection:bg-indigo-500 selection:text-white font-sans">
       {/* Left Navigation Sidebar */}
@@ -223,7 +406,7 @@ function DashboardContent() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           isLoading={isSessionsLoading}
-          pendingApprovalsCount={0}
+          pendingApprovalsCount={isAdmin ? pendingRequests.length : 0}
           onCreateClick={handleCreateRetro}
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
           isAdmin={isAdmin}
@@ -268,6 +451,7 @@ function DashboardContent() {
                 canViewMembers ? (
                   <MembersTab
                     members={members}
+                    pendingRequests={pendingRequests}
                     pagination={membersPagination}
                     currentPage={membersPage}
                     currentLimit={membersLimit}
@@ -280,6 +464,8 @@ function DashboardContent() {
                     onWhitelistAdded={addWhitelistMember}
                     onRemoveMember={removeWhitelistMember}
                     onUpdateMemberRole={updateMemberRole}
+                    onApproveMember={approveMember}
+                    onRejectMember={rejectMember}
                     currentEmail={activeUser.email}
                     isAdmin={isAdmin}
                   />

@@ -18,6 +18,7 @@ import {
   Check,
   FolderKanban,
   AlertTriangle,
+  Clock,
 } from 'lucide-react';
 import { TeamMember, PaginationMeta } from '@/types/retro';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -26,6 +27,7 @@ import { Modal } from '@/components/ui/Modal';
 
 interface MembersTabProps {
   members: TeamMember[];
+  pendingRequests?: TeamMember[];
   pagination?: PaginationMeta;
   currentPage?: number;
   currentLimit?: number;
@@ -38,6 +40,8 @@ interface MembersTabProps {
   onWhitelistAdded: (email: string) => Promise<void>;
   onRemoveMember?: (email: string) => Promise<void>;
   onUpdateMemberRole?: (email: string, role: string) => Promise<void>;
+  onApproveMember?: (email: string, role: string) => Promise<void>;
+  onRejectMember?: (email: string) => Promise<void>;
   currentEmail?: string;
   isAdmin?: boolean;
 }
@@ -52,6 +56,7 @@ interface MembersTabProps {
  */
 export const MembersTab: React.FC<MembersTabProps> = ({
   members,
+  pendingRequests = [],
   pagination,
   currentPage = 1,
   currentLimit = 10,
@@ -64,6 +69,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   onWhitelistAdded,
   onRemoveMember,
   onUpdateMemberRole,
+  onApproveMember,
+  onRejectMember,
   currentEmail,
   isAdmin = true,
 }) => {
@@ -75,6 +82,10 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   const debouncedSearch = useDebounce(localSearch, 350);
 
   const [updatingRoleEmail, setUpdatingRoleEmail] = useState<string | null>(null);
+  const [approvingEmail, setApprovingEmail] = useState<string | null>(null);
+  const [rejectingEmail, setRejectingEmail] = useState<string | null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
+  const [memberToReject, setMemberToReject] = useState<TeamMember | null>(null);
 
   const handleRoleSelect = async (memberEmail: string, newRole: string) => {
     if (!onUpdateMemberRole) return;
@@ -160,6 +171,122 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         </button>
       </div>
 
+      {/* Pending Access Requests Banner Card (Admin Only) */}
+      {isAdmin && pendingRequests && pendingRequests.length > 0 && (
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-amber-50/90 via-white to-orange-50/60 border border-amber-200/90 shadow-xs space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-amber-200/60">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold relative shrink-0">
+                <Clock className="w-5 h-5" />
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping" />
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-slate-900">Pending Access Requests</h3>
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
+                    {pendingRequests.length} Waiting
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  New developer registrations waiting for one-time workspace administrator approval.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pending List */}
+          <div className="divide-y divide-amber-100/80">
+            {pendingRequests.map((applicant) => {
+              const selectedRole = selectedRoles[applicant.email] || applicant.projectRole || 'Developer';
+              const isApproving = approvingEmail === applicant.email;
+              const isRejecting = rejectingEmail === applicant.email;
+
+              return (
+                <div
+                  key={applicant.email}
+                  className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 first:pt-1 last:pb-1"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <UserAvatar name={applicant.name || applicant.email} avatar={applicant.avatar} size="md" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-slate-900 truncate">
+                          {applicant.name || 'New Contributor'}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                          Pending Approval
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 truncate flex items-center gap-1.5 mt-0.5">
+                        <span>{applicant.email}</span>
+                        <span>•</span>
+                        <span>Registered {applicant.joinedAt ? new Date(applicant.joinedAt).toLocaleDateString() : 'recently'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+                    {/* Role Selector */}
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-[11px] font-semibold text-slate-500 hidden sm:inline">Role:</label>
+                      <select
+                        value={selectedRole}
+                        onChange={(e) =>
+                          setSelectedRoles((prev) => ({ ...prev, [applicant.email]: e.target.value }))
+                        }
+                        disabled={isApproving || isRejecting}
+                        className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-2xs"
+                      >
+                        <option value="Developer">Developer</option>
+                        <option value="QA">QA Engineer</option>
+                        <option value="Project Lead">Project Lead</option>
+                        <option value="DevOps">DevOps</option>
+                        <option value="Manager">Manager</option>
+                      </select>
+                    </div>
+
+                    {/* Accept Button */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!onApproveMember) return;
+                        setApprovingEmail(applicant.email);
+                        try {
+                          await onApproveMember(applicant.email, selectedRole);
+                        } finally {
+                          setApprovingEmail(null);
+                        }
+                      }}
+                      disabled={isApproving || isRejecting}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+                    >
+                      {isApproving ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                      )}
+                      <span>Accept</span>
+                    </button>
+
+                    {/* Reject Button */}
+                    <button
+                      type="button"
+                      onClick={() => setMemberToReject(applicant)}
+                      disabled={isApproving || isRejecting}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+                    >
+                      <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Reject</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Whitelist Quick Add Form Card (Admin Only) */}
       {isAdmin && (
         <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-50/70 via-white to-indigo-50/40 border border-emerald-100/80 shadow-xs">
@@ -168,9 +295,9 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               <Shield className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Instant Whitelist Access</h3>
+              <h3 className="text-sm font-bold text-slate-900">Instant Member Access</h3>
               <p className="text-xs text-slate-500">
-                Developers on this whitelist bypass admin waiting room approvals.
+                Developers added here receive pre-approved workspace access without waiting for approval.
               </p>
             </div>
           </div>
@@ -197,7 +324,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               ) : (
                 <>
                   <Plus className="w-4 h-4" />
-                  <span>Whitelist Developer</span>
+                  <span>Pre-approve Member</span>
                 </>
               )}
             </button>
@@ -211,7 +338,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <UserCheck className="w-4 h-4 text-indigo-600" />
-            <h3 className="text-sm font-bold text-slate-900">Registered & Whitelisted Members</h3>
+            <h3 className="text-sm font-bold text-slate-900">Team Directory & Collaborators</h3>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
               {totalItems} Total Contributor{totalItems !== 1 ? 's' : ''}
             </span>
@@ -447,10 +574,22 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
                       {/* 4. Status */}
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold text-[11px]">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          Active
-                        </span>
+                        {m.status === 'pending' ? (
+                          <span className="inline-flex items-center gap-1.5 text-amber-700 font-semibold text-[11px] bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            Pending Approval
+                          </span>
+                        ) : m.status === 'unverified' ? (
+                          <span className="inline-flex items-center gap-1.5 text-slate-500 font-semibold text-[11px] bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                            Unverified
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold text-[11px]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            Active
+                          </span>
+                        )}
                       </td>
 
                       {/* 5. Activity */}
@@ -641,6 +780,79 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
             <p className="text-[11px] text-slate-500 leading-relaxed">
               Once removed, this contributor will immediately lose access to all assigned projects, retrospective sessions, and workspace whitelist privileges. Any project where they were lead will be automatically reassigned to Primary Admin.
+            </p>
+          </div>
+        </Modal>
+      )}
+
+      {/* Reject Access Request Confirmation Modal */}
+      {memberToReject && (
+        <Modal
+          isOpen={!!memberToReject}
+          onClose={() => !rejectingEmail && setMemberToReject(null)}
+          title="Reject Access Request"
+          footer={
+            <>
+              <button
+                type="button"
+                onClick={() => setMemberToReject(null)}
+                disabled={!!rejectingEmail}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!memberToReject || !onRejectMember) return;
+                  setRejectingEmail(memberToReject.email);
+                  try {
+                    await onRejectMember(memberToReject.email);
+                    setMemberToReject(null);
+                  } finally {
+                    setRejectingEmail(null);
+                  }
+                }}
+                disabled={!!rejectingEmail}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {rejectingEmail ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                )}
+                <span>{rejectingEmail ? 'Rejecting...' : 'Reject Request'}</span>
+              </button>
+            </>
+          }
+        >
+          <div className="space-y-4 text-xs text-slate-600">
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200/90 text-rose-950 space-y-1.5">
+              <div className="flex items-center gap-2 font-bold text-rose-900 text-xs">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>Confirm Request Rejection</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-rose-800">
+                Are you sure you want to reject the workspace access request for{' '}
+                <strong>{memberToReject.name || memberToReject.email}</strong> ({memberToReject.email})?
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <UserAvatar name={memberToReject.name || memberToReject.email} avatar={memberToReject.avatar} size="md" />
+                <div>
+                  <p className="font-bold text-slate-900">{memberToReject.name || memberToReject.email}</p>
+                  <p className="text-[11px] text-slate-500">{memberToReject.email}</p>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                Pending Approval
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Their account registration will be cancelled and removed. If they wish to join later, they will need to register again.
             </p>
           </div>
         </Modal>

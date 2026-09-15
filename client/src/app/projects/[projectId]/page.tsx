@@ -144,6 +144,19 @@ function ProjectDetailContent() {
     syncProfile();
   }, []);
 
+  // Redirect unapproved members to dashboard where pending approval screen is shown
+  useEffect(() => {
+    if (
+      currentUser &&
+      currentUser.email &&
+      (currentUser as any).isApproved === false &&
+      currentUser.role !== 'admin' &&
+      currentUser.email !== 'gopalgohel249@gmail.com'
+    ) {
+      router.push('/dashboard');
+    }
+  }, [currentUser, router]);
+
   // Logout handler
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
