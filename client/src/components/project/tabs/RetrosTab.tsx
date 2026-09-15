@@ -16,6 +16,8 @@ import {
   Loader2,
   X,
   Layers,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Project, ProjectRetroLink } from '@/types/project';
 import { StatusPill, UserAvatar } from '@/components/ui';
@@ -51,6 +53,19 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
   // Delete Modal State
   const [deletingRetro, setDeletingRetro] = useState<ProjectRetroLink | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // 6-item Pagination state
+  const ITEMS_PER_PAGE = 6;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const retrosList = project.retrospectives || [];
+  const totalItems = retrosList.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
+  const paginatedRetros = retrosList.slice(startIndex, endIndex);
 
   // Open Edit Modal
   const handleOpenEdit = (retro: ProjectRetroLink) => {
@@ -202,8 +217,9 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {project.retrospectives.map((retro) => {
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {paginatedRetros.map((retro) => {
             const isActive = retro.status === 'active';
             const isCopied = copiedToken === retro.shareToken;
 
@@ -338,6 +354,55 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
               </div>
             );
           })}
+          </div>
+
+          {/* Pagination Controls Footer (Active when > 6 retros) */}
+          {totalPages > 1 && (
+            <div className="p-4 sm:px-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div className="text-slate-500">
+                Showing <strong className="text-slate-800">{startIndex + 1}</strong> to{' '}
+                <strong className="text-slate-800">{endIndex}</strong> of{' '}
+                <strong className="text-slate-800">{totalItems}</strong> Retros
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={safeCurrentPage <= 1}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Prev</span>
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setCurrentPage(p)}
+                    className={`min-w-[32px] h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      p === safeCurrentPage
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={safeCurrentPage >= totalPages}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

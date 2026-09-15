@@ -12,6 +12,8 @@ import {
   Clock,
   Check,
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { RetroBoard } from '@/types/retro';
 import { ShareInviteModal } from './ShareInviteModal';
@@ -27,6 +29,7 @@ interface SessionListProps {
   isAdmin?: boolean;
 }
 
+const ITEMS_PER_PAGE = 6;
 
 export const SessionList: React.FC<SessionListProps> = ({
   sessions,
@@ -38,6 +41,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   isAdmin = true,
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('active');
+  const [currentPage, setCurrentPage] = useState(1);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -54,10 +58,19 @@ export const SessionList: React.FC<SessionListProps> = ({
     return true;
   });
 
+  const totalItems = filteredSessions.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
+  const paginatedSessions = filteredSessions.slice(startIndex, endIndex);
+
   const handleTabClick = (tabId: 'all' | 'active' | 'upcoming' | 'completed') => {
     if (tabId === activeFilter) return;
     setIsFilterLoading(true);
     setActiveFilter(tabId);
+    setCurrentPage(1);
     setTimeout(() => {
       setIsFilterLoading(false);
     }, 380);
@@ -119,7 +132,9 @@ export const SessionList: React.FC<SessionListProps> = ({
           <div className="h-4 w-28 rounded bg-slate-200/80 animate-pulse" />
         ) : (
           <span className="text-xs font-semibold text-slate-500">
-            Showing {filteredSessions.length} of {sessions.length} Retros
+            {totalItems > ITEMS_PER_PAGE
+              ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} Retros`
+              : `Showing ${totalItems} of ${sessions.length} Retros`}
           </span>
         )}
       </div>
@@ -159,7 +174,7 @@ export const SessionList: React.FC<SessionListProps> = ({
       {/* Sessions Grid */}
       {!isCardsLoading && filteredSessions.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {filteredSessions.map((session) => (
+          {paginatedSessions.map((session) => (
             <div
               key={session._id}
               className="group relative p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col justify-between"
@@ -350,6 +365,59 @@ export const SessionList: React.FC<SessionListProps> = ({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Enterprise Pagination Controls Footer (Active when > 6 retros) */}
+      {!isCardsLoading && totalPages > 1 && (
+        <div className="p-4 sm:px-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          {/* Left: Range Info */}
+          <div className="text-slate-500">
+            Showing <strong className="text-slate-800">{startIndex + 1}</strong> to{' '}
+            <strong className="text-slate-800">{endIndex}</strong> of{' '}
+            <strong className="text-slate-800">{totalItems}</strong> Retros
+          </div>
+
+          {/* Right: Page Navigation Controls */}
+          <div className="flex items-center gap-1.5">
+            {/* Previous Button */}
+            <button
+              type="button"
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={safeCurrentPage <= 1}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Prev</span>
+            </button>
+
+            {/* Page Number Buttons */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setCurrentPage(p)}
+                className={`min-w-[32px] h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  p === safeCurrentPage
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+
+            {/* Next Button */}
+            <button
+              type="button"
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={safeCurrentPage >= totalPages}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       )}
 
