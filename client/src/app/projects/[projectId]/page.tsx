@@ -562,16 +562,6 @@ function ProjectDetailContent() {
               </button>
             )}
 
-            {canCreateRetro && (
-              <button
-                onClick={() => setIsCreateRetroOpen(true)}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.01] cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span className="hidden sm:inline">Launch Retro</span>
-              </button>
-            )}
-
             {/* User Profile Dropdown Pill */}
             <div className="relative shrink-0" ref={profileDropdownRef}>
               <button
