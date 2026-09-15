@@ -15,7 +15,8 @@ export interface UseRetroSessionReturn {
   isFacilitator: boolean;
   canExportToSprint: boolean;
   currentAuthorName: string;
-  currentUser: { id?: string; name: string; email: string; role?: string; isGuest?: boolean } | null;
+  currentUser: { id?: string; name: string; email: string; role?: string; projectRole?: string; isGuest?: boolean } | null;
+  effectiveUserRole: string;
   socketConnected: boolean;
   isNamePromptOpen: boolean;
   verifiedGuestEmail: string | null;
@@ -47,6 +48,8 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     name: string;
     email: string;
     role?: string;
+    projectRole?: string;
+    isGuest?: boolean;
   } | null>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -155,6 +158,30 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         } else {
           setIsNamePromptOpen(true);
         }
+      }
+
+      // Always sync fresh user profile from backend if session token exists
+      // so any dynamic role changes made by Admin (e.g. Developer -> Manager) reflect immediately
+      const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
+      if (token) {
+        api
+          .get(ENDPOINTS.AUTH.ME)
+          .then((res: any) => {
+            const profile = res.data?.user || res.data;
+            if (profile && profile.email) {
+              setCurrentUser((prev) => ({
+                ...prev,
+                ...profile,
+                id: profile._id || profile.id || prev?.id,
+                name: profile.name || prev?.name || '',
+                email: profile.email || prev?.email || '',
+                role: profile.role || prev?.role,
+                projectRole: profile.projectRole || prev?.projectRole,
+              }));
+              localStorage.setItem('retroflow_user', JSON.stringify(profile));
+            }
+          })
+          .catch(() => {});
       }
     }
 
@@ -273,6 +300,48 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
   }, [currentUser, retro?.createdBy, retro?.project]);
 
   const isFacilitator = canExportToSprint;
+
+  // Derive dynamic user role: Admin decides who is Manager, Developer, QA, etc.
+  const effectiveUserRole = useMemo(() => {
+    if (!currentUser) {
+      if (verifiedGuestEmail) return 'Developer';
+      return 'Developer';
+    }
+
+    const emailLower = currentUser.email?.toLowerCase().trim() || '';
+    const wsRole = (currentUser.role || '').toLowerCase().trim();
+    const projRole = currentUser.projectRole?.trim();
+
+    // 1. Workspace Admin
+    if (wsRole === 'admin' || emailLower === 'gopalgohel249@gmail.com') {
+      return 'Admin';
+    }
+
+    // 2. Project-level Role from linked retro.project (Manager/Lead or Member role)
+    if (retro?.project) {
+      const leadEmail = retro.project.lead?.email?.toLowerCase().trim();
+      if (leadEmail && leadEmail === emailLower) {
+        return 'Manager';
+      }
+
+      if (Array.isArray(retro.project.members)) {
+        const member = retro.project.members.find(
+          (m: any) => m.email?.toLowerCase().trim() === emailLower
+        );
+        if (member?.role && member.role !== 'Unassigned') {
+          return member.role;
+        }
+      }
+    }
+
+    // 3. Dynamic enterprise projectRole assigned by Admin
+    if (projRole && projRole !== 'Unassigned' && projRole.toLowerCase() !== 'member') {
+      return projRole;
+    }
+
+    // 4. Fallback for authenticated workspace members
+    return 'Developer';
+  }, [currentUser, retro?.project, verifiedGuestEmail]);
 
   // 2. Socket.io Real-Time Synchronization
   useEffect(() => {
@@ -826,6 +895,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     canExportToSprint,
     currentAuthorName,
     currentUser,
+    effectiveUserRole,
     socketConnected,
     isNamePromptOpen,
     verifiedGuestEmail,
