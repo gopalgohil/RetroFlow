@@ -67,7 +67,7 @@ class MembersService {
       const isAdmin =
         u.role === 'admin' ||
         emailLower === 'gopalgohel249@gmail.com' ||
-        String(u._id) === String(userId);
+        emailLower.includes('admin');
 
       const stats = projectStatsMap.get(emailLower) || { count: 0, roles: new Set(), names: [], isLead: false };
       const roleList = Array.from(stats.roles);
