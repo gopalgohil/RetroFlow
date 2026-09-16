@@ -28,6 +28,7 @@ export const ENDPOINTS = {
   },
   HEALTH: '/health',
   RETROS: '/retros',
+  RETRO_ANALYTICS: '/retros/analytics',
   MEMBERS: '/members',
   SETTINGS: '/settings',
   PROJECTS: '/projects',

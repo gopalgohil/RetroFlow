@@ -223,6 +223,17 @@ class RetroController {
 
     return ApiResponse.ok(res, result, 'Vote recorded');
   });
+
+  /**
+   * Get Retrospective Attendance & Participation Analytics (Manager & Admin only)
+   * GET /api/retros/analytics?projectId=...
+   */
+  getRetroAnalytics = asyncHandler(async (req, res) => {
+    const { projectId = 'all' } = req.query;
+    const analytics = await retroService.getRetroAnalytics(req.user, { projectId });
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return ApiResponse.ok(res, analytics, 'Retrospective analytics loaded successfully');
+  });
 }
 
 export const retroController = new RetroController();

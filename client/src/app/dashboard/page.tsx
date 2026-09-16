@@ -13,6 +13,7 @@ import {
   ProjectsTab,
   ActionItemsTab,
   MembersTab,
+  AnalyticsTab,
   WelcomeToast,
 } from '@/components/dashboard';
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
@@ -653,6 +654,35 @@ function DashboardContent() {
                       className="py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                     >
                       Go to Action Items
+                    </button>
+                  </div>
+                )
+              )}
+
+              {activeTab === 'analytics' && (
+                canViewMembers ? (
+                  <AnalyticsTab
+                    user={activeUser}
+                    isAdmin={isAdmin}
+                    isManager={isManager}
+                  />
+                ) : (
+                  <div className="p-12 rounded-3xl bg-white border border-slate-200/80 text-center space-y-4 max-w-md mx-auto shadow-xs">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
+                      🛡️
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="text-base font-bold text-slate-900">Access Restricted</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Retrospective Attendance Analytics & Insights are reserved strictly for Workspace Administrators and Managers.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => switchTab('sessions')}
+                      className="py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                    >
+                      Back to Sessions
                     </button>
                   </div>
                 )

@@ -102,6 +102,47 @@ const cardSchema = new mongoose.Schema(
 );
 
 /**
+ * Subdocument Schema for an individual retrospective session attendee/participant
+ */
+const attendeeSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: String,
+      default: null,
+    },
+    name: {
+      type: String,
+      required: [true, 'Attendee name is required'],
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: [true, 'Attendee email is required'],
+      trim: true,
+      lowercase: true,
+    },
+    role: {
+      type: String,
+      trim: true,
+      default: 'Developer',
+    },
+    avatar: {
+      type: String,
+      default: '',
+    },
+    joinedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    lastActiveAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
+
+/**
  * Retrospective Session Board Schema
  */
 const retroBoardSchema = new mongoose.Schema(
@@ -188,6 +229,10 @@ const retroBoardSchema = new mongoose.Schema(
       type: [cardSchema],
       default: [],
     },
+    attendees: {
+      type: [attendeeSchema],
+      default: [],
+    },
     approvedMembers: {
       type: [String],
       default: [], // Whitelisted emails
@@ -235,6 +280,7 @@ retroBoardSchema.index({ createdBy: 1, createdAt: -1 });
 retroBoardSchema.index({ approvedMembers: 1 });
 retroBoardSchema.index({ projectId: 1 });
 retroBoardSchema.index({ projectKey: 1 });
+retroBoardSchema.index({ 'attendees.email': 1 });
 
 const RetroBoard = mongoose.model('RetroBoard', retroBoardSchema);
 

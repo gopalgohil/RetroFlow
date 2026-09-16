@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import retroController from '../controllers/retro.controller.js';
-import { protect, optionalAuth } from '../middlewares/auth.middleware.js';
+import { protect, optionalAuth, requireManagerOrAdmin } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
 import { createRetroSchema, updateRetroSchema, inviteTeammateSchema } from '../validations/retro.validation.js';
 
@@ -25,6 +25,18 @@ router.get(
   '/',
   protect,
   retroController.getUserRetros
+);
+
+/**
+ * @route   GET /api/retros/analytics
+ * @desc    Get aggregated attendance & retrospective analytics for Admin/Manager
+ * @access  Private (Admin & Manager only)
+ */
+router.get(
+  '/analytics',
+  protect,
+  requireManagerOrAdmin,
+  retroController.getRetroAnalytics
 );
 
 /**

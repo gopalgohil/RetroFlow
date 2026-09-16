@@ -771,9 +771,32 @@ class RetroService {
       }
     }
 
-    // Whitelist in retro if email is provided
-    if (normalizedEmail && !retro.approvedMembers.includes(normalizedEmail)) {
-      retro.approvedMembers.push(normalizedEmail);
+    // Whitelist and record attendee in retro if email is provided
+    if (normalizedEmail) {
+      if (!Array.isArray(retro.attendees)) {
+        retro.attendees = [];
+      }
+      const existingAttendee = retro.attendees.find(
+        (a) => a.email?.toLowerCase().trim() === normalizedEmail
+      );
+      if (existingAttendee) {
+        existingAttendee.lastActiveAt = new Date();
+        existingAttendee.name = trimmedName || existingAttendee.name;
+        existingAttendee.role = assignedRole || existingAttendee.role;
+      } else {
+        retro.attendees.push({
+          userId: `guest-${crypto.randomUUID().slice(0, 8)}`,
+          name: trimmedName,
+          email: normalizedEmail,
+          role: assignedRole,
+          joinedAt: new Date(),
+          lastActiveAt: new Date(),
+        });
+      }
+
+      if (!retro.approvedMembers.includes(normalizedEmail)) {
+        retro.approvedMembers.push(normalizedEmail);
+      }
       await retro.save();
     }
 
@@ -1066,7 +1089,319 @@ class RetroService {
     };
   }
 
+  /**
+   * Dedicated Retrospective Attendance & Participation Analytics for Managers & Admins
+   * Multi-Project filtering, sprint attendance trends, and member-by-member engagement metrics
+   */
+  async getRetroAnalytics(user, { projectId = 'all' } = {}) {
+    const userEmail = (user.email || '').toLowerCase().trim();
+    const isAdmin = user.role === 'admin' || userEmail === 'gopalgohel249@gmail.com';
 
+    // 1. Fetch available projects for dropdown filter
+    const allProjects = await Project.find(
+      isAdmin
+        ? {}
+        : {
+            $or: [
+              { createdBy: user._id },
+              { 'lead.email': userEmail },
+              { members: { $elemMatch: { email: userEmail, role: { $regex: /manager|lead/i } } } },
+            ],
+          },
+      'name key members lead retrospectives'
+    ).lean();
+
+    // If manager has no directly assigned project, allow viewing all workspace projects for high-level oversight
+    const projectsList = allProjects.length > 0
+      ? allProjects
+      : await Project.find({}, 'name key members lead retrospectives').lean();
+
+    const formattedProjects = projectsList.map((p) => ({
+      id: p._id.toString(),
+      name: p.name,
+      key: p.key,
+      memberCount: (p.members?.length || 0) + (p.lead ? 1 : 0),
+    }));
+
+    // 2. Determine project scope filter
+    let targetProject = null;
+    if (projectId && projectId !== 'all') {
+      targetProject =
+        projectsList.find(
+          (p) => p._id.toString() === projectId || p.key.toUpperCase() === projectId.toUpperCase()
+        ) || null;
+    }
+
+    // 3. Fetch scoped retrospective sessions
+    const retroQuery = {};
+    if (targetProject) {
+      retroQuery.$or = [
+        { projectId: targetProject._id },
+        { projectKey: targetProject.key },
+      ];
+    } else {
+      // All Projects scope: fetch all project-linked retros or retros created by admin/workspace
+      const projectIds = projectsList.map((p) => p._id);
+      const projectKeys = projectsList.map((p) => p.key);
+      retroQuery.$or = [
+        { projectId: { $in: projectIds } },
+        { projectKey: { $in: projectKeys } },
+        { isProjectScoped: true },
+        ...(isAdmin ? [{}] : [{ createdBy: user._id }]),
+      ];
+    }
+
+    const retros = await RetroBoard.find(retroQuery)
+      .sort({ scheduledDate: -1, createdAt: -1 })
+      .lean();
+
+    // 4. Aggregate unique team members within the selected scope
+    const memberMap = new Map(); // email -> memberObject
+
+    const registerMember = (email, name, role, avatar) => {
+      if (!email) return;
+      const normalized = email.toLowerCase().trim();
+      if (!memberMap.has(normalized)) {
+        memberMap.set(normalized, {
+          email: normalized,
+          name: name || normalized.split('@')[0],
+          role: role || 'Developer',
+          avatar: avatar || (name ? name.slice(0, 2).toUpperCase() : normalized[0].toUpperCase()),
+          retrosAttended: 0,
+          cardsShared: 0,
+          votesCast: 0,
+          actionItemsCount: 0,
+          lastAttendedTitle: null,
+          lastAttendedDate: null,
+          attendedRetroIds: new Set(),
+        });
+      } else {
+        const existing = memberMap.get(normalized);
+        if (name && (!existing.name || existing.name === existing.email.split('@')[0])) {
+          existing.name = name;
+        }
+        if (role && role !== 'Developer') {
+          existing.role = role;
+        }
+      }
+    };
+
+    // Register project members based on scope
+    const projectsInScope = targetProject ? [targetProject] : projectsList;
+    projectsInScope.forEach((proj) => {
+      if (proj.lead?.email) {
+        registerMember(proj.lead.email, proj.lead.name, 'Project Lead', proj.lead.avatar);
+      }
+      if (Array.isArray(proj.members)) {
+        proj.members.forEach((m) => {
+          registerMember(m.email, m.name, m.role, m.avatar);
+        });
+      }
+    });
+
+    // Also register any registered users or authors from retros
+    retros.forEach((r) => {
+      if (Array.isArray(r.attendees)) {
+        r.attendees.forEach((att) => {
+          registerMember(att.email, att.name, att.role, att.avatar);
+        });
+      }
+      if (Array.isArray(r.cards)) {
+        r.cards.forEach((c) => {
+          if (c.authorEmail) {
+            registerMember(c.authorEmail, c.author);
+          }
+        });
+      }
+    });
+
+    // 5. Analyze each retrospective session (Trend & Attendance computation)
+    const retroTrends = retros.map((r) => {
+      const attendeesSet = new Set();
+
+      // Explicit attendees array
+      if (Array.isArray(r.attendees)) {
+        r.attendees.forEach((att) => {
+          if (att.email) attendeesSet.add(att.email.toLowerCase().trim());
+        });
+      }
+
+      // Backward compatibility: Card authors & voters count as attended
+      if (Array.isArray(r.cards)) {
+        r.cards.forEach((c) => {
+          if (c.authorEmail) attendeesSet.add(c.authorEmail.toLowerCase().trim());
+          if (Array.isArray(c.voters)) {
+            c.voters.forEach((v) => {
+              if (v && v.includes('@')) attendeesSet.add(v.toLowerCase().trim());
+            });
+          }
+        });
+      }
+
+      // Approved members fallback
+      if (attendeesSet.size === 0 && Array.isArray(r.approvedMembers)) {
+        r.approvedMembers.forEach((em) => {
+          if (em) attendeesSet.add(em.toLowerCase().trim());
+        });
+      }
+
+      const attendeesCount = attendeesSet.size;
+
+      // Expected members in linked project or total team
+      let expectedCount = 0;
+      if (r.projectId || r.projectKey) {
+        const linkedP = projectsList.find(
+          (p) =>
+            (r.projectId && p._id.toString() === r.projectId.toString()) ||
+            (r.projectKey && p.key.toUpperCase() === r.projectKey.toUpperCase())
+        );
+        if (linkedP) {
+          expectedCount = (linkedP.members?.length || 0) + (linkedP.lead ? 1 : 0);
+        }
+      }
+      if (expectedCount === 0) {
+        expectedCount = Math.max(attendeesCount, memberMap.size, 1);
+      }
+
+      const attendanceRate = Math.min(
+        100,
+        Math.round((attendeesCount / Math.max(expectedCount, 1)) * 100)
+      );
+
+      const cardsCount = r.cards?.length || 0;
+      const actionItemsCount = (r.cards || []).filter((c) => {
+        const topic = (r.topics || []).find((t) => t.topicId === c.topicId);
+        return topic?.title?.toLowerCase().includes('action') || c.status === 'done';
+      }).length;
+
+      // Update individual member attendance records
+      attendeesSet.forEach((email) => {
+        if (memberMap.has(email)) {
+          const m = memberMap.get(email);
+          if (!m.attendedRetroIds.has(r._id.toString())) {
+            m.attendedRetroIds.add(r._id.toString());
+            m.retrosAttended += 1;
+            if (
+              !m.lastAttendedDate ||
+              new Date(r.scheduledDate || r.createdAt) > new Date(m.lastAttendedDate)
+            ) {
+              m.lastAttendedTitle = r.title;
+              m.lastAttendedDate = r.scheduledDate || r.createdAt;
+            }
+          }
+        }
+      });
+
+      // Update card contributions & votes
+      if (Array.isArray(r.cards)) {
+        r.cards.forEach((c) => {
+          const authorEmail = c.authorEmail?.toLowerCase()?.trim();
+          if (authorEmail && memberMap.has(authorEmail)) {
+            memberMap.get(authorEmail).cardsShared += 1;
+          }
+          if (Array.isArray(c.voters)) {
+            c.voters.forEach((v) => {
+              const vEmail = v?.toLowerCase()?.trim();
+              if (vEmail && memberMap.has(vEmail)) {
+                memberMap.get(vEmail).votesCast += 1;
+              }
+            });
+          }
+        });
+      }
+
+      return {
+        id: r._id.toString(),
+        shareToken: r.shareToken,
+        title: r.title,
+        sprintName: r.sprintName || 'Sprint Cycle',
+        date: r.scheduledDate || r.createdAt,
+        attendeesCount,
+        expectedCount,
+        attendanceRate,
+        cardsCount,
+        actionItemsCount,
+      };
+    });
+
+    // 6. Member Breakdown Aggregation
+    const totalRetrosCount = retros.length;
+    const memberAnalytics = Array.from(memberMap.values())
+      .map((m) => {
+        const eligibleRetros = Math.max(totalRetrosCount, 1);
+        const rate =
+          totalRetrosCount > 0
+            ? Math.min(100, Math.round((m.retrosAttended / eligibleRetros) * 100))
+            : 0;
+
+        let status = 'Active Contributor';
+        if (rate >= 85) status = 'Sprint Champion';
+        else if (rate < 60) status = 'Needs Nudge';
+
+        return {
+          email: m.email,
+          name: m.name,
+          avatar: m.avatar,
+          role: m.role,
+          retrosAttended: m.retrosAttended,
+          totalEligibleRetros: totalRetrosCount,
+          attendanceRate: rate,
+          cardsShared: m.cardsShared,
+          votesCast: m.votesCast,
+          actionItemsCount: m.actionItemsCount,
+          lastAttendedTitle: m.lastAttendedTitle || 'None yet',
+          lastAttendedDate: m.lastAttendedDate,
+          status,
+        };
+      })
+      .sort((a, b) => b.attendanceRate - a.attendanceRate || b.cardsShared - a.cardsShared);
+
+    // 7. Top KPI Summary
+    const averageAttendanceRate =
+      retroTrends.length > 0
+        ? Math.round(
+            retroTrends.reduce((acc, r) => acc + r.attendanceRate, 0) / retroTrends.length
+          )
+        : 0;
+
+    const lowAttendanceCount = memberAnalytics.filter((m) => m.attendanceRate < 60).length;
+
+    const topContributor =
+      memberAnalytics.length > 0
+        ? memberAnalytics.reduce((prev, curr) => {
+            const prevScore =
+              prev.retrosAttended * 10 + prev.cardsShared * 2 + prev.votesCast;
+            const currScore =
+              curr.retrosAttended * 10 + curr.cardsShared * 2 + curr.votesCast;
+            return currScore > prevScore ? curr : prev;
+          }, memberAnalytics[0])
+        : null;
+
+    return {
+      projects: formattedProjects,
+      selectedProjectId: projectId,
+      selectedProjectName: targetProject ? targetProject.name : 'All Projects',
+      summary: {
+        averageAttendanceRate,
+        totalRetros: totalRetrosCount,
+        totalMembers: memberAnalytics.length,
+        lowAttendanceCount,
+        topContributor: topContributor
+          ? {
+              name: topContributor.name,
+              email: topContributor.email,
+              avatar: topContributor.avatar,
+              role: topContributor.role,
+              retrosAttended: topContributor.retrosAttended,
+              attendanceRate: topContributor.attendanceRate,
+              cardsShared: topContributor.cardsShared,
+            }
+          : null,
+      },
+      retroTrends,
+      memberAnalytics,
+    };
+  }
 }
 
 export const retroService = new RetroService();

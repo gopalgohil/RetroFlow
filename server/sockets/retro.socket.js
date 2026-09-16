@@ -43,6 +43,32 @@ export function initRetroSocket(io) {
           user: currentUser,
           timestamp: new Date(),
         });
+
+        // Non-blocking auto-record attendee in RetroBoard document
+        const participantEmail = currentUser?.email?.toLowerCase()?.trim();
+        if (participantEmail) {
+          RetroBoard.findOne({ shareToken }).then((board) => {
+            if (!board) return;
+            if (!Array.isArray(board.attendees)) board.attendees = [];
+            const existingIdx = board.attendees.findIndex(
+              (a) => a.email?.toLowerCase().trim() === participantEmail
+            );
+            if (existingIdx >= 0) {
+              board.attendees[existingIdx].lastActiveAt = new Date();
+              if (currentUser.name) board.attendees[existingIdx].name = currentUser.name;
+            } else {
+              board.attendees.push({
+                userId: currentUser.id || null,
+                name: currentUser.name || participantEmail.split('@')[0],
+                email: participantEmail,
+                role: currentUser.role || 'Developer',
+                joinedAt: new Date(),
+                lastActiveAt: new Date(),
+              });
+            }
+            board.save().catch(() => {});
+          }).catch(() => {});
+        }
       } catch (err) {
         console.error('[Socket] join:retro error:', err);
         if (callback) callback({ error: 'Failed to join session room' });

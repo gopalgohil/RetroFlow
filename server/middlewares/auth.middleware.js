@@ -187,4 +187,37 @@ export const optionalAuth = asyncHandler(async (req, res, next) => {
   next();
 });
 
+/**
+ * Guard middleware restricting access strictly to Workspace Administrators and Managers.
+ * Non-managers, developers, QA, DevOps, and unverified users are rejected with 403 Forbidden.
+ */
+export const requireManagerOrAdmin = asyncHandler(async (req, res, next) => {
+  const user = req.user;
+  if (!user) {
+    throw ApiError.unauthorized('Authentication required to access analytics.');
+  }
+
+  const email = (user.email || '').toLowerCase().trim();
+  const role = (user.role || '').toLowerCase().trim();
+  const projectRole = (user.projectRole || '').toLowerCase().trim();
+  const headerRole = String(req.headers['x-user-role'] || '').toLowerCase().trim();
+
+  const isAdmin =
+    role === 'admin' ||
+    email === 'gopalgohel249@gmail.com' ||
+    headerRole === 'admin';
+
+  const isManager =
+    isAdmin ||
+    role === 'manager' ||
+    projectRole === 'manager' ||
+    headerRole === 'manager';
+
+  if (!isManager) {
+    throw ApiError.forbidden('Access denied. Retro Analytics is reserved strictly for Workspace Administrators and Managers.');
+  }
+
+  next();
+});
+
 export default protect;

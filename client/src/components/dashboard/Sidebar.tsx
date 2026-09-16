@@ -7,6 +7,7 @@ import {
   FolderKanban,
   CheckSquare,
   Users,
+  BarChart3,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -122,6 +123,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: isAdmin ? 'Team Members' : 'Team Directory',
             icon: Users,
             sublabel: isAdmin ? 'Access Controls' : 'Collaborators',
+          },
+          {
+            id: 'analytics',
+            label: 'Retro Analytics',
+            icon: BarChart3,
+            sublabel: 'Attendance & Insights',
+            badge: 'Pro',
           },
         ]
       : []),
