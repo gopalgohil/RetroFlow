@@ -131,6 +131,10 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       if (controller.signal.aborted) return;
       const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
       setSessions(list);
+      try {
+        const count = list.filter((s: any) => s.status === 'active').length;
+        sessionStorage.setItem('retroflow_active_sessions_count', String(count));
+      } catch {}
     } catch (err: any) {
       const isAborted =
         err?.name === 'AbortError' ||
@@ -154,7 +158,14 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     async (sessionId: string) => {
       try {
         await api.delete(`${ENDPOINTS.RETROS}/${sessionId}`);
-        setSessions((prev) => prev.filter((s) => s._id !== sessionId));
+        setSessions((prev) => {
+          const updated = prev.filter((s) => s._id !== sessionId);
+          try {
+            const count = updated.filter((s: any) => s.status === 'active').length;
+            sessionStorage.setItem('retroflow_active_sessions_count', String(count));
+          } catch {}
+          return updated;
+        });
         showToast('Retrospective session deleted successfully.');
       } catch (err: any) {
         showToast(err.message || 'Failed to delete session');
@@ -167,14 +178,26 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     async (payload: CreateRetroPayload, editingSessionId?: string) => {
       if (editingSessionId) {
         const res = await api.put(`${ENDPOINTS.RETROS}/${editingSessionId}`, payload);
-        setSessions((prev) =>
-          prev.map((s) => (s._id === editingSessionId ? res.data : s))
-        );
+        setSessions((prev) => {
+          const updated = prev.map((s) => (s._id === editingSessionId ? res.data : s));
+          try {
+            const count = updated.filter((s: any) => s.status === 'active').length;
+            sessionStorage.setItem('retroflow_active_sessions_count', String(count));
+          } catch {}
+          return updated;
+        });
         showToast('Retrospective updated successfully!');
         return res.data;
       } else {
         const res = await api.post(ENDPOINTS.RETROS, payload);
-        setSessions((prev) => [res.data, ...prev]);
+        setSessions((prev) => {
+          const updated = [res.data, ...prev];
+          try {
+            const count = updated.filter((s: any) => s.status === 'active').length;
+            sessionStorage.setItem('retroflow_active_sessions_count', String(count));
+          } catch {}
+          return updated;
+        });
         showToast('🚀 Launching your live retrospective session...');
         return res.data;
       }

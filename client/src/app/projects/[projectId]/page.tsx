@@ -96,6 +96,36 @@ function ProjectDetailContent() {
   const [isSwitchingProject, setIsSwitchingProject] = useState(false);
   const [isTabTransitioning, setIsTabTransitioning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeSessionsCount, setActiveSessionsCount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem('retroflow_active_sessions_count');
+        if (cached !== null) return parseInt(cached, 10) || 0;
+      } catch {}
+    }
+    return 0;
+  });
+
+  // Dynamically sync live active retrospective sessions count for sidebar
+  useEffect(() => {
+    let isMounted = true;
+    api
+      .get(ENDPOINTS.RETROS)
+      .then((res) => {
+        if (!isMounted) return;
+        const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+        const count = list.filter((s: any) => s.status === 'active').length;
+        setActiveSessionsCount(count);
+        try {
+          sessionStorage.setItem('retroflow_active_sessions_count', String(count));
+        } catch {}
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Profile dropdown & logout confirmation modals state
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -543,7 +573,7 @@ function ProjectDetailContent() {
         setActiveTab={(t) => {
           router.push(`/dashboard?tab=${t}`);
         }}
-        activeSessionsCount={1}
+        activeSessionsCount={activeSessionsCount}
         user={activeUser}
         isAdmin={isWorkspaceAdmin}
         onLogout={() => setIsLogoutModalOpen(true)}
@@ -978,6 +1008,16 @@ function ProjectDetailFallback() {
         .slice(0, 2)
     : 'G';
 
+  const [activeSessionsCount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem('retroflow_active_sessions_count');
+        if (cached !== null) return parseInt(cached, 10) || 0;
+      } catch {}
+    }
+    return 0;
+  });
+
   const displayRole = isWorkspaceAdmin
     ? 'Admin'
     : (activeUser as any).projectRole || 'Manager';
@@ -988,7 +1028,7 @@ function ProjectDetailFallback() {
       <Sidebar
         activeTab="projects"
         setActiveTab={() => {}}
-        activeSessionsCount={1}
+        activeSessionsCount={activeSessionsCount}
         user={activeUser}
         isAdmin={isWorkspaceAdmin}
         isOpen={false}
