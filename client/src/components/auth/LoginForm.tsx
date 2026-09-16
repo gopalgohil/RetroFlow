@@ -103,9 +103,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         // Store JWT token and user profile for instant access
         if (data.data?.token) {
           localStorage.setItem('retroflow_token', data.data.token);
+          localStorage.removeItem('retroflow_rejected');
         }
         if (data.data?.user) {
           localStorage.setItem('retroflow_user', JSON.stringify(data.data.user));
+          localStorage.removeItem('retroflow_rejected');
         }
 
         // Set session flag for role-specific dashboard welcome toast
@@ -153,9 +155,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
       if (response.data?.token) {
         localStorage.setItem('retroflow_token', response.data.token);
+        localStorage.removeItem('retroflow_rejected');
       }
       if (response.data?.user) {
         localStorage.setItem('retroflow_user', JSON.stringify(response.data.user));
+        localStorage.removeItem('retroflow_rejected');
       }
 
       sessionStorage.setItem('retroflow_welcome_toast', 'true');

@@ -115,9 +115,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
 
       if (response.data?.token) {
         localStorage.setItem('retroflow_token', response.data.token);
+        localStorage.removeItem('retroflow_rejected');
       }
       if (response.data?.user) {
         localStorage.setItem('retroflow_user', JSON.stringify(response.data.user));
+        localStorage.removeItem('retroflow_rejected');
       }
 
       sessionStorage.setItem('retroflow_welcome_toast', 'true');

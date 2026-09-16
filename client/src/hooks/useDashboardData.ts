@@ -59,7 +59,9 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   // Check auth session & sync profile
   useEffect(() => {
     const token = localStorage.getItem('retroflow_token');
-    if (!token) {
+    const isRejectedFlag = localStorage.getItem('retroflow_rejected') === 'true';
+
+    if (!token && !isRejectedFlag) {
       router.push('/login');
       return;
     }
@@ -81,13 +83,30 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
             setUser(res.data);
             try {
               localStorage.setItem('retroflow_user', JSON.stringify(res.data));
+              localStorage.removeItem('retroflow_rejected');
             } catch {}
           }
         })
-        .catch(() => {});
+        .catch((err: any) => {
+          const isNotFoundOrDeleted =
+            err?.status === 404 ||
+            err?.status === 401 ||
+            (err?.message && (
+              err.message.toLowerCase().includes('not found') ||
+              err.message.toLowerCase().includes('unauthorized') ||
+              err.message.toLowerCase().includes('logged in')
+            ));
+          if (isNotFoundOrDeleted) {
+            try {
+              localStorage.setItem('retroflow_rejected', 'true');
+            } catch {}
+          }
+        });
     };
 
-    syncProfile();
+    if (!isRejectedFlag) {
+      syncProfile();
+    }
   }, [router]);
 
   // 2. Retrospective Sessions State & Actions

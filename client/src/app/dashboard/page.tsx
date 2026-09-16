@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Sidebar,
@@ -18,7 +19,7 @@ import { RetroBoard, CreateRetroPayload } from '@/types/retro';
 import { useDashboardTabs } from '@/hooks/useDashboardTabs';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { api, ENDPOINTS } from '@/lib/api';
-import { CheckCircle2, Clock, RefreshCw, LogOut } from 'lucide-react';
+import { CheckCircle2, Clock, RefreshCw, LogOut, XCircle, AlertTriangle, UserPlus } from 'lucide-react';
 
 /**
  * DashboardContent Component
@@ -164,9 +165,21 @@ function DashboardContent() {
 
   // Auth Logout
   const handleLogout = () => {
-    localStorage.removeItem('retroflow_token');
-    localStorage.removeItem('retroflow_user');
+    try {
+      localStorage.removeItem('retroflow_token');
+      localStorage.removeItem('retroflow_user');
+      localStorage.removeItem('retroflow_rejected');
+    } catch {}
     router.push('/login');
+  };
+
+  const handleClearAndNavigate = (targetPath: string) => {
+    try {
+      localStorage.removeItem('retroflow_token');
+      localStorage.removeItem('retroflow_user');
+      localStorage.removeItem('retroflow_rejected');
+    } catch {}
+    router.push(targetPath);
   };
 
   // Session Actions
@@ -209,29 +222,190 @@ function DashboardContent() {
 
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [approvalCheckMessage, setApprovalCheckMessage] = useState<string | null>(null);
+  const [isRejected, setIsRejected] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('retroflow_rejected') === 'true';
+    }
+    return false;
+  });
+
+  // Auto-check if pending user was approved or rejected when page loads
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('retroflow_rejected') === 'true') {
+      setIsRejected(true);
+      return;
+    }
+
+    if (isPendingApproval && !isRejected) {
+      api
+        .get(ENDPOINTS.AUTH.ME)
+        .then((res) => {
+          if (res?.data) {
+            if (res.data.isApproved) {
+              setCurrentUser(res.data);
+              try {
+                localStorage.setItem('retroflow_user', JSON.stringify(res.data));
+                localStorage.removeItem('retroflow_rejected');
+              } catch {}
+            }
+          }
+        })
+        .catch((err: any) => {
+          const isNotFoundOrDeleted =
+            err?.status === 404 ||
+            err?.status === 401 ||
+            (err?.message && (
+              err.message.toLowerCase().includes('not found') ||
+              err.message.toLowerCase().includes('unauthorized') ||
+              err.message.toLowerCase().includes('logged in')
+            ));
+          if (isNotFoundOrDeleted) {
+            try {
+              localStorage.setItem('retroflow_rejected', 'true');
+            } catch {}
+            setIsRejected(true);
+          }
+        });
+    }
+  }, [isPendingApproval, isRejected]);
 
   const handleCheckApprovalStatus = async () => {
     setIsCheckingStatus(true);
     setApprovalCheckMessage(null);
     try {
       const res = await api.get(ENDPOINTS.AUTH.ME);
-      if (res.data) {
+      if (res?.data) {
         if (res.data.isApproved) {
           setCurrentUser(res.data);
           try {
             localStorage.setItem('retroflow_user', JSON.stringify(res.data));
+            localStorage.removeItem('retroflow_rejected');
           } catch {}
           setApprovalCheckMessage('Congratulations! Your account has been approved.');
         } else {
           setApprovalCheckMessage('Your account is still pending administrator review. Please check back shortly.');
         }
       }
-    } catch {
-      setApprovalCheckMessage('Unable to verify approval status at this time. Please try again.');
+    } catch (err: any) {
+      const isNotFoundOrDeleted =
+        err?.status === 404 ||
+        err?.status === 401 ||
+        (err?.message && (
+          err.message.toLowerCase().includes('not found') ||
+          err.message.toLowerCase().includes('unauthorized') ||
+          err.message.toLowerCase().includes('logged in')
+        ));
+
+      if (isNotFoundOrDeleted) {
+        try {
+          localStorage.setItem('retroflow_rejected', 'true');
+        } catch {}
+        setIsRejected(true);
+      } else {
+        setApprovalCheckMessage('Unable to verify approval status at this time. Please try again.');
+      }
     } finally {
       setIsCheckingStatus(false);
     }
   };
+
+  if (isRejected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#FFF1F2] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex flex-col justify-between selection:bg-rose-500 selection:text-white relative overflow-hidden font-sans">
+        {/* Ambient Glow */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-200/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Top Header */}
+        <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center font-black text-white text-base shadow-xs">
+              RF
+            </div>
+            <div>
+              <span className="font-extrabold text-base tracking-tight text-slate-900">RetroFlow</span>
+              <span className="text-[10px] uppercase font-bold text-rose-700 ml-2 tracking-wider px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200">
+                Request Rejected
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => handleClearAndNavigate('/login')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 hover:text-slate-900 transition-all cursor-pointer border border-slate-200 shadow-2xs"
+            >
+              <LogOut className="w-3.5 h-3.5 text-slate-500" />
+              <span>Back to Login</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Center Content Card */}
+        <main className="flex-1 flex items-center justify-center p-6 relative z-10">
+          <div className="max-w-xl w-full rounded-3xl bg-white border border-slate-200/90 p-8 sm:p-10 shadow-xl space-y-6 text-center animate-in zoom-in-95 duration-200">
+            {/* Red Ambient Icon */}
+            <div className="relative mx-auto w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shadow-xs">
+              <XCircle className="w-8 h-8 text-rose-600" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 tracking-wide uppercase">
+                Access Request Rejected
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Request Not Approved
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+                Your workspace access request was not approved by the administrator. Your registration record has been removed from the system.
+              </p>
+            </div>
+
+            {/* Rejection Details Box */}
+            <div className="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-left space-y-2 text-xs text-rose-900">
+              <div className="flex items-center gap-2 font-bold text-rose-950">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>What should you do?</span>
+              </div>
+              <p className="text-[11px] text-rose-800 leading-relaxed">
+                If you believe this was an error, please contact your workspace administrator at <strong className="font-semibold text-rose-950">gopalgohel249@gmail.com</strong>, or you can submit a new registration.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => handleClearAndNavigate('/signup')}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Register Again</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleClearAndNavigate('/login')}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5 text-slate-500" />
+                <span>Back to Login</span>
+              </button>
+            </div>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="py-4 text-center text-xs text-slate-400 relative z-10">
+          Need immediate access? Contact workspace owner at{' '}
+          <a href="mailto:gopalgohel249@gmail.com" className="font-semibold text-indigo-600 hover:underline">
+            gopalgohel249@gmail.com
+          </a>
+        </footer>
+      </div>
+    );
+  }
 
   if (isPendingApproval) {
     return (
