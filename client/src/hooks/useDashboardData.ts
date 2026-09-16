@@ -540,10 +540,8 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       fetchSessions();
     } else if (activeTab === 'members') {
       fetchMembers();
-    } else if (activeTab === 'settings') {
-      fetchSettings();
     }
-  }, [activeTab, fetchSessions, fetchMembers, fetchSettings]);
+  }, [activeTab, fetchSessions, fetchMembers]);
 
   // 6. Cleanup active abort controllers on unmount
   useEffect(() => {

@@ -12,7 +12,6 @@ import {
   ProjectsTab,
   ActionItemsTab,
   MembersTab,
-  SettingsTab,
   WelcomeToast,
 } from '@/components/dashboard';
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
@@ -61,10 +60,6 @@ function DashboardContent() {
     updateMemberRole,
     approveMember,
     rejectMember,
-    settings,
-    isSettingsLoading,
-    isSavingSettings,
-    saveSettings,
   } = useDashboardData(activeTab, searchQuery);
 
   const [currentUser, setCurrentUser] = useState<{
@@ -202,8 +197,7 @@ function DashboardContent() {
   // Derived loading state for skeleton loader (tab switching and full tab hydration)
   const isCurrentTabLoading =
     isTransitioning ||
-    (activeTab === 'sessions' && isSessionsLoading) ||
-    (activeTab === 'settings' && isSettingsLoading);
+    (activeTab === 'sessions' && isSessionsLoading);
 
   // Check if unapproved developer account
   const isPendingApproval = Boolean(
@@ -486,27 +480,6 @@ function DashboardContent() {
                     >
                       Go to Action Items
                     </button>
-                  </div>
-                )
-              )}
-
-              {activeTab === 'settings' && (
-                isAdmin ? (
-                  <SettingsTab
-                    settings={settings}
-                    isLoading={isSettingsLoading}
-                    isSaving={isSavingSettings}
-                    onSave={saveSettings}
-                  />
-                ) : (
-                  <div className="p-12 rounded-2xl bg-white border border-slate-200 text-center space-y-3 max-w-md mx-auto">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-black mx-auto">
-                      🛡️
-                    </div>
-                    <h3 className="text-sm font-bold text-slate-900">Admin Privileges Required</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      Workspace configuration, Slack integrations, and agile retro defaults can only be managed by workspace administrators.
-                    </p>
                   </div>
                 )
               )}

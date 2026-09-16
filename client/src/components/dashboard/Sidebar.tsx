@@ -7,7 +7,6 @@ import {
   FolderKanban,
   CheckSquare,
   Users,
-  Settings,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -96,8 +95,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ? propCanViewMembers
       : (isAdmin || isManager) && !isProjectLead && !isDevOrQAOrDevOps);
 
-  const showSettings = isMounted && isAdmin;
-
   const navItems = [
     {
       id: 'sessions',
@@ -125,15 +122,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: isAdmin ? 'Team Members' : 'Team Directory',
             icon: Users,
             sublabel: isAdmin ? 'Access Controls' : 'Collaborators',
-          },
-        ]
-      : []),
-    ...(showSettings
-      ? [
-          {
-            id: 'settings',
-            label: 'Workspace Settings',
-            icon: Settings,
           },
         ]
       : []),

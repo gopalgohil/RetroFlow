@@ -637,8 +637,6 @@ export const TabSkeleton: React.FC<TabSkeletonProps> = ({ tab }) => {
       return <ProjectsTabSkeleton />;
     case 'members':
       return <MembersSkeleton />;
-    case 'settings':
-      return <SettingsSkeleton />;
     case 'sessions':
     default:
       return <SessionsSkeleton />;
