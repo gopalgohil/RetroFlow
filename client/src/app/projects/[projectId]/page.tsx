@@ -554,7 +554,7 @@ function ProjectDetailContent() {
       {/* 2. Main Content Area */}
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
         {/* Top Header with Project Switcher - ALWAYS rendered and persistent */}
-        <header className="sticky top-0 z-30 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 px-6 py-3.5 flex items-center justify-between gap-4">
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
@@ -996,15 +996,10 @@ function ProjectDetailFallback() {
 
       {/* 2. Main Content Area */}
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
-        {/* Top Header - Real stable layout, NO skeleton */}
-        <header className="sticky top-0 z-30 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 px-6 py-3.5 flex items-center justify-between gap-4">
+        {/* Top Header - Real stable layout, matching DashboardHeader and Project page */}
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-              <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white font-black text-[11px] flex items-center justify-center">
-                PR
-              </div>
-              <span className="text-xs font-bold text-slate-800">Project Workspace</span>
-            </div>
+            <ProjectSwitcher user={activeUser} />
           </div>
 
           <div className="flex items-center gap-2.5">
