@@ -40,6 +40,14 @@ const DEFAULT_WORKSPACE_LEADS: WorkspaceMemberOption[] = [
   { id: 'lead-gopal', name: 'Gopal', email: 'gopalgohel249@gmail.com', role: 'Admin', avatar: 'G' },
 ];
 
+const ROLE_OPTIONS: ProjectMemberRole[] = [
+  'Developer',
+  'QA',
+  'Manager',
+  'DevOps',
+  'Project Lead',
+];
+
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   isOpen,
   onClose,
@@ -58,6 +66,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [selectedMemberEmails, setSelectedMemberEmails] = useState<string[]>([]);
   const [isMemberDropdownOpen, setIsMemberDropdownOpen] = useState(false);
   const memberDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Role Dropdown selection state
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const roleDropdownRef = React.useRef<HTMLDivElement>(null);
 
   const toggleMemberSelection = (email: string) => {
     const lower = email.toLowerCase().trim();
@@ -87,6 +99,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       if (memberDropdownRef.current && !memberDropdownRef.current.contains(event.target as Node)) {
         setIsMemberDropdownOpen(false);
       }
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target as Node)) {
+        setIsRoleDropdownOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -96,6 +111,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   React.useEffect(() => {
     if (!isOpen) {
       setIsMemberDropdownOpen(false);
+      setIsRoleDropdownOpen(false);
       setSelectedMemberEmails([]);
       setNewMemberRole('');
       setMembers([]);
@@ -776,25 +792,52 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 })()}
               </div>
 
-              {/* Role Selector */}
-              <div className="sm:col-span-3">
-                <select
-                  value={newMemberRole}
-                  onChange={(e) => {
-                    setNewMemberRole(e.target.value as ProjectMemberRole);
-                    setMemberError('');
-                  }}
-                  className={`w-full px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer min-h-[42px] ${
-                    !newMemberRole ? 'text-slate-400 font-normal' : 'text-slate-800'
-                  }`}
+              {/* Role Selector with White Background and Solid Black Text */}
+              <div className="sm:col-span-3 relative" ref={roleDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsRoleDropdownOpen((prev) => !prev)}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 hover:border-indigo-400 rounded-xl flex items-center justify-between transition-all text-left shadow-2xs cursor-pointer min-h-[42px]"
                 >
-                  <option value="" disabled>Select role...</option>
-                  <option value="Developer">Developer</option>
-                  <option value="QA">QA</option>
-                  <option value="Manager">Manager</option>
-                  <option value="DevOps">DevOps</option>
-                  <option value="Project Lead">Project Lead</option>
-                </select>
+                  <span
+                    className={`text-xs ${
+                      newMemberRole ? 'font-bold text-slate-900' : 'font-medium text-slate-400'
+                    }`}
+                  >
+                    {newMemberRole || 'Select role...'}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-slate-400 transition-transform duration-150 shrink-0 ${
+                      isRoleDropdownOpen ? 'rotate-180 text-indigo-600' : ''
+                    }`}
+                  />
+                </button>
+
+                {isRoleDropdownOpen && (
+                  <div className="absolute z-50 left-0 right-0 mt-1.5 p-1 bg-white border border-slate-200 rounded-xl shadow-xl space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
+                    {ROLE_OPTIONS.map((role) => (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => {
+                          setNewMemberRole(role);
+                          setIsRoleDropdownOpen(false);
+                          setMemberError('');
+                        }}
+                        className={`w-full px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors flex items-center justify-between cursor-pointer ${
+                          newMemberRole === role
+                            ? 'bg-indigo-50 text-indigo-700 font-bold'
+                            : 'text-slate-900 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="text-slate-900">{role}</span>
+                        {newMemberRole === role && (
+                          <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Add Button */}
@@ -838,11 +881,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                       title={`Change role for ${m.name}`}
                       className="appearance-none text-[11px] font-semibold tracking-tight pl-2 pr-5 py-0.5 rounded-md bg-indigo-50/90 text-indigo-700 border border-indigo-200/80 hover:bg-indigo-100 hover:border-indigo-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer transition-colors"
                     >
-                      <option value="Developer">Developer</option>
-                      <option value="QA">QA</option>
-                      <option value="Manager">Manager</option>
-                      <option value="DevOps">DevOps</option>
-                      <option value="Project Lead">Project Lead</option>
+                      <option value="Developer" className="bg-white text-slate-900 font-medium">Developer</option>
+                      <option value="QA" className="bg-white text-slate-900 font-medium">QA</option>
+                      <option value="Manager" className="bg-white text-slate-900 font-medium">Manager</option>
+                      <option value="DevOps" className="bg-white text-slate-900 font-medium">DevOps</option>
+                      <option value="Project Lead" className="bg-white text-slate-900 font-medium">Project Lead</option>
                     </select>
                     <ChevronDown className="w-3 h-3 text-indigo-500 absolute right-1 pointer-events-none" />
                   </div>
