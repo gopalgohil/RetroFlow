@@ -7,7 +7,6 @@ import {
   Mail,
   Plus,
   UserCheck,
-  RefreshCw,
   Trash2,
   Search,
   Loader2,
@@ -194,16 +193,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               : 'Workspace teammates, collaborators, and active retrospective contributors'}
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isLoading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-2xs self-start sm:self-auto cursor-pointer disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 text-slate-500 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Refresh Roster</span>
-        </button>
       </div>
 
       {/* Whitelist Quick Add Form Card (Admin Only) */}
