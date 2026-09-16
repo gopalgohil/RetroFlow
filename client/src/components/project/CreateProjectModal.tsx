@@ -54,10 +54,32 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const type: ProjectType = 'scrum';
   const [availableLeads, setAvailableLeads] = useState<WorkspaceMemberOption[]>(DEFAULT_WORKSPACE_LEADS);
 
-  // Team Member Dropdown selection state
-  const [selectedMemberEmail, setSelectedMemberEmail] = useState<string>('');
+  // Team Member Dropdown selection state (Multi-Select)
+  const [selectedMemberEmails, setSelectedMemberEmails] = useState<string[]>([]);
   const [isMemberDropdownOpen, setIsMemberDropdownOpen] = useState(false);
   const memberDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  const toggleMemberSelection = (email: string) => {
+    const lower = email.toLowerCase().trim();
+    setSelectedMemberEmails((prev) =>
+      prev.includes(lower) ? prev.filter((e) => e !== lower) : [...prev, lower]
+    );
+    setMemberError('');
+  };
+
+  const handleSelectAll = (unaddedEmails: string[]) => {
+    const normalized = unaddedEmails.map((e) => e.toLowerCase().trim());
+    const allSelected =
+      normalized.length > 0 &&
+      normalized.every((e) => selectedMemberEmails.includes(e));
+
+    if (allSelected) {
+      setSelectedMemberEmails([]);
+    } else {
+      setSelectedMemberEmails(normalized);
+    }
+    setMemberError('');
+  };
 
   // Close dropdown on outside click
   React.useEffect(() => {
@@ -74,7 +96,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   React.useEffect(() => {
     if (!isOpen) {
       setIsMemberDropdownOpen(false);
-      setSelectedMemberEmail('');
+      setSelectedMemberEmails([]);
       setNewMemberRole('');
       setMembers([]);
       setMemberError('');
@@ -250,42 +272,44 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const handleAddMember = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    if (!selectedMemberEmail) {
-      setMemberError('Please select a team member');
+    if (selectedMemberEmails.length === 0) {
+      setMemberError('Please select at least one team member');
       return;
     }
 
     if (!newMemberRole) {
-      setMemberError('Please select a role');
+      setMemberError('Please select a role for the chosen member(s)');
       return;
     }
 
-    const chosen = availableLeads.find(
-      (l) => l.email.toLowerCase() === selectedMemberEmail.toLowerCase()
-    );
-    if (!chosen) {
-      setMemberError('Selected member not found');
-      return;
-    }
+    const newAdditions: Array<{ name: string; email: string; role: ProjectMemberRole }> = [];
 
-    if (members.some((m) => m.email.toLowerCase() === chosen.email.toLowerCase())) {
-      setMemberError('This member is already added to the project');
-      return;
-    }
+    for (const email of selectedMemberEmails) {
+      const chosen = availableLeads.find(
+        (l) => l.email.toLowerCase() === email.toLowerCase()
+      );
+      if (!chosen) continue;
+      if (members.some((m) => m.email.toLowerCase() === chosen.email.toLowerCase())) continue;
+      if (newAdditions.some((m) => m.email.toLowerCase() === chosen.email.toLowerCase())) continue;
 
-    const cleanName = chosen.name.replace(/\s*\(You\)\s*/i, '').trim();
-
-    setMembers((prev) => [
-      ...prev,
-      {
+      const cleanName = chosen.name.replace(/\s*\(You\)\s*/i, '').trim();
+      newAdditions.push({
         name: cleanName,
         email: chosen.email.toLowerCase().trim(),
         role: newMemberRole as ProjectMemberRole,
-      },
-    ]);
-    setSelectedMemberEmail('');
+      });
+    }
+
+    if (newAdditions.length === 0) {
+      setMemberError('All selected members are already added to the project');
+      return;
+    }
+
+    setMembers((prev) => [...prev, ...newAdditions]);
+    setSelectedMemberEmails([]);
     setNewMemberRole('');
     setMemberError('');
+    setIsMemberDropdownOpen(false);
     if (errors.members) {
       setErrors((prev) => ({ ...prev, members: undefined, general: undefined }));
     }
@@ -316,24 +340,26 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
     let currentMembers = [...members];
 
-    // If user has selected a member and role in the dropdown row, auto-add it before validation
-    if (selectedMemberEmail && newMemberRole) {
-      const chosen = availableLeads.find(
-        (l) => l.email.toLowerCase() === selectedMemberEmail.toLowerCase()
-      );
-      if (chosen && !currentMembers.some((m) => m.email.toLowerCase() === chosen.email.toLowerCase())) {
-        const cleanName = chosen.name.replace(/\s*\(You\)\s*/i, '').trim();
-        const autoAdded = {
-          name: cleanName,
-          email: chosen.email.toLowerCase().trim(),
-          role: newMemberRole as ProjectMemberRole,
-        };
-        currentMembers.push(autoAdded);
-        setMembers(currentMembers);
-        setSelectedMemberEmail('');
-        setNewMemberRole('');
-        setMemberError('');
+    // If user has selected members and a role in the dropdown row, auto-add them before validation
+    if (selectedMemberEmails.length > 0 && newMemberRole) {
+      for (const email of selectedMemberEmails) {
+        const chosen = availableLeads.find(
+          (l) => l.email.toLowerCase() === email.toLowerCase()
+        );
+        if (chosen && !currentMembers.some((m) => m.email.toLowerCase() === chosen.email.toLowerCase())) {
+          const cleanName = chosen.name.replace(/\s*\(You\)\s*/i, '').trim();
+          currentMembers.push({
+            name: cleanName,
+            email: chosen.email.toLowerCase().trim(),
+            role: newMemberRole as ProjectMemberRole,
+          });
+        }
       }
+      setMembers(currentMembers);
+      setSelectedMemberEmails([]);
+      setNewMemberRole('');
+      setMemberError('');
+      setIsMemberDropdownOpen(false);
     }
 
     if (!validateForm(currentMembers)) {
@@ -391,7 +417,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       setIsKeyManuallyEdited(false);
       setDescription('');
       setMembers([]);
-      setSelectedMemberEmail('');
+      setSelectedMemberEmails([]);
       setNewMemberRole('');
       setErrors({});
       setTouched({});
@@ -575,9 +601,16 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               {/* Member Dropdown Picker */}
               <div className="sm:col-span-7 relative" ref={memberDropdownRef}>
                 {(() => {
-                  const activeChoice = availableLeads.find(
-                    (l) => l.email.toLowerCase() === selectedMemberEmail.toLowerCase()
+                  const unaddedMembers = availableLeads.filter(
+                    (m) => !members.some((existing) => existing.email.toLowerCase() === m.email.toLowerCase())
                   );
+                  const selectedCount = selectedMemberEmails.length;
+                  const firstSelected =
+                    selectedCount === 1
+                      ? availableLeads.find(
+                          (l) => l.email.toLowerCase() === selectedMemberEmails[0]
+                        )
+                      : null;
 
                   return (
                     <>
@@ -586,17 +619,33 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                         onClick={() => setIsMemberDropdownOpen((prev) => !prev)}
                         className="w-full px-3 py-2 bg-white border border-slate-200 hover:border-indigo-400 rounded-xl flex items-center justify-between transition-all text-left shadow-2xs cursor-pointer min-h-[42px]"
                       >
-                        {activeChoice ? (
+                        {selectedCount > 1 ? (
+                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700 font-bold text-xs shrink-0">
+                              {selectedCount} Selected
+                            </span>
+                            <span className="text-xs font-medium text-slate-700 truncate">
+                              {selectedMemberEmails
+                                .map((e) => {
+                                  const lead = availableLeads.find(
+                                    (l) => l.email.toLowerCase() === e
+                                  );
+                                  return lead ? lead.name.split(' ')[0] : e;
+                                })
+                                .join(', ')}
+                            </span>
+                          </div>
+                        ) : firstSelected ? (
                           <div className="flex items-center gap-2.5 min-w-0 pr-2">
                             <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
-                              {activeChoice.avatar || activeChoice.name.slice(0, 2).toUpperCase()}
+                              {firstSelected.avatar || firstSelected.name.slice(0, 2).toUpperCase()}
                             </div>
                             <div className="min-w-0">
                               <p className="text-xs font-bold text-slate-900 truncate leading-tight">
-                                {activeChoice.name}
+                                {firstSelected.name}
                               </p>
                               <p className="text-[10px] text-slate-400 font-mono truncate leading-tight">
-                                {activeChoice.email}
+                                {firstSelected.email}
                               </p>
                             </div>
                           </div>
@@ -605,7 +654,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                             <div className="w-7 h-7 rounded-lg border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center shrink-0 text-slate-400">
                               <Users className="w-3.5 h-3.5" />
                             </div>
-                            <span className="text-xs font-medium">Select team member...</span>
+                            <span className="text-xs font-medium">Select team member(s)...</span>
                           </div>
                         )}
 
@@ -618,26 +667,49 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
                       {/* Dropdown Menu */}
                       {isMemberDropdownOpen && (
-                        <div className="absolute z-50 left-0 right-0 mt-1.5 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl space-y-1 max-h-56 overflow-y-auto">
+                        <div className="absolute z-50 left-0 right-0 mt-1.5 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xl space-y-1 max-h-60 overflow-y-auto">
+                          {/* Quick Select All Header */}
+                          {unaddedMembers.length > 0 && (
+                            <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-100 mb-1">
+                              <span className="text-[11px] font-semibold text-slate-500">
+                                {selectedCount > 0
+                                  ? `${selectedCount} of ${unaddedMembers.length} selected`
+                                  : 'Select team members'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleSelectAll(unaddedMembers.map((m) => m.email));
+                                }}
+                                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
+                              >
+                                {unaddedMembers.length > 0 &&
+                                unaddedMembers.every((m) =>
+                                  selectedMemberEmails.includes(m.email.toLowerCase())
+                                )
+                                  ? 'Deselect All'
+                                  : 'Select All'}
+                              </button>
+                            </div>
+                          )}
+
                           {availableLeads.map((m) => {
                             const isAdded = members.some(
                               (existing) => existing.email.toLowerCase() === m.email.toLowerCase()
                             );
-                            const isSelected =
-                              Boolean(selectedMemberEmail) &&
-                              m.email.toLowerCase() === selectedMemberEmail.toLowerCase();
+                            const isSelected = selectedMemberEmails.includes(m.email.toLowerCase());
 
                             return (
-                              <button
+                              <div
                                 key={m.email}
-                                type="button"
-                                disabled={isAdded}
                                 onClick={() => {
-                                  setSelectedMemberEmail(m.email);
-                                  setIsMemberDropdownOpen(false);
-                                  setMemberError('');
+                                  if (!isAdded) {
+                                    toggleMemberSelection(m.email);
+                                  }
                                 }}
-                                className={`w-full p-2 rounded-lg flex items-center justify-between text-left transition-colors ${
+                                className={`w-full p-2 rounded-lg flex items-center justify-between text-left transition-colors select-none ${
                                   isAdded
                                     ? 'opacity-50 bg-slate-50 cursor-not-allowed text-slate-400'
                                     : isSelected
@@ -646,9 +718,27 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                 }`}
                               >
                                 <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                  {/* Left Checkbox */}
+                                  <div
+                                    className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${
+                                      isAdded
+                                        ? 'border-slate-300 bg-slate-100 text-slate-400'
+                                        : isSelected
+                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
+                                        : 'border-slate-300 bg-white hover:border-indigo-400'
+                                    }`}
+                                  >
+                                    {(isSelected || isAdded) && (
+                                      <Check className="w-3 h-3 stroke-[3]" />
+                                    )}
+                                  </div>
+
+                                  {/* Member Avatar */}
                                   <div className="w-6 h-6 rounded-md bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center shrink-0">
                                     {m.avatar || m.name.slice(0, 2).toUpperCase()}
                                   </div>
+
+                                  {/* Name and Email */}
                                   <div className="min-w-0">
                                     <p className="text-xs font-semibold text-slate-900 truncate">
                                       {m.name}
@@ -660,13 +750,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                 </div>
 
                                 {isAdded ? (
-                                  <span className="text-[9px] font-bold text-slate-400 uppercase px-1.5 py-0.5 rounded bg-slate-100">
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase px-1.5 py-0.5 rounded bg-slate-100 shrink-0">
                                     Added
                                   </span>
                                 ) : isSelected ? (
-                                  <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                                  <span className="text-[10px] font-bold text-indigo-600 shrink-0">
+                                    Selected
+                                  </span>
                                 ) : null}
-                              </button>
+                              </div>
                             );
                           })}
                         </div>
@@ -705,7 +797,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                   className="w-full py-2 px-3 flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs cursor-pointer min-h-[42px]"
                 >
                   <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>Add</span>
+                  <span>
+                    {selectedMemberEmails.length > 1
+                      ? `Add (${selectedMemberEmails.length})`
+                      : 'Add'}
+                  </span>
                 </button>
               </div>
             </div>
