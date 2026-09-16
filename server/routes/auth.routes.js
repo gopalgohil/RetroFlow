@@ -62,6 +62,16 @@ router.post(
 );
 
 /**
+ * @route   POST /api/auth/google
+ * @desc    Authenticate or register user with Google OAuth
+ * @access  Public
+ */
+router.post(
+  '/google',
+  authController.googleAuth
+);
+
+/**
  * @route   POST /api/auth/forgot-password
  * @desc    Request 6-digit OTP code via Brevo email
  * @access  Public (Rate-limited to prevent OTP spam)

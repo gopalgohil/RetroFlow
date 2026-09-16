@@ -21,6 +21,7 @@ export const ENDPOINTS = {
     RESEND_OTP: '/auth/resend-verification-otp',
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
+    GOOGLE: '/auth/google',
     ME: '/auth/me',
     UPDATE_PROFILE: '/auth/profile',
     CHANGE_PASSWORD: '/auth/change-password',

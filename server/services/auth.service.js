@@ -172,6 +172,11 @@ class AuthService {
     } else if (!user) {
       throw ApiError.unauthorized('Invalid email or password.');
     } else {
+      if (!user.password && user.authProvider === 'google') {
+        throw ApiError.badRequest(
+          'This account was created with Google. Please click "Continue with Google" to sign in.'
+        );
+      }
       const isPasswordValid = await user.matchPassword(password);
       if (!isPasswordValid) {
         throw ApiError.unauthorized('Invalid email or password.');
@@ -400,6 +405,92 @@ class AuthService {
     await user.save();
 
     return { success: true, message: 'Password updated successfully.' };
+  }
+
+  /**
+   * Authenticates or registers a user via Google Auth
+   */
+  async googleAuth({ email, name, avatar, googleId }) {
+    if (!email) {
+      throw ApiError.badRequest('Email is required for Google authentication.');
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    let user = await User.findOne({ email: normalizedEmail });
+
+    const isAdmin = Boolean(
+      normalizedEmail === 'gopalgohel249@gmail.com' ||
+      normalizedEmail.includes('admin')
+    );
+
+    if (user) {
+      // Update existing user with Google attributes and ensure verified
+      let needsSave = false;
+      if (!user.googleId && googleId) {
+        user.googleId = googleId;
+        needsSave = true;
+      }
+      if (!user.avatar && avatar) {
+        user.avatar = avatar;
+        needsSave = true;
+      }
+      if (!user.isVerified) {
+        user.isVerified = true;
+        needsSave = true;
+      }
+      if (isAdmin && (user.role !== 'admin' || user.projectRole !== 'Manager')) {
+        user.role = 'admin';
+        user.projectRole = 'Manager';
+        user.isApproved = true;
+        needsSave = true;
+      }
+      user.hasLoggedIn = true;
+      user.lastLogin = new Date();
+      await user.save();
+    } else {
+      // Auto-approve if Admin or invited in retro boards
+      const isPreApproved = Boolean(
+        isAdmin ||
+        (await RetroBoard.exists({ approvedMembers: normalizedEmail }))
+      );
+
+      user = await User.create({
+        name: name ? name.trim() : 'Google User',
+        email: normalizedEmail,
+        googleId: googleId || null,
+        avatar: avatar || null,
+        authProvider: 'google',
+        role: isAdmin ? 'admin' : 'member',
+        projectRole: isAdmin ? 'Manager' : 'Developer',
+        isVerified: true,
+        isApproved: isPreApproved,
+        hasLoggedIn: true,
+        lastLogin: new Date(),
+      });
+      console.log(`\n🎉 [Google Account Initialized] ${user.name} (${user.email}) registered via Google Auth.\n`);
+    }
+
+    const token = generateToken({ id: user._id, email: user.email, role: user.role || 'member' });
+
+    const effectiveRole = isAdmin
+      ? 'Manager'
+      : user.projectRole && user.projectRole !== 'Unassigned'
+      ? user.projectRole
+      : 'Developer';
+
+    return {
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        projectRole: effectiveRole,
+        isVerified: user.isVerified,
+        isApproved: user.isApproved,
+        avatar: user.avatar,
+      },
+    };
   }
 }
 

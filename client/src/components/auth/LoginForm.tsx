@@ -125,6 +125,65 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    if (onGoogleSignIn) {
+      onGoogleSignIn();
+      return;
+    }
+
+    setGeneralError(null);
+    setFieldErrors({});
+    setIsLoading(true);
+
+    try {
+      const { signInWithPopup } = await import('firebase/auth');
+      const { auth, googleProvider } = await import('@/lib/firebase');
+
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const idToken = await user.getIdToken();
+
+      const response = await api.post(ENDPOINTS.AUTH.GOOGLE, {
+        token: idToken,
+        email: user.email,
+        name: user.displayName,
+        avatar: user.photoURL,
+        googleId: user.uid,
+      });
+
+      if (response.data?.token) {
+        localStorage.setItem('retroflow_token', response.data.token);
+      }
+      if (response.data?.user) {
+        localStorage.setItem('retroflow_user', JSON.stringify(response.data.user));
+      }
+
+      sessionStorage.setItem('retroflow_welcome_toast', 'true');
+      router.push('/dashboard');
+    } catch (err: any) {
+      setIsLoading(false);
+      console.error('Google Sign-in Error:', err);
+
+      if (err.code === 'auth/popup-closed-by-user') {
+        return;
+      }
+      if (err.code === 'auth/operation-not-allowed') {
+        setGeneralError(
+          'Google Sign-In is not enabled yet in your Firebase Console. Please go to Authentication > Sign-in method and enable Google.'
+        );
+        return;
+      }
+      if (err.code === 'auth/unauthorized-domain') {
+        setGeneralError(
+          'This domain is not authorized in Firebase Console. Add localhost to Authorized domains under Authentication > Settings.'
+        );
+        return;
+      }
+
+      setGeneralError(err.message || 'Google sign-in failed. Please try again.');
+    }
+  };
+
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
       {/* Reusable Auth Header */}
@@ -151,7 +210,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       <SocialButton
         provider="google"
         label="Continue with Google"
-        onClick={onGoogleSignIn}
+        onClick={handleGoogleSignIn}
+        disabled={isLoading}
       />
 
       {/* Reusable Divider */}

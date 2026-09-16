@@ -46,6 +46,15 @@ class AuthController {
   });
 
   /**
+   * Authenticate / Register via Google Auth
+   * POST /api/auth/google
+   */
+  googleAuth = asyncHandler(async (req, res) => {
+    const result = await authService.googleAuth(req.body);
+    return ApiResponse.ok(res, result, 'Signed in with Google successfully!');
+  });
+
+  /**
    * Request 6-digit password reset OTP
    * POST /api/auth/forgot-password
    */
