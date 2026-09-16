@@ -12,6 +12,7 @@ import {
   Flag,
   Plus,
   Sparkles,
+  Lock,
 } from 'lucide-react';
 import { RetroTopic, StickyCard } from '@/types/retro';
 import { RetroCardItem } from './RetroCardItem';
@@ -33,6 +34,8 @@ export interface RetroColumnProps {
   isRevealed: boolean;
   remainingVotes: number;
   currentAuthorName: string;
+  canManageActionItems?: boolean;
+  actionTopicId?: string;
   canEditCard: (card: StickyCard) => boolean;
   canDeleteCard: (card: StickyCard) => boolean;
   onAddCard: (topicId: string, text: string) => void;
@@ -54,6 +57,8 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   isRevealed,
   remainingVotes,
   currentAuthorName,
+  canManageActionItems = false,
+  actionTopicId,
   canEditCard,
   canDeleteCard,
   onAddCard,
@@ -69,10 +74,19 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [dragTargetId, setDragTargetId] = useState<string | null>(null);
   const [dropPosition, setDropPosition] = useState<'above' | 'below' | null>(null);
+  const [isColumnDragOver, setIsColumnDragOver] = useState(false);
+
+  const isActionColumn =
+    (topic.title || '').toLowerCase().includes('action') ||
+    topic.icon === 'target' ||
+    (topic.topicId && topic.topicId.toLowerCase().includes('action'));
+
+  const canAddCard = !isActionColumn || Boolean(canManageActionItems);
 
   const ColumnIcon = ICON_MAP[topic.icon] || Smile;
 
   const handleSubmitCard = () => {
+    if (!canAddCard) return;
     const trimmed = cardText.trim();
     if (!trimmed) return;
     onAddCard(topic.topicId, trimmed);
@@ -99,6 +113,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
     setDraggedCardId(null);
     setDragTargetId(null);
     setDropPosition(null);
+    setIsColumnDragOver(false);
   };
 
   const handleCardDragOver = (targetCardId: string, e: React.DragEvent) => {
@@ -136,6 +151,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   const handleCardDrop = (targetCardId: string, e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsColumnDragOver(false);
 
     let sourceCardId = draggedCardId;
     let sourceTopicId = topic.topicId;
@@ -151,8 +167,25 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
       // fallback
     }
 
-    // STRICT SCOPING: Reject drop if not from the exact same topic/question
-    if (sourceTopicId !== topic.topicId || !sourceCardId || sourceCardId === targetCardId) {
+    if (!sourceCardId) {
+      handleCardDragEnd();
+      return;
+    }
+
+    // Cross-column drop into this column:
+    if (sourceTopicId !== topic.topicId) {
+      // If target column is Action Items and user is NOT Admin/Manager: reject!
+      if (isActionColumn && !canManageActionItems) {
+        handleCardDragEnd();
+        return;
+      }
+      onMoveCard?.(sourceCardId, topic.topicId);
+      handleCardDragEnd();
+      return;
+    }
+
+    // Same-column reordering:
+    if (sourceCardId === targetCardId) {
       handleCardDragEnd();
       return;
     }
@@ -177,6 +210,44 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 
     handleCardDragEnd();
     onReorderCards?.(topic.topicId, newCardIds);
+  };
+
+  const handleColumnDragOver = (e: React.DragEvent) => {
+    if (isActionColumn && !canManageActionItems) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!isColumnDragOver) setIsColumnDragOver(true);
+  };
+
+  const handleColumnDragLeave = (e: React.DragEvent) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsColumnDragOver(false);
+  };
+
+  const handleColumnDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsColumnDragOver(false);
+
+    let sourceCardId = draggedCardId;
+    let sourceTopicId = topic.topicId;
+
+    try {
+      const jsonStr = e.dataTransfer.getData('application/json');
+      if (jsonStr) {
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.cardId) sourceCardId = parsed.cardId;
+        if (parsed.topicId) sourceTopicId = parsed.topicId;
+      }
+    } catch {}
+
+    if (!sourceCardId) return;
+
+    if (sourceTopicId !== topic.topicId) {
+      if (isActionColumn && !canManageActionItems) {
+        return;
+      }
+      onMoveCard?.(sourceCardId, topic.topicId);
+    }
   };
 
   return (
@@ -226,8 +297,17 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         )}
       </div>
 
-      {/* Sticky Cards Scrollable List */}
-      <div className="p-2 sm:p-2.5 space-y-2 min-h-[220px] max-h-[calc(100vh-230px)] overflow-y-auto">
+      {/* Sticky Cards Scrollable List with Column-level Drop Zone */}
+      <div
+        onDragOver={handleColumnDragOver}
+        onDragLeave={handleColumnDragLeave}
+        onDrop={handleColumnDrop}
+        className={`p-2 sm:p-2.5 space-y-2 min-h-[220px] max-h-[calc(100vh-230px)] overflow-y-auto transition-colors ${
+          isColumnDragOver && (canManageActionItems || !isActionColumn)
+            ? 'bg-indigo-50/50 ring-2 ring-indigo-400/70 ring-inset rounded-xl'
+            : ''
+        }`}
+      >
         {cards.map((card, idx) => (
           <RetroCardItem
             key={card.id}
@@ -245,6 +325,11 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             onVote={onVoteCard}
             onUpdate={onUpdateCard}
             onDelete={onDeleteCard}
+            onMoveToActions={
+              !isActionColumn && canManageActionItems && actionTopicId && onMoveCard
+                ? () => onMoveCard(card.id, actionTopicId)
+                : undefined
+            }
             onCardDragStart={handleCardDragStart}
             onCardDragEnd={handleCardDragEnd}
             onCardDragOver={handleCardDragOver}
@@ -260,7 +345,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         )}
 
         {/* Inline Add Card Input Form */}
-        {isInputOpen && (
+        {isInputOpen && canAddCard && (
           <div className="p-2.5 rounded-xl bg-white border-2 border-indigo-500 shadow-sm space-y-2 animate-in fade-in duration-150">
             <textarea
               autoFocus
@@ -298,15 +383,26 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         )}
       </div>
 
-      {/* Bottom Column "+ Add Card" Trigger */}
+      {/* Bottom Column "+ Add Card" Trigger or Locked State */}
       <div className="p-2 border-t border-slate-100 bg-white">
-        <button
-          onClick={() => setIsInputOpen(true)}
-          className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 text-xs font-semibold text-slate-600 hover:text-indigo-600 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add Card</span>
-        </button>
+        {canAddCard ? (
+          <button
+            type="button"
+            onClick={() => setIsInputOpen(true)}
+            className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 text-xs font-semibold text-slate-600 hover:text-indigo-600 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Card</span>
+          </button>
+        ) : (
+          <div
+            title="Action Items can only be added by Managers or Admins"
+            className="w-full py-2 px-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/80 text-[11px] font-medium text-slate-400 flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
+          >
+            <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className="truncate">Only Managers & Admins can add Action Items</span>
+          </div>
+        )}
       </div>
     </div>
   );

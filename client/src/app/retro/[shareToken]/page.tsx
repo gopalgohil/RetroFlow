@@ -68,34 +68,47 @@ export default function LiveRetroBoardPage({
 
       {/* 2. Responsive Retrospective Columns Board Canvas */}
       <main className="flex-1 p-3 sm:p-4 md:p-5 overflow-x-auto w-full">
-        <div className="flex gap-3 sm:gap-4 items-start w-full min-w-max md:min-w-0 pb-6">
-          {session.retro.topics?.map((topic) => (
-            <RetroColumn
-              key={topic.topicId}
-              topic={topic}
-              cards={session.cards.filter((c) => c.topicId === topic.topicId)}
-              isRevealed={session.isRevealed}
-              remainingVotes={session.remainingVotes}
-              currentAuthorName={session.currentAuthorName}
-              canEditCard={session.canEditCard}
-              canDeleteCard={session.canDeleteCard}
-              onAddCard={session.addCard}
-              onUpdateCard={session.updateCard}
-              onDeleteCard={session.deleteCard}
-              onVoteCard={session.voteCard}
-              onMoveCard={session.moveCard}
-              onReorderCards={session.reorderCards}
-              onExportTopic={
-                session.canExportToSprint
-                  ? () => {
-                      setExportModalMode('export_only');
-                      setIsEndSessionModalOpen(true);
-                    }
-                  : undefined
-              }
-            />
-          ))}
-        </div>
+        {(() => {
+          const actionTopic = session.retro.topics?.find(
+            (t) =>
+              (t.title || '').toLowerCase().includes('action') ||
+              t.icon === 'target' ||
+              (t.topicId && t.topicId.toLowerCase().includes('action'))
+          );
+
+          return (
+            <div className="flex gap-3 sm:gap-4 items-start w-full min-w-max md:min-w-0 pb-6">
+              {session.retro.topics?.map((topic) => (
+                <RetroColumn
+                  key={topic.topicId}
+                  topic={topic}
+                  cards={session.cards.filter((c) => c.topicId === topic.topicId)}
+                  isRevealed={session.isRevealed}
+                  remainingVotes={session.remainingVotes}
+                  currentAuthorName={session.currentAuthorName}
+                  canManageActionItems={session.canExportToSprint}
+                  actionTopicId={actionTopic?.topicId}
+                  canEditCard={session.canEditCard}
+                  canDeleteCard={session.canDeleteCard}
+                  onAddCard={session.addCard}
+                  onUpdateCard={session.updateCard}
+                  onDeleteCard={session.deleteCard}
+                  onVoteCard={session.voteCard}
+                  onMoveCard={session.moveCard}
+                  onReorderCards={session.reorderCards}
+                  onExportTopic={
+                    session.canExportToSprint
+                      ? () => {
+                          setExportModalMode('export_only');
+                          setIsEndSessionModalOpen(true);
+                        }
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
+          );
+        })()}
       </main>
 
       {/* 3. Guest Developer Display Name Prompt Dialog */}

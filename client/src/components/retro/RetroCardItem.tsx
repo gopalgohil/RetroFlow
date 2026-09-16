@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, memo } from 'react';
-import { Pencil, Trash2, Check, X, ThumbsUp, GripVertical } from 'lucide-react';
+import { Pencil, Trash2, Check, X, ThumbsUp, GripVertical, Zap } from 'lucide-react';
 import { StickyCard } from '@/types/retro';
 
 export interface RetroCardItemProps {
@@ -19,6 +19,7 @@ export interface RetroCardItemProps {
   onVote: (cardId: string) => void;
   onUpdate: (cardId: string, text: string) => void;
   onDelete: (cardId: string) => void;
+  onMoveToActions?: (cardId: string) => void;
   onCardDragStart?: (cardId: string, e: React.DragEvent) => void;
   onCardDragEnd?: () => void;
   onCardDragOver?: (cardId: string, e: React.DragEvent) => void;
@@ -49,6 +50,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   onVote,
   onUpdate,
   onDelete,
+  onMoveToActions,
   onCardDragStart,
   onCardDragEnd,
   onCardDragOver,
@@ -267,10 +269,23 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             </div>
 
             <div className="flex items-center gap-1 shrink-0">
+              {/* 1-Click Promote to Action Items (Admin/Manager only) */}
+              {onMoveToActions && (
+                <button
+                  type="button"
+                  onClick={() => onMoveToActions(card.id)}
+                  title="Promote to Action Items"
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/90 border border-amber-200/80 transition-all hover:scale-[1.03] active:scale-95 cursor-pointer shadow-2xs"
+                >
+                  <Zap className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                  <span className="hidden sm:inline">To Action</span>
+                </button>
+              )}
+
               {/* Drag Handle */}
               <div
                 className="text-slate-300 group-hover:text-slate-500 hover:text-indigo-600 transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5"
-                title="Drag to reorder card"
+                title="Drag to reorder card or move to another column"
               >
                 <GripVertical className="w-3.5 h-3.5" />
               </div>
