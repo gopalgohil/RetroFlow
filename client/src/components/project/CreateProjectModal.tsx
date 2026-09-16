@@ -40,14 +40,6 @@ const DEFAULT_WORKSPACE_LEADS: WorkspaceMemberOption[] = [
   { id: 'lead-gopal', name: 'Gopal', email: 'gopalgohel249@gmail.com', role: 'Admin', avatar: 'G' },
 ];
 
-const ROLE_OPTIONS: ProjectMemberRole[] = [
-  'Developer',
-  'QA',
-  'Manager',
-  'DevOps',
-  'Project Lead',
-];
-
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   isOpen,
   onClose,
@@ -66,10 +58,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [selectedMemberEmails, setSelectedMemberEmails] = useState<string[]>([]);
   const [isMemberDropdownOpen, setIsMemberDropdownOpen] = useState(false);
   const memberDropdownRef = React.useRef<HTMLDivElement>(null);
-
-  // Role Dropdown selection state
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
-  const roleDropdownRef = React.useRef<HTMLDivElement>(null);
 
   const toggleMemberSelection = (email: string) => {
     const lower = email.toLowerCase().trim();
@@ -99,9 +87,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       if (memberDropdownRef.current && !memberDropdownRef.current.contains(event.target as Node)) {
         setIsMemberDropdownOpen(false);
       }
-      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target as Node)) {
-        setIsRoleDropdownOpen(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -111,9 +96,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   React.useEffect(() => {
     if (!isOpen) {
       setIsMemberDropdownOpen(false);
-      setIsRoleDropdownOpen(false);
       setSelectedMemberEmails([]);
-      setNewMemberRole('');
+      setNewMemberRole('Developer');
       setMembers([]);
       setMemberError('');
       setErrors({});
@@ -196,7 +180,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   >([]);
 
   // Input states for adding new member
-  const [newMemberRole, setNewMemberRole] = useState<ProjectMemberRole | ''>('');
+  const [newMemberRole, setNewMemberRole] = useState<ProjectMemberRole>('Developer');
   const [memberError, setMemberError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -323,7 +307,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
     setMembers((prev) => [...prev, ...newAdditions]);
     setSelectedMemberEmails([]);
-    setNewMemberRole('');
+    setNewMemberRole('Developer');
     setMemberError('');
     setIsMemberDropdownOpen(false);
     if (errors.members) {
@@ -381,7 +365,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       }
       setMembers(currentMembers);
       setSelectedMemberEmails([]);
-      setNewMemberRole('');
+      setNewMemberRole('Developer');
       setMemberError('');
       setIsMemberDropdownOpen(false);
     }
@@ -442,7 +426,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       setDescription('');
       setMembers([]);
       setSelectedMemberEmails([]);
-      setNewMemberRole('');
+      setNewMemberRole('Developer');
       setErrors({});
       setTouched({});
     } catch (err: any) {
@@ -792,52 +776,22 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 })()}
               </div>
 
-              {/* Role Selector with White Background and Solid Black Text */}
-              <div className="sm:col-span-3 relative" ref={roleDropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setIsRoleDropdownOpen((prev) => !prev)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 hover:border-indigo-400 rounded-xl flex items-center justify-between transition-all text-left shadow-2xs cursor-pointer min-h-[42px]"
+              {/* Role Selector */}
+              <div className="sm:col-span-3">
+                <select
+                  value={newMemberRole}
+                  onChange={(e) => {
+                    setNewMemberRole(e.target.value as ProjectMemberRole);
+                    setMemberError('');
+                  }}
+                  className="w-full px-2.5 py-2 bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer min-h-[42px] shadow-2xs transition-colors"
                 >
-                  <span
-                    className={`text-xs ${
-                      newMemberRole ? 'font-bold text-slate-900' : 'font-medium text-slate-400'
-                    }`}
-                  >
-                    {newMemberRole || 'Select role...'}
-                  </span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-slate-400 transition-transform duration-150 shrink-0 ${
-                      isRoleDropdownOpen ? 'rotate-180 text-indigo-600' : ''
-                    }`}
-                  />
-                </button>
-
-                {isRoleDropdownOpen && (
-                  <div className="absolute z-50 left-0 right-0 mt-1.5 p-1 bg-white border border-slate-200 rounded-xl shadow-xl space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
-                    {ROLE_OPTIONS.map((role) => (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => {
-                          setNewMemberRole(role);
-                          setIsRoleDropdownOpen(false);
-                          setMemberError('');
-                        }}
-                        className={`w-full px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors flex items-center justify-between cursor-pointer ${
-                          newMemberRole === role
-                            ? 'bg-indigo-50 text-indigo-700 font-bold'
-                            : 'text-slate-900 hover:bg-slate-50'
-                        }`}
-                      >
-                        <span className="text-slate-900">{role}</span>
-                        {newMemberRole === role && (
-                          <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                  <option value="Developer" className="bg-white text-slate-900">Developer</option>
+                  <option value="QA" className="bg-white text-slate-900">QA</option>
+                  <option value="Manager" className="bg-white text-slate-900">Manager</option>
+                  <option value="DevOps" className="bg-white text-slate-900">DevOps</option>
+                  <option value="Project Lead" className="bg-white text-slate-900">Project Lead</option>
+                </select>
               </div>
 
               {/* Add Button */}
