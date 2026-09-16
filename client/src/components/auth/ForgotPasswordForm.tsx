@@ -213,7 +213,7 @@ export const ForgotPasswordForm: React.FC = () => {
           <Input
             label="6-Digit Verification Code (OTP)"
             type="text"
-            placeholder="e.g. 849201"
+            placeholder="000000"
             maxLength={6}
             value={otp}
             onChange={(e) => {

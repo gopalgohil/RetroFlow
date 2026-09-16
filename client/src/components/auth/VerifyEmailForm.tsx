@@ -127,7 +127,7 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
           label="6-Digit Verification Code (OTP)"
           type="text"
           name="otp"
-          placeholder="e.g. 583920"
+          placeholder="000000"
           maxLength={6}
           value={otp}
           onChange={(e) => {
