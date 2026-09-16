@@ -13,6 +13,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  Calendar,
 } from 'lucide-react';
 import { Project } from '@/types/project';
 import { PaginationMeta } from '@/types/retro';
@@ -28,6 +29,21 @@ interface ProjectsTabProps {
 
 // In-memory cache to prevent skeleton flickering and duplicate network calls on tab switching
 let inMemoryProjectsCache: Project[] | null = null;
+
+const formatProjectCreatedDate = (dateStr?: string | Date) => {
+  if (!dateStr) return null;
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return null;
+  }
+};
 
 export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user = null }) => {
   const router = useRouter();
@@ -354,10 +370,10 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 <div className="space-y-4">
                   {/* Card Top: Key, Name & Health */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <UserAvatar name={project.name} avatar={project.key} size="lg" />
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
                           {project.name}
                         </h3>
                         <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono mt-0.5">
@@ -366,7 +382,18 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       </div>
                     </div>
 
-                    <StatusPill status={project.healthStatus} pulse />
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <StatusPill status={project.healthStatus} pulse />
+                      {project.createdAt && formatProjectCreatedDate(project.createdAt) && (
+                        <span
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 tracking-tight"
+                          title={`Project created on ${formatProjectCreatedDate(project.createdAt)}`}
+                        >
+                          <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span>{formatProjectCreatedDate(project.createdAt)}</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Dedicated Manager Identity Row */}
