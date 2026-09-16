@@ -328,6 +328,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     });
   };
 
+  const handleUpdateMemberRole = (email: string, newRole: ProjectMemberRole) => {
+    setMembers((prev) =>
+      prev.map((m) =>
+        m.email.toLowerCase() === email.toLowerCase() ? { ...m, role: newRole } : m
+      )
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -819,7 +827,25 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 >
                   <UserAvatar name={m.name} email={m.email} title={m.email} size="xs" />
                   <span className="font-semibold text-slate-800">{m.name}</span>
-                  <StatusPill status={m.role} />
+
+                  {/* Editable Role Dropdown */}
+                  <div className="relative inline-flex items-center">
+                    <select
+                      value={m.role}
+                      onChange={(e) =>
+                        handleUpdateMemberRole(m.email, e.target.value as ProjectMemberRole)
+                      }
+                      title={`Change role for ${m.name}`}
+                      className="appearance-none text-[11px] font-semibold tracking-tight pl-2 pr-5 py-0.5 rounded-md bg-indigo-50/90 text-indigo-700 border border-indigo-200/80 hover:bg-indigo-100 hover:border-indigo-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer transition-colors"
+                    >
+                      <option value="Developer">Developer</option>
+                      <option value="QA">QA</option>
+                      <option value="Manager">Manager</option>
+                      <option value="DevOps">DevOps</option>
+                      <option value="Project Lead">Project Lead</option>
+                    </select>
+                    <ChevronDown className="w-3 h-3 text-indigo-500 absolute right-1 pointer-events-none" />
+                  </div>
                   <button
                     type="button"
                     onClick={() => handleRemoveMember(m.email)}
