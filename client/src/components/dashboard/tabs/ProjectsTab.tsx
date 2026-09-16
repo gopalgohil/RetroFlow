@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -11,8 +11,11 @@ import {
   Trash2,
   AlertTriangle,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Project } from '@/types/project';
+import { PaginationMeta } from '@/types/retro';
 import { ProjectApiService } from '@/services/projectApi';
 import { CreateProjectModal } from '@/components/project/CreateProjectModal';
 import { UserAvatar, StatusPill, ProgressBar, Modal } from '@/components/ui';
@@ -39,6 +42,24 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   } | null>(user || null);
   const [filterMode, setFilterMode] = useState<'all' | 'managed'>('all');
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [openingProjectId, setOpeningProjectId] = useState<string | null>(null);
+
+  // Enterprise Pagination & Counts state (6 items per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationMeta>({
+    page: 1,
+    limit: 6,
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
+  const [tabCounts, setTabCounts] = useState<{ all: number; managed: number }>({
+    all: 0,
+    managed: 0,
+  });
+
+  const projectsGridRef = useRef<HTMLDivElement>(null);
 
   // Manager and Admin deletion access
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
@@ -53,15 +74,49 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     currentUser?.role?.toLowerCase().includes('manager')
   );
 
+  const fetchProjects = useCallback(async (page: number, mode: 'all' | 'managed') => {
+    if (!inMemoryProjectsCache) {
+      setIsLoading(true);
+    } else {
+      setIsFilterLoading(true);
+    }
+    try {
+      const res = await ProjectApiService.getPaginatedProjects({
+        page,
+        limit: 6,
+        filter: mode,
+      });
+      setProjects(res.projects);
+      setPagination(res.pagination);
+      setTabCounts(res.counts);
+      inMemoryProjectsCache = res.projects;
+    } catch (err) {
+      console.warn('[ProjectsTab] Live API request error:', err);
+    } finally {
+      setIsLoading(false);
+      setIsFilterLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProjects(currentPage, filterMode);
+  }, [fetchProjects, currentPage, filterMode, isCreateModalOpen]);
+
   const handleDeleteProject = async () => {
     if (!projectToDelete) return;
     setIsDeletingProject(true);
     setDeleteProjectError(null);
     try {
       await ProjectApiService.deleteProject(projectToDelete.id);
-      setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
-      inMemoryProjectsCache = inMemoryProjectsCache?.filter((p) => p.id !== projectToDelete.id) || null;
+      ProjectApiService.clearProjectsCache();
+      inMemoryProjectsCache = null;
       setProjectToDelete(null);
+      const targetPage = projects.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
+      if (targetPage !== currentPage) {
+        setCurrentPage(targetPage);
+      } else {
+        fetchProjects(targetPage, filterMode);
+      }
     } catch (err: any) {
       setDeleteProjectError(err.message || 'Failed to delete project.');
     } finally {
@@ -71,11 +126,31 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
   const handleFilterChange = (mode: 'all' | 'managed') => {
     if (mode === filterMode) return;
-    setIsFilterLoading(true);
     setFilterMode(mode);
-    setTimeout(() => {
-      setIsFilterLoading(false);
-    }, 380);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage === currentPage || newPage < 1 || newPage > pagination.totalPages) return;
+    setCurrentPage(newPage);
+    if (projectsGridRef.current) {
+      projectsGridRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const getPageNumbers = () => {
+    const total = pagination.totalPages;
+    const current = pagination.page;
+    if (total <= 5) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    if (current <= 3) {
+      return [1, 2, 3, 4, '...', total];
+    }
+    if (current >= total - 2) {
+      return [1, '...', total - 3, total - 2, total - 1, total];
+    }
+    return [1, '...', current - 1, current, current + 1, '...', total];
   };
 
   useEffect(() => {
@@ -89,42 +164,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     }
   }, [user]);
 
-  const fetchProjects = React.useCallback(async () => {
-    // Only show full skeleton loader on initial cold load if no cache exists
-    if (!inMemoryProjectsCache) {
-      setIsLoading(true);
-    }
-    try {
-      // Live REST API request directly from MongoDB Atlas
-      const list = await ProjectApiService.getProjects(true);
-      const safeList = Array.isArray(list) ? list : [];
-      inMemoryProjectsCache = safeList;
-      setProjects(safeList);
-    } catch (err) {
-      console.warn('[ProjectsTab] Live API request error:', err);
-      if (!inMemoryProjectsCache) {
-        setProjects([]);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects, isCreateModalOpen]);
-
-  const myManagedProjects = projects.filter((p) => {
-    const userEmail = currentUser?.email?.toLowerCase().trim();
-    if (!userEmail) return false;
-    const isDirectLead = p.lead?.email?.toLowerCase().trim() === userEmail;
-    const isManagerMember = p.members?.some(
-      (m) => m.email?.toLowerCase().trim() === userEmail && m.role === 'Manager'
-    );
-    return isDirectLead || isManagerMember;
-  });
-
-  const displayedProjects = filterMode === 'managed' ? myManagedProjects : projects;
+  const displayedProjects = projects;
 
   if (isLoading) {
     return <ProjectsTabSkeleton />;
@@ -162,7 +202,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               {isAdmin ? 'Admin Supervision' : canCreateProject ? 'Lead / Management' : 'My Projects'}
             </span>
             <span className="text-xs text-slate-300">
-              • {projects.length} {isAdmin || canCreateProject ? 'Workspace Projects' : 'Assigned Projects'}
+              • {tabCounts.all || pagination.totalItems} {isAdmin || canCreateProject ? 'Workspace Projects' : 'Assigned Projects'}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
@@ -194,7 +234,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       </div>
 
       {/* View Filter Switcher Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+      <div ref={projectsGridRef} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
         <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 border border-slate-200/80 rounded-xl w-fit">
           <button
             type="button"
@@ -205,7 +245,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            All Projects ({projects.length})
+            All Projects ({tabCounts.all})
           </button>
           <button
             type="button"
@@ -219,12 +259,12 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             <span>Managed by Me</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                myManagedProjects.length > 0
+                tabCounts.managed > 0
                   ? 'bg-amber-100 text-amber-900 border border-amber-300'
                   : 'bg-slate-200 text-slate-600'
               }`}
             >
-              {myManagedProjects.length}
+              {tabCounts.managed}
             </span>
           </button>
         </div>
@@ -233,7 +273,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
           <div className="h-4 w-36 rounded bg-slate-200/80 animate-pulse" />
         ) : (
           <p className="text-xs text-slate-400">
-            Showing <strong className="text-slate-700">{displayedProjects.length}</strong> active initiatives
+            Showing <strong className="text-slate-700">{projects.length}</strong> of{' '}
+            <strong className="text-slate-700">{pagination.totalItems}</strong> active initiatives
           </p>
         )}
       </div>
@@ -419,6 +460,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 <Link
                   href={`/projects/${project.id}`}
                   onClick={() => {
+                    setOpeningProjectId(project.id);
                     if (typeof window !== 'undefined') {
                       localStorage.setItem('retroflow_active_project_id', project.id);
                       try {
@@ -426,10 +468,19 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       } catch {}
                     }
                   }}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-bold transition-all shadow-2xs group-hover:shadow-xs cursor-pointer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-bold transition-all shadow-2xs group-hover:shadow-xs cursor-pointer disabled:opacity-75"
                 >
-                  <span>Open Project Dashboard</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  {openingProjectId === project.id ? (
+                    <span className="inline-flex items-center gap-2 animate-pulse">
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Opening Dashboard...</span>
+                    </span>
+                  ) : (
+                    <>
+                      <span>Open Project Dashboard</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </>
+                  )}
                 </Link>
 
                 {isManagerOrAdmin && (
@@ -454,12 +505,79 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       </div>
       )}
 
+      {/* Enterprise-grade 6-Item Pagination Controls */}
+      {pagination.totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/90">
+          {/* Pagination Counter Info */}
+          <div className="text-xs text-slate-500 font-medium">
+            Showing{' '}
+            <span className="font-bold text-slate-900">
+              {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.totalItems)}
+            </span>{' '}
+            to{' '}
+            <span className="font-bold text-slate-900">
+              {Math.min(pagination.page * pagination.limit, pagination.totalItems)}
+            </span>{' '}
+            of <span className="font-bold text-slate-900">{pagination.totalItems}</span> initiatives
+          </div>
+
+          {/* Navigation Controls */}
+          <div className="flex items-center gap-1.5">
+            {/* Previous Page Button */}
+            <button
+              type="button"
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={!pagination.hasPrevPage || isFilterLoading}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Previous</span>
+            </button>
+
+            {/* Numeric Page Buttons */}
+            {getPageNumbers().map((p, idx) =>
+              p === '...' ? (
+                <span key={`ellipsis-${idx}`} className="px-2 text-xs text-slate-400 font-bold select-none">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={`page-${p}`}
+                  type="button"
+                  onClick={() => handlePageChange(Number(p))}
+                  disabled={isFilterLoading}
+                  className={`min-w-[34px] h-[34px] rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    p === pagination.page
+                      ? 'bg-indigo-600 text-white shadow-xs shadow-indigo-600/30 ring-2 ring-indigo-600/20'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            )}
+
+            {/* Next Page Button */}
+            <button
+              type="button"
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={!pagination.hasNextPage || isFilterLoading}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Create Project Modal */}
       <CreateProjectModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onProjectCreated={(newProj) => {
-          fetchProjects();
+          ProjectApiService.clearProjectsCache();
+          fetchProjects(1, filterMode);
           if (typeof window !== 'undefined' && newProj) {
             localStorage.setItem('retroflow_active_project_id', newProj.id);
             try {

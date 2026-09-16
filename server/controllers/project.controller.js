@@ -18,7 +18,15 @@ class ProjectController {
         userEmail === 'gopalgohel249@gmail.com' ||
         userEmail?.includes('admin'));
 
-    const projects = await projectService.getAllProjects(user);
+    const { page, limit, filter, search, all } = req.query;
+
+    const result = await projectService.getAllProjects(user, {
+      page,
+      limit,
+      filter,
+      search,
+      all,
+    });
 
     // High-speed browser caching with background revalidation
     res.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=60');
@@ -29,11 +37,13 @@ class ProjectController {
       message: isAdmin
         ? 'Enterprise workspace initiatives retrieved successfully (Full Admin Access)'
         : 'Assigned member projects retrieved successfully',
-      data: projects,
+      data: result.projects,
+      pagination: result.pagination,
       meta: {
         isGlobalView: isAdmin,
         userRole: isAdmin ? 'admin' : (user?.role || 'member'),
-        total: projects.length,
+        total: result.pagination.totalItems,
+        counts: result.counts,
       },
     });
   });

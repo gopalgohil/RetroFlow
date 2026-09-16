@@ -76,6 +76,7 @@ function ProjectDetailContent() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isSwitchingProject, setIsSwitchingProject] = useState(false);
   const [isTabTransitioning, setIsTabTransitioning] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Profile dropdown & logout confirmation modals state
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -244,6 +245,7 @@ function ProjectDetailContent() {
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoading(true);
     setAccessDeniedError(null);
 
     // If current project doesn't match URL projectId, check cache or mock first
@@ -283,6 +285,16 @@ function ProjectDetailContent() {
           }
           const fallback = ProjectDataService.getProjectById(projectId);
           if (fallback) setProject(fallback);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          // Smooth 350ms transition so component-matched skeleton renders cleanly
+          setTimeout(() => {
+            if (isMounted) {
+              setIsLoading(false);
+            }
+          }, 350);
         }
       });
 
@@ -701,7 +713,7 @@ function ProjectDetailContent() {
               </button>
             </div>
           </div>
-        ) : !project || isSwitchingProject ? (
+        ) : !project || isSwitchingProject || isLoading ? (
           <ProjectDetailSkeleton activeTab={activeTab} />
         ) : (
           <>

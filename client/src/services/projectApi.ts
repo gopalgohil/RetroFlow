@@ -6,6 +6,7 @@
 
 import { api, ENDPOINTS } from '@/lib/api';
 import { Project, CreateProjectPayload, ProjectMemberRole, EnrichedActionItem } from '@/types/project';
+import { PaginationMeta } from '@/types/retro';
 
 export interface ApiResponseWrapper<T> {
   success: boolean;
@@ -13,6 +14,12 @@ export interface ApiResponseWrapper<T> {
   message: string;
   data: T;
   timestamp?: string;
+}
+
+export interface PaginatedProjectsResponse {
+  projects: Project[];
+  pagination: PaginationMeta;
+  counts: { all: number; managed: number };
 }
 
 export class ProjectApiService {
@@ -27,8 +34,8 @@ export class ProjectApiService {
 
   /**
    * Fetch all agile projects (RBAC filtered) with single-flight request deduplication
-   * Prevents simultaneous components (e.g. ProjectsTab & ProjectSwitcher) from sending duplicate HTTP requests
-   * GET /api/projects
+   * Prevents simultaneous components (e.g. ProjectSwitcher) from sending duplicate HTTP requests
+   * GET /api/projects?all=true
    */
   static async getProjects(forceRefresh = false): Promise<Project[]> {
     const now = Date.now();
@@ -42,7 +49,7 @@ export class ProjectApiService {
 
     this.inFlightProjectsPromise = (async () => {
       try {
-        const res = await api.get<any>(ENDPOINTS.PROJECTS);
+        const res = await api.get<any>(`${ENDPOINTS.PROJECTS}?all=true`);
         const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
         this.cachedProjects = { data: list, timestamp: Date.now() };
         return list;
@@ -52,6 +59,60 @@ export class ProjectApiService {
     })();
 
     return this.inFlightProjectsPromise;
+  }
+
+  /**
+   * Fetch paginated projects with dynamic filters and industry-standard pagination metadata
+   * GET /api/projects?page=X&limit=Y&filter=Z
+   */
+  static async getPaginatedProjects(options?: {
+    page?: number;
+    limit?: number;
+    filter?: 'all' | 'managed';
+    search?: string;
+  }): Promise<PaginatedProjectsResponse> {
+    const page = options?.page || 1;
+    const limit = options?.limit || 6;
+    const filter = options?.filter || 'all';
+    const search = options?.search || '';
+
+    const queryParams = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+      filter,
+    });
+
+    if (search.trim()) {
+      queryParams.set('search', search.trim());
+    }
+
+    const res = await api.get<any>(`${ENDPOINTS.PROJECTS}?${queryParams.toString()}`);
+
+    const projects: Project[] = Array.isArray(res?.data)
+      ? res.data
+      : Array.isArray(res)
+      ? res
+      : [];
+
+    const pagination: PaginationMeta = res?.pagination || {
+      page,
+      limit,
+      totalItems: projects.length,
+      totalPages: Math.max(1, Math.ceil(projects.length / limit)),
+      hasNextPage: false,
+      hasPrevPage: page > 1,
+    };
+
+    const counts = res?.meta?.counts || {
+      all: pagination.totalItems,
+      managed: 0,
+    };
+
+    return {
+      projects,
+      pagination,
+      counts,
+    };
   }
 
   /**

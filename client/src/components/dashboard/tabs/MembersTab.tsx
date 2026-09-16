@@ -24,6 +24,7 @@ import { TeamMember, PaginationMeta } from '@/types/retro';
 import { useDebounce } from '@/hooks/useDebounce';
 import { UserAvatar, StatusPill } from '@/components/ui';
 import { Modal } from '@/components/ui/Modal';
+import { MemberDetailModal } from '@/components/dashboard/MemberDetailModal';
 
 interface MembersTabProps {
   members: TeamMember[];
@@ -85,6 +86,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   const [approvingEmail, setApprovingEmail] = useState<string | null>(null);
   const [rejectingEmail, setRejectingEmail] = useState<string | null>(null);
   const [memberToReject, setMemberToReject] = useState<TeamMember | null>(null);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   const handleRoleSelect = async (memberEmail: string, newRole: string) => {
     if (!onUpdateMemberRole) return;
@@ -360,33 +362,43 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                       className="hover:bg-slate-50/50 transition-colors"
                     >
                       {/* 1. Member Name (with avatar & online status) */}
-                      <td className="px-6 py-4 flex items-center gap-3">
-                        <UserAvatar
-                          name={m.name || m.email}
-                          email={m.email}
-                          title={m.email}
-                          avatar={m.avatar}
-                          size="md"
-                          status="online"
-                        />
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <p className="font-bold text-slate-900">{m.name || m.email}</p>
-                            {isSelf && (
-                              <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
-                                You
+                      <td className="px-6 py-4">
+                        <div
+                          onClick={() => setSelectedMember(m)}
+                          className="flex items-center gap-3 cursor-pointer group/member w-fit"
+                          title="Click to view full details"
+                        >
+                          <div className="group-hover/member:scale-105 transition-transform">
+                            <UserAvatar
+                              name={m.name || m.email}
+                              email={m.email}
+                              title={m.email}
+                              avatar={m.avatar}
+                              size="md"
+                              status="online"
+                            />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <p className="font-bold text-slate-900 group-hover/member:text-indigo-600 transition-colors">
+                                {m.name || m.email}
+                              </p>
+                              {isSelf && (
+                                <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                                  You
+                                </span>
+                              )}
+                            </div>
+                            {isPrimaryOwner || (isSelf && isAdmin) ? (
+                              <span className="text-[10px] text-slate-400">
+                                Admin
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50/80 px-1.5 py-0.5 rounded">
+                                {m.projectRole && m.projectRole !== 'Unassigned' ? m.projectRole : 'Developer'}
                               </span>
                             )}
                           </div>
-                          {isPrimaryOwner || (isSelf && isAdmin) ? (
-                            <span className="text-[10px] text-slate-400">
-                              Admin
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50/80 px-1.5 py-0.5 rounded">
-                              {m.projectRole && m.projectRole !== 'Unassigned' ? m.projectRole : 'Developer'}
-                            </span>
-                          )}
                         </div>
                       </td>
 
@@ -805,6 +817,19 @@ export const MembersTab: React.FC<MembersTabProps> = ({
           </div>
         </Modal>
       )}
+
+      {/* Detailed Member Profile Modal */}
+      <MemberDetailModal
+        isOpen={!!selectedMember}
+        member={
+          selectedMember
+            ? members.find((m) => m.email?.toLowerCase().trim() === selectedMember.email?.toLowerCase().trim()) || selectedMember
+            : null
+        }
+        onClose={() => setSelectedMember(null)}
+        isAdmin={isAdmin}
+        currentEmail={currentEmail}
+      />
     </div>
   );
 };

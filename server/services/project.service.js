@@ -193,39 +193,134 @@ class ProjectService {
   }
 
   /**
-   * Retrieve projects with Enterprise RBAC filtering
-   * - Admin: ALWAYS returns 100% of all projects across the organization
-   * - Regular Member/Developer: Strictly returns projects where the user is Lead, assigned in Members, or creator
+   * Retrieve projects with Enterprise RBAC filtering and high-performance server-side pagination
+   * - Admin: ALWAYS has visibility across all workspace projects
+   * - Regular Member/Developer: Strictly scoped to projects where user is Lead, Member, or Creator
+   * - Pagination: Standard limit (default 6), skip, total count, and tab counts ('all' vs 'managed')
+   * - Optimizations:
+   *   1. Concurrent Promise.all execution for counts and paginated document retrieval
+   *   2. Retrospective metrics sync executed strictly on paginated result slice (O(limit) vs O(N))
    */
-  async getAllProjects(currentUser = null) {
+  async getAllProjects(currentUser = null, options = {}) {
     if (!hasCheckedSeed) {
       await this.ensureSeededProject();
     }
 
-    // 1. If Admin: ALWAYS return all projects across the workspace
+    const {
+      page = 1,
+      limit = 6,
+      filter = 'all',
+      search = '',
+      all = false,
+    } = options;
+
+    const userEmail = currentUser?.email?.toLowerCase().trim();
+    const userRole = (currentUser?.role || '').toLowerCase();
+
+    // 1. Enterprise RBAC Check
     const isAdmin =
       !currentUser ||
-      currentUser.role?.toLowerCase() === 'admin' ||
-      currentUser.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
-      currentUser.email?.toLowerCase().includes('admin');
+      userRole === 'admin' ||
+      userEmail === 'gopalgohel249@gmail.com' ||
+      userEmail?.includes('admin');
 
-    let query = {};
+    // 2. Base Accessible Query Construction
+    let baseQuery = { isArchived: { $ne: true } };
 
-    // 2. If authenticated regular member: strictly return projects where user is assigned
-    if (!isAdmin && currentUser?.email) {
-      const email = currentUser.email.toLowerCase().trim();
-      query = {
+    if (!isAdmin && userEmail) {
+      baseQuery = {
+        isArchived: { $ne: true },
         $or: [
-          { 'lead.email': { $regex: new RegExp(`^${email}$`, 'i') } },
-          { 'members.email': { $regex: new RegExp(`^${email}$`, 'i') } },
+          { 'lead.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+          { 'members.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
           ...(currentUser._id ? [{ createdBy: currentUser._id }] : []),
         ],
       };
     }
 
-    // High-performance query with live synced retrospective card & action item counts
-    const rawProjects = await Project.find(query).sort({ createdAt: -1 });
+    // 3. Managed Query Construction (projects where user is Lead or Manager role)
+    let managedQuery = {
+      isArchived: { $ne: true },
+    };
 
+    if (userEmail) {
+      managedQuery = {
+        isArchived: { $ne: true },
+        $or: [
+          { 'lead.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+          {
+            members: {
+              $elemMatch: {
+                email: { $regex: new RegExp(`^${userEmail}$`, 'i') },
+                role: 'Manager',
+              },
+            },
+          },
+        ],
+      };
+    }
+
+    // For regular members, managed query must also intersect with their base accessible scope
+    if (!isAdmin && userEmail) {
+      managedQuery = {
+        $and: [
+          baseQuery,
+          {
+            $or: [
+              { 'lead.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+              {
+                members: {
+                  $elemMatch: {
+                    email: { $regex: new RegExp(`^${userEmail}$`, 'i') },
+                    role: 'Manager',
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      };
+    }
+
+    // 4. Select Target Query based on filter
+    let targetQuery = filter === 'managed' ? managedQuery : baseQuery;
+
+    // 5. Apply Search Filter if specified
+    if (search && typeof search === 'string' && search.trim()) {
+      const sanitized = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const searchRegex = new RegExp(sanitized, 'i');
+      const searchFilter = {
+        $or: [
+          { name: searchRegex },
+          { key: searchRegex },
+          { description: searchRegex },
+          { 'lead.name': searchRegex },
+          { 'lead.email': searchRegex },
+        ],
+      };
+
+      targetQuery = {
+        $and: [targetQuery, searchFilter],
+      };
+    }
+
+    // 6. Enterprise Pagination Calculations
+    const isAll = all === true || all === 'true' || String(limit).toLowerCase() === 'all' || Number(limit) === 0;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = isAll ? 1000 : Math.min(50, Math.max(1, parseInt(limit, 10) || 6));
+    const skip = (pageNum - 1) * limitNum;
+
+    // 7. Concurrent Execution for High-Performance Sub-millisecond Execution
+    const [allCount, managedCount, totalItems, rawProjects] = await Promise.all([
+      Project.countDocuments(baseQuery),
+      Project.countDocuments(managedQuery),
+      Project.countDocuments(targetQuery),
+      isAll
+        ? Project.find(targetQuery).sort({ createdAt: -1 })
+        : Project.find(targetQuery).sort({ createdAt: -1 }).skip(skip).limit(limitNum),
+    ]);
+
+    // 8. Sync live metrics strictly on the paginated slice
     const syncedProjects = await Promise.all(
       rawProjects.map(async (p) => {
         await this.syncProjectRetrospectives(p);
@@ -239,7 +334,23 @@ class ProjectService {
       })
     );
 
-    return syncedProjects;
+    const totalPages = isAll ? 1 : Math.ceil(totalItems / limitNum) || 1;
+
+    return {
+      projects: syncedProjects,
+      pagination: {
+        page: isAll ? 1 : pageNum,
+        limit: isAll ? totalItems : limitNum,
+        totalItems,
+        totalPages,
+        hasNextPage: isAll ? false : pageNum < totalPages,
+        hasPrevPage: isAll ? false : pageNum > 1,
+      },
+      counts: {
+        all: allCount,
+        managed: managedCount,
+      },
+    };
   }
 
   /**
