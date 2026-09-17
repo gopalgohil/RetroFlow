@@ -48,7 +48,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   return (
     <div className="relative group/avatar inline-flex shrink-0">
       <div
-        className={`${sizeClasses[size]} bg-gradient-to-tr from-indigo-600 via-indigo-500 to-indigo-400 text-white font-bold flex items-center justify-center shadow-xs select-none cursor-default ${className}`}
+        className={`${sizeClasses[size]} bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white font-bold flex items-center justify-center shadow-xs select-none cursor-default ${className}`}
       >
         {initials}
       </div>

@@ -57,7 +57,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               ${
                 error
                   ? 'border-rose-500 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
-                  : 'border-slate-300 hover:border-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20'
+                  : 'border-slate-300 hover:border-slate-400 focus:border-[#5cb028] focus:ring-2 focus:ring-[#5cb028]/20'
               }
               ${className}`}
             {...props}

@@ -33,11 +33,11 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   };
 
   const variantStyles = {
-    indigo: 'bg-indigo-600',
+    indigo: 'bg-[#5cb028]',
     emerald: 'bg-emerald-500',
     amber: 'bg-amber-500',
     rose: 'bg-rose-500',
-    gradient: 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600',
+    gradient: 'bg-gradient-to-r from-[#5cb028] via-[#52a622] to-[#4e9921]',
   };
 
   return (

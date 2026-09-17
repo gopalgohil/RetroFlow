@@ -75,7 +75,7 @@ export const Modal: React.FC<ModalProps> = ({
             className={`px-6 py-4.5 border-b border-slate-200/80 flex items-center justify-between shrink-0 ${
               variant === 'danger'
                 ? 'bg-gradient-to-r from-rose-50 via-slate-50/50 to-white'
-                : 'bg-gradient-to-r from-indigo-50/50 via-slate-50/50 to-white'
+                : 'bg-gradient-to-r from-emerald-50/50 via-slate-50/50 to-white'
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">
@@ -84,7 +84,7 @@ export const Modal: React.FC<ModalProps> = ({
                   className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md shrink-0 ${
                     variant === 'danger'
                       ? 'bg-rose-600 text-white shadow-rose-600/25'
-                      : 'bg-indigo-600 text-white shadow-indigo-600/20'
+                      : 'bg-[#5cb028] text-white shadow-[#5cb028]/20'
                   }`}
                 >
                   {icon}

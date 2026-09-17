@@ -62,10 +62,9 @@ export const StatusPill: React.FC<StatusPillProps> = ({
           hasDot: normalized === 'delayed',
         };
       case 'upcoming':
-      case 'manager':
         return {
-          pill: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-          dot: 'bg-indigo-500',
+          pill: 'bg-[#eaf5e3] text-[#3d8318] border-[#cdeac0]',
+          dot: 'bg-[#5cb028]',
           defaultLabel: status,
           hasDot: false,
         };
@@ -105,10 +104,11 @@ export const StatusPill: React.FC<StatusPillProps> = ({
           hasDot: false,
         };
       case 'admin':
+      case 'manager':
         return {
-          pill: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-          dot: 'bg-indigo-600',
-          defaultLabel: 'Admin',
+          pill: 'bg-[#eaf5e3] text-[#3d8318] border-[#cdeac0]',
+          dot: 'bg-[#5cb028]',
+          defaultLabel: status === 'manager' ? 'Manager' : 'Admin',
           hasDot: false,
         };
       case 'project lead':
