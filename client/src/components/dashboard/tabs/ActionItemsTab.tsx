@@ -129,11 +129,11 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Header Overview Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border border-indigo-100/90 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#eaf5e3]/60 via-white to-slate-50 border border-[#cdeac0]/80 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center gap-1.5 shadow-2xs">
-              <Sparkles className="w-3 h-3 text-indigo-600" />
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0] flex items-center gap-1.5 shadow-2xs">
+              <Sparkles className="w-3 h-3 text-[#5cb028]" />
               Retrospective Action Engine
             </span>
             {user?.name && (

@@ -517,7 +517,7 @@ function DashboardContent() {
                 type="button"
                 onClick={handleCheckApprovalStatus}
                 disabled={isCheckingStatus}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-indigo-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-md hover:shadow-[#5cb028]/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isCheckingStatus ? 'animate-spin' : ''}`} />
                 <span>{isCheckingStatus ? 'Checking Status...' : 'Check Approval Status'}</span>
@@ -536,7 +536,7 @@ function DashboardContent() {
             {/* Contact Support info */}
             <p className="text-[11px] text-slate-400 pt-3 border-t border-slate-100">
               Need immediate access? Contact workspace owner at{' '}
-              <a href="mailto:gopalgohel249@gmail.com" className="text-indigo-600 underline font-medium hover:text-indigo-700">
+              <a href="mailto:gopalgohel249@gmail.com" className="text-[#5cb028] underline font-medium hover:text-[#4e9921]">
                 gopalgohel249@gmail.com
               </a>
             </p>

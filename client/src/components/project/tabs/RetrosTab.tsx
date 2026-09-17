@@ -189,7 +189,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
           <button
             type="button"
             onClick={onCreateRetroClick}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all hover:scale-[1.01] cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all hover:scale-[1.01] cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Create Retrospective</span>
@@ -209,7 +209,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
             <button
               type="button"
               onClick={onCreateRetroClick}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-600/20 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5cb028] text-white text-xs font-bold hover:bg-[#4e9921] transition-colors shadow-md shadow-[#5cb028]/20 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Create Retrospective</span>
@@ -226,7 +226,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
             return (
               <div
                 key={retro.id || retro.shareToken}
-                className="group p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                className="group p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-[#5cb028]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-3">
                   {/* Status & Sprint Badge & Date */}
@@ -235,7 +235,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                       <StatusPill status={retro.status} pulse={isActive} />
 
                       {retro.sprintName && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
                           {retro.sprintName}
                         </span>
                       )}
@@ -266,9 +266,9 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                         {retro.cardsCount || 0} Cards
                       </span>
                     </div>
-                    <div className="p-2 rounded-xl bg-indigo-50/70 border border-indigo-100 text-center">
-                      <span className="text-[10px] text-indigo-500 block">Action Items</span>
-                      <span className="text-xs font-bold text-indigo-700">
+                    <div className="p-2 rounded-xl bg-[#eaf5e3]/70 border border-[#cdeac0] text-center">
+                      <span className="text-[10px] text-[#3d8318] block">Action Items</span>
+                      <span className="text-xs font-bold text-[#3d8318]">
                         {retro.actionItemsCount || 0} Items
                       </span>
                     </div>
@@ -298,7 +298,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                       href={`/retro/${retro.shareToken}`}
                       className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
                         isActive
-                          ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/20'
+                          ? 'bg-[#5cb028] hover:bg-[#4e9921] text-white shadow-[#5cb028]/20'
                           : 'bg-slate-900 hover:bg-slate-800 text-white'
                       }`}
                     >
@@ -311,7 +311,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                         type="button"
                         onClick={() => handleShareClick(retro)}
                         title="Share or Invite Teammates"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-indigo-50/70 hover:bg-indigo-100/90 text-indigo-700 border-indigo-200/80 hover:border-indigo-300 shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#eaf5e3]/70 hover:bg-[#eaf5e3] text-[#3d8318] border-[#cdeac0] hover:border-[#5cb028]/60 shadow-2xs"
                       >
                         {isCopied ? (
                           <>
@@ -320,7 +320,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                           </>
                         ) : (
                           <>
-                            <Share2 className="w-3.5 h-3.5 text-indigo-600" />
+                            <Share2 className="w-3.5 h-3.5 text-[#5cb028]" />
                             <span>Share / Invite</span>
                           </>
                         )}
@@ -383,7 +383,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                     onClick={() => setCurrentPage(p)}
                     className={`min-w-[32px] h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       p === safeCurrentPage
-                        ? 'bg-indigo-600 text-white shadow-xs'
+                        ? 'bg-[#5cb028] text-white shadow-xs'
                         : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
@@ -421,7 +421,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
           <div className="bg-white rounded-2xl p-6 max-w-md w-full border border-slate-200 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] text-[#3d8318] flex items-center justify-center font-bold">
                   <Edit3 className="w-4 h-4" />
                 </div>
                 <div>
@@ -447,7 +447,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   placeholder="e.g. Sprint 14 Retrospective"
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]"
                 />
               </div>
 
@@ -459,7 +459,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                     value={editSprintName}
                     onChange={(e) => setEditSprintName(e.target.value)}
                     placeholder="e.g. Sprint 14"
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]"
                   />
                 </div>
 
@@ -469,7 +469,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                     type="date"
                     value={editScheduledDate}
                     onChange={(e) => setEditScheduledDate(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]"
                   />
                 </div>
               </div>
@@ -485,7 +485,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                 <button
                   type="submit"
                   disabled={isSavingEdit || !editTitle.trim()}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {isSavingEdit ? (
                     <>

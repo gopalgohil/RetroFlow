@@ -131,8 +131,8 @@ export const WelcomeToast: React.FC<WelcomeToastProps> = ({
           <div
             className={`h-full ${
               isAdmin
-                ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600'
-                : 'bg-emerald-500'
+                ? 'bg-gradient-to-r from-emerald-500 via-[#5cb028] to-[#4e9921]'
+                : 'bg-[#5cb028]'
             }`}
             style={{
               width: `${progress}%`,

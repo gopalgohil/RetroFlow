@@ -17,7 +17,7 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Card 1: Team Attendance Rate */}
-      <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-3 relative overflow-hidden group hover:border-indigo-300 transition-colors">
+      <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-3 relative overflow-hidden group hover:border-[#5cb028]/40 transition-colors">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
             Avg. Attendance Rate
@@ -72,7 +72,7 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
             Total Retros
           </span>
-          <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-[#eaf5e3] text-[#3d8318] flex items-center justify-center">
             <Calendar className="w-4 h-4" />
           </div>
         </div>

@@ -44,7 +44,7 @@ export const RetroNoteCard: React.FC<RetroNoteCardProps> = ({
             — {author}
           </span>
           {typeof upvotes === 'number' && (
-            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-slate-200 shadow-2xs text-[11px] font-semibold text-indigo-600 select-none">
+            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#eaf5e3] border border-[#cdeac0] shadow-2xs text-[11px] font-semibold text-[#3d8318] select-none">
               <span>👍</span>
               <span>{upvotes}</span>
             </div>

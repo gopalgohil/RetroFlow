@@ -151,7 +151,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
             <button
               onClick={() => onNavigateToTab('retros')}
-              className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#5cb028] hover:text-[#4e9921] flex items-center gap-1 cursor-pointer"
             >
               <span>View All ({project.retrospectives.length})</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -173,7 +173,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                       <span>•</span>
                       <span>{retro.cardsCount} cards</span>
                       <span>•</span>
-                      <span className="text-indigo-600 font-semibold">
+                      <span className="text-[#3d8318] font-semibold">
                         {retro.actionItemsCount} action items
                       </span>
                     </div>
@@ -182,7 +182,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
                 <Link
                   href={`/retro/${retro.shareToken}`}
-                  className="px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-indigo-600 text-xs font-bold transition-all shadow-2xs"
+                  className="px-3 py-1.5 rounded-lg bg-white hover:bg-[#eaf5e3] border border-slate-200 hover:border-[#cdeac0] text-[#3d8318] text-xs font-bold transition-all shadow-2xs"
                 >
                   Open
                 </Link>
@@ -202,7 +202,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
             <button
               onClick={() => onNavigateToTab('team')}
-              className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#5cb028] hover:text-[#4e9921] flex items-center gap-1 cursor-pointer"
             >
               <span>{canManageProject ? 'Manage Team' : 'View Team Directory'}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />

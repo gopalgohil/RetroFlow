@@ -155,7 +155,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               onClick={() => handleFilterChange(tab)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
                 filter === tab
-                  ? 'bg-white text-indigo-600 shadow-xs'
+                  ? 'bg-white text-[#5cb028] shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -171,7 +171,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
       ) : filteredSprints.length === 0 ? (
         allSprints.length === 0 ? (
           <div className="p-12 text-center rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col items-center justify-center">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-3 shadow-2xs">
+            <div className="w-12 h-12 rounded-2xl bg-[#eaf5e3] flex items-center justify-center text-[#5cb028] mb-3 shadow-2xs">
               <Layers className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-slate-900">No Sprints Yet</h3>
@@ -195,7 +195,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               key={sprint.id}
               className={`rounded-2xl bg-white border transition-all shadow-xs overflow-hidden ${
                 sprint.status === 'active'
-                  ? 'border-indigo-200/90 ring-1 ring-indigo-500/10'
+                  ? 'border-[#5cb028]/40 ring-1 ring-[#5cb028]/10'
                   : 'border-slate-200/90'
               }`}
             >
@@ -206,7 +206,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm ${
                       sprint.status === 'active'
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                        ? 'bg-[#5cb028] text-white shadow-md shadow-[#5cb028]/20'
                         : sprint.status === 'completed'
                         ? 'bg-emerald-100 text-emerald-800'
                         : 'bg-slate-100 text-slate-600'
@@ -232,17 +232,17 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                           type="button"
                           onClick={() => setEditingDatesSprint(sprint)}
                           title="Click to edit sprint start & end dates"
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100/90 hover:bg-indigo-50/80 text-slate-700 hover:text-indigo-700 font-semibold border border-slate-200/80 hover:border-indigo-200 shadow-2xs transition-all cursor-pointer group"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100/90 hover:bg-[#eaf5e3]/80 text-slate-700 hover:text-[#3d8318] font-semibold border border-slate-200/80 hover:border-[#cdeac0] shadow-2xs transition-all cursor-pointer group"
                         >
-                          <Calendar className="w-3.5 h-3.5 text-indigo-600 group-hover:scale-105 transition-transform" />
+                          <Calendar className="w-3.5 h-3.5 text-[#5cb028] group-hover:scale-105 transition-transform" />
                           <span>
                             {formatDateDMY(sprint.startDate)} → {formatDateDMY(sprint.endDate)}
                           </span>
-                          <Pencil className="w-3 h-3 text-slate-400 group-hover:text-indigo-600 transition-colors ml-0.5" />
+                          <Pencil className="w-3 h-3 text-slate-400 group-hover:text-[#5cb028] transition-colors ml-0.5" />
                         </button>
                       ) : (
                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100/90 text-slate-700 font-semibold border border-slate-200/80 shadow-2xs">
-                          <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                          <Calendar className="w-3.5 h-3.5 text-[#5cb028]" />
                           <span>
                             {formatDateDMY(sprint.startDate)} → {formatDateDMY(sprint.endDate)}
                           </span>
@@ -252,7 +252,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                       <span className="text-slate-300">•</span>
 
                       <span className="inline-flex items-center gap-1 font-semibold text-slate-600">
-                        <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                        <Clock className="w-3.5 h-3.5 text-[#5cb028]" />
                         {sprint.status === 'completed'
                           ? 'Completed'
                           : `${sprint.daysLeft} days remaining`}
@@ -328,7 +328,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                       <button
                         type="button"
                         onClick={() => setConfirmSprint({ sprint, action: 'start' })}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                       >
                         <Play className="w-3.5 h-3.5 fill-current" />
                         <span>Start Sprint</span>
@@ -339,7 +339,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                       <button
                         type="button"
                         onClick={() => setConfirmSprint({ sprint, action: 'start' })}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 text-slate-600 hover:text-indigo-600 text-xs font-semibold transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-[#5cb028]/60 hover:bg-[#eaf5e3]/50 text-slate-600 hover:text-[#3d8318] text-xs font-semibold transition-colors cursor-pointer"
                         title="Resume or reactivate this sprint"
                       >
                         <Play className="w-3 h-3 fill-current" />
@@ -368,7 +368,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                 <div className="border-t border-slate-100 bg-slate-50/60 p-5 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-700 flex items-center gap-2">
-                      <Layers className="w-3.5 h-3.5 text-indigo-600" />
+                      <Layers className="w-3.5 h-3.5 text-[#5cb028]" />
                       Sprint Backlog Stories & Action Items ({sprint.items.length})
                     </span>
                     <span className="text-[11px] text-slate-400 font-medium">
@@ -395,7 +395,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                                 {item.title}
                               </p>
                               {item.sourceRetroTitle && (
-                                <p className="text-[10px] text-indigo-600 mt-0.5 flex items-center gap-1">
+                                <p className="text-[10px] text-[#3d8318] mt-0.5 flex items-center gap-1 font-medium">
                                   <Sparkles className="w-2.5 h-2.5" />
                                   From Retro: {item.sourceRetroTitle}
                                 </p>
@@ -435,18 +435,18 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
                                   )
                                 }
                                 title="Click to update ticket status (TODO ➔ IN PROGRESS ➔ DONE)"
-                                className={`appearance-none pl-2.5 pr-7 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer border shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500/30 ${
+                                className={`appearance-none pl-2.5 pr-7 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer border shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 ${
                                   item.status === 'done'
                                     ? 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100/90 shadow-emerald-500/10'
                                     : item.status === 'in_progress'
-                                    ? 'bg-indigo-50 text-indigo-700 border-indigo-300 hover:bg-indigo-100/90 shadow-indigo-500/10'
+                                    ? 'bg-[#eaf5e3] text-[#3d8318] border-[#cdeac0] hover:bg-[#eaf5e3]/90 shadow-[#5cb028]/10'
                                     : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200/80 shadow-slate-500/10'
                                 }`}
                               >
                                 <option value="todo" className="text-slate-800 bg-white font-bold py-1">
                                   ○ TO DO
                                 </option>
-                                <option value="in_progress" className="text-indigo-700 bg-white font-bold py-1">
+                                <option value="in_progress" className="text-[#3d8318] bg-white font-bold py-1">
                                   ◑ IN PROGRESS
                                 </option>
                                 <option value="done" className="text-emerald-700 bg-white font-bold py-1">

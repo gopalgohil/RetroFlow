@@ -13,10 +13,10 @@ export const SessionsSkeleton: React.FC = () => {
   return (
     <div className="space-y-6 animate-pulse">
       {/* Top Banner Overview Card Skeleton */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-indigo-50/70 via-slate-50 to-white border border-indigo-100/80 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-[#eaf5e3]/60 via-slate-50 to-white border border-[#cdeac0]/80 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="space-y-3 max-w-xl w-full">
           {/* Engine Pill Badge */}
-          <div className="h-6 w-32 rounded-full bg-indigo-100/90" />
+          <div className="h-6 w-32 rounded-full bg-[#eaf5e3] border border-[#cdeac0]" />
           {/* Main Hub Title */}
           <div className="h-8 w-3/4 max-w-md rounded-xl bg-slate-200/90" />
           {/* Subtitle Description Lines */}
@@ -27,7 +27,7 @@ export const SessionsSkeleton: React.FC = () => {
         </div>
 
         {/* Right Stats Box Skeleton */}
-        <div className="hidden md:flex flex-col gap-2.5 shrink-0 bg-white/90 p-4 rounded-xl border border-indigo-100/80 shadow-xs w-52">
+        <div className="hidden md:flex flex-col gap-2.5 shrink-0 bg-white/90 p-4 rounded-xl border border-[#cdeac0]/80 shadow-xs w-52">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100" />
             <div className="space-y-1.5 flex-1">
@@ -36,7 +36,7 @@ export const SessionsSkeleton: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100" />
+            <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] border border-[#cdeac0]" />
             <div className="space-y-1.5 flex-1">
               <div className="h-3 w-24 bg-slate-200 rounded" />
               <div className="h-2.5 w-16 bg-slate-100 rounded" />
@@ -89,7 +89,7 @@ export const SessionCardsSkeleton: React.FC<{ count?: number }> = ({ count = 4 }
           {/* Footer Buttons */}
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-28 rounded-xl bg-indigo-200/80" />
+              <div className="h-8 w-28 rounded-xl bg-[#eaf5e3] border border-[#cdeac0]" />
               <div className="h-8 w-28 rounded-xl bg-slate-100" />
             </div>
             <div className="flex items-center gap-1">
@@ -141,7 +141,7 @@ export const MembersSkeleton: React.FC = () => {
                   <div className="h-2.5 w-44 rounded bg-slate-100" />
                 </div>
               </div>
-              <div className="h-6 w-28 rounded-lg bg-indigo-50 border border-indigo-100" />
+              <div className="h-6 w-28 rounded-lg bg-[#eaf5e3] border border-[#cdeac0]" />
             </div>
           ))}
         </div>
@@ -166,7 +166,7 @@ export const SettingsSkeleton: React.FC = () => {
       {/* Settings Form Card */}
       <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-5">
         <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100" />
+          <div className="w-10 h-10 rounded-xl bg-[#eaf5e3] border border-[#cdeac0]" />
           <div className="space-y-1.5">
             <div className="h-4 w-36 rounded bg-slate-200" />
             <div className="h-3 w-56 rounded bg-slate-100" />
@@ -196,7 +196,7 @@ export const SettingsSkeleton: React.FC = () => {
  */
 export const RetroBoardSkeleton: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex flex-col font-sans animate-pulse">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans animate-pulse">
       {/* Top Header Skeleton */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/90 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
         {/* Left: Back button + Title & Status */}
@@ -213,9 +213,9 @@ export const RetroBoardSkeleton: React.FC = () => {
 
         {/* Right: Badges & Buttons */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:block h-8 w-36 rounded-xl bg-indigo-50 border border-indigo-100" />
+          <div className="hidden sm:block h-8 w-36 rounded-xl bg-[#eaf5e3] border border-[#cdeac0]" />
           <div className="hidden md:block h-8 w-32 rounded-xl bg-slate-100 border border-slate-200" />
-          <div className="h-9 w-36 rounded-xl bg-indigo-200" />
+          <div className="h-9 w-36 rounded-xl bg-[#5cb028]/30" />
         </div>
       </header>
 
@@ -294,10 +294,10 @@ export const ProjectsTabSkeleton: React.FC = () => {
   return (
     <div className="space-y-8 animate-pulse">
       {/* Top Header Banner Skeleton (Light Theme) */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-50/70 via-slate-50 to-white border border-indigo-100/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#eaf5e3]/60 via-slate-50 to-white border border-[#cdeac0]/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-3 max-w-xl w-full">
           <div className="flex items-center gap-2">
-            <div className="h-5 w-28 rounded-full bg-indigo-100/80" />
+            <div className="h-5 w-28 rounded-full bg-[#eaf5e3] border border-[#cdeac0]" />
             <div className="h-4 w-32 rounded-md bg-slate-200/60" />
           </div>
           <div className="h-7 sm:h-8 w-3/4 max-w-md rounded-xl bg-slate-200/80" />
@@ -307,7 +307,7 @@ export const ProjectsTabSkeleton: React.FC = () => {
           </div>
         </div>
 
-        <div className="h-10 w-44 rounded-xl bg-indigo-100/80 shrink-0 self-start sm:self-auto" />
+        <div className="h-10 w-44 rounded-xl bg-[#5cb028]/30 shrink-0 self-start sm:self-auto" />
       </div>
 
       {/* View Filter Switcher Bar Skeleton */}
@@ -341,7 +341,7 @@ export const ProjectCardsSkeleton: React.FC<{ count?: number }> = ({ count = 3 }
             {/* Card Header: Icon + Name + Status */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-indigo-100/70 shrink-0" />
+                <div className="w-11 h-11 rounded-2xl bg-[#eaf5e3] shrink-0" />
                 <div className="space-y-1.5">
                   <div className="h-5 w-36 bg-slate-200 rounded-md" />
                   <div className="h-3.5 w-20 bg-slate-100 rounded" />
@@ -438,10 +438,10 @@ export const ActionItemsSkeleton: React.FC = () => {
   return (
     <div className="space-y-6 animate-pulse">
       {/* 1. Header Overview Banner Skeleton */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border border-indigo-100/90 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#eaf5e3]/60 via-white to-slate-50 border border-[#cdeac0]/80 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div className="space-y-2.5 max-w-2xl w-full">
           <div className="flex items-center gap-2">
-            <div className="h-5 w-44 rounded-full bg-indigo-100/90" />
+            <div className="h-5 w-44 rounded-full bg-[#eaf5e3] border border-[#cdeac0]" />
             <div className="h-4 w-28 rounded-md bg-slate-200/70" />
           </div>
           <div className="h-8 w-64 sm:w-80 rounded-xl bg-slate-300/80" />
@@ -453,7 +453,7 @@ export const ActionItemsSkeleton: React.FC = () => {
 
         {/* Action Toggle Button Skeleton */}
         <div className="flex items-center gap-1.5 bg-white p-1 rounded-2xl border border-slate-200 shadow-xs shrink-0">
-          <div className="h-7 w-28 rounded-xl bg-indigo-600/30" />
+          <div className="h-7 w-28 rounded-xl bg-[#5cb028]/30" />
           <div className="h-7 w-28 rounded-xl bg-slate-100" />
         </div>
       </div>
@@ -462,8 +462,8 @@ export const ActionItemsSkeleton: React.FC = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Total Items */}
         <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
-            <div className="w-6 h-6 rounded-md bg-indigo-200/80" />
+          <div className="w-12 h-12 rounded-2xl bg-[#eaf5e3] border border-[#cdeac0] flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded-md bg-[#cdeac0]" />
           </div>
           <div className="space-y-1.5 flex-1">
             <div className="h-3 w-20 rounded bg-slate-200/80" />
@@ -539,7 +539,7 @@ export const ActionItemsSkeleton: React.FC = () => {
 
         {/* Status Filter Tabs Strip Skeleton */}
         <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 overflow-x-auto">
-          <div className="h-7 w-24 rounded-xl bg-indigo-600/30 flex items-center justify-center gap-2 px-3">
+          <div className="h-7 w-24 rounded-xl bg-[#5cb028]/30 flex items-center justify-center gap-2 px-3">
             <div className="h-3 w-12 rounded bg-white/40" />
             <div className="w-4 h-4 rounded-full bg-white/30" />
           </div>
@@ -596,7 +596,7 @@ export const ActionItemsCardsSkeleton: React.FC<{ count?: number }> = ({ count =
               {/* Context Badges: Project, Retro, Sprint */}
               <div className="flex items-center gap-2 pt-0.5 flex-wrap">
                 <div className="h-5 w-18 rounded-md bg-slate-100 border border-slate-200/70" />
-                <div className="h-5 w-32 rounded-md bg-indigo-50 border border-indigo-200/70" />
+                <div className="h-5 w-32 rounded-md bg-[#eaf5e3] border border-[#cdeac0]" />
                 <div className="h-5 w-24 rounded-md bg-slate-50 border border-slate-200/70" />
               </div>
             </div>
@@ -614,7 +614,7 @@ export const ActionItemsCardsSkeleton: React.FC<{ count?: number }> = ({ count =
             </div>
 
             {/* Assignee Avatar */}
-            <div className="w-8 h-8 rounded-full bg-indigo-100 border border-indigo-200/80 shrink-0" />
+            <div className="w-8 h-8 rounded-full bg-[#eaf5e3] border border-[#cdeac0] shrink-0" />
           </div>
         </div>
       ))}
@@ -657,7 +657,7 @@ export const DashboardLayoutSkeleton: React.FC<{ tab?: string }> = ({ tab = 'ses
       <aside className="fixed top-0 bottom-0 left-0 z-50 w-72 bg-white/90 backdrop-blur-xl border-r border-slate-200/80 hidden lg:flex flex-col p-6 animate-pulse">
         {/* Brand Header */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-100/80" />
+          <div className="w-10 h-10 rounded-xl bg-[#eaf5e3]" />
           <div className="space-y-1.5 flex-1">
             <div className="h-4 w-24 bg-slate-200 rounded" />
             <div className="h-2.5 w-16 bg-slate-100 rounded" />
@@ -693,7 +693,7 @@ export const DashboardLayoutSkeleton: React.FC<{ tab?: string }> = ({ tab = 'ses
         <header className="sticky top-0 z-30 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-6 flex items-center justify-between gap-4 animate-pulse">
           <div className="h-10 w-72 rounded-xl bg-slate-100" />
           <div className="flex items-center gap-3">
-            <div className="h-9 w-32 rounded-xl bg-indigo-100/70" />
+            <div className="h-9 w-32 rounded-xl bg-[#eaf5e3]" />
             <div className="w-9 h-9 rounded-full bg-slate-200" />
           </div>
         </header>

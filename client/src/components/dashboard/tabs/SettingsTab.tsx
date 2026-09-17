@@ -37,7 +37,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
     <div className="max-w-3xl space-y-6 animate-in fade-in duration-200">
       <div className="border-b border-slate-200 pb-4">
         <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-          <Settings className="w-5 h-5 text-indigo-600" />
+          <Settings className="w-5 h-5 text-[#5cb028]" />
           Workspace Settings
         </h2>
         <p className="text-xs text-slate-500 mt-1">
@@ -49,7 +49,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         {/* General Profile Card */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+            <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] text-[#3d8318] flex items-center justify-center font-bold text-xs">
               🏢
             </div>
             <div>
@@ -70,7 +70,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                   setFormData((prev) => ({ ...prev, workspaceName: e.target.value }))
                 }
                 required
-                className="mt-1.5 w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="mt-1.5 w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
               />
             </div>
             <div>
@@ -83,7 +83,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, organizationName: e.target.value }))
                 }
-                className="mt-1.5 w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="mt-1.5 w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
               />
             </div>
           </div>
@@ -92,7 +92,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         {/* Retrospective Default Governance Card */}
         <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
+            <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] text-[#3d8318] flex items-center justify-center font-bold text-xs">
               ⚙️
             </div>
             <div>
@@ -117,7 +117,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     defaultVotingLimit: Number(e.target.value) || 5,
                   }))
                 }
-                className="mt-1.5 w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="mt-1.5 w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
               />
             </div>
             <div>
@@ -135,7 +135,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     timerDefaultMinutes: Number(e.target.value) || 10,
                   }))
                 }
-                className="mt-1.5 w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="mt-1.5 w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
               />
             </div>
           </div>
@@ -158,7 +158,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     allowAnonymousFeedback: e.target.checked,
                   }))
                 }
-                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                className="w-4 h-4 accent-[#5cb028] text-[#5cb028] rounded focus:ring-[#5cb028]"
               />
             </label>
 
@@ -178,7 +178,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     enableSlackNotifications: e.target.checked,
                   }))
                 }
-                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                className="w-4 h-4 accent-[#5cb028] text-[#5cb028] rounded focus:ring-[#5cb028]"
               />
             </label>
           </div>
@@ -189,7 +189,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           <button
             type="submit"
             disabled={isSaving || isLoading}
-            className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+            className="px-6 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
           >
             {isSaving ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

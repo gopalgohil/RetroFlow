@@ -15,7 +15,7 @@ export const ActionItemsEmptyState: React.FC<ActionItemsEmptyStateProps> = React
 }) => {
   return (
     <div className="p-12 rounded-3xl bg-white border border-slate-200/80 text-center space-y-4 max-w-lg mx-auto shadow-xs">
-      <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
+      <div className="w-14 h-14 rounded-2xl bg-[#eaf5e3] border border-[#cdeac0] text-[#3d8318] flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
         🎯
       </div>
       <div className="space-y-1">
@@ -34,7 +34,7 @@ export const ActionItemsEmptyState: React.FC<ActionItemsEmptyStateProps> = React
         <button
           type="button"
           onClick={onResetFilters}
-          className="py-2 px-4 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold transition-colors cursor-pointer"
+          className="py-2 px-4 rounded-xl bg-[#eaf5e3] hover:bg-[#cdeac0]/50 text-[#3d8318] border border-[#cdeac0] text-xs font-bold transition-colors cursor-pointer"
         >
           Reset All Filters
         </button>

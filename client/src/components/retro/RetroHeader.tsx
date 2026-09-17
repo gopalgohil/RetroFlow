@@ -69,7 +69,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-all text-xs font-bold shadow-2xs group cursor-pointer"
           title="Back to Retrospective Sessions"
         >
-          <ArrowLeft className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+          <ArrowLeft className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#5cb028] transition-colors" />
           <span className="text-slate-600 font-bold">
             {projectKey ? `Project ${projectKey}` : 'Retrospectives'}
           </span>
@@ -79,7 +79,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
         <Link
           href="/dashboard?tab=sessions"
           title="RetroFlow Retrospective Sessions"
-          className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 hover:opacity-90 text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0 select-none transition-transform hover:scale-105"
+          className="w-8 h-8 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0 select-none transition-transform hover:scale-105"
         >
           RF
         </Link>
@@ -106,7 +106,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
               isRevealed
                 ? 'bg-amber-50 text-amber-800 border-amber-200'
-                : 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                : 'bg-[#5cb028] text-white border-[#5cb028] shadow-xs hover:bg-[#4e9921]'
             }`}
           >
             {isRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -116,7 +116,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
 
         {/* Current Participant/Facilitator Role Badge */}
         <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+          <span className="w-2 h-2 rounded-full bg-[#5cb028] shrink-0" />
           <span
             className="truncate max-w-[130px]"
             title={verifiedGuestEmail ? `${currentAuthorName} (${verifiedGuestEmail})` : currentAuthorName}
@@ -126,15 +126,15 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           <span
             className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
               userRole?.toLowerCase() === 'admin'
-                ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                ? 'bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]'
                 : userRole?.toLowerCase() === 'manager' || userRole?.toLowerCase().includes('manager')
-                ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                 : userRole?.toLowerCase().includes('lead')
                 ? 'bg-amber-100 text-amber-800 border border-amber-200'
                 : userRole?.toLowerCase().includes('qa')
                 ? 'bg-purple-100 text-purple-800 border border-purple-200'
                 : userRole?.toLowerCase() === 'developer' || verifiedGuestEmail
-                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                ? 'bg-slate-100 text-slate-800 border border-slate-200'
                 : 'bg-slate-200 text-slate-700 border border-slate-300'
             }`}
           >
@@ -148,7 +148,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
             onClick={onOpenInvite}
             className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 text-xs font-bold shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
           >
-            <Share2 className="w-3.5 h-3.5 text-indigo-600" />
+            <Share2 className="w-3.5 h-3.5 text-[#5cb028]" />
             <span className="hidden sm:inline">Invite Teammates</span>
           </button>
         )}
@@ -158,10 +158,10 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
         {isFacilitator && onEndSession && (
           <button
             onClick={onEndSession}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-bold shadow-xs transition-all hover:scale-[1.02] cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-[#5cb028] text-white text-xs font-bold shadow-xs transition-all hover:scale-[1.02] cursor-pointer"
             title="End session and export action items to project backlog"
           >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <Sparkles className="w-3.5 h-3.5 text-[#5cb028]" />
             <span>End Session</span>
           </button>
         )}

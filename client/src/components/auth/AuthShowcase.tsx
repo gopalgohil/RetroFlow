@@ -22,15 +22,15 @@ export const AuthShowcase: React.FC<AuthShowcaseProps> = ({
   imageAlt = 'Agile Team Retrospective & Innovation',
 }) => {
   return (
-    <div className="relative flex flex-col justify-between h-full w-full bg-[#eef3fb] p-8 sm:p-12 lg:p-14 select-none overflow-hidden">
+    <div className="relative flex flex-col justify-between h-full w-full bg-[#f4f9f0] p-8 sm:p-12 lg:p-14 select-none overflow-hidden">
       {/* Background ambient lighting */}
-      <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-200/50 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-200/50 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#5cb028]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Brand Section */}
       <div className="relative z-10 space-y-1">
         <Link href="/" className="inline-flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/30 group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-[#5cb028] flex items-center justify-center text-white shadow-md shadow-[#5cb028]/25 group-hover:scale-105 transition-transform">
             <svg
               className="w-5 h-5"
               fill="none"
@@ -58,7 +58,7 @@ export const AuthShowcase: React.FC<AuthShowcaseProps> = ({
 
       {/* Middle Illustration Showcase Card */}
       <div className="relative z-10 my-auto py-4">
-        <div className="w-full max-w-lg mx-auto rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/75 shadow-lg shadow-indigo-950/5 p-6 sm:p-8 flex flex-col items-center text-center">
+        <div className="w-full max-w-lg mx-auto rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/75 shadow-lg shadow-slate-900/5 p-6 sm:p-8 flex flex-col items-center text-center">
           <div className="w-full max-w-[400px] flex items-center justify-center">
             <img
               src={imageSrc}

@@ -498,7 +498,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
                 touched.name && errors.name
                   ? 'border-rose-400 focus:ring-rose-500/30 focus:border-rose-500 bg-rose-50/20'
-                  : 'border-slate-200 focus:ring-indigo-500/30 focus:border-indigo-500'
+                  : 'border-slate-200 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
               }`}
             />
             {touched.name && errors.name ? (
@@ -579,7 +579,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all resize-none ${
               touched.description && errors.description
                 ? 'border-rose-400 focus:ring-rose-500/30 focus:border-rose-500 bg-rose-50/20'
-                : 'border-slate-200 focus:ring-indigo-500/30 focus:border-indigo-500'
+                : 'border-slate-200 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
             }`}
           />
           {touched.description && errors.description ? (
@@ -681,7 +681,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
                         <ChevronDown
                           className={`w-4 h-4 text-slate-400 transition-transform duration-150 shrink-0 ${
-                            isMemberDropdownOpen ? 'rotate-180 text-indigo-600' : ''
+                            isMemberDropdownOpen ? 'rotate-180 text-[#5cb028]' : ''
                           }`}
                         />
                       </button>
@@ -704,7 +704,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                   e.stopPropagation();
                                   handleSelectAll(unaddedMembers.map((m) => m.email));
                                 }}
-                                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
+                                className="text-[11px] font-bold text-[#5cb028] hover:text-[#4e9921] transition-colors cursor-pointer"
                               >
                                 {unaddedMembers.length > 0 &&
                                 unaddedMembers.every((m) =>
@@ -734,7 +734,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                   isAdded
                                     ? 'opacity-50 bg-slate-50 cursor-not-allowed text-slate-400'
                                     : isSelected
-                                    ? 'bg-indigo-50/80 border border-indigo-200/60 text-slate-900 cursor-pointer'
+                                    ? 'bg-[#eaf5e3]/80 border border-[#cdeac0]/60 text-slate-900 cursor-pointer'
                                     : 'hover:bg-slate-50 border border-transparent text-slate-700 cursor-pointer'
                                 }`}
                               >
@@ -797,7 +797,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                     setNewMemberRole(e.target.value as ProjectMemberRole);
                     setMemberError('');
                   }}
-                  className="w-full px-2.5 py-2 bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer min-h-[42px] shadow-2xs transition-colors"
+                  className="w-full px-2.5 py-2 bg-white border border-slate-200 hover:border-[#5cb028]/60 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer min-h-[42px] shadow-2xs transition-colors"
                 >
                   <option value="Developer" className="bg-white text-slate-900">Developer</option>
                   <option value="QA" className="bg-white text-slate-900">QA</option>

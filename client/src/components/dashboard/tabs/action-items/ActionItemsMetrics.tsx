@@ -18,7 +18,7 @@ export const ActionItemsMetrics: React.FC<ActionItemsMetricsProps> = React.memo(
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Metric 1: Total */}
       <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+        <div className="w-12 h-12 rounded-2xl bg-[#eaf5e3] border border-[#cdeac0] text-[#3d8318] flex items-center justify-center shrink-0">
           <CheckSquare className="w-6 h-6" />
         </div>
         <div>

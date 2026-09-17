@@ -141,7 +141,7 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
 
         {/* Resend OTP & Change Email options */}
         <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-          <Link href="/signup" className="text-indigo-600 hover:underline font-medium">
+          <Link href="/signup" className="text-[#5cb028] hover:underline font-medium">
             ← Change email / Re-signup
           </Link>
 
@@ -149,7 +149,7 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
             <button
               type="button"
               onClick={handleResendOtp}
-              className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
+              className="font-semibold text-[#5cb028] hover:text-[#4e9921] hover:underline cursor-pointer"
             >
               Resend Code
             </button>
@@ -163,7 +163,7 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
           type="submit"
           variant="primary"
           isLoading={isLoading}
-          className="w-full py-3 text-sm font-semibold rounded-xl shadow-md shadow-indigo-600/20"
+          className="w-full py-3 text-sm font-semibold rounded-xl shadow-md shadow-[#5cb028]/20"
         >
           Verify & Activate Account
         </Button>

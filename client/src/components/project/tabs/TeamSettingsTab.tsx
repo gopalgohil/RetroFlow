@@ -282,7 +282,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         <div className="p-6 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <Users className="w-4 h-4 text-indigo-600" />
+              <Users className="w-4 h-4 text-[#5cb028]" />
               Assigned Team Members ({project.members.length})
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -294,7 +294,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             <button
               type="button"
               onClick={() => setIsInviteOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               <span>Invite Team Member</span>
@@ -353,7 +353,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                     <div>
                       <p className="font-bold text-slate-900">{member.name}</p>
                       {project.lead.email === member.email && (
-                        <span className="text-[10px] text-indigo-600 font-semibold">
+                        <span className="text-[10px] text-[#3d8318] font-semibold">
                           Manager
                         </span>
                       )}
@@ -409,7 +409,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         <div className="border-b border-slate-200/80 pb-4 flex items-center justify-between">
           <div>
             <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <Settings className="w-4 h-4 text-indigo-600" />
+              <Settings className="w-4 h-4 text-[#5cb028]" />
               <span>General Project Configuration</span>
               {!canManageProject && (
                 <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
@@ -454,7 +454,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 onChange={(e) => setName(e.target.value)}
                 className={`w-full px-3.5 py-2.5 border rounded-xl text-xs text-slate-900 focus:outline-none ${
                   canManageProject
-                    ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500'
+                    ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
                     : 'bg-slate-100/70 border-slate-200 text-slate-500 cursor-not-allowed select-none'
                 }`}
               />
@@ -470,7 +470,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 onChange={(e) => setDescription(e.target.value)}
                 className={`w-full px-3.5 py-2.5 border rounded-xl text-xs text-slate-900 focus:outline-none resize-none ${
                   canManageProject
-                    ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500'
+                    ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
                     : 'bg-slate-100/70 border-slate-200 text-slate-500 cursor-not-allowed select-none'
                 }`}
               />
@@ -625,7 +625,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             <button
               type="button"
               onClick={handleInviteSubmit}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
             >
               Send Invitation
             </button>
@@ -651,7 +651,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                     setInviteEmail(found.email);
                   }
                 }}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer"
               >
                 {workspaceMembers.map((m) => {
                   const isAlreadyMember = project.members?.some(
@@ -672,7 +672,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                     setInviteName('');
                     setInviteEmail('');
                   }}
-                  className="text-[11px] text-indigo-600 hover:text-indigo-700 hover:underline font-medium cursor-pointer"
+                  className="text-[11px] text-[#5cb028] hover:text-[#4e9921] hover:underline font-medium cursor-pointer"
                 >
                   + Or enter custom name & email
                 </button>

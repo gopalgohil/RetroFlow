@@ -322,7 +322,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
                 type="button"
                 onClick={onExportTopic}
                 title="Select action items and push directly to sprint backlog"
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold shadow-2xs transition-all hover:scale-[1.03] cursor-pointer"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-[10px] font-bold shadow-2xs transition-all hover:scale-[1.03] cursor-pointer"
               >
                 <Sparkles className="w-2.5 h-2.5" />
                 <span>To Sprint</span>
@@ -347,7 +347,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         onDrop={handleColumnDrop}
         className={`p-2 sm:p-2.5 space-y-2 min-h-[220px] max-h-[calc(100vh-230px)] overflow-y-auto transition-colors ${
           isColumnDragOver && (canManageActionItems || !isActionColumn) && (!isDraggingFromAnotherColumn || canMoveCrossColumn)
-            ? 'bg-indigo-50/50 ring-2 ring-indigo-400/70 ring-inset rounded-xl'
+            ? 'bg-[#eaf5e3]/50 ring-2 ring-[#5cb028]/70 ring-inset rounded-xl'
             : ''
         }`}
       >
@@ -390,7 +390,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 
         {/* Inline Add Card Input Form */}
         {isInputOpen && canAddCard && (
-          <div className="p-2.5 rounded-xl bg-white border-2 border-indigo-500 shadow-sm space-y-2 animate-in fade-in duration-150">
+          <div className="p-2.5 rounded-xl bg-white border-2 border-[#5cb028] shadow-sm space-y-2 animate-in fade-in duration-150">
             <textarea
               autoFocus
               rows={2}
@@ -418,7 +418,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
               <button
                 type="button"
                 onClick={handleSubmitCard}
-                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                className="px-2.5 py-1 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
               >
                 Add Card
               </button>
@@ -433,7 +433,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
           <button
             type="button"
             onClick={() => setIsInputOpen(true)}
-            className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 text-xs font-semibold text-slate-600 hover:text-indigo-600 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 hover:border-[#5cb028]/60 hover:bg-[#eaf5e3]/50 text-xs font-semibold text-slate-600 hover:text-[#3d8318] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Card</span>

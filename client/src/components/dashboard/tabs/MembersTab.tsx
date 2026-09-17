@@ -197,7 +197,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
       {/* Whitelist Quick Add Form Card (Admin Only) */}
       {isAdmin && (
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-50/70 via-white to-indigo-50/40 border border-emerald-100/80 shadow-xs">
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-50/70 via-white to-[#eaf5e3]/30 border border-emerald-100/80 shadow-xs">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
               <Shield className="w-4 h-4" />
@@ -475,7 +475,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               }
                               onChange={(e) => handleRoleSelect(m.email, e.target.value)}
                               disabled={updatingRoleEmail === m.email}
-                              className="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer shadow-2xs disabled:opacity-50"
+                              className="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all cursor-pointer shadow-2xs disabled:opacity-50"
                               title="Assign project role"
                             >
                               <option value="Developer">Developer</option>
@@ -485,7 +485,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               <option value="Project Lead">Project Lead</option>
                             </select>
                             {updatingRoleEmail === m.email && (
-                              <Loader2 className="w-3.5 h-3.5 text-indigo-600 animate-spin ml-2 shrink-0" />
+                              <Loader2 className="w-3.5 h-3.5 text-[#5cb028] animate-spin ml-2 shrink-0" />
                             )}
                           </div>
                         ) : (

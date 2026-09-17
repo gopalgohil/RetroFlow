@@ -86,7 +86,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                 {member.name || member.email.split('@')[0]}
               </h4>
               {isSelf && (
-                <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-semibold text-[#3d8318] bg-[#eaf5e3] border border-[#cdeac0] px-1.5 py-0.5 rounded">
                   You
                 </span>
               )}
@@ -125,7 +125,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
               <button
                 type="button"
                 onClick={handleCopyEmail}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5cb028] hover:text-[#4e9921] cursor-pointer"
                 title="Copy email to clipboard"
               >
                 {copiedEmail ? (
@@ -201,10 +201,10 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         <div className="space-y-2.5 pt-1">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <FolderKanban className="w-3.5 h-3.5 text-indigo-600" />
+              <FolderKanban className="w-3.5 h-3.5 text-[#5cb028]" />
               Assigned Initiatives & Projects
             </span>
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/70">
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
               {member.projectsCount || 0} Total
             </span>
           </div>
@@ -216,7 +216,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                   key={idx}
                   className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs font-medium text-slate-800"
                 >
-                  <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                  <div className="w-2 h-2 rounded-full bg-[#5cb028] shrink-0" />
                   <span className="truncate">{projName}</span>
                 </div>
               ))}
@@ -235,7 +235,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-900 hover:bg-indigo-600 text-white transition-colors cursor-pointer shadow-xs"
+            className="px-4 py-2 text-xs font-bold rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white transition-colors cursor-pointer shadow-xs"
           >
             Close
           </button>

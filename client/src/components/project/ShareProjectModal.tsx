@@ -195,9 +195,9 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between bg-gradient-to-r from-indigo-50/70 via-white to-slate-50">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between bg-gradient-to-r from-[#eaf5e3]/70 via-white to-slate-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/20 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#5cb028] text-white flex items-center justify-center shadow-md shadow-[#5cb028]/20 shrink-0">
               <Share2 className="w-5 h-5" />
             </div>
             <div>
@@ -253,7 +253,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                 className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   copied
                     ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs'
+                    : 'bg-[#5cb028] hover:bg-[#4e9921] text-white shadow-xs'
                 }`}
               >
                 {copied ? (
@@ -278,7 +278,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-indigo-600" />
+                  <Users className="w-3.5 h-3.5 text-[#5cb028]" />
                   <span>Project Members ({project.members.length})</span>
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
@@ -290,11 +290,11 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                 <button
                   type="button"
                   onClick={handleToggleSelectAll}
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
+                  className="text-xs font-semibold text-[#5cb028] hover:text-[#4e9921] flex items-center gap-1 cursor-pointer"
                 >
                   {allSelected ? (
                     <>
-                      <CheckSquare className="w-3.5 h-3.5 text-indigo-600" />
+                      <CheckSquare className="w-3.5 h-3.5 text-[#5cb028]" />
                       <span>Deselect All</span>
                     </>
                   ) : (
@@ -327,11 +327,11 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleToggleMember(member.email)}
-                        className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
+                        className="w-4 h-4 rounded text-[#5cb028] focus:ring-[#5cb028] border-slate-300 cursor-pointer"
                       />
 
                       {/* Avatar */}
-                      <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] text-[#3d8318] font-bold text-xs flex items-center justify-center shrink-0">
                         {member.avatar || member.name.slice(0, 2).toUpperCase()}
                       </div>
 
@@ -361,7 +361,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                             ? 'bg-cyan-50 text-cyan-700 border border-cyan-200'
                             : (member.role as string) === 'Project Lead'
                             ? 'bg-sky-50 text-sky-700 border border-sky-200'
-                            : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                            : 'bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]'
                         }`}
                       >
                         {member.role}
@@ -379,7 +379,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                 value={customMessage}
                 onChange={(e) => setCustomMessage(e.target.value)}
                 placeholder="Optional personal message (e.g. Please join and review current sprint goals)..."
-                className="w-full px-3.5 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3.5 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028]"
               />
             </div>
 
@@ -388,7 +388,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
               type="button"
               disabled={selectedEmails.length === 0 || isSendingInvites}
               onClick={handleSendBatchInvites}
-              className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               {isSendingInvites ? (
                 <>
@@ -413,13 +413,13 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
             <button
               type="button"
               onClick={() => setShowExternalInvite(!showExternalInvite)}
-              className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 transition-colors cursor-pointer group"
+              className="text-xs font-bold text-[#5cb028] hover:text-[#4e9921] flex items-center gap-1.5 transition-colors cursor-pointer group"
             >
               <span>+ Or invite external member by email</span>
               {showExternalInvite ? (
-                <ChevronUp className="w-3.5 h-3.5 text-indigo-500" />
+                <ChevronUp className="w-3.5 h-3.5 text-[#5cb028]" />
               ) : (
-                <ChevronDown className="w-3.5 h-3.5 text-indigo-500 group-hover:translate-y-0.5 transition-transform" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#5cb028] group-hover:translate-y-0.5 transition-transform" />
               )}
             </button>
 
@@ -427,10 +427,10 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
             {showExternalInvite && (
               <form
                 onSubmit={handleAddAndInviteExternal}
-                className="p-4 rounded-xl bg-slate-50 border border-indigo-100 space-y-3.5 animate-in fade-in duration-200"
+                className="p-4 rounded-xl bg-slate-50 border border-[#cdeac0] space-y-3.5 animate-in fade-in duration-200"
               >
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                  <UserPlus className="w-3.5 h-3.5 text-indigo-600" />
+                  <UserPlus className="w-3.5 h-3.5 text-[#5cb028]" />
                   <span>Add Member to Project & Send Invite</span>
                 </div>
 
@@ -445,7 +445,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                       value={externalName}
                       onChange={(e) => setExternalName(e.target.value)}
                       placeholder="e.g. Marcus Vance"
-                      className="w-full px-3 py-2 rounded-lg text-xs bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      className="w-full px-3 py-2 rounded-lg text-xs bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028]"
                     />
                   </div>
 
@@ -456,7 +456,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                     <select
                       value={externalRole}
                       onChange={(e) => setExternalRole(e.target.value as ProjectMemberRole)}
-                      className="w-full px-3 py-2 rounded-lg text-xs bg-white border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      className="w-full px-3 py-2 rounded-lg text-xs bg-white border border-slate-200 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028]"
                     >
                       <option value="Developer">Developer</option>
                       <option value="QA">QA Engineer</option>
@@ -476,14 +476,14 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                     value={externalEmail}
                     onChange={(e) => setExternalEmail(e.target.value)}
                     placeholder="e.g. marcus@company.com"
-                    className="w-full px-3 py-2 rounded-lg text-xs bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3 py-2 rounded-lg text-xs bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028]"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isAddingExternal}
-                  className="w-full py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  className="w-full py-2.5 px-4 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] disabled:opacity-60 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   {isAddingExternal ? (
                     <>

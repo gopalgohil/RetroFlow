@@ -77,8 +77,8 @@ export const StatusPill: React.FC<StatusPillProps> = ({
         };
       case 'action_item':
         return {
-          pill: 'bg-violet-50 text-violet-800 border-violet-200',
-          dot: 'bg-violet-500',
+          pill: 'bg-[#eaf5e3] text-[#3d8318] border-[#cdeac0]',
+          dot: 'bg-[#5cb028]',
           defaultLabel: 'Action Item',
           hasDot: false,
         };

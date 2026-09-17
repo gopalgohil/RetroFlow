@@ -30,14 +30,14 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   const variantIcons = {
     danger: <AlertTriangle className="w-5 h-5 text-rose-600" />,
     warning: <AlertTriangle className="w-5 h-5 text-amber-600" />,
-    primary: <Info className="w-5 h-5 text-indigo-600" />,
+    primary: <Info className="w-5 h-5 text-[#5cb028]" />,
     success: <CheckCircle2 className="w-5 h-5 text-emerald-600" />,
   };
 
   const buttonStyles = {
     danger: 'bg-rose-600 hover:bg-rose-700 text-white',
     warning: 'bg-amber-600 hover:bg-amber-700 text-white',
-    primary: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+    primary: 'bg-[#5cb028] hover:bg-[#4e9921] text-white',
     success: 'bg-emerald-600 hover:bg-emerald-700 text-white',
   };
 

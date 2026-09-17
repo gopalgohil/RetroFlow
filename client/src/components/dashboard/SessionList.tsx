@@ -200,7 +200,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                   </span>
 
                   {session.approvalRequired && (
-                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
                       Waiting Room
                     </span>
                   )}
@@ -231,16 +231,17 @@ export const SessionList: React.FC<SessionListProps> = ({
                     ? session.topics
                     : [
                         { title: 'What could be improved?', color: '#F43F5E' },
-                        { title: 'What went well?', color: '#10B981' },
+                        { title: 'What went well?', color: '#5cb028' },
                         { title: 'Action Items', color: '#0EA5E9' },
                       ];
 
                 const colorMap: Record<string, { bg: string; text: string; border: string; badgeBg: string; badgeText: string }> = {
+                  '#5cb028': { bg: 'bg-[#eaf5e3]', text: 'text-[#3d8318]', border: 'border-[#cdeac0]', badgeBg: 'bg-[#cdeac0]', badgeText: 'text-[#3d8318]' },
                   '#10B981': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200/80', badgeBg: 'bg-emerald-200/70', badgeText: 'text-emerald-900' },
                   '#F43F5E': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200/80', badgeBg: 'bg-rose-200/70', badgeText: 'text-rose-900' },
                   '#0EA5E9': { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200/80', badgeBg: 'bg-sky-200/70', badgeText: 'text-sky-900' },
                   '#F59E0B': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200/80', badgeBg: 'bg-amber-200/70', badgeText: 'text-amber-900' },
-                  '#4F46E5': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200/80', badgeBg: 'bg-indigo-200/70', badgeText: 'text-indigo-900' },
+                  '#4F46E5': { bg: 'bg-[#eaf5e3]', text: 'text-[#3d8318]', border: 'border-[#cdeac0]', badgeBg: 'bg-[#cdeac0]', badgeText: 'text-[#3d8318]' },
                   '#8B5CF6': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200/80', badgeBg: 'bg-purple-200/70', badgeText: 'text-purple-900' },
                   '#EC4899': { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200/80', badgeBg: 'bg-pink-200/70', badgeText: 'text-pink-900' },
                   '#06B6D4': { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200/80', badgeBg: 'bg-teal-200/70', badgeText: 'text-teal-900' },

@@ -23,7 +23,7 @@ export const RetroNotFound: React.FC<RetroNotFoundProps> = memo(function RetroNo
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link
           href="/projects"
-          className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-xs hover:bg-indigo-500 transition-colors cursor-pointer"
+          className="px-4 py-2 rounded-xl bg-[#5cb028] text-white text-xs font-bold shadow-xs hover:bg-[#4e9921] transition-colors cursor-pointer"
         >
           ← Back to Projects
         </Link>

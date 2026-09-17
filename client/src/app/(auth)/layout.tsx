@@ -19,7 +19,7 @@ export default function AuthLayout({
         {/* Mobile Header (Brand logo shown only on mobile when left panel is hidden) */}
         <div className="lg:hidden flex items-center justify-between pb-6 border-b border-slate-100 mb-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-600/30">
+            <div className="w-9 h-9 rounded-xl bg-[#5cb028] flex items-center justify-center text-white shadow-sm shadow-[#5cb028]/25">
               <svg
                 className="w-4 h-4"
                 fill="none"

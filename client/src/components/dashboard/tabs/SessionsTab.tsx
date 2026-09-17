@@ -79,9 +79,9 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
 
       {/* 4-Card Metric Stat Row (Digiflux Style) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric 1: Total Retros (Blue Icon Box) */}
+        {/* Metric 1: Total Retros (Green Icon Box) */}
         <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100/80 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-[#eaf5e3] border border-[#cdeac0] text-[#3d8318] flex items-center justify-center shrink-0">
             <Layers className="w-6 h-6" />
           </div>
           <div className="min-w-0 flex-1">

@@ -239,11 +239,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
             label={
               <span>
                 I agree to the{' '}
-                <a href="#" className="font-semibold text-indigo-600 hover:underline">
+                <a href="#" className="font-semibold text-[#5cb028] hover:underline">
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="#" className="font-semibold text-indigo-600 hover:underline">
+                <a href="#" className="font-semibold text-[#5cb028] hover:underline">
                   Privacy Policy
                 </a>
                 .
@@ -257,7 +257,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
           type="submit"
           variant="primary"
           isLoading={isLoading}
-          className="w-full py-3 text-sm font-semibold rounded-xl mt-2 shadow-md shadow-indigo-600/20"
+          className="w-full py-3 text-sm font-semibold rounded-xl mt-2 shadow-md shadow-[#5cb028]/20"
         >
           Create Account
         </Button>

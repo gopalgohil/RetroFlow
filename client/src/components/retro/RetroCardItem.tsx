@@ -123,17 +123,17 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
       className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 hover:z-30 ${
         canMoveCrossColumn ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
       } ${
-        isDragging ? 'opacity-40 ring-1 ring-indigo-400/40' : ''
+        isDragging ? 'opacity-40 ring-1 ring-[#5cb028]/40' : ''
       } ${
         !isRevealed ? 'filter blur-xs select-none' : ''
       }`}
     >
       {/* Precision Drop Insertion Line (Zero Layout Shift) */}
       {isDragTarget && dropPosition === 'above' && (
-        <div className="absolute -top-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.8)] z-30 pointer-events-none animate-pulse" />
+        <div className="absolute -top-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-[#5cb028] shadow-[0_0_6px_rgba(92,176,40,0.8)] z-30 pointer-events-none animate-pulse" />
       )}
       {isDragTarget && dropPosition === 'below' && (
-        <div className="absolute -bottom-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.8)] z-30 pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-[#5cb028] shadow-[0_0_6px_rgba(92,176,40,0.8)] z-30 pointer-events-none animate-pulse" />
       )}
       {isEditing ? (
         <div className="space-y-2 animate-in fade-in duration-150">
@@ -150,7 +150,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 handleCancelEdit();
               }
             }}
-            className="w-full text-xs text-slate-800 p-2 rounded-lg border border-indigo-400 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none shadow-inner"
+            className="w-full text-xs text-slate-800 p-2 rounded-lg border border-[#5cb028] bg-white focus:outline-none focus:ring-1 focus:ring-[#5cb028] resize-none shadow-inner"
             placeholder="Update your feedback..."
           />
           <div className="flex items-center justify-end gap-1.5">
@@ -164,7 +164,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             <button
               type="button"
               onClick={handleSaveEdit}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold shadow-xs cursor-pointer transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#5cb028] hover:bg-[#4e9921] text-white text-[11px] font-bold shadow-xs cursor-pointer transition-colors"
             >
               <Check className="w-3 h-3" />
               <span>Save</span>
@@ -217,10 +217,10 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 )}
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1.5 mb-1.5 border-b border-slate-100 flex items-center justify-between">
                   <span className="flex items-center gap-1">
-                    <ThumbsUp className="w-3 h-3 text-indigo-600" />
+                    <ThumbsUp className="w-3 h-3 text-[#5cb028]" />
                     <span>Votes</span>
                   </span>
-                  <span className="font-extrabold text-indigo-600 bg-indigo-50 px-1.5 py-0.2 rounded-full text-[9px]">
+                  <span className="font-extrabold text-[#3d8318] bg-[#eaf5e3] px-1.5 py-0.2 rounded-full text-[9px]">
                     {card.votes || 0}
                   </span>
                 </div>
@@ -236,8 +236,8 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                         cleanName.toLowerCase() === currentAuthorName.toLowerCase();
 
                       const bgGradients = [
+                        'from-[#5cb028] to-[#4e9921]',
                         'from-sky-500 to-blue-600',
-                        'from-indigo-500 to-violet-600',
                         'from-emerald-500 to-teal-600',
                         'from-amber-500 to-orange-600',
                         'from-rose-500 to-pink-600',
@@ -254,7 +254,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                           <span className="text-xs font-semibold text-slate-700 truncate">
                             {cleanName}
                             {isMe && (
-                              <span className="text-[10px] text-indigo-600 font-bold ml-1">
+                              <span className="text-[10px] text-[#3d8318] font-bold ml-1">
                                 (You)
                               </span>
                             )}
@@ -298,7 +298,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
               {/* Drag Handle (Strictly Admin and Manager only) */}
               {canMoveCrossColumn && (
                 <div
-                  className="text-slate-300 group-hover:text-slate-500 hover:text-indigo-600 transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5"
+                  className="text-slate-300 group-hover:text-slate-500 hover:text-[#5cb028] transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5"
                   title="Drag to reorder card or move across questions"
                 >
                   <GripVertical className="w-3.5 h-3.5" />
@@ -312,7 +312,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                     <button
                       onClick={handleStartEdit}
                       title="Edit your thought"
-                      className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                      className="p-1 rounded text-slate-400 hover:text-[#3d8318] hover:bg-[#eaf5e3] transition-colors cursor-pointer"
                     >
                       <Pencil className="w-3 h-3" />
                     </button>
@@ -345,7 +345,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
               <span className="truncate font-medium">by {card.author}</span>
             </div>
             {isCurrentAuthor && (
-              <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-100 shrink-0">
+              <span className="text-[9px] font-bold text-[#3d8318] bg-[#eaf5e3] px-1.5 py-0.2 rounded border border-[#cdeac0] shrink-0">
                 You
               </span>
             )}

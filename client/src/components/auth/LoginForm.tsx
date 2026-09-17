@@ -230,7 +230,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               <p className="pt-1">
                 <Link
                   href={`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`}
-                  className="font-bold underline text-indigo-700 hover:text-indigo-900"
+                  className="font-bold underline text-[#3d8318] hover:text-[#2d6312]"
                 >
                   Click here to enter your 6-digit verification code →
                 </Link>
@@ -276,7 +276,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
           <Link
             href="/forgot-password"
-            className="text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors"
+            className="text-xs sm:text-sm font-semibold text-[#5cb028] hover:text-[#4e9921] hover:underline transition-colors"
           >
             Forgot password?
           </Link>
@@ -289,7 +289,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           isLoading={isLoading}
           spinnerOnly={true}
           disabled={isLoading}
-          className="w-full py-3 text-sm font-semibold rounded-xl mt-2 shadow-md shadow-indigo-600/20"
+          className="w-full py-3 text-sm font-semibold rounded-xl mt-2 shadow-md shadow-[#5cb028]/20"
         >
           Sign In
         </Button>

@@ -33,17 +33,17 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white theme-bg">
+    <div className="min-h-screen flex flex-col selection:bg-[#5cb028] selection:text-white theme-bg">
       {/* Top Navigation Bar */}
       <header className="w-full border-b sticky top-0 z-50 theme-header backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center font-black text-white text-base shadow-md shadow-indigo-600/30 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] flex items-center justify-center font-black text-white text-base shadow-md shadow-[#5cb028]/25 group-hover:scale-105 transition-transform">
               RF
             </div>
             <span className="font-extrabold text-xl tracking-tight theme-brand-name">
-              Retro<span className="text-indigo-500">Flow</span>
+              Retro<span className="text-[#5cb028]">Flow</span>
             </span>
           </Link>
 
@@ -74,7 +74,7 @@ export default function HomePage() {
             {/* Get Started Free Button */}
             <Link
               href="/signup"
-              className="px-4 py-2 text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md shadow-indigo-600/25 transition-all hover:scale-[1.02]"
+              className="px-4 py-2 text-xs sm:text-sm font-semibold bg-[#5cb028] hover:bg-[#4e9921] text-white rounded-xl shadow-md shadow-[#5cb028]/25 transition-all hover:scale-[1.02]"
             >
               Get Started Free
             </Link>
@@ -90,14 +90,14 @@ export default function HomePage() {
         <div className="relative z-10 max-w-3xl space-y-6">
           {/* Tag Pill */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider theme-pill">
-            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#5cb028] animate-pulse" />
             Continuous Improvement Platform
           </div>
 
           {/* Main Hero Headline */}
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight theme-heading">
             Turn Sprint Retrospectives Into{' '}
-            <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#5cb028] via-[#4e9921] to-[#3d8318] bg-clip-text text-transparent">
               Actionable Growth
             </span>
           </h1>
@@ -112,7 +112,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link
               href="/signup"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm shadow-xl shadow-indigo-600/25 transition-all hover:scale-105 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white font-bold text-xs sm:text-sm shadow-xl shadow-[#5cb028]/25 transition-all hover:scale-105 flex items-center justify-center gap-2"
             >
               <span>Start Free Retrospective</span>
               <ArrowRight className="w-4 h-4" />
@@ -152,7 +152,7 @@ export default function HomePage() {
 
           {/* Feature 3 */}
           <div className="p-6 rounded-2xl border backdrop-blur-sm space-y-2.5 transition-all duration-300 theme-card">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-[#5cb028]/10 text-[#5cb028] flex items-center justify-center font-bold">
               <Target className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold theme-card-title">Actionable Tracking</h3>

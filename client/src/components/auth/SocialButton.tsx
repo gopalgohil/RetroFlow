@@ -19,7 +19,7 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
     <button
       type="button"
       disabled={isLoading || props.disabled}
-      className={`w-full inline-flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold shadow-xs hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+      className={`w-full inline-flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold shadow-xs hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
       {...props}
     >
       {provider === 'google' && (

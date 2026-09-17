@@ -41,8 +41,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     success: 'bg-emerald-50 text-emerald-600',
     warning: 'bg-amber-50 text-amber-600',
     danger: 'bg-rose-50 text-rose-600',
-    indigo: 'bg-indigo-50 text-indigo-600',
-    violet: 'bg-violet-50 text-violet-600',
+    indigo: 'bg-[#eaf5e3] text-[#3d8318]',
+    violet: 'bg-[#eaf5e3] text-[#3d8318]',
   };
 
   const percentage = progress && progress.total > 0
@@ -53,7 +53,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     <div
       onClick={onClick}
       className={`p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-3 transition-all ${
-        onClick ? 'cursor-pointer hover:border-indigo-300 hover:shadow-sm' : ''
+        onClick ? 'cursor-pointer hover:border-[#5cb028]/60 hover:shadow-sm' : ''
       } ${className}`}
     >
       {/* Top Title & Icon */}
@@ -92,7 +92,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         <div className="space-y-1 pt-0.5">
           <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-indigo-600 h-1.5 rounded-full transition-all duration-500"
+              className="bg-[#5cb028] h-1.5 rounded-full transition-all duration-500"
               style={{ width: `${percentage}%` }}
             />
           </div>
