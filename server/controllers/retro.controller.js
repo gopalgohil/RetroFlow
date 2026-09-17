@@ -179,7 +179,7 @@ class RetroController {
    */
   reorderCards = asyncHandler(async (req, res) => {
     const { cardIds } = req.body;
-    const reordered = await retroService.reorderCards(req.params.id, req.params.topicId, cardIds);
+    const reordered = await retroService.reorderCards(req.params.id, req.params.topicId, cardIds, req.user);
 
     const io = req.app.get('io');
     if (io) {

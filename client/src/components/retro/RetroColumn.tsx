@@ -114,6 +114,10 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   };
 
   const handleCardDragStart = (cardId: string, e: React.DragEvent) => {
+    if (!canMoveCrossColumn) {
+      e.preventDefault();
+      return;
+    }
     setDraggedCardId(cardId);
     onDragCardStart?.(cardId, topic.topicId);
     e.dataTransfer.setData('text/plain', cardId);
@@ -133,15 +137,10 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   };
 
   const handleCardDragOver = (targetCardId: string, e: React.DragEvent) => {
-    // If dragging from another question and user is not Admin/Manager: reject drag hover
-    if (isDraggingFromAnotherColumn && !canMoveCrossColumn) {
+    if (!canMoveCrossColumn) {
       e.preventDefault();
       e.stopPropagation();
       e.dataTransfer.dropEffect = 'none';
-      if (dragTargetId !== null) {
-        setDragTargetId(null);
-        setDropPosition(null);
-      }
       return;
     }
 
@@ -181,6 +180,11 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
     e.stopPropagation();
     setIsColumnDragOver(false);
 
+    if (!canMoveCrossColumn) {
+      handleCardDragEnd();
+      return;
+    }
+
     let sourceCardId = draggedCardId;
     let sourceTopicId = topic.topicId;
 
@@ -202,12 +206,6 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 
     // Cross-column drop into this column:
     if (sourceTopicId !== topic.topicId) {
-      // Strictly Admin and Manager only: block cross-question move for regular team members
-      if (!canMoveCrossColumn) {
-        onCrossColumnRejected?.();
-        handleCardDragEnd();
-        return;
-      }
       // If target column is Action Items and user is NOT Admin/Manager: reject!
       if (isActionColumn && !canManageActionItems) {
         handleCardDragEnd();
@@ -247,13 +245,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   };
 
   const handleColumnDragOver = (e: React.DragEvent) => {
-    // If dragging from another question and user is not Admin/Manager: reject drop effect
-    if (isDraggingFromAnotherColumn && !canMoveCrossColumn) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'none';
-      if (isColumnDragOver) setIsColumnDragOver(false);
-      return;
-    }
+    if (!canMoveCrossColumn) return;
     if (isActionColumn && !canManageActionItems) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -268,6 +260,11 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   const handleColumnDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsColumnDragOver(false);
+
+    if (!canMoveCrossColumn) {
+      handleCardDragEnd();
+      return;
+    }
 
     let sourceCardId = draggedCardId;
     let sourceTopicId = topic.topicId;
@@ -287,12 +284,6 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
     }
 
     if (sourceTopicId !== topic.topicId) {
-      // Strictly Admin and Manager only: block cross-question move for regular team members
-      if (!canMoveCrossColumn) {
-        onCrossColumnRejected?.();
-        handleCardDragEnd();
-        return;
-      }
       if (isActionColumn && !canManageActionItems) {
         handleCardDragEnd();
         return;

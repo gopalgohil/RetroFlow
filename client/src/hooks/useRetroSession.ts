@@ -820,6 +820,12 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     async (topicId: string, cardIds: string[]) => {
       if (!shareToken || !topicId || !Array.isArray(cardIds)) return;
 
+      // Permission Guard: Strictly Admin and Manager only
+      if (!canMoveCrossColumn) {
+        console.warn('[RetroSession] Permission denied: Only Admin and Manager can reorder cards.');
+        return;
+      }
+
       // Optimistic reorder in local state
       setCards((prev) => {
         const thisTopicCards = prev.filter((c) => c.topicId === topicId);
@@ -849,6 +855,12 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
           shareToken,
           topicId,
           cardIds,
+          user: {
+            id: currentUser?.id,
+            email: currentUser?.email,
+            name: currentAuthorName,
+            role: effectiveUserRole,
+          },
         });
       } else {
         try {
@@ -860,7 +872,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         }
       }
     },
-    [shareToken]
+    [shareToken, canMoveCrossColumn, currentUser, currentAuthorName, effectiveUserRole]
   );
 
   const voteCard = useCallback(

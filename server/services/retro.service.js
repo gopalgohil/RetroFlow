@@ -1025,9 +1025,9 @@ class RetroService {
   }
 
   /**
-   * Reorder sticky cards within a specific topic/question
+   * Reorder sticky cards within a specific topic/question (Admin and Manager only)
    */
-  async reorderCards(identifier, topicId, cardIds) {
+  async reorderCards(identifier, topicId, cardIds, user = null) {
     if (!topicId || !Array.isArray(cardIds)) {
       throw ApiError.badRequest('Topic ID and ordered cardIds array are required');
     }
@@ -1036,9 +1036,70 @@ class RetroService {
       ? { _id: identifier }
       : { shareToken: identifier };
 
-    const retro = await RetroBoard.findOne(query);
+    const retro = await RetroBoard.findOne(query).populate('project');
     if (!retro) {
       throw ApiError.notFound('Retrospective session not found');
+    }
+
+    if (user) {
+      const email = (user.email || '').toLowerCase().trim();
+      const role = (user.role || '').toLowerCase().trim();
+      const projectRole = (user.projectRole || '').toLowerCase().trim();
+
+      const isWsAdmin =
+        role === 'admin' ||
+        email === 'gopalgohel249@gmail.com' ||
+        email.includes('admin');
+
+      let isManagerOrAdmin =
+        isWsAdmin ||
+        role === 'manager' ||
+        role.includes('lead') ||
+        role.includes('manager') ||
+        projectRole === 'manager' ||
+        projectRole.includes('lead');
+
+      if (!isManagerOrAdmin && retro.createdBy) {
+        const createdById =
+          typeof retro.createdBy === 'object'
+            ? String(retro.createdBy._id || retro.createdBy.id || '')
+            : String(retro.createdBy);
+        const createdByEmail =
+          typeof retro.createdBy === 'object'
+            ? (retro.createdBy.email || '').toLowerCase().trim()
+            : '';
+        if (
+          (user._id && createdById === String(user._id)) ||
+          (user.id && createdById === String(user.id)) ||
+          (email && createdByEmail === email)
+        ) {
+          isManagerOrAdmin = true;
+        }
+      }
+
+      if (!isManagerOrAdmin && retro.project) {
+        const leadEmail = (retro.project.lead?.email || '').toLowerCase().trim();
+        if (leadEmail && leadEmail === email) {
+          isManagerOrAdmin = true;
+        }
+        if (Array.isArray(retro.project.members)) {
+          const member = retro.project.members.find(
+            (m) => (m.email || '').toLowerCase().trim() === email
+          );
+          if (member) {
+            const mRole = (member.role || '').toLowerCase().trim();
+            if (mRole === 'manager' || mRole.includes('lead') || mRole.includes('manager')) {
+              isManagerOrAdmin = true;
+            }
+          }
+        }
+      }
+
+      if (!isManagerOrAdmin) {
+        throw ApiError.forbidden(
+          'Permission denied: Only Admin and Manager can reorder cards.'
+        );
+      }
     }
 
     const topicCards = (retro.cards || []).filter((c) => c.topicId === topicId);

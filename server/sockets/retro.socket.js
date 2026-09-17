@@ -201,6 +201,69 @@ export function initRetroSocket(io) {
       }
     });
 
+    // Helper: Verify if user has Workspace Admin or Manager permissions for the retro session
+    function checkAdminOrManager(board, requester) {
+      if (!requester) return false;
+      const requesterEmail = (requester?.email || '').toLowerCase().trim();
+      const requesterRole = (requester?.role || '').toLowerCase().trim();
+
+      // 1. Workspace Admin
+      const isWsAdmin =
+        requesterRole === 'admin' ||
+        requesterEmail === 'gopalgohel249@gmail.com' ||
+        requesterEmail.includes('admin');
+
+      if (isWsAdmin) return true;
+
+      // 2. Manager or Lead role
+      if (
+        requesterRole === 'manager' ||
+        requesterRole.includes('lead') ||
+        requesterRole.includes('manager')
+      ) {
+        return true;
+      }
+
+      // 3. Creator of retro board
+      if (board?.createdBy) {
+        const createdById =
+          typeof board.createdBy === 'object'
+            ? String(board.createdBy._id || board.createdBy.id || '')
+            : String(board.createdBy);
+        const createdByEmail =
+          typeof board.createdBy === 'object'
+            ? (board.createdBy.email || '').toLowerCase().trim()
+            : '';
+        if (
+          (requester?.id && createdById === String(requester.id)) ||
+          (requesterEmail && createdByEmail === requesterEmail)
+        ) {
+          return true;
+        }
+      }
+
+      // 4. Linked Project Lead or Manager member
+      if (board?.project) {
+        const leadEmail = (board.project.lead?.email || '').toLowerCase().trim();
+        if (leadEmail && leadEmail === requesterEmail) {
+          return true;
+        }
+        if (Array.isArray(board.project.members)) {
+          const member = board.project.members.find(
+            (m) => (m.email || '').toLowerCase().trim() === requesterEmail
+          );
+          if (member) {
+            const mRole = (member.role || '').toLowerCase().trim();
+            if (mRole === 'manager' || mRole.includes('lead') || mRole.includes('manager')) {
+              return true;
+            }
+          }
+        }
+      }
+
+      return false;
+    }
+
     // Move Sticky Card between topics/questions (Strictly Admin and Manager only)
     socket.on('card:move', async (payload, callback) => {
       try {
@@ -212,69 +275,17 @@ export function initRetroSocket(io) {
         }
 
         const requester = user || currentUser;
-        const requesterEmail = (requester?.email || '').toLowerCase().trim();
-        const requesterRole = (requester?.role || '').toLowerCase().trim();
-
         const board = await RetroBoard.findOne({ shareToken }).populate('project').lean();
         if (!board) {
           if (callback) callback({ error: 'Card or session not found' });
           return;
         }
 
-        // Verify if requester is Workspace Admin
-        const isWsAdmin =
-          requesterRole === 'admin' ||
-          requesterEmail === 'gopalgohel249@gmail.com' ||
-          requesterEmail.includes('admin');
-
-        let isManagerOrAdmin =
-          isWsAdmin ||
-          requesterRole === 'manager' ||
-          requesterRole.includes('lead') ||
-          requesterRole.includes('manager');
-
-        // Check if board creator
-        if (!isManagerOrAdmin && board.createdBy) {
-          const createdById =
-            typeof board.createdBy === 'object'
-              ? String(board.createdBy._id || board.createdBy.id || '')
-              : String(board.createdBy);
-          const createdByEmail =
-            typeof board.createdBy === 'object'
-              ? (board.createdBy.email || '').toLowerCase().trim()
-              : '';
-          if (
-            (requester?.id && createdById === String(requester.id)) ||
-            (requesterEmail && createdByEmail === requesterEmail)
-          ) {
-            isManagerOrAdmin = true;
-          }
-        }
-
-        // Check if project lead or manager member in linked project
-        if (!isManagerOrAdmin && board.project) {
-          const leadEmail = (board.project.lead?.email || '').toLowerCase().trim();
-          if (leadEmail && leadEmail === requesterEmail) {
-            isManagerOrAdmin = true;
-          }
-          if (Array.isArray(board.project.members)) {
-            const member = board.project.members.find(
-              (m) => (m.email || '').toLowerCase().trim() === requesterEmail
-            );
-            if (member) {
-              const mRole = (member.role || '').toLowerCase().trim();
-              if (mRole === 'manager' || mRole.includes('lead') || mRole.includes('manager')) {
-                isManagerOrAdmin = true;
-              }
-            }
-          }
-        }
-
-        if (!isManagerOrAdmin) {
+        if (!checkAdminOrManager(board, requester)) {
           console.warn(
             `[Socket Security] Unauthorized cross-question card move blocked for user ${
-              requesterEmail || requester?.name || 'anonymous'
-            } (role: ${requesterRole})`
+              requester?.email || requester?.name || 'anonymous'
+            }`
           );
           if (callback) {
             callback({
@@ -316,13 +327,34 @@ export function initRetroSocket(io) {
       }
     });
 
-    // Reorder Sticky Cards within a specific topic
+    // Reorder Sticky Cards within a specific topic (Strictly Admin and Manager only)
     socket.on('cards:reorder', async (payload, callback) => {
       try {
-        const { shareToken, topicId, cardIds } = payload || {};
+        const { shareToken, topicId, cardIds, user } = payload || {};
 
         if (!shareToken || !topicId || !Array.isArray(cardIds)) {
           if (callback) callback({ error: 'Share token, topic ID, and cardIds array are required' });
+          return;
+        }
+
+        const requester = user || currentUser;
+        const board = await RetroBoard.findOne({ shareToken }).populate('project').lean();
+        if (!board) {
+          if (callback) callback({ error: 'Session not found' });
+          return;
+        }
+
+        if (!checkAdminOrManager(board, requester)) {
+          console.warn(
+            `[Socket Security] Unauthorized cards reorder blocked for user ${
+              requester?.email || requester?.name || 'anonymous'
+            }`
+          );
+          if (callback) {
+            callback({
+              error: 'Permission denied: Only Admin and Manager can reorder cards.',
+            });
+          }
           return;
         }
 

@@ -84,9 +84,12 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
 
   return (
     <div
-      draggable={!isEditing}
+      draggable={!isEditing && Boolean(canMoveCrossColumn)}
       onDragStart={(e) => {
-        if (isEditing) return;
+        if (isEditing || !canMoveCrossColumn) {
+          e.preventDefault();
+          return;
+        }
         setIsDragging(true);
         if (onCardDragStart) {
           onCardDragStart(card.id, e);
@@ -103,15 +106,23 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
         setIsDragging(false);
         onCardDragEnd?.();
       }}
-      onDragOver={(e) => onCardDragOver?.(card.id, e)}
-      onDragLeave={(e) => onCardDragLeave?.(card.id, e)}
-      onDrop={(e) => onCardDrop?.(card.id, e)}
+      onDragOver={(e) => {
+        if (canMoveCrossColumn) onCardDragOver?.(card.id, e);
+      }}
+      onDragLeave={(e) => {
+        if (canMoveCrossColumn) onCardDragLeave?.(card.id, e);
+      }}
+      onDrop={(e) => {
+        if (canMoveCrossColumn) onCardDrop?.(card.id, e);
+      }}
       style={{
         backgroundColor: `${topicColor}08`,
         borderColor: `${topicColor}30`,
         borderLeftColor: topicColor,
       }}
-      className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 hover:z-30 cursor-grab active:cursor-grabbing ${
+      className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 hover:z-30 ${
+        canMoveCrossColumn ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+      } ${
         isDragging ? 'opacity-40 ring-1 ring-indigo-400/40' : ''
       } ${
         !isRevealed ? 'filter blur-xs select-none' : ''
@@ -284,17 +295,15 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 </button>
               )}
 
-              {/* Drag Handle */}
-              <div
-                className="text-slate-300 group-hover:text-slate-500 hover:text-indigo-600 transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5"
-                title={
-                  canMoveCrossColumn
-                    ? 'Drag to reorder card or move across questions'
-                    : 'Drag to reorder card within this question'
-                }
-              >
-                <GripVertical className="w-3.5 h-3.5" />
-              </div>
+              {/* Drag Handle (Strictly Admin and Manager only) */}
+              {canMoveCrossColumn && (
+                <div
+                  className="text-slate-300 group-hover:text-slate-500 hover:text-indigo-600 transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5"
+                  title="Drag to reorder card or move across questions"
+                >
+                  <GripVertical className="w-3.5 h-3.5" />
+                </div>
+              )}
 
               {/* Edit (Author Only) & Delete (Author or Facilitator Moderation) */}
               {(canEdit || canDelete) && (
