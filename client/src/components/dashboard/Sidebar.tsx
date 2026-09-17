@@ -9,7 +9,6 @@ import {
   CheckSquare,
   Users,
   BarChart3,
-  LogOut,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -216,20 +215,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             })}
           </nav>
         </div>
-
-        {/* Bottom Sign Out (Matching Digiflux reference screenshot) */}
-        {onLogout && (
-          <div className="p-4 border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0b0f17]">
-            <button
-              type="button"
-              onClick={onLogout}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50/70 dark:hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer"
-            >
-              <LogOut className="w-4 h-4 text-rose-500 shrink-0" />
-              <span>Sign Out</span>
-            </button>
-          </div>
-        )}
       </aside>
     </>
   );
