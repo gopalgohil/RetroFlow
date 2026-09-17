@@ -156,17 +156,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
         subtitle="Start running high-impact retrospectives with your team"
       />
 
-      {/* Reusable Google OAuth Button */}
-      <SocialButton
-        provider="google"
-        label="Sign up with Google"
-        onClick={handleGoogleSignUp}
-        disabled={isLoading}
-      />
-
-      {/* Reusable Divider */}
-      <AuthDivider label="Or register with email" />
-
       {/* General Alert Banner */}
       {generalError && <Alert variant="error" message={generalError} />}
       {isSuccess && (
@@ -262,6 +251,17 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
           Create Account
         </Button>
       </form>
+
+      {/* Reusable Divider */}
+      <AuthDivider label="Or continue with" />
+
+      {/* Reusable Google OAuth Button moved to bottom */}
+      <SocialButton
+        provider="google"
+        label="Sign up with Google"
+        onClick={handleGoogleSignUp}
+        disabled={isLoading}
+      />
 
       {/* Reusable Auth Footer Link */}
       <AuthFooterLink

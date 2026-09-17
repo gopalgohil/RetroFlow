@@ -210,17 +210,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </Alert>
       )}
 
-      {/* Reusable Google OAuth Button */}
-      <SocialButton
-        provider="google"
-        label="Continue with Google"
-        onClick={handleGoogleSignIn}
-        disabled={isLoading}
-      />
-
-      {/* Reusable Divider */}
-      <AuthDivider label="Or continue with email" />
-
       {/* General Error Alert */}
       {generalError && (
         <Alert variant="error">
@@ -294,6 +283,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           Sign In
         </Button>
       </form>
+
+      {/* Reusable Divider */}
+      <AuthDivider label="Or continue with" />
+
+      {/* Reusable Google OAuth Button moved to bottom */}
+      <SocialButton
+        provider="google"
+        label="Continue with Google"
+        onClick={handleGoogleSignIn}
+        disabled={isLoading}
+      />
 
       {/* Reusable Auth Footer Link */}
       <AuthFooterLink
