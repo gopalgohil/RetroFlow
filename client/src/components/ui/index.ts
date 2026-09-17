@@ -9,3 +9,4 @@ export * from './ProgressBar';
 export * from './StatusPill';
 export * from './UserAvatar';
 export * from './ConfirmDialog';
+export * from './AnimatedBackground';
