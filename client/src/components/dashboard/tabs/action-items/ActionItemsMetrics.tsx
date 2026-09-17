@@ -18,7 +18,7 @@ export const ActionItemsMetrics: React.FC<ActionItemsMetricsProps> = React.memo(
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Metric 1: Total */}
       <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+        <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
           <CheckSquare className="w-6 h-6" />
         </div>
         <div>
@@ -52,16 +52,16 @@ export const ActionItemsMetrics: React.FC<ActionItemsMetricsProps> = React.memo(
       {/* Metric 4: Done */}
       <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between gap-2">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-[#eaf5e3] border border-[#cdeac0] text-[#3d8318] flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-[#5cb028]" />
           </div>
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Completed</p>
-            <p className="text-xl sm:text-2xl font-black text-emerald-700">{metrics.done}</p>
+            <p className="text-xl sm:text-2xl font-black text-[#3d8318]">{metrics.done}</p>
           </div>
         </div>
         <div className="text-right">
-          <span className="text-xs font-extrabold text-emerald-600">{metrics.completionRate}%</span>
+          <span className="text-xs font-extrabold text-[#3d8318]">{metrics.completionRate}%</span>
           <span className="text-[10px] text-slate-400 block font-medium">resolved</span>
         </div>
       </div>

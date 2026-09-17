@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --brand-green: #5cb028;
+  --brand-green-hover: #4e9921;
+  --brand-green-light: #eaf5e3;
+  --brand-green-border: #cdeac0;
 }
 
 [data-theme="dark"],
@@ -13,13 +17,17 @@
 
 [data-theme="light"],
 .light {
-  --background: #ffffff;
+  --background: #f8fafc;
   --foreground: #0f172a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand: var(--brand-green);
+  --color-brand-hover: var(--brand-green-hover);
+  --color-brand-light: var(--brand-green-light);
+  --color-brand-border: var(--brand-green-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -64,7 +72,7 @@ body {
 }
 [data-theme="dark"] .theme-card:hover,
 .dark .theme-card:hover {
-  border-color: rgba(51, 65, 85, 1) !important;
+  border-color: rgba(92, 176, 40, 0.6) !important;
 }
 [data-theme="dark"] .theme-card-title,
 .dark .theme-card-title {
@@ -91,14 +99,14 @@ body {
 }
 [data-theme="dark"] .theme-glow,
 .dark .theme-glow {
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(168, 85, 247, 0.18) 40%, rgba(236, 72, 153, 0.1) 70%, transparent 100%) !important;
+  background: radial-gradient(circle, rgba(92, 176, 40, 0.2) 0%, rgba(16, 185, 129, 0.15) 40%, transparent 70%) !important;
   opacity: 1 !important;
 }
 [data-theme="dark"] .theme-pill,
 .dark .theme-pill {
-  background-color: rgba(99, 102, 241, 0.1) !important;
-  color: #818cf8 !important;
-  border-color: rgba(99, 102, 241, 0.2) !important;
+  background-color: rgba(92, 176, 40, 0.12) !important;
+  color: #86efac !important;
+  border-color: rgba(92, 176, 40, 0.25) !important;
 }
 [data-theme="dark"] .theme-nav-link,
 .dark .theme-nav-link {
@@ -116,15 +124,15 @@ body {
   color: #fbbf24 !important;
 }
 
-/* Light Mode Rules */
+/* Light Mode Rules (Digiflux Crisp Clean Green Theme) */
 [data-theme="light"] .theme-bg,
 .light .theme-bg {
-  background: linear-gradient(to bottom right, #F4F7FF, #FAFCFF, #FFFFFF) !important;
+  background: #f8fafc !important;
   color: #0f172a !important;
 }
 [data-theme="light"] .theme-header,
 .light .theme-header {
-  background-color: rgba(255, 255, 255, 0.88) !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
   border-color: rgba(226, 232, 240, 0.9) !important;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
 }
@@ -138,18 +146,18 @@ body {
 }
 [data-theme="light"] .theme-subtext,
 .light .theme-subtext {
-  color: #475569 !important;
+  color: #64748b !important;
 }
 [data-theme="light"] .theme-card,
 .light .theme-card {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-  border-color: rgba(226, 232, 240, 0.95) !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  background-color: #ffffff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04) !important;
 }
 [data-theme="light"] .theme-card:hover,
 .light .theme-card:hover {
-  border-color: rgba(199, 210, 254, 1) !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07) !important;
+  border-color: rgba(92, 176, 40, 0.4) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
 }
 [data-theme="light"] .theme-card-title,
 .light .theme-card-title {
@@ -157,7 +165,7 @@ body {
 }
 [data-theme="light"] .theme-card-desc,
 .light .theme-card-desc {
-  color: #475569 !important;
+  color: #64748b !important;
 }
 [data-theme="light"] .theme-btn-secondary,
 .light .theme-btn-secondary {
@@ -177,14 +185,14 @@ body {
 }
 [data-theme="light"] .theme-glow,
 .light .theme-glow {
-  background: radial-gradient(circle, rgba(165, 180, 252, 0.35) 0%, rgba(216, 180, 254, 0.3) 40%, rgba(251, 207, 232, 0.2) 70%, transparent 100%) !important;
+  background: radial-gradient(circle, rgba(92, 176, 40, 0.18) 0%, rgba(16, 185, 129, 0.12) 40%, transparent 70%) !important;
   opacity: 0.8 !important;
 }
 [data-theme="light"] .theme-pill,
 .light .theme-pill {
-  background-color: #eef2ff !important;
-  color: #4338ca !important;
-  border-color: rgba(199, 210, 254, 0.8) !important;
+  background-color: #eaf5e3 !important;
+  color: #3d8318 !important;
+  border-color: #cdeac0 !important;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
 }
 [data-theme="light"] .theme-nav-link,
@@ -200,6 +208,6 @@ body {
 .light .theme-toggle-btn {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
-  color: #4f46e5 !important;
+  color: #5cb028 !important;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
 }

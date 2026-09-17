@@ -106,7 +106,7 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
         {/* Header */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between bg-gradient-to-r from-indigo-50/50 via-white to-slate-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/20 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#5cb028] text-white flex items-center justify-center shadow-md shadow-[#5cb028]/20 shrink-0">
               <Mail className="w-5 h-5" />
             </div>
             <div>
@@ -209,7 +209,7 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
                     className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                       magicCopied
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                        : 'bg-indigo-600 hover:bg-indigo-500 text-white border-transparent shadow-xs'
+                        : 'bg-[#5cb028] hover:bg-[#4e9921] text-white border-transparent shadow-xs'
                     }`}
                   >
                     {magicCopied ? (
@@ -234,7 +234,7 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
             <button
               type="submit"
               disabled={isSending || !email.trim()}
-              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-300 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+              className="w-full py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] disabled:bg-slate-300 text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
             >
               {isSending ? (
                 <>

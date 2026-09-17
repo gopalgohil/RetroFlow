@@ -100,7 +100,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               ? 'bg-emerald-600 border-emerald-600 text-white'
               : isInProgress
               ? 'bg-sky-50 border-sky-500 text-sky-600 hover:bg-sky-100'
-              : 'border-slate-300 hover:border-indigo-500 hover:bg-indigo-50/40 text-transparent'
+              : 'border-slate-300 hover:border-[#5cb028] hover:bg-[#eaf5e3]/40 text-transparent'
           }`}
           title={
             isDone
@@ -159,15 +159,15 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               item.sourceRetroShareToken ? (
                 <Link
                   href={`/retro/${item.sourceRetroShareToken}`}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/80 transition-colors"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#eaf5e3] text-[#3d8318] hover:bg-[#def0d4] border border-[#cdeac0] transition-colors"
                 >
-                  <Sparkles className="w-3 h-3 text-indigo-500" />
+                  <Sparkles className="w-3 h-3 text-[#5cb028]" />
                   <span className="truncate max-w-[200px]">{item.sourceRetroTitle}</span>
                   <ExternalLink className="w-2.5 h-2.5 opacity-60" />
                 </Link>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
-                  <Sparkles className="w-3 h-3 text-indigo-500" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
+                  <Sparkles className="w-3 h-3 text-[#5cb028]" />
                   <span className="truncate max-w-[200px]">{item.sourceRetroTitle}</span>
                 </span>
               )
@@ -224,7 +224,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100/80 border border-slate-200/80 text-xs text-slate-700"
             title={`Assigned to ${item.assignee.name}`}
           >
-            <div className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+            <div className="w-5 h-5 rounded-full bg-[#5cb028] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
               {item.assignee.avatar ||
                 item.assignee.name.slice(0, 1).toUpperCase()}
             </div>

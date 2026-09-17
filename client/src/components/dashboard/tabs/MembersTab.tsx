@@ -184,7 +184,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-indigo-600" />
+            <Users className="w-5 h-5 text-[#5cb028]" />
             {isAdmin ? 'Team Members' : 'Team Directory'}
           </h2>
           <p className="text-xs text-slate-500 mt-1">
@@ -245,9 +245,9 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         {/* Card Header with Counter and Search */}
         <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <UserCheck className="w-4 h-4 text-indigo-600" />
+            <UserCheck className="w-4 h-4 text-[#5cb028]" />
             <h3 className="text-sm font-bold text-slate-900">Team Directory & Collaborators</h3>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
               {totalItems} Total Contributor{totalItems !== 1 ? 's' : ''}
             </span>
           </div>
@@ -256,7 +256,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
           <div className="relative w-full sm:w-64">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
               {showTableSkeleton ? (
-                <Loader2 className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 text-[#5cb028] animate-spin" />
               ) : (
                 <Search className="w-3.5 h-3.5 text-slate-400" />
               )}
@@ -267,7 +267,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               onChange={(e) => setLocalSearch(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search members..."
-              className="w-full pl-8 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              className="w-full pl-8 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
             />
             {localSearch && (
               <button
@@ -369,11 +369,11 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                           </div>
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <p className="font-bold text-slate-900 group-hover/member:text-indigo-600 transition-colors">
+                              <p className="font-bold text-slate-900 group-hover/member:text-[#5cb028] transition-colors">
                                 {m.name || m.email}
                               </p>
                               {isSelf && (
-                                <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                                <span className="text-[10px] font-semibold text-[#3d8318] bg-[#eaf5e3] px-1.5 py-0.5 rounded">
                                   You
                                 </span>
                               )}
@@ -383,7 +383,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                                 Admin
                               </span>
                             ) : (
-                              <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50/80 px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-medium text-[#3d8318] bg-[#eaf5e3] px-1.5 py-0.5 rounded">
                                 {m.projectRole && m.projectRole !== 'Unassigned' ? m.projectRole : 'Developer'}
                               </span>
                             )}
@@ -395,8 +395,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                       <td className="px-6 py-4">
                         {typeof m.projectsCount === 'number' && m.projectsCount > 0 ? (
                           <div className="relative group inline-block hover:z-50">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs group-hover:bg-indigo-100/90 group-hover:border-indigo-300 group-hover:shadow-xs transition-all cursor-pointer select-none">
-                              <FolderKanban className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0] shadow-2xs group-hover:bg-[#def0d4] group-hover:border-[#b8e2a6] group-hover:shadow-xs transition-all cursor-pointer select-none">
+                              <FolderKanban className="w-3.5 h-3.5 text-[#5cb028] shrink-0" />
                               <span>{m.projectsCount} {m.projectsCount === 1 ? 'Project' : 'Projects'}</span>
                             </span>
 
@@ -404,19 +404,19 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                             <div
                               className={`absolute left-0 ${
                                 index >= 2 ? 'bottom-full mb-2.5' : 'top-full mt-2.5'
-                              } z-50 w-64 bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-xl shadow-indigo-950/15 p-3.5 pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out`}
+                              } z-50 w-64 bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-900/10 p-3.5 pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out`}
                             >
                               {/* Popover Header */}
                               <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
                                 <div className="flex items-center gap-1.5">
-                                  <div className="w-5 h-5 rounded-md bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                                  <div className="w-5 h-5 rounded-md bg-[#eaf5e3] border border-[#cdeac0] flex items-center justify-center text-[#3d8318] shrink-0">
                                     <FolderKanban className="w-3 h-3" />
                                   </div>
                                   <span className="text-[11px] font-bold text-slate-900 tracking-tight">
                                     Assigned Projects
                                   </span>
                                 </div>
-                                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+                                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
                                   {m.projectsCount}
                                 </span>
                               </div>
@@ -427,9 +427,9 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                                   m.projectNames.map((pName, pIdx) => (
                                     <div
                                       key={pIdx}
-                                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50/90 hover:bg-indigo-50/50 border border-slate-200/70 transition-colors"
+                                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50/90 hover:bg-[#eaf5e3]/50 border border-slate-200/70 transition-colors"
                                     >
-                                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                                      <span className="w-1.5 h-1.5 rounded-full bg-[#5cb028] shrink-0" />
                                       <span className="text-xs font-semibold text-slate-800 truncate">
                                         {pName}
                                       </span>
@@ -604,7 +604,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                   <select
                     value={currentLimit}
                     onChange={(e) => onLimitChange(Number(e.target.value))}
-                    className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                    className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer"
                   >
                     <option value={10}>10 per page</option>
                     <option value={20}>20 per page</option>
@@ -637,7 +637,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                     disabled={isLoading}
                     className={`min-w-[32px] h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       p === activePage
-                        ? 'bg-indigo-600 text-white shadow-xs'
+                        ? 'bg-[#5cb028] text-white shadow-xs'
                         : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
@@ -723,8 +723,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 {typeof memberToRemove.projectsCount === 'number' && memberToRemove.projectsCount > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
-                    <FolderKanban className="w-3 h-3 text-indigo-600" />
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
+                    <FolderKanban className="w-3 h-3 text-[#5cb028]" />
                     <span>{memberToRemove.projectsCount} {memberToRemove.projectsCount === 1 ? 'Project' : 'Projects'}</span>
                   </span>
                 )}

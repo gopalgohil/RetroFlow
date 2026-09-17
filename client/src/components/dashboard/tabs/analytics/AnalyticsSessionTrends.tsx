@@ -34,7 +34,7 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-indigo-600" />
+          <TrendingUp className="w-4 h-4 text-[#5cb028]" />
           <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
             Retrospective Session Trends
           </h3>
@@ -50,11 +50,11 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
           {trends.map((retro) => (
             <div
               key={retro.id}
-              className="p-4 rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/70 hover:border-indigo-200 hover:shadow-md transition-all space-y-3"
+              className="p-4 rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/70 hover:border-[#5cb028]/40 hover:shadow-md transition-all space-y-3"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#3d8318] bg-[#eaf5e3] border border-[#cdeac0] px-2 py-0.5 rounded-md">
                     {retro.sprintName}
                   </span>
                   <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate mt-1.5" title={retro.title}>
@@ -68,7 +68,7 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
 
                 <Link
                   href={`/retro/${retro.shareToken}`}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors shrink-0 cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-[#5cb028] hover:bg-[#eaf5e3] transition-colors shrink-0 cursor-pointer"
                   title="Open retro board"
                 >
                   <ArrowUpRight className="w-4 h-4" />
@@ -89,7 +89,7 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
                       retro.attendanceRate >= 80
                         ? 'bg-emerald-500'
                         : retro.attendanceRate >= 60
-                        ? 'bg-indigo-500'
+                        ? 'bg-[#5cb028]'
                         : 'bg-amber-500'
                     }`}
                     style={{ width: `${Math.min(100, retro.attendanceRate)}%` }}
@@ -100,7 +100,7 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
               {/* Bottom Metadata Badges */}
               <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-500 font-medium">
                 <span className="flex items-center gap-1">
-                  <MessageSquare className="w-3.5 h-3.5 text-indigo-500" />
+                  <MessageSquare className="w-3.5 h-3.5 text-[#5cb028]" />
                   <span>{retro.cardsCount} cards</span>
                 </span>
                 <span>•</span>

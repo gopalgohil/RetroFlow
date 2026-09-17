@@ -67,12 +67,12 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
       </div>
 
       {/* Card 2: Total Retros Conducted */}
-      <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-3 relative overflow-hidden group hover:border-indigo-300 transition-colors">
+      <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-3 relative overflow-hidden group hover:border-[#5cb028]/40 transition-colors">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
             Total Retros
           </span>
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
             <Calendar className="w-4 h-4" />
           </div>
         </div>
@@ -90,13 +90,13 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
       </div>
 
       {/* Card 3: Sprint Champion / Top Contributor */}
-      <div className="p-5 rounded-3xl bg-gradient-to-br from-indigo-50/50 via-white to-white border border-indigo-200/80 shadow-xs space-y-3 relative overflow-hidden">
+      <div className="p-5 rounded-3xl bg-gradient-to-br from-[#eaf5e3]/50 via-white to-white border border-[#cdeac0] shadow-xs space-y-3 relative overflow-hidden">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 flex items-center gap-1">
-            <Award className="w-3.5 h-3.5 text-indigo-600" />
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#3d8318] flex items-center gap-1">
+            <Award className="w-3.5 h-3.5 text-[#5cb028]" />
             Sprint Champion
           </span>
-          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
             🏆 Top Impact
           </span>
         </div>
@@ -121,7 +121,7 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
         ) : (
           <p className="text-xs text-slate-400 italic pt-2">No contributions recorded yet</p>
         )}
-        <p className="text-[10px] text-indigo-600/80 font-medium">
+        <p className="text-[10px] text-[#3d8318]/80 font-medium">
           Highest feedback and continuous attendance
         </p>
       </div>

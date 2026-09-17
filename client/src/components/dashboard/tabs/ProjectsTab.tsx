@@ -211,13 +211,13 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#5cb028] via-[#52a622] to-[#458b1b] text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/30">
               {isAdmin ? 'Admin Supervision' : canCreateProject ? 'Lead / Management' : 'My Projects'}
             </span>
-            <span className="text-xs text-slate-300">
+            <span className="text-xs text-white/90">
               • {tabCounts.all || pagination.totalItems} {isAdmin || canCreateProject ? 'Workspace Projects' : 'Assigned Projects'}
             </span>
           </div>
@@ -228,7 +228,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               ? 'Agile Projects & Sprints'
               : 'My Projects & Sprints'}
           </h2>
-          <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+          <p className="text-xs text-white/90 max-w-xl leading-relaxed">
             {isAdmin
               ? 'Complete organization supervisory view across all Scrum sprints, velocity metrics, and retrospectives.'
               : canCreateProject
@@ -241,9 +241,9 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
           <button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold shadow-md shadow-indigo-500/25 transition-all hover:scale-[1.02] cursor-pointer shrink-0"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#3d8318] text-xs font-bold shadow-md transition-all hover:scale-[1.02] cursor-pointer shrink-0"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <Plus className="w-4 h-4 stroke-[2.5] text-[#5cb028]" />
             <span>Create New Project</span>
           </button>
         )}
@@ -302,11 +302,11 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayedProjects.length === 0 ? (
             <div className="col-span-full p-12 text-center rounded-2xl bg-white border border-slate-200 space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold mx-auto shadow-2xs">
+              <div className="w-14 h-14 rounded-2xl bg-[#eaf5e3] text-[#3d8318] flex items-center justify-center font-bold mx-auto shadow-2xs">
                 {filterMode === 'managed' ? (
-                  <FolderKanban className="w-6 h-6 text-indigo-600" />
+                  <FolderKanban className="w-6 h-6 text-[#5cb028]" />
                 ) : (
-                  <Lock className="w-6 h-6 text-indigo-600" />
+                  <Lock className="w-6 h-6 text-[#5cb028]" />
                 )}
               </div>
               <div className="space-y-1">
@@ -363,8 +363,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 key={project.id}
                 className={`p-6 rounded-2xl bg-white border shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-5 group ${
                   isCurrentLead
-                    ? 'border-indigo-300/80 ring-1 ring-indigo-500/20'
-                    : 'border-slate-200/90 hover:border-indigo-300'
+                    ? 'border-[#5cb028]/60 ring-1 ring-[#5cb028]/20'
+                    : 'border-slate-200/90 hover:border-[#5cb028]/40'
                 }`}
               >
                 <div className="space-y-4">
@@ -373,7 +373,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     <div className="flex items-center gap-3 min-w-0">
                       <UserAvatar name={project.name} avatar={project.key} size="lg" />
                       <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#5cb028] transition-colors truncate">
                           {project.name}
                         </h3>
                         <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono mt-0.5">
@@ -399,7 +399,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   {/* Dedicated Manager Identity Row */}
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/60">
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
+                      <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-[#5cb028] to-[#4e9921] text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
                         {managerAvatar}
                       </div>
                       <div className="min-w-0">
@@ -430,7 +430,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       <span className="font-semibold text-slate-700 truncate max-w-[150px]">
                         {activeSprint.name.split(' - ')[0]}
                       </span>
-                      <span className="text-[10px] font-bold text-indigo-600">
+                      <span className="text-[10px] font-bold text-[#5cb028]">
                         {activeSprint.daysLeft} days left
                       </span>
                     </div>
@@ -438,13 +438,13 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     <ProgressBar
                       value={activeSprint.completedStoryPoints}
                       max={activeSprint.totalStoryPoints || 1}
-                      variant="indigo"
+                      variant="emerald"
                       size="sm"
                     />
 
                     <div className="flex items-center justify-between text-[10px] text-slate-400">
                       <span>Sprint Progress</span>
-                      <span className="font-semibold text-indigo-600">
+                      <span className="font-semibold text-[#5cb028]">
                         {Math.round(
                           (activeSprint.completedStoryPoints / (activeSprint.totalStoryPoints || 1)) *
                             100
@@ -469,7 +469,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   </div>
                   <div className="p-1.5 rounded-lg bg-slate-50">
                     <span className="text-[10px] text-slate-400 block font-medium">Retros</span>
-                    <span className="text-xs font-bold text-indigo-600">
+                    <span className="text-xs font-bold text-[#5cb028]">
                       {project.retrospectives.length}
                     </span>
                   </div>
@@ -495,7 +495,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       } catch {}
                     }
                   }}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-bold transition-all shadow-2xs group-hover:shadow-xs cursor-pointer disabled:opacity-75"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#5cb028] text-white text-xs font-bold transition-all shadow-2xs group-hover:shadow-xs cursor-pointer disabled:opacity-75"
                 >
                   {openingProjectId === project.id ? (
                     <span className="inline-flex items-center gap-2 animate-pulse">
@@ -575,7 +575,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   disabled={isFilterLoading}
                   className={`min-w-[34px] h-[34px] rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     p === pagination.page
-                      ? 'bg-indigo-600 text-white shadow-xs shadow-indigo-600/30 ring-2 ring-indigo-600/20'
+                      ? 'bg-[#5cb028] text-white shadow-xs shadow-[#5cb028]/30 ring-2 ring-[#5cb028]/20'
                       : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >

@@ -119,7 +119,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             {/* User Initials Avatar */}
             <div
               suppressHydrationWarning
-              className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
+              className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
             >
               {initials}
             </div>
@@ -137,7 +137,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             {/* Chevron icon toggles up/down on open */}
             <ChevronDown
               className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                isDropdownOpen ? 'rotate-180 text-indigo-600' : ''
+                isDropdownOpen ? 'rotate-180 text-[#5cb028]' : ''
               }`}
             />
           </button>
@@ -150,7 +150,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <div className="flex items-center gap-2.5">
                   <div
                     suppressHydrationWarning
-                    className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
+                    className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
                   >
                     {initials}
                   </div>
@@ -163,7 +163,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         suppressHydrationWarning
                         className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 leading-none ${
                           displayRole.toLowerCase() === 'admin'
-                            ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                            ? 'bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]'
                             : displayRole.toLowerCase() === 'manager'
                             ? 'bg-blue-100 text-blue-800 border border-blue-200'
                             : displayRole.toLowerCase() === 'project lead'
@@ -198,9 +198,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                     setIsDropdownOpen(false);
                     setIsProfileModalOpen(true);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50/70 transition-colors cursor-pointer text-left group"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:text-[#5cb028] hover:bg-[#eaf5e3] transition-colors cursor-pointer text-left group"
                 >
-                  <UserIcon className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                  <UserIcon className="w-4 h-4 text-slate-400 group-hover:text-[#5cb028] transition-colors" />
                   <span>My Profile</span>
                 </button>
 

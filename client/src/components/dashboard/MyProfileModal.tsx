@@ -286,9 +286,9 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with User Overview & Close Button */}
-        <div className="p-6 bg-gradient-to-r from-slate-50 via-indigo-50/30 to-white border-b border-slate-200/80 flex items-start justify-between gap-4">
+        <div className="p-6 bg-gradient-to-r from-slate-50 via-emerald-50/30 to-white border-b border-slate-200/80 flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-indigo-400 text-white font-black text-xl flex items-center justify-center shadow-md shadow-indigo-600/25 shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white font-black text-xl flex items-center justify-center shadow-md shadow-[#5cb028]/25 shrink-0">
               {initials}
             </div>
             <div>
@@ -299,7 +299,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
                     isAdmin || displayRole.toLowerCase() === 'admin'
-                      ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
+                      ? 'bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]'
                       : displayRole.toLowerCase() === 'manager'
                       ? 'bg-blue-100 text-blue-800 border-blue-200'
                       : displayRole.toLowerCase() === 'project lead'
@@ -341,7 +341,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
             onClick={() => setActiveTab('profile')}
             className={`inline-flex items-center gap-2 py-2.5 px-3 border-b-2 font-bold text-xs transition-all cursor-pointer ${
               activeTab === 'profile'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-[#5cb028] text-[#5cb028]'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
@@ -354,7 +354,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
             onClick={() => setActiveTab('security')}
             className={`inline-flex items-center gap-2 py-2.5 px-3 border-b-2 font-bold text-xs transition-all cursor-pointer ${
               activeTab === 'security'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-[#5cb028] text-[#5cb028]'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
@@ -379,12 +379,12 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Your full name"
-                      className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                      className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
                     />
                     <button
                       type="submit"
                       disabled={isSavingName || name.trim() === profileData.name}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed"
                     >
                       {isSavingName ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -434,7 +434,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
 
                 <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
                   <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                    <FolderKanban className="w-3.5 h-3.5 text-indigo-600" />
+                    <FolderKanban className="w-3.5 h-3.5 text-[#5cb028]" />
                     <span>Active Projects</span>
                   </div>
                   <div className="mt-1 flex items-center gap-2 flex-wrap">
@@ -442,7 +442,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                       {profileData.activeProjectsCount || 0}
                     </span>
                     {profileData.activeProjects && profileData.activeProjects.length > 0 && (
-                      <span className="px-2 py-0.5 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-lg bg-[#eaf5e3] border border-[#cdeac0] text-[#3d8318] text-[10px] font-bold">
                         {profileData.activeProjects[0].key} - {profileData.activeProjects[0].name}
                       </span>
                     )}
@@ -471,7 +471,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Enter current password"
-                    className="w-full pl-3.5 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full pl-3.5 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
                   />
                   <button
                     type="button"
@@ -494,7 +494,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Minimum 8 characters"
-                    className="w-full pl-3.5 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full pl-3.5 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
                   />
                   <button
                     type="button"
@@ -517,7 +517,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Re-type new password"
-                    className="w-full pl-3.5 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full pl-3.5 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
                   />
                   <button
                     type="button"
@@ -548,7 +548,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                 <button
                   type="submit"
                   disabled={isUpdatingPassword || !currentPassword || !newPassword}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#5cb028] to-[#4e9921] hover:from-[#4e9921] hover:to-[#5cb028] disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all cursor-pointer disabled:cursor-not-allowed"
                 >
                   {isUpdatingPassword ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

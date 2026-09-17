@@ -333,7 +333,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
         {/* Modal Top Header */}
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-[#5cb028] text-white flex items-center justify-center font-bold text-xs shadow-xs">
               RF
             </div>
             <div>
@@ -356,16 +356,16 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
 
         {/* Linked Project Banner */}
         {projectContext && (
-          <div className="px-6 py-2.5 bg-gradient-to-r from-indigo-50 via-slate-50 to-indigo-50/50 border-b border-indigo-100/90 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="px-6 py-2.5 bg-gradient-to-r from-emerald-50/50 via-slate-50 to-emerald-50/30 border-b border-emerald-100/90 flex flex-wrap items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-md bg-indigo-600 text-white font-mono font-bold text-[10px] uppercase shadow-2xs">
+              <span className="px-2 py-0.5 rounded-md bg-[#5cb028] text-white font-mono font-bold text-[10px] uppercase shadow-2xs">
                 {projectContext.key}
               </span>
               <span className="font-bold text-slate-900">
                 Initiative: {projectContext.name}
               </span>
               {projectContext.sprintName && (
-                <span className="text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200 font-semibold text-[11px]">
+                <span className="text-[#3d8318] bg-white px-2 py-0.5 rounded-md border border-[#cdeac0] font-semibold text-[11px]">
                   {projectContext.sprintName}
                 </span>
               )}
@@ -647,9 +647,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 <button
                   type="button"
                   onClick={handleAddTopic}
-                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-indigo-50 border-2 border-dashed border-indigo-300 hover:border-indigo-500 text-xs font-bold text-indigo-700 shadow-xs transition-all hover:scale-105 cursor-pointer"
+                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-[#eaf5e3] border-2 border-dashed border-[#cdeac0] hover:border-[#5cb028] text-xs font-bold text-[#3d8318] shadow-xs transition-all hover:scale-105 cursor-pointer"
                 >
-                  <div className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs group-hover:rotate-90 transition-transform">
+                  <div className="w-5 h-5 rounded-full bg-[#5cb028] text-white flex items-center justify-center text-xs group-hover:rotate-90 transition-transform">
                     <Plus className="w-3.5 h-3.5 stroke-[3]" />
                   </div>
                   <span>Add New Topic Column</span>
@@ -673,7 +673,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
             type="button"
             onClick={handleSave}
             disabled={isSubmitting || !title.trim()}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-600/25 disabled:opacity-50 transition-all hover:scale-[1.02] cursor-pointer"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#5cb028] to-[#4e9921] hover:from-[#4e9921] hover:to-[#5cb028] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 disabled:opacity-50 transition-all hover:scale-[1.02] cursor-pointer"
           >
             {isSubmitting ? 'Saving...' : initialData ? 'Save Changes' : 'Create & Open Board →'}
           </button>

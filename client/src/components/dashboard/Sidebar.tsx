@@ -8,6 +8,7 @@ import {
   CheckSquare,
   Users,
   BarChart3,
+  LogOut,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -31,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   user,
   isAdmin: propIsAdmin,
   canViewMembers: propCanViewMembers,
+  onLogout,
   isOpen,
   onCloseMobile,
 }) => {
@@ -146,35 +148,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white/90 backdrop-blur-xl border-r border-slate-200/80 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white border-r border-slate-200/80 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Top Header & Brand */}
         <div className="p-6 flex-1 overflow-y-auto">
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-indigo-400 flex items-center justify-center font-black text-white text-base shadow-md shadow-indigo-600/25 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-xl bg-[#5cb028] flex items-center justify-center font-black text-white text-sm shadow-sm shadow-[#5cb028]/30 group-hover:scale-105 transition-transform">
               RF
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-lg tracking-tight text-slate-900">
-                  Retro<span className="text-indigo-600">Flow</span>
-                </span>
-                <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/60">
-                  Pro
-                </span>
-              </div>
+              <span className="font-extrabold text-lg tracking-tight text-slate-900">
+                Retro<span className="text-[#5cb028]">Flow</span>
+              </span>
               <p className="text-[11px] font-medium text-slate-400">Enterprise Workspace</p>
             </div>
           </Link>
 
           {/* Workspace Quick Status Pill */}
-          <div className="mt-6 p-3 rounded-xl bg-gradient-to-r from-indigo-50/70 via-slate-50 to-white border border-indigo-100/80 flex items-center justify-between">
+          <div className="mt-6 p-3 rounded-xl bg-[#f2f9ed] border border-[#cdeac0] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  activeSessionsCount > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+                  activeSessionsCount > 0 ? 'bg-[#5cb028] animate-pulse' : 'bg-slate-400'
                 }`}
               />
               <span className="text-xs font-semibold text-slate-700">
@@ -183,7 +180,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'Workspace Ready'}
               </span>
             </div>
-            <span className="text-[10px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-full border border-indigo-100 shadow-xs">
+            <span className="text-[10px] font-bold text-[#3d8318] bg-white px-2 py-0.5 rounded-full border border-[#cdeac0] shadow-2xs">
               Live Sync
             </span>
           </div>
@@ -202,8 +199,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                      ? 'bg-[#5cb028] text-white shadow-sm shadow-[#5cb028]/25'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -225,7 +222,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         isActive
                           ? 'bg-white/20 text-white'
-                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]'
                       }`}
                     >
                       {item.badge}
@@ -236,6 +233,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             })}
           </nav>
         </div>
+
+        {/* Bottom Sign Out (Matching Digiflux reference screenshot) */}
+        {onLogout && (
+          <div className="p-4 border-t border-slate-200/80 bg-white">
+            <button
+              type="button"
+              onClick={onLogout}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50/70 rounded-xl transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4 text-rose-500 shrink-0" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        )}
       </aside>
     </>
   );

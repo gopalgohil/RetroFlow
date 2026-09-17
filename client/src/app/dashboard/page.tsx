@@ -379,7 +379,7 @@ function DashboardContent() {
               <button
                 type="button"
                 onClick={() => handleClearAndNavigate('/signup')}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Register Again</span>
@@ -400,7 +400,7 @@ function DashboardContent() {
         {/* Footer */}
         <footer className="py-4 text-center text-xs text-slate-400 relative z-10">
           Need immediate access? Contact workspace owner at{' '}
-          <a href="mailto:gopalgohel249@gmail.com" className="font-semibold text-indigo-600 hover:underline">
+          <a href="mailto:gopalgohel249@gmail.com" className="font-semibold text-[#5cb028] hover:underline">
             gopalgohel249@gmail.com
           </a>
         </footer>
@@ -410,15 +410,15 @@ function DashboardContent() {
 
   if (isPendingApproval) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex flex-col justify-between selection:bg-indigo-500 selection:text-white relative overflow-hidden font-sans">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-[#5cb028] selection:text-white relative overflow-hidden font-sans">
         {/* Subtle Ambient Background Highlights */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-200/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
 
         {/* Top Header */}
         <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center font-black text-white text-base shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-[#5cb028] flex items-center justify-center font-black text-white text-base shadow-xs">
               RF
             </div>
             <div>
@@ -552,7 +552,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex selection:bg-indigo-500 selection:text-white font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex selection:bg-[#5cb028] selection:text-white font-sans">
       {/* Left Navigation Sidebar */}
       <Sidebar
         activeTab={activeTab}
@@ -599,6 +599,7 @@ function DashboardContent() {
                   onDelete={deleteSession}
                   onCreateNew={handleCreateRetro}
                   isAdmin={canManageSessions}
+                  user={activeUser}
                 />
               )}
 
@@ -651,7 +652,7 @@ function DashboardContent() {
                     <button
                       type="button"
                       onClick={() => switchTab('action_items')}
-                      className="py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                      className="py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                     >
                       Go to Action Items
                     </button>
@@ -680,7 +681,7 @@ function DashboardContent() {
                     <button
                       type="button"
                       onClick={() => switchTab('sessions')}
-                      className="py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                      className="py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                     >
                       Back to Sessions
                     </button>

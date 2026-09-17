@@ -201,7 +201,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
           onClick={() => setIsOpen((prev) => !prev)}
           className={`group flex items-center gap-2.5 px-3 py-1.5 rounded-xl border transition-all text-left cursor-pointer ${
             isOpen
-              ? 'bg-white border-indigo-500 ring-2 ring-indigo-500/20 shadow-xs'
+              ? 'bg-white border-[#5cb028] ring-2 ring-[#5cb028]/20 shadow-xs'
               : 'bg-white/80 hover:bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs'
           }`}
           title={activeProject ? `Active Project: ${activeProject.name}` : 'Select agile project'}
@@ -214,8 +214,8 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
               size="sm"
             />
           ) : (
-            <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200/70 text-indigo-600 flex items-center justify-center shrink-0">
-              <FolderKanban className="w-3.5 h-3.5" />
+            <div className="w-7 h-7 rounded-lg bg-[#eaf5e3] border border-[#cdeac0] text-[#3d8318] flex items-center justify-center shrink-0">
+              <FolderKanban className="w-3.5 h-3.5 text-[#5cb028]" />
             </div>
           )}
 
@@ -232,7 +232,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             </div>
             {activeProject && activeManager && (
               <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium truncate mt-0.5">
-                <span className="text-indigo-600 font-bold">{activeManager.role}:</span>
+                <span className="text-[#3d8318] font-bold">{activeManager.role}:</span>
                 <span className="truncate text-slate-700 font-medium">{activeManager.name}</span>
               </div>
             )}
@@ -240,7 +240,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
           <ChevronDown
             className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 shrink-0 ${
-              isOpen ? 'rotate-180 text-indigo-600' : ''
+              isOpen ? 'rotate-180 text-[#5cb028]' : ''
             }`}
           />
         </button>
@@ -254,7 +254,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   My Projects ({allProjects.length})
                 </span>
-                <span className="text-[10px] font-semibold text-indigo-600">RetroFlow Pro</span>
+                <span className="text-[10px] font-semibold text-[#3d8318]">RetroFlow Pro</span>
               </div>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -264,7 +264,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
-                  className="w-full pl-8 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full pl-8 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#5cb028]"
                 />
                 {searchQuery && (
                   <button
@@ -310,7 +310,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                       onClick={() => handleSelect(proj)}
                       className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-indigo-50/80 border border-indigo-200 text-indigo-950'
+                          ? 'bg-[#eaf5e3]/80 border border-[#cdeac0] text-[#1e4809]'
                           : 'hover:bg-slate-50 border border-transparent text-slate-800'
                       }`}
                     >
@@ -321,7 +321,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                             <p className="text-xs font-bold truncate max-w-[130px]">{proj.name}</p>
                             <StatusPill status={proj.healthStatus} pulse />
                             {projManager && (
-                              <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+                              <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
                                 {projManager.role}: {projManager.name.split(' ')[0]}
                               </span>
                             )}
@@ -345,7 +345,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                       </div>
 
                       {isSelected && (
-                        <Check className="w-4 h-4 text-indigo-600 stroke-[2.5] shrink-0 ml-2" />
+                        <Check className="w-4 h-4 text-[#5cb028] stroke-[2.5] shrink-0 ml-2" />
                       )}
                     </button>
                   );
@@ -362,7 +362,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                     setIsOpen(false);
                     setIsCreateModalOpen(true);
                   }}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>Create New Project</span>
