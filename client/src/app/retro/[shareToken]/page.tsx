@@ -50,7 +50,7 @@ export default function LiveRetroBoardPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans selection:bg-[#5cb028] selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f17] text-slate-900 dark:text-white flex flex-col font-sans selection:bg-[#5cb028] selection:text-white">
       {/* 1. Modular Session Navigation Header */}
       <RetroHeader
         title={session.retro.title}

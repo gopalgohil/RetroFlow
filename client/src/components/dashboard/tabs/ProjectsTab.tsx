@@ -251,14 +251,14 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
       {/* View Filter Switcher Bar */}
       <div ref={projectsGridRef} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 border border-slate-200/80 rounded-xl w-fit">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 rounded-xl w-fit">
           <button
             type="button"
             onClick={() => handleFilterChange('all')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               filterMode === 'all'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             All Projects ({tabCounts.all})
@@ -268,16 +268,16 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             onClick={() => handleFilterChange('managed')}
             className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               filterMode === 'managed'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <span>Managed by Me</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
                 tabCounts.managed > 0
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-slate-200 text-slate-600'
+                  ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60'
+                  : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
               }`}
             >
               {tabCounts.managed}
@@ -286,11 +286,11 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         </div>
 
         {isFilterLoading ? (
-          <div className="h-4 w-36 rounded bg-slate-200/80 animate-pulse" />
+          <div className="h-4 w-36 rounded bg-slate-200/80 dark:bg-slate-700/80 animate-pulse" />
         ) : (
-          <p className="text-xs text-slate-400">
-            Showing <strong className="text-slate-700">{projects.length}</strong> of{' '}
-            <strong className="text-slate-700">{pagination.totalItems}</strong> active initiatives
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            Showing <strong className="text-slate-700 dark:text-slate-300">{projects.length}</strong> of{' '}
+            <strong className="text-slate-700 dark:text-slate-300">{pagination.totalItems}</strong> active initiatives
           </p>
         )}
       </div>
@@ -301,8 +301,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayedProjects.length === 0 ? (
-            <div className="col-span-full p-12 text-center rounded-2xl bg-white border border-slate-200 space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-[#eaf5e3] text-[#3d8318] flex items-center justify-center font-bold mx-auto shadow-2xs">
+            <div className="col-span-full p-12 text-center rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="w-14 h-14 rounded-2xl bg-[#eaf5e3] dark:bg-[#5cb028]/15 text-[#3d8318] dark:text-[#5cb028] flex items-center justify-center font-bold mx-auto shadow-2xs">
                 {filterMode === 'managed' ? (
                   <FolderKanban className="w-6 h-6 text-[#5cb028]" />
                 ) : (
@@ -310,14 +310,14 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 )}
               </div>
               <div className="space-y-1">
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                   {filterMode === 'managed'
                     ? 'No Projects Managed by You'
                     : canCreateProject
                     ? 'No Projects in Workspace'
                     : 'No Assigned Projects'}
                 </h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                   {filterMode === 'managed'
                     ? 'You are not assigned as Manager for any project yet.'
                     : canCreateProject
@@ -328,7 +328,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 </p>
               </div>
               {!canCreateProject && filterMode !== 'managed' && (
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
                   Contact your workspace Administrator or Manager to get invited to active projects.
                 </p>
               )}
@@ -361,10 +361,10 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             return (
               <div
                 key={project.id}
-                className={`p-6 rounded-2xl bg-white border shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-5 group ${
+                className={`p-6 rounded-2xl bg-white dark:bg-[#0f172a] border shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-5 group ${
                   isCurrentLead
                     ? 'border-[#5cb028]/60 ring-1 ring-[#5cb028]/20'
-                    : 'border-slate-200/90 hover:border-[#5cb028]/40'
+                    : 'border-slate-200/90 dark:border-slate-800 hover:border-[#5cb028]/40 dark:hover:border-[#5cb028]/40'
                 }`}
               >
                 <div className="space-y-4">
@@ -373,61 +373,60 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     <div className="flex items-center gap-3 min-w-0">
                       <UserAvatar name={project.name} avatar={project.key} size="lg" />
                       <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#5cb028] transition-colors truncate">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#5cb028] transition-colors truncate">
                           {project.name}
                         </h3>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono mt-0.5">
+                        <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                           <span>{project.key}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <StatusPill status={project.healthStatus} pulse />
-                      {project.createdAt && formatProjectCreatedDate(project.createdAt) && (
+                    {project.createdAt && formatProjectCreatedDate(project.createdAt) && (
+                      <div className="shrink-0">
                         <span
-                          className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 tracking-tight"
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 dark:text-slate-500 tracking-tight"
                           title={`Project created on ${formatProjectCreatedDate(project.createdAt)}`}
                         >
-                          <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                          <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
                           <span>{formatProjectCreatedDate(project.createdAt)}</span>
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Dedicated Manager Identity Row */}
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/60">
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-[#5cb028] to-[#4e9921] text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
                         {managerAvatar}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider leading-none">
                           Manager
                         </p>
-                        <p className="text-xs font-bold text-slate-800 truncate mt-0.5">
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate mt-0.5">
                           {managerName}
                         </p>
                       </div>
                     </div>
 
                     {managerEmail && (
-                      <span className="text-[10px] text-slate-400 font-mono truncate max-w-[140px]">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono truncate max-w-[140px]">
                         {managerEmail}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
                     {project.description || 'No description provided.'}
                   </p>
 
                 {/* Active Sprint Highlights */}
                 {activeSprint ? (
-                  <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/70 space-y-2">
+                  <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/70 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-700 truncate max-w-[150px]">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[150px]">
                         {activeSprint.name.split(' - ')[0]}
                       </span>
                       <span className="text-[10px] font-bold text-[#5cb028]">
@@ -442,7 +441,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       size="sm"
                     />
 
-                    <div className="flex items-center justify-between text-[10px] text-slate-400">
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
                       <span>Sprint Progress</span>
                       <span className="font-semibold text-[#5cb028]">
                         {Math.round(
@@ -454,28 +453,28 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     </div>
                   </div>
                 ) : (
-                  <div className="p-3.5 rounded-xl bg-slate-50/60 border border-dashed border-slate-200 text-center">
-                    <span className="text-xs text-slate-400 font-medium">No active sprint</span>
+                  <div className="p-3.5 rounded-xl bg-slate-50/60 dark:bg-slate-800/30 border border-dashed border-slate-200 dark:border-slate-700 text-center">
+                    <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">No active sprint</span>
                   </div>
                 )}
 
                 {/* Project Stats Footer */}
-                <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 text-center">
-                  <div className="p-1.5 rounded-lg bg-slate-50">
-                    <span className="text-[10px] text-slate-400 block font-medium">Sprints</span>
-                    <span className="text-xs font-bold text-slate-800">
+                <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-center">
+                  <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Sprints</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                       {project.sprints.length}
                     </span>
                   </div>
-                  <div className="p-1.5 rounded-lg bg-slate-50">
-                    <span className="text-[10px] text-slate-400 block font-medium">Retros</span>
+                  <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Retros</span>
                     <span className="text-xs font-bold text-[#5cb028]">
                       {project.retrospectives.length}
                     </span>
                   </div>
-                  <div className="p-1.5 rounded-lg bg-slate-50">
-                    <span className="text-[10px] text-slate-400 block font-medium">Members</span>
-                    <span className="text-xs font-bold text-slate-800">
+                  <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Members</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                       {project.members.length}
                     </span>
                   </div>
@@ -495,7 +494,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       } catch {}
                     }
                   }}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#5cb028] text-white text-xs font-bold transition-all shadow-2xs group-hover:shadow-xs cursor-pointer disabled:opacity-75"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-md shadow-[#5cb028]/20 hover:scale-[1.01] cursor-pointer disabled:opacity-75"
                 >
                   {openingProjectId === project.id ? (
                     <span className="inline-flex items-center gap-2 animate-pulse">
@@ -519,7 +518,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       setProjectToDelete(project);
                     }}
                     title={`Delete ${project.name}`}
-                    className="p-2 rounded-xl border border-slate-200 hover:border-rose-300 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer shadow-2xs"
+                    className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer shadow-2xs"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -534,18 +533,18 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
       {/* Enterprise-grade 6-Item Pagination Controls */}
       {pagination.totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/90">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/90 dark:border-slate-800">
           {/* Pagination Counter Info */}
-          <div className="text-xs text-slate-500 font-medium">
+          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Showing{' '}
-            <span className="font-bold text-slate-900">
+            <span className="font-bold text-slate-900 dark:text-white">
               {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.totalItems)}
             </span>{' '}
             to{' '}
-            <span className="font-bold text-slate-900">
+            <span className="font-bold text-slate-900 dark:text-white">
               {Math.min(pagination.page * pagination.limit, pagination.totalItems)}
             </span>{' '}
-            of <span className="font-bold text-slate-900">{pagination.totalItems}</span> initiatives
+            of <span className="font-bold text-slate-900 dark:text-white">{pagination.totalItems}</span> initiatives
           </div>
 
           {/* Navigation Controls */}
@@ -555,7 +554,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               type="button"
               onClick={() => handlePageChange(pagination.page - 1)}
               disabled={!pagination.hasPrevPage || isFilterLoading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Previous</span>
@@ -564,7 +563,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             {/* Numeric Page Buttons */}
             {getPageNumbers().map((p, idx) =>
               p === '...' ? (
-                <span key={`ellipsis-${idx}`} className="px-2 text-xs text-slate-400 font-bold select-none">
+                <span key={`ellipsis-${idx}`} className="px-2 text-xs text-slate-400 dark:text-slate-500 font-bold select-none">
                   ...
                 </span>
               ) : (
@@ -576,7 +575,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   className={`min-w-[34px] h-[34px] rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     p === pagination.page
                       ? 'bg-[#5cb028] text-white shadow-xs shadow-[#5cb028]/30 ring-2 ring-[#5cb028]/20'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   {p}
@@ -589,7 +588,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               type="button"
               onClick={() => handlePageChange(pagination.page + 1)}
               disabled={!pagination.hasNextPage || isFilterLoading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
             >
               <span className="hidden sm:inline">Next</span>
               <ChevronRight className="w-4 h-4" />
@@ -632,7 +631,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 type="button"
                 disabled={isDeletingProject}
                 onClick={() => setProjectToDelete(null)}
-                className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -652,24 +651,24 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             </>
           }
         >
-          <div className="space-y-4 text-xs text-slate-600">
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200/90 text-rose-950 space-y-1.5">
-              <div className="flex items-center gap-2 font-bold text-rose-900 text-xs">
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+          <div className="space-y-4 text-xs text-slate-600 dark:text-slate-300">
+            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/90 dark:border-rose-900/50 text-rose-950 dark:text-rose-200 space-y-1.5">
+              <div className="flex items-center gap-2 font-bold text-rose-900 dark:text-rose-300 text-xs">
+                <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                 <span>Confirm Permanent Deletion</span>
               </div>
-              <p className="text-[11px] leading-relaxed text-rose-800">
+              <p className="text-[11px] leading-relaxed text-rose-800 dark:text-rose-300">
                 Are you sure you want to delete <strong>{projectToDelete.name}</strong> ({projectToDelete.key})?
               </p>
             </div>
 
             {deleteProjectError && (
-              <div className="p-3 rounded-xl bg-rose-100 border border-rose-300 text-rose-800 text-xs font-medium">
+              <div className="p-3 rounded-xl bg-rose-100 dark:bg-rose-900/40 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-medium">
                 {deleteProjectError}
               </div>
             )}
 
-            <p className="text-[11px] text-slate-500 leading-relaxed">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
               Once deleted, all {projectToDelete.sprints.length} sprints, backlog action items, and retrospectives in this project will be permanently wiped. This action cannot be undone.
             </p>
           </div>

@@ -103,7 +103,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   return (
     <div className="space-y-6">
       {/* Session Filter Tabs Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800 pb-3">
         <div className="flex items-center gap-2">
           {[
             { id: 'active', label: 'Active Sessions' },
@@ -119,7 +119,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   isActive
                     ? 'bg-[#5cb028] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 {tab.label}
@@ -177,7 +177,7 @@ export const SessionList: React.FC<SessionListProps> = ({
           {paginatedSessions.map((session) => (
             <div
               key={session._id}
-              className="group relative p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-[#5cb028]/40 hover:shadow-md transition-all flex flex-col justify-between"
+              className="group relative p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-[#5cb028]/40 dark:hover:border-[#5cb028]/60 hover:shadow-md dark:hover:shadow-black/40 transition-all flex flex-col justify-between"
             >
               {/* Card Top Row: Status badge & Scheduled Date */}
               <div className="flex items-center justify-between gap-2 mb-3">
@@ -185,10 +185,10 @@ export const SessionList: React.FC<SessionListProps> = ({
                   <span
                     className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                       session.status === 'active'
-                        ? 'bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]'
+                        ? 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#86efac] border border-[#cdeac0] dark:border-[#5cb028]/30'
                         : session.status === 'completed'
-                        ? 'bg-slate-100 text-slate-600 border border-slate-200'
-                        : 'bg-amber-50 text-amber-700 border border-amber-200'
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                        : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
                     }`}
                   >
                     <span
@@ -200,13 +200,13 @@ export const SessionList: React.FC<SessionListProps> = ({
                   </span>
 
                   {session.approvalRequired && (
-                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#86efac] border border-[#cdeac0] dark:border-[#5cb028]/30">
                       Waiting Room
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+                <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 dark:text-slate-500">
                   <Calendar className="w-3.5 h-3.5" />
                   <span>{formatDate(session.scheduledDate || session.createdAt)}</span>
                 </div>
@@ -214,11 +214,11 @@ export const SessionList: React.FC<SessionListProps> = ({
 
               {/* Title & Description */}
               <div className="space-y-1 mb-3">
-                <h3 className="text-base font-bold text-slate-900 group-hover:text-[#5cb028] transition-colors">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-[#5cb028] transition-colors">
                   {session.title}
                 </h3>
                 {session.description && (
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
                     {session.description}
                   </p>
                 )}
@@ -320,7 +320,7 @@ export const SessionList: React.FC<SessionListProps> = ({
 
 
               {/* Card Footer Actions */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                 {/* Left: Launch / Join + Share */}
                 <div className="flex items-center gap-2">
                   <button
@@ -335,9 +335,9 @@ export const SessionList: React.FC<SessionListProps> = ({
                     <button
                       onClick={() => setInvitingSession(session)}
                       title="Invite Teammates & Developers"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#eaf5e3] hover:bg-[#def0d4] text-[#3d8318] border-[#cdeac0] hover:border-[#b8e2a6]"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#eaf5e3] hover:bg-[#def0d4] dark:bg-[#5cb028]/20 dark:hover:bg-[#5cb028]/30 text-[#3d8318] dark:text-[#86efac] border-[#cdeac0] dark:border-[#5cb028]/30"
                     >
-                      <Share2 className="w-3.5 h-3.5 text-[#5cb028]" />
+                      <Share2 className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#86efac]" />
                       <span>Share / Invite</span>
                     </button>
                   )}
@@ -349,7 +349,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                     <button
                       onClick={() => onEdit(session)}
                       title="Edit Topics & Rules"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
@@ -357,7 +357,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                     <button
                       onClick={() => setDeletingId(session._id)}
                       title="Delete Retrospective"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -371,12 +371,12 @@ export const SessionList: React.FC<SessionListProps> = ({
 
       {/* Enterprise Pagination Controls Footer (Active when > 6 retros) */}
       {!isCardsLoading && totalPages > 1 && (
-        <div className="p-4 sm:px-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           {/* Left: Range Info */}
-          <div className="text-slate-500">
-            Showing <strong className="text-slate-800">{startIndex + 1}</strong> to{' '}
-            <strong className="text-slate-800">{endIndex}</strong> of{' '}
-            <strong className="text-slate-800">{totalItems}</strong> Retros
+          <div className="text-slate-500 dark:text-slate-400">
+            Showing <strong className="text-slate-800 dark:text-slate-200">{startIndex + 1}</strong> to{' '}
+            <strong className="text-slate-800 dark:text-slate-200">{endIndex}</strong> of{' '}
+            <strong className="text-slate-800 dark:text-slate-200">{totalItems}</strong> Retros
           </div>
 
           {/* Right: Page Navigation Controls */}
@@ -386,7 +386,7 @@ export const SessionList: React.FC<SessionListProps> = ({
               type="button"
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={safeCurrentPage <= 1}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
               <span>Prev</span>

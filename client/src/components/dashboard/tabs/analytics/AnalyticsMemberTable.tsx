@@ -69,17 +69,17 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
   };
 
   return (
-    <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-5">
+    <div className="p-6 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
       {/* Header & Filter Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-[#5cb028]" />
-            <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
+            <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               Team Member Participation Breakdown
             </h3>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Individual attendance rates, card contributions, votes cast, and action item ownership.
           </p>
         </div>
@@ -91,8 +91,8 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
             onClick={() => setStatusFilter('ALL')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               statusFilter === 'ALL'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-slate-900 dark:bg-slate-700 text-white shadow-2xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             All ({statusCounts.all})
@@ -103,7 +103,7 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               statusFilter === 'CHAMPION'
                 ? 'bg-[#5cb028] text-white shadow-2xs'
-                : 'bg-[#eaf5e3] text-[#3d8318] hover:bg-[#def0d4]'
+                : 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] hover:bg-[#def0d4] dark:hover:bg-[#5cb028]/30'
             }`}
           >
             🏆 Champions ({statusCounts.champion})
@@ -114,7 +114,7 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               statusFilter === 'ACTIVE'
                 ? 'bg-emerald-600 text-white shadow-2xs'
-                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
             }`}
           >
             Active ({statusCounts.active})
@@ -125,7 +125,7 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               statusFilter === 'NUDGE'
                 ? 'bg-amber-600 text-white shadow-2xs'
-                : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-950/60'
             }`}
           >
             ⚠️ Nudge ({statusCounts.nudge})
@@ -135,21 +135,21 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
 
       {/* Search Input Bar */}
       <div className="relative">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search member by name, email, or role..."
-          className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all placeholder:text-slate-400"
+          className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
         />
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-slate-200/80">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-slate-200/80 bg-slate-50/70 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <tr className="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
               <th className="px-5 py-3.5">Team Member</th>
               <th className="px-4 py-3.5">Project Role</th>
               <th className="px-5 py-3.5">Retro Attendance</th>
@@ -159,24 +159,24 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
               <th className="px-5 py-3.5 text-right">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-xs font-medium">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
             {filteredMembers.length > 0 ? (
               filteredMembers.map((m) => (
-                <tr key={m.email} className="hover:bg-slate-50/80 transition-colors">
+                <tr key={m.email} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                   {/* Member Identity */}
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
                       <UserAvatar name={m.name} email={m.email} size="sm" />
                       <div className="min-w-0">
-                        <p className="font-bold text-slate-900 truncate">{m.name}</p>
-                        <p className="text-[11px] text-slate-400 font-mono truncate">{m.email}</p>
+                        <p className="font-bold text-slate-900 dark:text-white truncate">{m.name}</p>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-mono truncate">{m.email}</p>
                       </div>
                     </div>
                   </td>
 
                   {/* Role */}
                   <td className="px-4 py-3.5">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                       {m.role}
                     </span>
                   </td>
@@ -185,22 +185,22 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
                   <td className="px-5 py-3.5">
                     <div className="space-y-1 min-w-[140px]">
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-bold text-slate-800">
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
                           {m.retrosAttended} / {m.totalEligibleRetros}
                         </span>
                         <span
                           className={`font-bold ${
                             m.attendanceRate >= 85
-                              ? 'text-[#3d8318]'
+                              ? 'text-[#3d8318] dark:text-[#5cb028]'
                               : m.attendanceRate >= 60
-                              ? 'text-emerald-600'
-                              : 'text-amber-600'
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-amber-600 dark:text-amber-400'
                           }`}
                         >
                           {m.attendanceRate}%
                         </span>
                       </div>
-                      <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
                             m.attendanceRate >= 85
@@ -217,7 +217,7 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
 
                   {/* Cards Shared */}
                   <td className="px-4 py-3.5">
-                    <span className="inline-flex items-center gap-1 font-bold text-slate-800">
+                    <span className="inline-flex items-center gap-1 font-bold text-slate-800 dark:text-slate-200">
                       <MessageSquare className="w-3.5 h-3.5 text-[#5cb028]" />
                       <span>{m.cardsShared}</span>
                     </span>
@@ -225,7 +225,7 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
 
                   {/* Votes Cast */}
                   <td className="px-4 py-3.5">
-                    <span className="inline-flex items-center gap-1 font-bold text-slate-800">
+                    <span className="inline-flex items-center gap-1 font-bold text-slate-800 dark:text-slate-200">
                       <ThumbsUp className="w-3.5 h-3.5 text-emerald-500" />
                       <span>{m.votesCast}</span>
                     </span>
@@ -234,10 +234,10 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
                   {/* Last Attended */}
                   <td className="px-4 py-3.5">
                     <div className="min-w-0 max-w-[160px]">
-                      <p className="text-[11px] font-semibold text-slate-800 truncate" title={m.lastAttendedTitle}>
+                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 truncate" title={m.lastAttendedTitle}>
                         {m.lastAttendedTitle}
                       </p>
-                      <p className="text-[10px] text-slate-400">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500">
                         {m.lastAttendedDate ? formatDate(m.lastAttendedDate) : 'No session record'}
                       </p>
                     </div>
@@ -248,10 +248,10 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
                     <span
                       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
                         m.status === 'Sprint Champion'
-                          ? 'bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]'
+                          ? 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30'
                           : m.status === 'Active Contributor'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/60'
+                          : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60'
                       }`}
                     >
                       {m.status === 'Sprint Champion' && <Award className="w-3 h-3 text-[#5cb028]" />}
@@ -264,7 +264,7 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="px-5 py-10 text-center text-slate-400 text-xs">
+                <td colSpan={7} className="px-5 py-10 text-center text-slate-400 dark:text-slate-500 text-xs">
                   No team members matched your search or status filter.
                 </td>
               </tr>

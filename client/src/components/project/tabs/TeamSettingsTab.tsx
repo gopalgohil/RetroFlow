@@ -277,15 +277,15 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* Section 1: Team Members Table */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+      <div className="bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
         {/* Table Header & Invite Trigger */}
-        <div className="p-6 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-6 border-b border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <Users className="w-4 h-4 text-[#5cb028]" />
               Assigned Team Members ({project.members.length})
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Control access permissions and sprint roles for this project
             </p>
           </div>
@@ -300,7 +300,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
               <span>Invite Team Member</span>
             </button>
           ) : (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-xs font-semibold">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold">
               <Users className="w-3.5 h-3.5 text-slate-400" />
               <span>Directory View</span>
             </div>
@@ -308,15 +308,15 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         </div>
 
         {memberRemovedNotice && (
-          <div className="mx-6 mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between animate-in fade-in">
+          <div className="mx-6 mt-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center justify-between animate-in fade-in">
             <span className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-emerald-600" />
+              <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               {memberRemovedNotice}
             </span>
             <button
               type="button"
               onClick={() => setMemberRemovedNotice(null)}
-              className="text-emerald-600 hover:text-emerald-800 text-xs cursor-pointer"
+              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 text-xs cursor-pointer"
             >
               ✕
             </button>
@@ -325,8 +325,8 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
 
         {/* Members Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200/60">
+          <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+            <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-800">
               <tr>
                 <th className="px-6 py-3.5">Member Name</th>
                 <th className="px-6 py-3.5">Email</th>
@@ -338,9 +338,9 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
               {project.members.map((member) => (
-                <tr key={member.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={member.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                   <td className="px-6 py-4 flex items-center gap-3">
                     <UserAvatar
                       name={member.name}
@@ -351,32 +351,32 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                       status="online"
                     />
                     <div>
-                      <p className="font-bold text-slate-900">{member.name}</p>
+                      <p className="font-bold text-slate-900 dark:text-white">{member.name}</p>
                       {project.lead.email === member.email && (
-                        <span className="text-[10px] text-[#3d8318] font-semibold">
+                        <span className="text-[10px] text-[#3d8318] dark:text-[#5cb028] font-semibold">
                           Manager
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-medium text-slate-500">{member.email}</td>
+                  <td className="px-6 py-4 font-medium text-slate-500 dark:text-slate-400">{member.email}</td>
                   <td className="px-6 py-4">
                     <StatusPill status={member.role} />
                   </td>
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold text-[11px]">
+                    <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-semibold text-[11px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       Active
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <span className="text-slate-400 text-[11px] font-mono">Synced</span>
+                    <span className="text-slate-400 dark:text-slate-500 text-[11px] font-mono">Synced</span>
                   </td>
                   {canManageProject && (
                     <td className="px-6 py-4 text-right">
                       {project.lead.email.toLowerCase() === member.email.toLowerCase() ? (
                         <span
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 select-none"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 select-none"
                           title="Designated Project Manager cannot be removed"
                         >
                           Manager
@@ -388,10 +388,10 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                             setRemoveMemberError('');
                             setMemberToRemove(member);
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-rose-300 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-500/50 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
                           title={`Remove ${member.name} from project`}
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 transition-colors" />
+                          <Trash2 className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors" />
                           <span>Remove</span>
                         </button>
                       )}
@@ -405,20 +405,20 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
       </div>
 
       {/* Section 2: General Project Configuration */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-6">
-        <div className="border-b border-slate-200/80 pb-4 flex items-center justify-between">
+      <div className="bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-6">
+        <div className="border-b border-slate-200/80 dark:border-slate-800 pb-4 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <Settings className="w-4 h-4 text-[#5cb028]" />
               <span>General Project Configuration</span>
               {!canManageProject && (
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center gap-1">
                   <Lock className="w-3 h-3 text-slate-400" />
                   Read-Only
                 </span>
               )}
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {canManageProject
                 ? 'Update project descriptions, team details, and board attributes'
                 : 'Project configurations can only be updated by the Project Lead, Managers, or Workspace Admins'}
@@ -426,7 +426,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
           </div>
 
           {savedNotice && (
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 animate-in fade-in">
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 animate-in fade-in">
               <Check className="w-3.5 h-3.5" />
               Settings Saved!
             </span>
@@ -434,8 +434,8 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         </div>
 
         {!canManageProject && (
-          <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-amber-900 text-xs flex items-center gap-2.5">
-            <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+          <div className="p-3.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 text-xs flex items-center gap-2.5">
+            <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <p>
               Your role in this project is <strong>{currentUserRole}</strong>. Project settings and Danger Zone operations are strictly reserved for the <strong>Project Lead & Managers</strong>.
             </p>
@@ -445,33 +445,33 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         <form onSubmit={handleSaveSettings} className="space-y-4 max-w-xl">
           <fieldset disabled={!canManageProject} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">Project Name</label>
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">Project Name</label>
               <input
                 type="text"
                 disabled={!canManageProject}
                 readOnly={!canManageProject}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={`w-full px-3.5 py-2.5 border rounded-xl text-xs text-slate-900 focus:outline-none ${
+                className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:outline-none ${
                   canManageProject
-                    ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
-                    : 'bg-slate-100/70 border-slate-200 text-slate-500 cursor-not-allowed select-none'
+                    ? 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
+                    : 'bg-slate-100/70 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed select-none'
                 }`}
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">Description</label>
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">Description</label>
               <textarea
                 rows={3}
                 disabled={!canManageProject}
                 readOnly={!canManageProject}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className={`w-full px-3.5 py-2.5 border rounded-xl text-xs text-slate-900 focus:outline-none resize-none ${
+                className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:outline-none resize-none ${
                   canManageProject
-                    ? 'bg-slate-50 border-slate-200 focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
-                    : 'bg-slate-100/70 border-slate-200 text-slate-500 cursor-not-allowed select-none'
+                    ? 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
+                    : 'bg-slate-100/70 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed select-none'
                 }`}
               />
             </div>
@@ -481,7 +481,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             <div className="pt-2">
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold shadow-xs dark:border dark:border-slate-700 transition-colors cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Configuration</span>
@@ -493,40 +493,40 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
 
       {/* Section 3: Enterprise Danger Zone (Visible ONLY to Project Lead / Manager / Workspace Admin) */}
       {canManageProject ? (
-        <div className="bg-rose-50/50 border border-rose-200/90 rounded-2xl shadow-xs overflow-hidden">
-          <div className="p-6 border-b border-rose-200/70 bg-rose-100/30 flex items-center justify-between">
+        <div className="bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/90 dark:border-rose-900/60 rounded-2xl shadow-xs overflow-hidden">
+          <div className="p-6 border-b border-rose-200/70 dark:border-rose-900/60 bg-rose-100/30 dark:bg-rose-950/40 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-600/20 shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-rose-950 tracking-tight flex items-center gap-2">
+                <h3 className="text-base font-extrabold text-rose-950 dark:text-rose-200 tracking-tight flex items-center gap-2">
                   Danger Zone
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-200/80 text-rose-800 uppercase tracking-wider">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-200/80 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300 uppercase tracking-wider">
                     Managers & Lead Only
                   </span>
                 </h3>
-                <p className="text-xs text-rose-700/80 mt-0.5">
+                <p className="text-xs text-rose-700/80 dark:text-rose-400 mt-0.5">
                   Destructive operations and lifecycle status changes for this agile initiative
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="p-6 space-y-4 divide-y divide-rose-100">
+          <div className="p-6 space-y-4 divide-y divide-rose-100 dark:divide-rose-950/40">
             {/* Action A: Archive Initiative (Soft Delete) */}
             <div className="pt-2 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                  <Archive className="w-3.5 h-3.5 text-slate-500" />
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Archive className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                   <span>{project.isArchived ? 'Restore Initiative' : 'Archive Initiative'}</span>
                   {project.isArchived && (
-                    <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                    <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
                       Archived
                     </span>
                   )}
                 </h4>
-                <p className="text-xs text-slate-500 max-w-lg leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-lg leading-relaxed">
                   Mark this project as {project.isArchived ? 'active again' : 'archived'}. Historical velocity data and retrospective action items remain preserved in read-only state.
                 </p>
               </div>
@@ -538,7 +538,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0 ${
                   project.isArchived
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                    : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
+                    : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
                 }`}
               >
                 {isArchiving ? 'Updating...' : project.isArchived ? 'Unarchive Project' : 'Archive Project'}
@@ -548,11 +548,11 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             {/* Action B: Delete Initiative Permanently (Hard Delete) */}
             <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-rose-900 flex items-center gap-2">
-                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <h4 className="text-xs font-bold text-rose-900 dark:text-rose-300 flex items-center gap-2">
+                  <Trash2 className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                   <span>Delete this project permanently</span>
                 </h4>
-                <p className="text-xs text-slate-500 max-w-lg leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-lg leading-relaxed">
                   Once deleted, all {project.sprints.length} sprints, backlog items, and configuration rules for <strong>{project.name}</strong> will be permanently wiped. This action <strong>cannot</strong> be undone.
                 </p>
               </div>
@@ -571,10 +571,10 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 </button>
               ) : (
                 <div
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-100/60 border border-rose-200/80 text-rose-700 text-xs font-semibold shrink-0 cursor-not-allowed select-none"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-100/60 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-semibold shrink-0 cursor-not-allowed select-none"
                   title="Project deletion is restricted to Admins and Managers. Project Leads cannot delete projects."
                 >
-                  <Lock className="w-3.5 h-3.5 text-rose-500" />
+                  <Lock className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
                   <span>Restricted to Admin & Manager</span>
                 </div>
               )}
@@ -582,24 +582,24 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
           </div>
         </div>
       ) : (
-        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-slate-50 dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
               <Lock className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>Enterprise Danger Zone</span>
-                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-200 text-slate-600 uppercase">
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase">
                   Restricted
                 </span>
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Permanently deleting or archiving <strong>{project.name}</strong> is strictly restricted to the <strong>Project Lead, Managers, and Workspace Admins</strong>.
               </p>
             </div>
           </div>
-          <div className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-400 shrink-0 select-none">
+          <div className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-400 dark:text-slate-500 shrink-0 select-none">
             🔒 Operations Locked
           </div>
         </div>
@@ -618,7 +618,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             <button
               type="button"
               onClick={() => setIsInviteOpen(false)}
-              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -635,7 +635,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         <form onSubmit={handleInviteSubmit} className="space-y-4">
           {!isManualInvite ? (
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                 Select Workspace Member
               </label>
               <select
@@ -651,14 +651,14 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                     setInviteEmail(found.email);
                   }
                 }}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer"
               >
                 {workspaceMembers.map((m) => {
                   const isAlreadyMember = project.members?.some(
                     (p) => p.email.toLowerCase() === m.email.toLowerCase()
                   );
                   return (
-                    <option key={m.email} value={m.email} disabled={isAlreadyMember}>
+                    <option key={m.email} value={m.email} disabled={isAlreadyMember} className="dark:bg-slate-900">
                       {m.name} ({m.email}) {isAlreadyMember ? '— Already Added' : ''}
                     </option>
                   );
@@ -681,26 +681,26 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
           ) : (
             <>
               <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700">Full Name</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Full Name</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Jordan Hayes"
                   value={inviteName}
                   onChange={(e) => setInviteName(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700">Work Email</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Work Email</label>
                 <input
                   type="email"
                   required
                   placeholder="jordan.h@retroflow.io"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -717,7 +717,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                       setInviteEmail(found.email);
                     }
                   }}
-                  className="text-[11px] text-slate-500 hover:text-slate-700 hover:underline cursor-pointer"
+                  className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:underline cursor-pointer"
                 >
                   ← Back to workspace members list
                 </button>
@@ -726,17 +726,17 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
           )}
 
           <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-700">Project Role</label>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Project Role</label>
             <select
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value as ProjectMemberRole)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-pointer"
             >
-              <option value="Developer">Developer</option>
-              <option value="QA">QA</option>
-              <option value="Manager">Manager</option>
-              <option value="DevOps">DevOps</option>
-              <option value="Project Lead">Project Lead</option>
+              <option value="Developer" className="dark:bg-slate-900">Developer</option>
+              <option value="QA" className="dark:bg-slate-900">QA</option>
+              <option value="Manager" className="dark:bg-slate-900">Manager</option>
+              <option value="DevOps" className="dark:bg-slate-900">DevOps</option>
+              <option value="Project Lead" className="dark:bg-slate-900">Project Lead</option>
             </select>
           </div>
 
@@ -763,7 +763,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
               type="button"
               disabled={isDeleting}
               onClick={() => setIsDeleteModalOpen(false)}
-              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -781,22 +781,22 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
           </>
         }
       >
-        <div className="space-y-4 text-xs text-slate-600">
+        <div className="space-y-4 text-xs text-slate-600 dark:text-slate-300">
           {/* Warning Callout Box */}
-          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200/90 text-rose-950 space-y-1.5">
-            <div className="flex items-center gap-2 font-bold text-rose-900 text-xs">
+          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/90 dark:border-rose-900/60 text-rose-950 dark:text-rose-200 space-y-1.5">
+            <div className="flex items-center gap-2 font-bold text-rose-900 dark:text-rose-300 text-xs">
               <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>Unexpected bad things will happen if you don't read this!</span>
             </div>
-            <p className="text-[11px] leading-relaxed text-rose-800">
+            <p className="text-[11px] leading-relaxed text-rose-800 dark:text-rose-300/80">
               This will permanently delete the <strong>{project.name}</strong> ({project.key}) agile project, its <strong>{project.sprints.length} sprints</strong>, and backlog items.
             </p>
           </div>
 
           {/* Type to Confirm Prompt */}
           <div className="space-y-2 pt-1">
-            <label className="block text-xs font-semibold text-slate-800">
-              Please type <code className="px-1.5 py-0.5 rounded bg-slate-100 font-mono font-bold text-slate-900 border border-slate-200 select-all">DELETE {project.key}</code> to confirm:
+            <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200">
+              Please type <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono font-bold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 select-all">DELETE {project.key}</code> to confirm:
             </label>
             <input
               type="text"
@@ -807,13 +807,13 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 setDeleteError('');
               }}
               placeholder={`DELETE ${project.key}`}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
+              className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
             />
           </div>
 
           {/* Backend Error Alert */}
           {deleteError && (
-            <div className="p-3 rounded-xl bg-rose-100/70 border border-rose-300 text-rose-900 text-xs font-medium animate-in fade-in">
+            <div className="p-3 rounded-xl bg-rose-100/70 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-xs font-medium animate-in fade-in">
               {deleteError}
             </div>
           )}
@@ -843,7 +843,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                   setMemberToRemove(null);
                   setRemoveMemberError('');
                 }}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -859,18 +859,18 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             </>
           }
         >
-          <div className="space-y-4 text-xs text-slate-600">
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200/90 text-rose-950 space-y-1.5">
-              <div className="flex items-center gap-2 font-bold text-rose-900 text-xs">
+          <div className="space-y-4 text-xs text-slate-600 dark:text-slate-300">
+            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/90 dark:border-rose-900/60 text-rose-950 dark:text-rose-200 space-y-1.5">
+              <div className="flex items-center gap-2 font-bold text-rose-900 dark:text-rose-300 text-xs">
                 <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>Confirm Revocation of Project Access</span>
               </div>
-              <p className="text-[11px] leading-relaxed text-rose-800">
+              <p className="text-[11px] leading-relaxed text-rose-800 dark:text-rose-300/80">
                 Are you sure you want to remove <strong>{memberToRemove.name}</strong> ({memberToRemove.email}) from <strong>{project.name}</strong> ({project.key})?
               </p>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <UserAvatar
                   name={memberToRemove.name}
@@ -880,19 +880,19 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                   size="md"
                 />
                 <div>
-                  <p className="font-bold text-slate-900">{memberToRemove.name}</p>
-                  <p className="text-[11px] text-slate-500">{memberToRemove.email}</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{memberToRemove.name}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{memberToRemove.email}</p>
                 </div>
               </div>
               <StatusPill status={memberToRemove.role} />
             </div>
 
-            <p className="text-[11px] text-slate-500 leading-relaxed">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
               Once removed, this user will immediately lose access to all sprint backlogs, task assignments, and private retrospectives associated with this project.
             </p>
 
             {removeMemberError && (
-              <div className="p-3 rounded-xl bg-rose-100/70 border border-rose-300 text-rose-900 text-xs font-medium animate-in fade-in">
+              <div className="p-3 rounded-xl bg-rose-100/70 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-xs font-medium animate-in fade-in">
                 {removeMemberError}
               </div>
             )}

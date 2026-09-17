@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   Sidebar,
@@ -320,9 +321,13 @@ function DashboardContent() {
         {/* Top Header */}
         <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center font-black text-white text-base shadow-xs">
-              RF
-            </div>
+            <Image
+              src="/logo.svg"
+              alt="RetroFlow Logo"
+              width={36}
+              height={36}
+              className="w-9 h-9 rounded-xl object-contain shadow-xs"
+            />
             <div>
               <span className="font-extrabold text-base tracking-tight text-slate-900">RetroFlow</span>
               <span className="text-[10px] uppercase font-bold text-rose-700 ml-2 tracking-wider px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200">
@@ -418,9 +423,13 @@ function DashboardContent() {
         {/* Top Header */}
         <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#5cb028] flex items-center justify-center font-black text-white text-base shadow-xs">
-              RF
-            </div>
+            <Image
+              src="/logo.svg"
+              alt="RetroFlow Logo"
+              width={36}
+              height={36}
+              className="w-9 h-9 rounded-xl object-contain shadow-xs"
+            />
             <div>
               <span className="font-extrabold text-base tracking-tight text-slate-900">RetroFlow</span>
               <span className="text-[10px] uppercase font-bold text-amber-700 ml-2 tracking-wider px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
@@ -552,7 +561,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex selection:bg-[#5cb028] selection:text-white font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f17] text-slate-900 dark:text-white flex selection:bg-[#5cb028] selection:text-white font-sans transition-colors duration-200">
       {/* Left Navigation Sidebar */}
       <Sidebar
         activeTab={activeTab}

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -148,45 +149,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white border-r border-slate-200/80 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white dark:bg-[#0b0f17] border-r border-slate-200/80 dark:border-slate-800 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Top Header & Brand */}
-        <div className="p-6 flex-1 overflow-y-auto">
-          <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl bg-[#5cb028] flex items-center justify-center font-black text-white text-sm shadow-sm shadow-[#5cb028]/30 group-hover:scale-105 transition-transform">
-              RF
-            </div>
-            <div>
-              <span className="font-extrabold text-lg tracking-tight text-slate-900">
-                Retro<span className="text-[#5cb028]">Flow</span>
-              </span>
-              <p className="text-[11px] font-medium text-slate-400">Enterprise Workspace</p>
-            </div>
+        {/* Top Header & Brand (Exact h-16 to align seamlessly with DashboardHeader) */}
+        <div className="h-16 flex items-center pl-[38px] pr-6 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
+          <Link href="/dashboard" className="flex items-center group">
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={160}
+              height={48}
+              className="h-10 sm:h-11 w-auto object-contain group-hover:scale-105 transition-transform"
+              priority
+            />
           </Link>
+        </div>
 
-          {/* Workspace Quick Status Pill */}
-          <div className="mt-6 p-3 rounded-xl bg-[#f2f9ed] border border-[#cdeac0] flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  activeSessionsCount > 0 ? 'bg-[#5cb028] animate-pulse' : 'bg-slate-400'
-                }`}
-              />
-              <span className="text-xs font-semibold text-slate-700">
-                {activeSessionsCount > 0
-                  ? `${activeSessionsCount} Live Session${activeSessionsCount !== 1 ? 's' : ''}`
-                  : 'Workspace Ready'}
-              </span>
-            </div>
-            <span className="text-[10px] font-bold text-[#3d8318] bg-white px-2 py-0.5 rounded-full border border-[#cdeac0] shadow-2xs">
-              Live Sync
-            </span>
-          </div>
-
-          {/* Navigation Items */}
-          <nav className="mt-6 space-y-1.5">
+        {/* Navigation Items Area */}
+        <div className="px-6 pt-14 pb-6 flex-1 overflow-y-auto">
+          <nav className="space-y-2.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -200,19 +183,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     isActive
                       ? 'bg-[#5cb028] text-white shadow-sm shadow-[#5cb028]/25'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon
                       className={`w-4 h-4 ${
-                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'
+                        isActive ? 'text-white' : 'text-slate-400 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'
                       }`}
                     />
                     <div className="text-left">
                       <p suppressHydrationWarning>{item.label}</p>
                       {item.sublabel && !isActive && (
-                        <p suppressHydrationWarning className="text-[10px] font-normal text-slate-400">{item.sublabel}</p>
+                        <p suppressHydrationWarning className="text-[10px] font-normal text-slate-400 dark:text-slate-500">{item.sublabel}</p>
                       )}
                     </div>
                   </div>
@@ -222,7 +205,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         isActive
                           ? 'bg-white/20 text-white'
-                          : 'bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]'
+                          : 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#86efac] border border-[#cdeac0] dark:border-[#5cb028]/30'
                       }`}
                     >
                       {item.badge}
@@ -236,11 +219,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Bottom Sign Out (Matching Digiflux reference screenshot) */}
         {onLogout && (
-          <div className="p-4 border-t border-slate-200/80 bg-white">
+          <div className="p-4 border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0b0f17]">
             <button
               type="button"
               onClick={onLogout}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50/70 rounded-xl transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50/70 dark:hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4 text-rose-500 shrink-0" />
               <span>Sign Out</span>

@@ -197,14 +197,14 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
       {/* Whitelist Quick Add Form Card (Admin Only) */}
       {isAdmin && (
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-50/70 via-white to-[#eaf5e3]/30 border border-emerald-100/80 shadow-xs">
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-50/70 via-white to-[#eaf5e3]/30 dark:from-[#5cb028]/10 dark:via-[#0f172a] dark:to-[#0b0f17] border border-emerald-100/80 dark:border-slate-800 shadow-xs">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#5cb028]/20 text-emerald-700 dark:text-[#5cb028] flex items-center justify-center font-bold text-xs">
               <Shield className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Instant Member Access</h3>
-              <p className="text-xs text-slate-500">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Instant Member Access</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Developers added here receive pre-approved workspace access without waiting for approval.
               </p>
             </div>
@@ -219,7 +219,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 onChange={(e) => setEmailInput(e.target.value)}
                 placeholder="e.g. developer@company.com"
                 required
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
               />
             </div>
             <button
@@ -241,13 +241,13 @@ export const MembersTab: React.FC<MembersTabProps> = ({
       )}
 
       {/* Members Roster List Card */}
-      <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden">
+      <div className="rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
         {/* Card Header with Counter and Search */}
-        <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <UserCheck className="w-4 h-4 text-[#5cb028]" />
-            <h3 className="text-sm font-bold text-slate-900">Team Directory & Collaborators</h3>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Team Directory & Collaborators</h3>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30">
               {totalItems} Total Contributor{totalItems !== 1 ? 's' : ''}
             </span>
           </div>
@@ -267,13 +267,13 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               onChange={(e) => setLocalSearch(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search members..."
-              className="w-full pl-8 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
+              className="w-full pl-8 pr-8 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
             />
             {localSearch && (
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                 title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
@@ -284,8 +284,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
         {/* Members Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200/60">
+          <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+            <thead className="bg-slate-50/80 dark:bg-slate-900/60 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-800">
               <tr>
                 <th className="px-6 py-3.5">Member Name</th>
                 <th className="px-6 py-3.5">Assigned Projects</th>
@@ -297,32 +297,32 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {showTableSkeleton ? (
                 Array.from({ length: 4 }).map((_, idx) => (
                   <tr key={idx} className="animate-pulse">
                     <td className="px-6 py-4 flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-200/80 shrink-0" />
+                      <div className="w-9 h-9 rounded-xl bg-slate-200/80 dark:bg-slate-800 shrink-0" />
                       <div className="space-y-1.5">
-                        <div className="h-3.5 w-28 bg-slate-200/80 rounded-md" />
-                        <div className="h-2.5 w-16 bg-slate-100 rounded-md" />
+                        <div className="h-3.5 w-28 bg-slate-200/80 dark:bg-slate-800 rounded-md" />
+                        <div className="h-2.5 w-16 bg-slate-100 dark:bg-slate-800/60 rounded-md" />
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="h-6 w-24 bg-slate-100 rounded-lg" />
+                      <div className="h-6 w-24 bg-slate-100 dark:bg-slate-800 rounded-lg" />
                     </td>
                     <td className="px-6 py-4">
-                      <div className="h-6 w-20 bg-slate-100 rounded-lg" />
+                      <div className="h-6 w-20 bg-slate-100 dark:bg-slate-800 rounded-lg" />
                     </td>
                     <td className="px-6 py-4">
-                      <div className="h-5 w-14 bg-slate-100 rounded-full" />
+                      <div className="h-5 w-14 bg-slate-100 dark:bg-slate-800 rounded-full" />
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="h-4 w-12 bg-slate-100 rounded ml-auto" />
+                      <div className="h-4 w-12 bg-slate-100 dark:bg-slate-800 rounded ml-auto" />
                     </td>
                     {isAdmin && (
                       <td className="px-6 py-4 text-right">
-                        <div className="h-7 w-16 bg-slate-100 rounded-xl ml-auto" />
+                        <div className="h-7 w-16 bg-slate-100 dark:bg-slate-800 rounded-xl ml-auto" />
                       </td>
                     )}
                   </tr>
@@ -331,7 +331,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 <tr>
                   <td
                     colSpan={isAdmin ? 6 : 5}
-                    className="py-12 text-center text-slate-400 text-xs"
+                    className="py-12 text-center text-slate-400 dark:text-slate-500 text-xs"
                   >
                     {localSearch
                       ? `No contributors found matching "${localSearch}". Try clearing search.`
@@ -348,7 +348,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                   return (
                     <tr
                       key={m.id || m.email}
-                      className="hover:bg-slate-50/50 transition-colors"
+                      className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors"
                     >
                       {/* 1. Member Name (with avatar & online status) */}
                       <td className="px-6 py-4">
@@ -369,21 +369,21 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                           </div>
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <p className="font-bold text-slate-900 group-hover/member:text-[#5cb028] transition-colors">
+                              <p className="font-bold text-slate-900 dark:text-white group-hover/member:text-[#5cb028] transition-colors">
                                 {m.name || m.email}
                               </p>
                               {isSelf && (
-                                <span className="text-[10px] font-semibold text-[#3d8318] bg-[#eaf5e3] px-1.5 py-0.5 rounded">
+                                <span className="text-[10px] font-semibold text-[#3d8318] dark:text-[#5cb028] bg-[#eaf5e3] dark:bg-[#5cb028]/20 px-1.5 py-0.5 rounded">
                                   You
                                 </span>
                               )}
                             </div>
                             {isPrimaryOwner || (isSelf && isAdmin) ? (
-                              <span className="text-[10px] text-slate-400">
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500">
                                 Admin
                               </span>
                             ) : (
-                              <span className="text-[10px] font-medium text-[#3d8318] bg-[#eaf5e3] px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-medium text-[#3d8318] dark:text-[#5cb028] bg-[#eaf5e3] dark:bg-[#5cb028]/20 px-1.5 py-0.5 rounded">
                                 {m.projectRole && m.projectRole !== 'Unassigned' ? m.projectRole : 'Developer'}
                               </span>
                             )}
@@ -395,7 +395,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                       <td className="px-6 py-4">
                         {typeof m.projectsCount === 'number' && m.projectsCount > 0 ? (
                           <div className="relative group inline-block hover:z-50">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0] shadow-2xs group-hover:bg-[#def0d4] group-hover:border-[#b8e2a6] group-hover:shadow-xs transition-all cursor-pointer select-none">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30 shadow-2xs group-hover:bg-[#def0d4] dark:group-hover:bg-[#5cb028]/30 group-hover:border-[#b8e2a6] group-hover:shadow-xs transition-all cursor-pointer select-none">
                               <FolderKanban className="w-3.5 h-3.5 text-[#5cb028] shrink-0" />
                               <span>{m.projectsCount} {m.projectsCount === 1 ? 'Project' : 'Projects'}</span>
                             </span>
@@ -404,19 +404,19 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                             <div
                               className={`absolute left-0 ${
                                 index >= 2 ? 'bottom-full mb-2.5' : 'top-full mt-2.5'
-                              } z-50 w-64 bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-900/10 p-3.5 pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out`}
+                              } z-50 w-64 bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xl shadow-slate-900/10 p-3.5 pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out`}
                             >
                               {/* Popover Header */}
-                              <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                              <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
                                 <div className="flex items-center gap-1.5">
-                                  <div className="w-5 h-5 rounded-md bg-[#eaf5e3] border border-[#cdeac0] flex items-center justify-center text-[#3d8318] shrink-0">
+                                  <div className="w-5 h-5 rounded-md bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30 flex items-center justify-center text-[#3d8318] dark:text-[#5cb028] shrink-0">
                                     <FolderKanban className="w-3 h-3" />
                                   </div>
-                                  <span className="text-[11px] font-bold text-slate-900 tracking-tight">
+                                  <span className="text-[11px] font-bold text-slate-900 dark:text-white tracking-tight">
                                     Assigned Projects
                                   </span>
                                 </div>
-                                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
+                                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30">
                                   {m.projectsCount}
                                 </span>
                               </div>
@@ -427,16 +427,16 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                                   m.projectNames.map((pName, pIdx) => (
                                     <div
                                       key={pIdx}
-                                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50/90 hover:bg-[#eaf5e3]/50 border border-slate-200/70 transition-colors"
+                                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 hover:bg-[#eaf5e3]/50 dark:hover:bg-[#5cb028]/15 border border-slate-200/70 dark:border-slate-700 transition-colors"
                                     >
                                       <span className="w-1.5 h-1.5 rounded-full bg-[#5cb028] shrink-0" />
-                                      <span className="text-xs font-semibold text-slate-800 truncate">
+                                      <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
                                         {pName}
                                       </span>
                                     </div>
                                   ))
                                 ) : (
-                                  <p className="text-[11px] text-slate-400 italic py-1">
+                                  <p className="text-[11px] text-slate-400 dark:text-slate-500 italic py-1">
                                     No assigned projects
                                   </p>
                                 )}
@@ -444,14 +444,14 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
                               {/* Caret Arrow */}
                               {index >= 2 ? (
-                                <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-white border-r border-b border-slate-200/90 rotate-45" />
+                                <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-white dark:bg-[#0f172a] border-r border-b border-slate-200/90 dark:border-slate-800 rotate-45" />
                               ) : (
-                                <div className="absolute -top-1.5 left-6 w-3 h-3 bg-white border-l border-t border-slate-200/90 rotate-45" />
+                                <div className="absolute -top-1.5 left-6 w-3 h-3 bg-white dark:bg-[#0f172a] border-l border-t border-slate-200/90 dark:border-slate-800 rotate-45" />
                               )}
                             </div>
                           </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-400 border border-slate-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700">
                             0 Projects
                           </span>
                         )}
@@ -475,14 +475,14 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               }
                               onChange={(e) => handleRoleSelect(m.email, e.target.value)}
                               disabled={updatingRoleEmail === m.email}
-                              className="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all cursor-pointer shadow-2xs disabled:opacity-50"
+                              className="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all cursor-pointer shadow-2xs disabled:opacity-50"
                               title="Assign project role"
                             >
-                              <option value="Developer">Developer</option>
-                              <option value="QA">QA</option>
-                              <option value="Manager">Manager</option>
-                              <option value="DevOps">DevOps</option>
-                              <option value="Project Lead">Project Lead</option>
+                              <option value="Developer" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Developer</option>
+                              <option value="QA" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">QA</option>
+                              <option value="Manager" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Manager</option>
+                              <option value="DevOps" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">DevOps</option>
+                              <option value="Project Lead" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Project Lead</option>
                             </select>
                             {updatingRoleEmail === m.email && (
                               <Loader2 className="w-3.5 h-3.5 text-[#5cb028] animate-spin ml-2 shrink-0" />
@@ -496,17 +496,17 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                       {/* 4. Status */}
                       <td className="px-6 py-4">
                         {m.status === 'pending' ? (
-                          <span className="inline-flex items-center gap-1.5 text-amber-700 font-semibold text-[11px] bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                          <span className="inline-flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-semibold text-[11px] bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-900/60">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                             Pending Approval
                           </span>
                         ) : m.status === 'unverified' ? (
-                          <span className="inline-flex items-center gap-1.5 text-slate-500 font-semibold text-[11px] bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                          <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-semibold text-[11px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                             Unverified
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold text-[11px]">
+                          <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-semibold text-[11px]">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             Active
                           </span>
@@ -515,7 +515,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
                       {/* 5. Activity */}
                       <td className="px-6 py-4 text-right">
-                        <span className="text-slate-400 text-[11px] font-mono">Synced</span>
+                        <span className="text-slate-400 dark:text-slate-500 text-[11px] font-mono">Synced</span>
                       </td>
 
                       {/* 6. Actions */}
@@ -523,7 +523,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                         <td className="px-6 py-4 text-right">
                           {isPrimaryOwner || isSelf ? (
                             <span
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 select-none"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 select-none"
                               title="Admin account cannot be removed"
                             >
                               Admin
@@ -556,7 +556,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                                 type="button"
                                 onClick={() => setMemberToReject(m)}
                                 disabled={approvingEmail === m.email || rejectingEmail === m.email}
-                                className="inline-flex items-center justify-center min-w-[64px] px-3 py-1.5 rounded-xl border border-rose-200 hover:border-rose-300 hover:bg-rose-50 text-rose-600 text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+                                className="inline-flex items-center justify-center min-w-[64px] px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 hover:border-rose-300 dark:hover:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
                                 title={`Reject access request for ${m.name || m.email}`}
                               >
                                 {rejectingEmail === m.email ? (
@@ -570,7 +570,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                             <button
                               type="button"
                               onClick={() => setMemberToRemove(m)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-rose-300 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
                               title={`Remove ${m.name || m.email} from workspace`}
                             >
                               <Trash2 className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 transition-colors" />
@@ -589,22 +589,22 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
         {/* Enterprise Backend Pagination Footer */}
         {totalItems > 0 && (
-          <div className="p-4 sm:px-6 bg-slate-50/80 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="p-4 sm:px-6 bg-slate-50/80 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
             {/* Left: Range & Limit Selector */}
-            <div className="flex items-center gap-3 text-slate-500">
+            <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
               <span>
-                Showing <strong className="text-slate-800">{startRange}</strong> to{' '}
-                <strong className="text-slate-800">{endRange}</strong> of{' '}
-                <strong className="text-slate-800">{totalItems}</strong> contributors
+                Showing <strong className="text-slate-800 dark:text-slate-200">{startRange}</strong> to{' '}
+                <strong className="text-slate-800 dark:text-slate-200">{endRange}</strong> of{' '}
+                <strong className="text-slate-800 dark:text-slate-200">{totalItems}</strong> contributors
               </span>
 
               {onLimitChange && (
-                <div className="flex items-center gap-1.5 pl-3 border-l border-slate-200">
-                  <span className="text-[11px] text-slate-400">Rows:</span>
+                <div className="flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-700">
+                  <span className="text-[11px] text-slate-400 dark:text-slate-500">Rows:</span>
                   <select
                     value={currentLimit}
                     onChange={(e) => onLimitChange(Number(e.target.value))}
-                    className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer"
+                    className="px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer"
                   >
                     <option value={10}>10 per page</option>
                     <option value={20}>20 per page</option>
@@ -622,7 +622,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                   type="button"
                   onClick={() => onPageChange(activePage - 1)}
                   disabled={!hasPrev || isLoading}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Prev</span>
@@ -638,7 +638,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                     className={`min-w-[32px] h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       p === activePage
                         ? 'bg-[#5cb028] text-white shadow-xs'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     {p}
@@ -650,7 +650,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                   type="button"
                   onClick={() => onPageChange(activePage + 1)}
                   disabled={!hasNext || isLoading}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
                 >
                   <span className="hidden sm:inline">Next</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -678,7 +678,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 type="button"
                 disabled={isRemoving}
                 onClick={() => setMemberToRemove(null)}
-                className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -702,28 +702,28 @@ export const MembersTab: React.FC<MembersTabProps> = ({
             </>
           }
         >
-          <div className="space-y-4 text-xs text-slate-600">
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200/90 text-rose-950 space-y-1.5">
-              <div className="flex items-center gap-2 font-bold text-rose-900 text-xs">
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+          <div className="space-y-4 text-xs text-slate-600 dark:text-slate-300">
+            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/90 dark:border-rose-900/50 text-rose-950 dark:text-rose-200 space-y-1.5">
+              <div className="flex items-center gap-2 font-bold text-rose-900 dark:text-rose-300 text-xs">
+                <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                 <span>Confirm Workspace Removal</span>
               </div>
-              <p className="text-[11px] leading-relaxed text-rose-800">
+              <p className="text-[11px] leading-relaxed text-rose-800 dark:text-rose-300">
                 Are you sure you want to remove <strong>{memberToRemove.name || memberToRemove.email}</strong> ({memberToRemove.email})?
               </p>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <UserAvatar name={memberToRemove.name || memberToRemove.email} email={memberToRemove.email} title={memberToRemove.email} avatar={memberToRemove.avatar} size="md" />
                 <div>
-                  <p className="font-bold text-slate-900">{memberToRemove.name || memberToRemove.email}</p>
-                  <p className="text-[11px] text-slate-500">{memberToRemove.email}</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{memberToRemove.name || memberToRemove.email}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{memberToRemove.email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 {typeof memberToRemove.projectsCount === 'number' && memberToRemove.projectsCount > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30">
                     <FolderKanban className="w-3 h-3 text-[#5cb028]" />
                     <span>{memberToRemove.projectsCount} {memberToRemove.projectsCount === 1 ? 'Project' : 'Projects'}</span>
                   </span>
@@ -732,7 +732,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               </div>
             </div>
 
-            <p className="text-[11px] text-slate-500 leading-relaxed">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
               Once removed, this contributor will immediately lose access to all assigned projects, retrospective sessions, and workspace whitelist privileges. Any project where they were lead will be automatically reassigned to Primary Admin.
             </p>
           </div>
@@ -751,7 +751,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 type="button"
                 onClick={() => setMemberToReject(null)}
                 disabled={!!rejectingEmail}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -775,32 +775,32 @@ export const MembersTab: React.FC<MembersTabProps> = ({
             </>
           }
         >
-          <div className="space-y-4 text-xs text-slate-600">
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200/90 text-rose-950 space-y-1.5">
-              <div className="flex items-center gap-2 font-bold text-rose-900 text-xs">
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+          <div className="space-y-4 text-xs text-slate-600 dark:text-slate-300">
+            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/90 dark:border-rose-900/50 text-rose-950 dark:text-rose-200 space-y-1.5">
+              <div className="flex items-center gap-2 font-bold text-rose-900 dark:text-rose-300 text-xs">
+                <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                 <span>Confirm Request Rejection</span>
               </div>
-              <p className="text-[11px] leading-relaxed text-rose-800">
+              <p className="text-[11px] leading-relaxed text-rose-800 dark:text-rose-300">
                 Are you sure you want to reject the workspace access request for{' '}
                 <strong>{memberToReject.name || memberToReject.email}</strong> ({memberToReject.email})?
               </p>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <UserAvatar name={memberToReject.name || memberToReject.email} email={memberToReject.email} title={memberToReject.email} avatar={memberToReject.avatar} size="md" />
                 <div>
-                  <p className="font-bold text-slate-900">{memberToReject.name || memberToReject.email}</p>
-                  <p className="text-[11px] text-slate-500">{memberToReject.email}</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{memberToReject.name || memberToReject.email}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{memberToReject.email}</p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60">
                 Pending Approval
               </span>
             </div>
 
-            <p className="text-[11px] text-slate-500 leading-relaxed">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
               Their account registration will be cancelled and removed. If they wish to join later, they will need to register again.
             </p>
           </div>

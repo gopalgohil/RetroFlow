@@ -1,36 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { Sun, Moon, ArrowRight, ShieldCheck, Zap, Target } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRight, ShieldCheck, Zap, Target } from 'lucide-react';
+import { ThemeToggle } from '@/components/ui';
 
 export default function HomePage() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-
-  // Read the active theme initialized by the layout blocking script
-  useEffect(() => {
-    const activeTheme =
-      (document.documentElement.getAttribute('data-theme') as 'dark' | 'light') ||
-      (localStorage.getItem('retroflow_theme') as 'dark' | 'light') ||
-      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-
-    setTheme(activeTheme);
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    localStorage.setItem('retroflow_theme', nextTheme);
-    document.documentElement.setAttribute('data-theme', nextTheme);
-
-    if (nextTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    } else {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col selection:bg-[#5cb028] selection:text-white theme-bg">
@@ -38,30 +14,21 @@ export default function HomePage() {
       <header className="w-full border-b sticky top-0 z-50 theme-header backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] flex items-center justify-center font-black text-white text-base shadow-md shadow-[#5cb028]/25 group-hover:scale-105 transition-transform">
-              RF
-            </div>
-            <span className="font-extrabold text-xl tracking-tight theme-brand-name">
-              Retro<span className="text-[#5cb028]">Flow</span>
-            </span>
+          <Link href="/" className="flex items-center group">
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={140}
+              height={44}
+              className="h-9 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+              priority
+            />
           </Link>
 
           {/* Right Controls: Theme Switcher & Auth Links */}
           <div className="flex items-center gap-3">
             {/* Dark / Light Mode Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              aria-label="Toggle theme mode"
-              className="p-2 rounded-xl border cursor-pointer flex items-center justify-center transition-all theme-toggle-btn"
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-4 h-4 transition-transform hover:rotate-45 duration-300" />
-              ) : (
-                <Moon className="w-4 h-4 transition-transform hover:-rotate-12 duration-300" />
-              )}
-            </button>
+            <ThemeToggle />
 
             {/* Sign In Link */}
             <Link

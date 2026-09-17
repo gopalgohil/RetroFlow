@@ -75,15 +75,15 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = () => {
 
       {/* Error Alert with Retry */}
       {errorMessage && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-medium flex items-center justify-between gap-3">
+        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-900 dark:text-rose-200 text-xs font-medium flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
             <span>{errorMessage}</span>
           </div>
           <button
             type="button"
             onClick={() => fetchAnalytics(selectedProjectId)}
-            className="text-xs font-bold underline hover:no-underline text-rose-700 cursor-pointer"
+            className="text-xs font-bold underline hover:no-underline text-rose-700 dark:text-rose-400 cursor-pointer"
           >
             Retry
           </button>

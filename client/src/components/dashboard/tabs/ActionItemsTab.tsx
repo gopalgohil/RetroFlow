@@ -129,36 +129,36 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Header Overview Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#eaf5e3]/60 via-white to-slate-50 border border-[#cdeac0]/80 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#eaf5e3]/60 via-white to-slate-50 dark:from-[#5cb028]/10 dark:via-[#0f172a] dark:to-[#0b0f17] border border-[#cdeac0]/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0] flex items-center gap-1.5 shadow-2xs">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30 flex items-center gap-1.5 shadow-2xs">
               <Sparkles className="w-3 h-3 text-[#5cb028]" />
               Retrospective Action Engine
             </span>
             {user?.name && (
-              <span className="text-xs font-semibold text-slate-500">
-                Assigned to <strong className="text-slate-800">{user.name}</strong>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                Assigned to <strong className="text-slate-800 dark:text-slate-200">{user.name}</strong>
               </span>
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Retrospective Action Items
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
             Track, prioritize, and complete commitments derived from your sprint retrospectives. Keep your team aligned and agile deliverables on schedule.
           </p>
         </div>
 
         {/* Action Toggle (My items vs All Team for Admin/Manager) */}
         {(isAdmin || isManager) && (
-          <div className="flex items-center gap-2 bg-white p-1 rounded-2xl border border-slate-200 shadow-xs shrink-0 self-start lg:self-auto">
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs shrink-0 self-start lg:self-auto">
             <button
               onClick={() => handleToggleTeamView(false)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 !viewAllTeam
                   ? 'bg-[#5cb028] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               My Action Items
@@ -168,7 +168,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 viewAllTeam
                   ? 'bg-[#5cb028] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               All Team Items

@@ -143,11 +143,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       {/* 2. Bottom Row: Quick Retros & Team Contributors */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Retros Status */}
-        <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Sprint Retrospectives</h3>
-              <p className="text-xs text-slate-500">Continuous feedback loops for this team</p>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Sprint Retrospectives</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Continuous feedback loops for this team</p>
             </div>
             <button
               onClick={() => onNavigateToTab('retros')}
@@ -162,18 +162,18 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {project.retrospectives.slice(0, 3).map((retro) => (
               <div
                 key={retro.id}
-                className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/70 flex items-center justify-between hover:border-slate-300 transition-colors"
+                className="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <UserAvatar name={retro.title} avatar="RF" size="md" />
                   <div>
-                    <p className="text-xs font-bold text-slate-900">{retro.title}</p>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white">{retro.title}</p>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                       <span>{formatDateDMY(retro.scheduledDate)}</span>
                       <span>•</span>
                       <span>{retro.cardsCount} cards</span>
                       <span>•</span>
-                      <span className="text-[#3d8318] font-semibold">
+                      <span className="text-[#3d8318] dark:text-[#5cb028] font-semibold">
                         {retro.actionItemsCount} action items
                       </span>
                     </div>
@@ -182,7 +182,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
                 <Link
                   href={`/retro/${retro.shareToken}`}
-                  className="px-3 py-1.5 rounded-lg bg-white hover:bg-[#eaf5e3] border border-slate-200 hover:border-[#cdeac0] text-[#3d8318] text-xs font-bold transition-all shadow-2xs"
+                  className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-[#eaf5e3] dark:hover:bg-[#5cb028]/20 border border-slate-200 dark:border-slate-700 hover:border-[#cdeac0] dark:hover:border-[#5cb028]/40 text-[#3d8318] dark:text-[#5cb028] text-xs font-bold transition-all shadow-2xs"
                 >
                   Open
                 </Link>
@@ -192,11 +192,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
 
         {/* Team Contributors */}
-        <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Project Contributors</h3>
-              <p className="text-xs text-slate-500">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Project Contributors</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {project.members.length} members assigned to {project.key}
               </p>
             </div>
@@ -213,7 +213,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             {project.members.slice(0, 4).map((member) => (
               <div
                 key={member.id}
-                className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center gap-2.5"
+                className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-800 flex items-center gap-2.5"
               >
                 <UserAvatar
                   name={member.name}
@@ -224,7 +224,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                   status="online"
                 />
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-slate-900 truncate">{member.name}</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{member.name}</p>
                   <StatusPill status={member.role} />
                 </div>
               </div>

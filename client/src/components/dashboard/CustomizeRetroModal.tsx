@@ -328,19 +328,19 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-900/60 dark:bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Top Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/80">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-[#5cb028] text-white flex items-center justify-center font-bold text-xs shadow-xs">
               RF
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 leading-none">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white leading-none">
                 {initialData ? 'Edit Retrospective Session' : 'Customize Retrospective'}
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Inspired by TeamRetro — configure topics, voting, and participant permissions
               </p>
             </div>
@@ -348,7 +348,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -356,21 +356,21 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
 
         {/* Linked Project Banner */}
         {projectContext && (
-          <div className="px-6 py-2.5 bg-gradient-to-r from-emerald-50/50 via-slate-50 to-emerald-50/30 border-b border-emerald-100/90 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="px-6 py-2.5 bg-gradient-to-r from-emerald-50/50 via-slate-50 to-emerald-50/30 dark:from-emerald-950/20 dark:via-slate-900 dark:to-emerald-950/20 border-b border-emerald-100/90 dark:border-emerald-900/40 flex flex-wrap items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded-md bg-[#5cb028] text-white font-mono font-bold text-[10px] uppercase shadow-2xs">
                 {projectContext.key}
               </span>
-              <span className="font-bold text-slate-900">
+              <span className="font-bold text-slate-900 dark:text-white">
                 Initiative: {projectContext.name}
               </span>
               {projectContext.sprintName && (
-                <span className="text-[#3d8318] bg-white px-2 py-0.5 rounded-md border border-[#cdeac0] font-semibold text-[11px]">
+                <span className="text-[#3d8318] dark:text-[#5cb028] bg-white dark:bg-slate-800 px-2 py-0.5 rounded-md border border-[#cdeac0] dark:border-[#5cb028]/30 font-semibold text-[11px]">
                   {projectContext.sprintName}
                 </span>
               )}
             </div>
-            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1.5">
+            <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               🔒 {projectContext.members.length} Team Members Auto-Whitelisted (Strict Privacy)
             </span>
@@ -378,7 +378,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
         )}
 
         {/* Navigation Tabs */}
-        <div className="px-6 border-b border-slate-200 bg-white flex items-center gap-8">
+        <div className="px-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] flex items-center gap-8">
           {[
             { id: 'general', label: 'GENERAL' },
             { id: 'topics', label: 'TOPICS' },
@@ -391,7 +391,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 className={`py-3 text-xs font-bold tracking-wider uppercase border-b-2 transition-all cursor-pointer ${
                   isActive
                     ? 'border-[#5cb028] text-[#5cb028]'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
               >
                 {tab.label}
@@ -401,14 +401,14 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
         </div>
 
         {/* Modal Body Tabs Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/40">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/40 dark:bg-[#0b0f17]">
           {errorMessage && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center justify-between shadow-xs animate-in fade-in">
+            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center justify-between shadow-xs animate-in fade-in">
               <span>⚠️ {errorMessage}</span>
               <button
                 type="button"
                 onClick={() => setErrorMessage(null)}
-                className="text-rose-500 hover:text-rose-800 font-bold ml-2 cursor-pointer"
+                className="text-rose-500 hover:text-rose-800 dark:hover:text-rose-200 font-bold ml-2 cursor-pointer"
               >
                 ×
               </button>
@@ -418,7 +418,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           {activeTab === 'general' && (
             <div className="max-w-2xl space-y-5 animate-in fade-in duration-150">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                   Session Title <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -426,13 +426,13 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Sprint 42 Retrospective"
-                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] shadow-xs"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] shadow-xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                   Description & Context
                 </label>
                 <textarea
@@ -440,12 +440,12 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Summarize the sprint focus, release notes, or objectives..."
                   rows={3}
-                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] shadow-xs resize-none"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] shadow-xs resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                   Scheduled Date & Time
                 </label>
                 <div className="relative">
@@ -454,7 +454,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                     type="datetime-local"
                     value={scheduledDate}
                     onChange={(e) => setScheduledDate(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] shadow-xs"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] shadow-xs"
                   />
                 </div>
               </div>
@@ -465,9 +465,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           {activeTab === 'topics' && (
             <div className="space-y-6 animate-in fade-in duration-150">
               {/* Preset Template Selectors */}
-              <div className="p-4 rounded-xl bg-white border border-slate-200/80 shadow-xs">
+              <div className="p-4 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-xs">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                     Quick Presets (TeamRetro Templates):
                   </span>
                 </div>
@@ -479,7 +479,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                         key={preset.id}
                         type="button"
                         onClick={() => handleApplyPreset(preset)}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-[#5cb028]/40 hover:bg-[#eaf5e3]/50 text-xs font-semibold text-slate-700 hover:text-[#3d8318] transition-all cursor-pointer shadow-2xs"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-[#5cb028]/40 hover:bg-[#eaf5e3]/50 dark:hover:bg-[#5cb028]/10 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#3d8318] dark:hover:text-[#5cb028] transition-all cursor-pointer shadow-2xs"
                       >
                         <Icon className="w-3.5 h-3.5 text-[#5cb028]" />
                         <span>{preset.name}</span>
@@ -503,14 +503,14 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                       onDragStart={() => handleDragStart(index)}
                       onDragOver={(e) => handleDragOver(e, index)}
                       onDragEnd={handleDragEnd}
-                      className={`relative p-4 rounded-xl bg-white border transition-all shadow-xs flex flex-col sm:flex-row items-start sm:items-center gap-3.5 ${
+                      className={`relative p-4 rounded-xl bg-white dark:bg-slate-900/90 border transition-all shadow-xs flex flex-col sm:flex-row items-start sm:items-center gap-3.5 ${
                         isDragging
                           ? 'border-[#5cb028] ring-2 ring-[#5cb028]/20 opacity-60 scale-[0.99]'
-                          : 'border-slate-200/90 hover:border-slate-300'
+                          : 'border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       {/* Drag Handle & Order */}
-                      <div className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 shrink-0">
+                      <div className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 shrink-0">
                         <GripVertical className="w-5 h-5" />
                         <span className="font-mono text-xs font-bold text-slate-400 w-4">
                           {index + 1}
@@ -527,7 +527,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                           }}
                           title="Change Icon"
                           style={{ backgroundColor: `${topic.color}15`, color: topic.color }}
-                          className="w-10 h-10 rounded-xl border flex items-center justify-center font-bold text-sm shadow-2xs cursor-pointer hover:scale-105 transition-transform"
+                          className="w-10 h-10 rounded-xl border border-transparent dark:border-slate-800 flex items-center justify-center font-bold text-sm shadow-2xs cursor-pointer hover:scale-105 transition-transform"
                         >
                           <CurrentIcon className="w-5 h-5" />
                         </button>
@@ -540,12 +540,12 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                           }}
                           title="Change Color"
                           style={{ backgroundColor: topic.color }}
-                          className="w-4 h-4 rounded-full border-2 border-white ring-1 ring-slate-200 shadow-xs cursor-pointer hover:scale-110 transition-transform"
+                          className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 shadow-xs cursor-pointer hover:scale-110 transition-transform"
                         />
 
                         {/* Color Picker Dropdown Popover */}
                         {colorPickerIndex === index && (
-                          <div className="absolute top-12 left-0 z-50 p-2.5 bg-white border border-slate-200 rounded-xl shadow-xl grid grid-cols-4 gap-2 w-36">
+                          <div className="absolute top-12 left-0 z-50 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl grid grid-cols-4 gap-2 w-36">
                             {COLOR_PALETTE.map((c) => (
                               <button
                                 key={c.hex}
@@ -565,7 +565,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
 
                         {/* Icon Picker Dropdown Popover */}
                         {iconPickerIndex === index && (
-                          <div className="absolute top-12 left-0 z-50 p-2.5 bg-white border border-slate-200 rounded-xl shadow-xl grid grid-cols-4 gap-2 w-44">
+                          <div className="absolute top-12 left-0 z-50 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl grid grid-cols-4 gap-2 w-44">
                             {AVAILABLE_ICONS.map((i) => {
                               const PopIcon = i.icon;
                               return (
@@ -576,7 +576,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                                     handleUpdateTopic(index, 'icon', i.id);
                                     setIconPickerIndex(null);
                                   }}
-                                  className="p-2 rounded-lg hover:bg-slate-100 text-slate-700 flex items-center justify-center cursor-pointer transition-colors"
+                                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center cursor-pointer transition-colors"
                                 >
                                   <PopIcon className="w-4 h-4" />
                                 </button>
@@ -593,7 +593,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                           value={topic.title}
                           onChange={(e) => handleUpdateTopic(index, 'title', e.target.value)}
                           placeholder="e.g. What went well?"
-                          className="w-full font-bold text-xs text-slate-900 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-[#5cb028] focus:outline-none px-1 py-0.5"
+                          className="w-full font-bold text-xs text-slate-900 dark:text-white bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-slate-700 focus:border-[#5cb028] dark:focus:border-[#5cb028] focus:outline-none px-1 py-0.5"
                         />
                         <input
                           type="text"
@@ -602,7 +602,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                             handleUpdateTopic(index, 'description', e.target.value)
                           }
                           placeholder="Subtitle: Things we are proud of or happy about"
-                          className="w-full text-[11px] text-slate-500 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-[#5cb028] focus:outline-none px-1 py-0.5"
+                          className="w-full text-[11px] text-slate-500 dark:text-slate-400 bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-slate-700 focus:border-[#5cb028] dark:focus:border-[#5cb028] focus:outline-none px-1 py-0.5"
                         />
                       </div>
 
@@ -613,7 +613,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                           onClick={() => handleMoveTopic(index, index - 1)}
                           disabled={index === 0}
                           title="Move Up"
-                          className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
+                          className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer"
                         >
                           <ChevronUp className="w-4 h-4" />
                         </button>
@@ -622,7 +622,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                           onClick={() => handleMoveTopic(index, index + 1)}
                           disabled={index === topics.length - 1}
                           title="Move Down"
-                          className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
+                          className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer"
                         >
                           <ChevronDown className="w-4 h-4" />
                         </button>
@@ -632,7 +632,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                           onClick={() => handleDeleteTopic(index)}
                           disabled={topics.length <= 1}
                           title="Delete Column"
-                          className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 disabled:opacity-30 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-30 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -647,7 +647,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 <button
                   type="button"
                   onClick={handleAddTopic}
-                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-[#eaf5e3] border-2 border-dashed border-[#cdeac0] hover:border-[#5cb028] text-xs font-bold text-[#3d8318] shadow-xs transition-all hover:scale-105 cursor-pointer"
+                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-slate-900 hover:bg-[#eaf5e3] dark:hover:bg-[#5cb028]/10 border-2 border-dashed border-[#cdeac0] dark:border-[#5cb028]/40 hover:border-[#5cb028] text-xs font-bold text-[#3d8318] dark:text-[#5cb028] shadow-xs transition-all hover:scale-105 cursor-pointer"
                 >
                   <div className="w-5 h-5 rounded-full bg-[#5cb028] text-white flex items-center justify-center text-xs group-hover:rotate-90 transition-transform">
                     <Plus className="w-3.5 h-3.5 stroke-[3]" />
@@ -660,11 +660,11 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
         </div>
 
         {/* Modal Sticky Bottom Action Footer */}
-        <div className="px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] flex items-center justify-between">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             Cancel
           </button>

@@ -34,15 +34,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
     return (
-      <div className="w-full space-y-1.5 text-left">
+      <div className="w-full space-y-1 text-left">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-semibold text-slate-800">
+          <label htmlFor={inputId} className="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
             {label}
           </label>
         )}
         <div className="relative">
           {startIcon && (
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400 dark:text-slate-500">
               {startIcon}
             </div>
           )}
@@ -50,14 +50,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             ref={ref}
             type={computedType}
-            className={`w-full rounded-xl border bg-white py-2.5 text-sm text-slate-900 placeholder:text-slate-400 
+            className={`w-full rounded-xl border bg-white dark:bg-slate-900/90 py-2 px-3.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 
               transition-all duration-150 outline-none
               ${startIcon ? 'pl-10' : 'pl-3.5'}
               ${endIcon || (isPasswordField && showPasswordToggle) ? 'pr-10' : 'pr-3.5'}
               ${
                 error
                   ? 'border-rose-500 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
-                  : 'border-slate-300 hover:border-slate-400 focus:border-[#5cb028] focus:ring-2 focus:ring-[#5cb028]/20'
+                  : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 focus:border-[#5cb028] focus:ring-2 focus:ring-[#5cb028]/20'
               }
               ${className}`}
             {...props}
@@ -68,7 +68,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 type="button"
                 tabIndex={-1}
                 onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                className="text-slate-400 hover:text-slate-600 transition-colors focus:outline-none cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors focus:outline-none cursor-pointer"
                 aria-label={isPasswordVisible ? 'Hide password' : 'Show password'}
               >
                 {isPasswordVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -80,8 +80,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             </div>
           ) : null}
         </div>
-        {error && <p className="text-xs text-rose-600 font-medium">{error}</p>}
-        {!error && helperText && <p className="text-xs text-slate-500">{helperText}</p>}
+        {error && <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">{error}</p>}
+        {!error && helperText && <p className="text-xs text-slate-500 dark:text-slate-400">{helperText}</p>}
       </div>
     );
   }

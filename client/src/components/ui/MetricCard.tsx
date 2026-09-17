@@ -37,12 +37,12 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   onClick,
 }) => {
   const iconVariantStyles = {
-    default: 'bg-slate-100 text-slate-700',
-    success: 'bg-emerald-50 text-emerald-600',
-    warning: 'bg-amber-50 text-amber-600',
-    danger: 'bg-rose-50 text-rose-600',
-    indigo: 'bg-[#eaf5e3] text-[#3d8318]',
-    violet: 'bg-[#eaf5e3] text-[#3d8318]',
+    default: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300',
+    success: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400',
+    warning: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400',
+    danger: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400',
+    indigo: 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028]',
+    violet: 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028]',
   };
 
   const percentage = progress && progress.total > 0
@@ -52,13 +52,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-3 transition-all ${
+      className={`p-5 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3 transition-all ${
         onClick ? 'cursor-pointer hover:border-[#5cb028]/60 hover:shadow-sm' : ''
       } ${className}`}
     >
       {/* Top Title & Icon */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
           {title}
         </span>
         <div
@@ -70,16 +70,16 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
       {/* Main Value & Unit / Trend */}
       <div className="flex items-baseline gap-2">
-        <span className="text-xl font-extrabold text-slate-900 tracking-tight leading-none">
+        <span className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">
           {value}
         </span>
-        {unit && <span className="text-xs font-semibold text-slate-400">{unit}</span>}
+        {unit && <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">{unit}</span>}
         {trend && (
           <span
             className={`px-1.5 py-0.2 rounded text-[10px] font-bold border ${
               trend.isPositive !== false
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-rose-50 text-rose-700 border-rose-200'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+                : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800'
             }`}
           >
             {trend.value}
@@ -90,13 +90,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       {/* Optional Progress Bar */}
       {progress && (
         <div className="space-y-1 pt-0.5">
-          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
             <div
               className="bg-[#5cb028] h-1.5 rounded-full transition-all duration-500"
               style={{ width: `${percentage}%` }}
             />
           </div>
-          <div className="flex items-center justify-between text-[10px] text-slate-400">
+          <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
             <span>{progress.label || `${progress.current}/${progress.total}`}</span>
             <span>{percentage}% complete</span>
           </div>
@@ -105,7 +105,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
       {/* Subtitle / Microcopy */}
       {subtitle && (
-        <p className="text-[11px] text-slate-500 leading-relaxed font-normal">{subtitle}</p>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-normal">{subtitle}</p>
       )}
 
       {children}

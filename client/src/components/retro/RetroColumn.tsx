@@ -294,7 +294,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   };
 
   return (
-    <div className="flex-1 min-w-[220px] rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 shadow-xs flex flex-col overflow-hidden transition-all">
+    <div className="flex-1 min-w-[220px] rounded-2xl bg-white/95 dark:bg-[#0f172a] backdrop-blur-sm border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col overflow-hidden transition-all">
       {/* Column Top Accent Header */}
       <div
         style={{
@@ -311,7 +311,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             >
               <ColumnIcon className="w-3.5 h-3.5" />
             </div>
-            <h3 className="font-bold text-xs sm:text-[13px] text-slate-900 truncate">
+            <h3 className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-white truncate">
               {topic.title}
             </h3>
           </div>
@@ -328,13 +328,13 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
                 <span>To Sprint</span>
               </button>
             )}
-            <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-white/90 text-slate-600 border border-slate-200 shrink-0">
+            <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-white/90 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0">
               {cards.length}
             </span>
           </div>
         </div>
         {topic.description && (
-          <p className="text-[10px] text-slate-500 leading-tight pl-8 truncate">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight pl-8 truncate">
             {topic.description}
           </p>
         )}
@@ -347,7 +347,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         onDrop={handleColumnDrop}
         className={`p-2 sm:p-2.5 space-y-2 min-h-[220px] max-h-[calc(100vh-230px)] overflow-y-auto transition-colors ${
           isColumnDragOver && (canManageActionItems || !isActionColumn) && (!isDraggingFromAnotherColumn || canMoveCrossColumn)
-            ? 'bg-[#eaf5e3]/50 ring-2 ring-[#5cb028]/70 ring-inset rounded-xl'
+            ? 'bg-[#eaf5e3]/50 dark:bg-[#5cb028]/10 ring-2 ring-[#5cb028]/70 ring-inset rounded-xl'
             : ''
         }`}
       >
@@ -383,14 +383,14 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         ))}
 
         {cards.length === 0 && !isInputOpen && (
-          <div className="py-8 text-center text-slate-400 text-[11px] italic">
+          <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-[11px] italic">
             No cards added yet.
           </div>
         )}
 
         {/* Inline Add Card Input Form */}
         {isInputOpen && canAddCard && (
-          <div className="p-2.5 rounded-xl bg-white border-2 border-[#5cb028] shadow-sm space-y-2 animate-in fade-in duration-150">
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 border-[#5cb028] shadow-sm space-y-2 animate-in fade-in duration-150">
             <textarea
               autoFocus
               rows={2}
@@ -405,13 +405,13 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
                 }
               }}
               placeholder="Write a thought or feedback..."
-              className="w-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none resize-none"
+              className="w-full text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent focus:outline-none resize-none"
             />
             <div className="flex items-center justify-end gap-1.5 pt-1">
               <button
                 type="button"
                 onClick={handleCancelInput}
-                className="px-2 py-0.5 rounded-lg text-xs text-slate-500 hover:bg-slate-100 cursor-pointer"
+                className="px-2 py-0.5 rounded-lg text-xs text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 Cancel
               </button>
@@ -428,12 +428,12 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
       </div>
 
       {/* Bottom Column "+ Add Card" Trigger or Locked State */}
-      <div className="p-2 border-t border-slate-100 bg-white">
+      <div className="p-2 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-[#0f172a]">
         {canAddCard ? (
           <button
             type="button"
             onClick={() => setIsInputOpen(true)}
-            className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 hover:border-[#5cb028]/60 hover:bg-[#eaf5e3]/50 text-xs font-semibold text-slate-600 hover:text-[#3d8318] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-[#5cb028]/60 hover:bg-[#eaf5e3]/50 dark:hover:bg-[#5cb028]/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-[#3d8318] dark:hover:text-[#5cb028] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Card</span>
@@ -441,9 +441,9 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         ) : (
           <div
             title="Action Items can only be added by Managers or Admins"
-            className="w-full py-2 px-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/80 text-[11px] font-medium text-slate-400 flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
+            className="w-full py-2 px-2 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
           >
-            <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
             <span className="truncate">Only Managers & Admins can add Action Items</span>
           </div>
         )}

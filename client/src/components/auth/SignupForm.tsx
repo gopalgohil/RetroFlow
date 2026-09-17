@@ -149,11 +149,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
   };
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-6">
+    <div className="w-full max-w-md mx-auto space-y-3.5">
       {/* Reusable Auth Header */}
       <AuthHeader
         title="Create an account"
-        subtitle="Start running high-impact retrospectives with your team"
+        subtitle="Start running retrospectives with your team"
       />
 
       {/* General Alert Banner */}
@@ -169,7 +169,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
       )}
 
       {/* Registration Form with Zod Field Validation */}
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      <form onSubmit={handleSubmit} className="space-y-2.5" noValidate>
         <Input
           label="Full Name"
           type="text"
@@ -198,11 +198,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
           label="Password"
           type="password"
           name="password"
-          placeholder="Create a strong password (8+ chars)"
+          placeholder="Create a password"
           value={formData.password}
           onChange={(e) => handleInputChange('password', e.target.value)}
           error={fieldErrors.password}
-          helperText={!fieldErrors.password ? 'Must be at least 8 characters with letters & numbers' : undefined}
           required
           autoComplete="new-password"
         />
@@ -220,13 +219,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
         />
 
         {/* Terms agreement checkbox with Zod validation */}
-        <div className="pt-1">
+        <div className="pt-0.5">
           <Checkbox
             checked={formData.agreedToTerms}
             onChange={(e) => handleInputChange('agreedToTerms', e.target.checked)}
             error={fieldErrors.agreedToTerms}
             label={
-              <span>
+              <span className="text-xs text-slate-600 dark:text-slate-300">
                 I agree to the{' '}
                 <a href="#" className="font-semibold text-[#5cb028] hover:underline">
                   Terms of Service
@@ -246,14 +245,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
           type="submit"
           variant="primary"
           isLoading={isLoading}
-          className="w-full py-3 text-sm font-semibold rounded-xl mt-2 shadow-md shadow-[#5cb028]/20"
+          className="w-full py-2.5 text-sm font-semibold rounded-xl mt-1 shadow-sm shadow-[#5cb028]/20"
         >
           Create Account
         </Button>
       </form>
 
       {/* Reusable Divider */}
-      <AuthDivider label="Or continue with" />
+      <AuthDivider label="Or continue with" className="my-2" />
 
       {/* Reusable Google OAuth Button moved to bottom */}
       <SocialButton
@@ -261,6 +260,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
         label="Sign up with Google"
         onClick={handleGoogleSignUp}
         disabled={isLoading}
+        className="py-2"
       />
 
       {/* Reusable Auth Footer Link */}
@@ -268,6 +268,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
         prompt="Already have an account?"
         actionText="Sign in"
         href="/login"
+        className="pt-0.5"
       />
     </div>
   );

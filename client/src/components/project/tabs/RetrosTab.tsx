@@ -174,13 +174,13 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Top Banner */}
-      <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-5 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             Project Retrospectives
             <StatusPill status="upcoming" label={`${project.retrospectives?.length || 0} Sessions`} />
           </h3>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Collaborative agile feedback boards attached to <strong>{project.name}</strong> ({project.key}).
           </p>
         </div>
@@ -199,10 +199,10 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
       {/* Retrospectives Grid */}
       {!project.retrospectives || project.retrospectives.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-dashed border-slate-200 space-y-3">
+        <div className="p-12 text-center bg-white dark:bg-[#0f172a] rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 space-y-3">
           <UserAvatar name="RetroFlow" avatar="RF" size="lg" className="mx-auto" />
-          <h4 className="text-sm font-bold text-slate-900">No Retrospectives Linked Yet</h4>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <h4 className="text-sm font-bold text-slate-900 dark:text-white">No Retrospectives Linked Yet</h4>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
             Schedule a retrospective session for this project to start gathering team feedback and generating action items.
           </p>
           {canManageProject && (
@@ -226,7 +226,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
             return (
               <div
                 key={retro.id || retro.shareToken}
-                className="group p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-[#5cb028]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                className="group p-5 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-[#5cb028]/60 dark:hover:border-[#5cb028]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-3">
                   {/* Status & Sprint Badge & Date */}
@@ -235,55 +235,55 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                       <StatusPill status={retro.status} pulse={isActive} />
 
                       {retro.sprintName && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30">
                           {retro.sprintName}
                         </span>
                       )}
                     </div>
 
-                    <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-slate-400" />
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                       {formatDateDMY(retro.scheduledDate)}
                     </span>
                   </div>
 
                   {/* Title */}
-                  <h4 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-snug">
+                  <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug">
                     {retro.title}
                   </h4>
 
                   {/* Stats Pills */}
                   <div className="grid grid-cols-3 gap-2 pt-1">
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-center">
-                      <span className="text-[10px] text-slate-400 block">Topics</span>
-                      <span className="text-xs font-bold text-slate-800">
+                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-100 dark:border-slate-800 text-center">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Topics</span>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                         {retro.topicsCount || 3} Columns
                       </span>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-center">
-                      <span className="text-[10px] text-slate-400 block">Thoughts</span>
-                      <span className="text-xs font-bold text-slate-800">
+                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-100 dark:border-slate-800 text-center">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Thoughts</span>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                         {retro.cardsCount || 0} Cards
                       </span>
                     </div>
-                    <div className="p-2 rounded-xl bg-[#eaf5e3]/70 border border-[#cdeac0] text-center">
-                      <span className="text-[10px] text-[#3d8318] block">Action Items</span>
-                      <span className="text-xs font-bold text-[#3d8318]">
+                    <div className="p-2 rounded-xl bg-[#eaf5e3]/70 dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30 text-center">
+                      <span className="text-[10px] text-[#3d8318] dark:text-[#5cb028] block">Action Items</span>
+                      <span className="text-xs font-bold text-[#3d8318] dark:text-[#5cb028]">
                         {retro.actionItemsCount || 0} Items
                       </span>
                     </div>
                   </div>
 
                   {/* Export Link Status */}
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 pt-1">
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
                     {retro.actionItemsExported ? (
-                      <span className="text-emerald-700 font-medium flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         Action items exported into sprint backlog
                       </span>
                     ) : (
-                      <span className="text-amber-700 font-medium flex items-center gap-1">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                         Pending export to next sprint backlog
                       </span>
                     )}
@@ -291,7 +291,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                 </div>
 
                 {/* Industry-Standard Action Footer */}
-                <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
                   {/* Left: Launch Board + Share / Invite */}
                   <div className="flex items-center gap-2">
                     <Link
@@ -299,7 +299,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                       className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
                         isActive
                           ? 'bg-[#5cb028] hover:bg-[#4e9921] text-white shadow-[#5cb028]/20'
-                          : 'bg-slate-900 hover:bg-slate-800 text-white'
+                          : 'bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white'
                       }`}
                     >
                       <span>Open Board</span>
@@ -311,12 +311,12 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                         type="button"
                         onClick={() => handleShareClick(retro)}
                         title="Share or Invite Teammates"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#eaf5e3]/70 hover:bg-[#eaf5e3] text-[#3d8318] border-[#cdeac0] hover:border-[#5cb028]/60 shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#eaf5e3]/70 dark:bg-[#5cb028]/20 hover:bg-[#eaf5e3] dark:hover:bg-[#5cb028]/30 text-[#3d8318] dark:text-[#5cb028] border-[#cdeac0] dark:border-[#5cb028]/40 hover:border-[#5cb028]/60 shadow-2xs"
                       >
                         {isCopied ? (
                           <>
-                            <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-                            <span className="text-emerald-700 font-bold">Copied!</span>
+                            <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
+                            <span className="text-emerald-700 dark:text-emerald-400 font-bold">Copied!</span>
                           </>
                         ) : (
                           <>
@@ -335,7 +335,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                         type="button"
                         onClick={() => handleOpenEdit(retro)}
                         title="Edit Retrospective Details"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
@@ -344,7 +344,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                         type="button"
                         onClick={() => setDeletingRetro(retro)}
                         title="Delete Retrospective"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -358,11 +358,11 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
           {/* Pagination Controls Footer (Active when > 6 retros) */}
           {totalPages > 1 && (
-            <div className="p-4 sm:px-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-              <div className="text-slate-500">
-                Showing <strong className="text-slate-800">{startIndex + 1}</strong> to{' '}
-                <strong className="text-slate-800">{endIndex}</strong> of{' '}
-                <strong className="text-slate-800">{totalItems}</strong> Retros
+            <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div className="text-slate-500 dark:text-slate-400">
+                Showing <strong className="text-slate-800 dark:text-white">{startIndex + 1}</strong> to{' '}
+                <strong className="text-slate-800 dark:text-white">{endIndex}</strong> of{' '}
+                <strong className="text-slate-800 dark:text-white">{totalItems}</strong> Retros
               </div>
 
               <div className="flex items-center gap-1.5">
@@ -370,7 +370,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                   type="button"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={safeCurrentPage <= 1}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   <span>Prev</span>
@@ -384,7 +384,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                     className={`min-w-[32px] h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       p === safeCurrentPage
                         ? 'bg-[#5cb028] text-white shadow-xs'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     {p}
@@ -395,7 +395,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                   type="button"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={safeCurrentPage >= totalPages}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
                 >
                   <span>Next</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -417,22 +417,22 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
       {/* Edit Retrospective Modal */}
       {editingRetro && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full border border-slate-200 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-[#0f172a] rounded-2xl p-6 max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] text-[#3d8318] flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] flex items-center justify-center font-bold">
                   <Edit3 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">Edit Retrospective</h4>
-                  <p className="text-[11px] text-slate-500">Update title, sprint association, or date</p>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Edit Retrospective</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Update title, sprint association, or date</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingRetro(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -440,45 +440,45 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
             <form onSubmit={handleSaveEdit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">Retrospective Title</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Retrospective Title</label>
                 <input
                   type="text"
                   required
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   placeholder="e.g. Sprint 14 Retrospective"
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]"
+                  className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">Sprint Association</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Sprint Association</label>
                   <input
                     type="text"
                     value={editSprintName}
                     onChange={(e) => setEditSprintName(e.target.value)}
                     placeholder="e.g. Sprint 14"
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">Scheduled Date</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Scheduled Date</label>
                   <input
                     type="date"
                     value={editScheduledDate}
                     onChange={(e) => setEditScheduledDate(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setEditingRetro(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -504,24 +504,24 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
       {/* Delete Retrospective Confirmation Modal */}
       {deletingRetro && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full border border-slate-200 shadow-2xl space-y-4">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-[#0f172a] rounded-2xl p-6 max-w-sm w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <AlertTriangle className="w-5 h-5" />
             </div>
 
             <div>
-              <h4 className="text-sm font-bold text-slate-900">Delete Retrospective Session?</h4>
-              <p className="text-xs text-slate-500 mt-1">
-                Are you sure you want to delete <strong>"{deletingRetro.title}"</strong>? All sticky notes, votes, and takeaways will be permanently deleted from this project.
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white">Delete Retrospective Session?</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Are you sure you want to delete <strong>&quot;{deletingRetro.title}&quot;</strong>? All sticky notes, votes, and takeaways will be permanently deleted from this project.
               </p>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setDeletingRetro(null)}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Cancel
               </button>

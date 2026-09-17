@@ -18,7 +18,7 @@ export const AuthFooterLink: React.FC<AuthFooterLinkProps> = ({
 }) => {
   return (
     <div className={`text-center pt-2 ${className}`}>
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         {prompt}{' '}
         <Link
           href={href}

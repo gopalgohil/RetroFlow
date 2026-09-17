@@ -201,8 +201,8 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
           onClick={() => setIsOpen((prev) => !prev)}
           className={`group flex items-center gap-2.5 px-3 py-1.5 rounded-xl border transition-all text-left cursor-pointer ${
             isOpen
-              ? 'bg-white border-[#5cb028] ring-2 ring-[#5cb028]/20 shadow-xs'
-              : 'bg-white/80 hover:bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs'
+              ? 'bg-white dark:bg-slate-800 border-[#5cb028] ring-2 ring-[#5cb028]/20 shadow-xs'
+              : 'bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 shadow-2xs'
           }`}
           title={activeProject ? `Active Project: ${activeProject.name}` : 'Select agile project'}
         >
@@ -214,32 +214,32 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
               size="sm"
             />
           ) : (
-            <div className="w-7 h-7 rounded-lg bg-[#eaf5e3] border border-[#cdeac0] text-[#3d8318] flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30 text-[#3d8318] dark:text-[#5cb028] flex items-center justify-center shrink-0">
               <FolderKanban className="w-3.5 h-3.5 text-[#5cb028]" />
             </div>
           )}
 
           <div className="flex flex-col min-w-0 max-w-[160px] sm:max-w-[220px]">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-900 truncate">
+              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                 {activeProject ? activeProject.name : 'Select Project'}
               </span>
               {activeProject && (
-                <span className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
+                <span className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-600">
                   {activeProject.key}
                 </span>
               )}
             </div>
             {activeProject && activeManager && (
-              <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium truncate mt-0.5">
-                <span className="text-[#3d8318] font-bold">{activeManager.role}:</span>
-                <span className="truncate text-slate-700 font-medium">{activeManager.name}</span>
+              <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
+                <span className="text-[#3d8318] dark:text-[#5cb028] font-bold">{activeManager.role}:</span>
+                <span className="truncate text-slate-700 dark:text-slate-300 font-medium">{activeManager.name}</span>
               </div>
             )}
           </div>
 
           <ChevronDown
-            className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 shrink-0 ${
+            className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-transform duration-200 shrink-0 ${
               isOpen ? 'rotate-180 text-[#5cb028]' : ''
             }`}
           />
@@ -247,14 +247,14 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
         {/* Dropdown Popover */}
         {isOpen && (
-          <div className="absolute left-0 mt-2 w-80 sm:w-88 rounded-2xl bg-white border border-slate-200/90 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="absolute left-0 mt-2 w-80 sm:w-88 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-2xl dark:shadow-black/60 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Header with Search */}
-            <div className="p-3 border-b border-slate-100 bg-slate-50/70 space-y-2">
+            <div className="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 space-y-2">
               <div className="flex items-center justify-between px-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   My Projects ({allProjects.length})
                 </span>
-                <span className="text-[10px] font-semibold text-[#3d8318]">RetroFlow Pro</span>
+                <span className="text-[10px] font-semibold text-[#3d8318] dark:text-[#5cb028]">RetroFlow Pro</span>
               </div>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -264,13 +264,13 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
-                  className="w-full pl-8 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#5cb028]"
+                  className="w-full pl-8 pr-8 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#5cb028]"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                     title="Clear filter"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -283,14 +283,14 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             <div className="p-1.5 max-h-64 overflow-y-auto space-y-1">
               {filteredProjects.length === 0 ? (
                 <div className="py-7 px-4 text-center space-y-2">
-                  <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
                     <FolderKanban className="w-4 h-4 text-slate-400" />
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-xs font-semibold text-slate-700">
+                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                       {searchQuery ? 'No matching projects found' : 'No projects in workspace'}
                     </p>
-                    <p className="text-[11px] text-slate-400 max-w-[220px] mx-auto leading-tight">
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 max-w-[220px] mx-auto leading-tight">
                       {searchQuery
                         ? 'Try searching with a different name or key'
                         : canCreateProject
@@ -310,8 +310,8 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                       onClick={() => handleSelect(proj)}
                       className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-[#eaf5e3]/80 border border-[#cdeac0] text-[#1e4809]'
-                          : 'hover:bg-slate-50 border border-transparent text-slate-800'
+                          ? 'bg-[#eaf5e3]/80 dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30 text-[#1e4809] dark:text-[#88d858]'
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent text-slate-800 dark:text-slate-200'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
@@ -321,13 +321,13 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                             <p className="text-xs font-bold truncate max-w-[130px]">{proj.name}</p>
                             <StatusPill status={proj.healthStatus} pulse />
                             {projManager && (
-                              <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
+                              <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30">
                                 {projManager.role}: {projManager.name.split(' ')[0]}
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5 flex-wrap">
-                            <span className="font-mono font-semibold uppercase text-slate-700">{proj.key}</span>
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex-wrap">
+                            <span className="font-mono font-semibold uppercase text-slate-700 dark:text-slate-300">{proj.key}</span>
                             <span>•</span>
                             <span className="capitalize">{proj.type}</span>
                             <span>•</span>
@@ -335,8 +335,8 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                             {projManager && (
                               <>
                                 <span>•</span>
-                                <span className="text-slate-600 font-medium">
-                                  {projManager.role}: <strong className="font-semibold text-slate-800">{projManager.name}</strong>
+                                <span className="text-slate-600 dark:text-slate-400 font-medium">
+                                  {projManager.role}: <strong className="font-semibold text-slate-800 dark:text-slate-200">{projManager.name}</strong>
                                 </span>
                               </>
                             )}
@@ -355,7 +355,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
             {/* Bottom Footer Action: + New Project CTA (Admin & Managers only) */}
             {canCreateProject && (
-              <div className="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+              <div className="p-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => {

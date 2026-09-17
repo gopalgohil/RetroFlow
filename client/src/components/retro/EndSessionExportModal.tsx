@@ -300,7 +300,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -325,11 +325,11 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     >
       <div className="space-y-5">
         {!exportSuccess && !canExport && (
-          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
-            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 text-xs flex items-start gap-2.5">
+            <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Export Restricted (Manager / Lead Only)</p>
-              <p className="text-amber-700 text-[11px] mt-0.5">
+              <p className="text-amber-700 dark:text-amber-300/80 text-[11px] mt-0.5">
                 Only Workspace Admins, Project Managers, and Team Leads can export retrospective action items to the sprint backlog.
               </p>
             </div>
@@ -338,15 +338,15 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
         {exportSuccess ? (
           /* Success State */
           <div className="text-center py-4 space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto shadow-xs animate-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center mx-auto shadow-xs animate-in zoom-in-95 duration-200">
               <Check className="w-8 h-8 stroke-[2.5]" />
             </div>
 
             <div className="space-y-1">
-              <h4 className="text-base font-bold text-slate-900">
+              <h4 className="text-base font-bold text-slate-900 dark:text-white">
                 {exportedCount} Action Items Successfully Exported!
               </h4>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 Transferred to <strong>{selectedProject?.name}</strong> under{' '}
                 <span className="text-[#5cb028] font-semibold">{lastExportedSprint?.name}</span>.
               </p>
@@ -363,7 +363,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
               </Link>
               <button
                 onClick={handleClose}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Done
               </button>
@@ -373,10 +373,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
           /* Export & Configuration State */
           <>
             {/* Target Project & Sprint Selectors */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
               {/* Destination Project Selector */}
               <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                   Target Project
                 </label>
                 <select
@@ -390,10 +390,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                       setSelectedSprintId(sugg?.id || p.sprints[0]?.id || '');
                     }
                   }}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] cursor-pointer"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] cursor-pointer"
                 >
                   {projects.map((proj) => (
-                    <option key={proj.id} value={proj.id}>
+                    <option key={proj.id} value={proj.id} className="dark:bg-slate-900">
                       {proj.name} ({proj.key})
                     </option>
                   ))}
@@ -403,10 +403,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
               {/* Destination Sprint Selector */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     Target Sprint
                   </label>
-                  <span className="text-[10px] text-[#3d8318] font-bold bg-[#eaf5e3] px-2 py-0.5 rounded border border-[#cdeac0] flex items-center gap-1">
+                  <span className="text-[10px] text-[#3d8318] dark:text-[#5cb028] font-bold bg-[#eaf5e3] dark:bg-[#5cb028]/20 px-2 py-0.5 rounded border border-[#cdeac0] dark:border-[#5cb028]/30 flex items-center gap-1">
                     <Sparkles className="w-3 h-3 text-[#5cb028]" />
                     Dedicated Retro Sprint
                   </span>
@@ -414,10 +414,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                 <select
                   value={selectedSprintId || suggestedSprint?.id || ''}
                   onChange={(e) => setSelectedSprintId(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] cursor-pointer"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] cursor-pointer"
                 >
                   {selectedProject?.sprints.map((sp) => (
-                    <option key={sp.id} value={sp.id}>
+                    <option key={sp.id} value={sp.id} className="dark:bg-slate-900">
                       {sp.name} [{sp.status.toUpperCase()}]
                     </option>
                   ))}
@@ -429,11 +429,11 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
             <div className="space-y-2.5">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                     <ListFilter className="w-3.5 h-3.5 text-[#5cb028]" />
                     Select Action Items to Export ({selectedCardIds.length}/{actionCards.length})
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#eaf5e3] text-[#3d8318] border border-[#cdeac0]">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30">
                     {selectedCardIds.length} Selected
                   </span>
                 </div>
@@ -450,7 +450,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                     </>
                   ) : (
                     <>
-                      <Square className="w-3.5 h-3.5" />
+                      <Square className="w-3.5 h-3.5 text-slate-400" />
                       <span>Select All</span>
                     </>
                   )}
@@ -458,10 +458,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
               </div>
 
               {/* Scrollable list of items */}
-              <div className="max-h-64 overflow-y-auto space-y-2 p-1.5 border border-slate-200 rounded-2xl bg-white">
+              <div className="max-h-64 overflow-y-auto space-y-2 p-1.5 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-[#0f172a]">
                 {actionCards.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-slate-400 space-y-1">
-                    <p className="font-semibold text-slate-600">No action items found on board.</p>
+                  <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500 space-y-1">
+                    <p className="font-semibold text-slate-600 dark:text-slate-300">No action items found on board.</p>
                     <p>Only cards created under the &quot;Action Items&quot; column can be exported to the sprint backlog.</p>
                   </div>
                 ) : (
@@ -478,8 +478,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                         key={card.id}
                         className={`p-3 rounded-xl border transition-all space-y-2.5 ${
                           isSelected
-                            ? 'bg-[#eaf5e3]/40 border-[#cdeac0]/90 shadow-2xs'
-                            : 'bg-slate-50/50 border-slate-200/70 opacity-60'
+                            ? 'bg-[#eaf5e3]/40 dark:bg-[#5cb028]/10 border-[#cdeac0]/90 dark:border-[#5cb028]/30 shadow-2xs'
+                            : 'bg-slate-50/50 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800/80 opacity-60'
                         }`}
                       >
                         {/* Top: Checkbox + Card Text */}
@@ -488,16 +488,16 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleToggleCard(card.id)}
-                            className="mt-1 w-4 h-4 rounded text-[#5cb028] border-slate-300 focus:ring-[#5cb028] cursor-pointer"
+                            className="mt-1 w-4 h-4 rounded text-[#5cb028] border-slate-300 dark:border-slate-700 dark:bg-slate-800 focus:ring-[#5cb028] cursor-pointer"
                           />
 
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-slate-900 leading-snug">
+                            <p className="text-xs font-bold text-slate-900 dark:text-white leading-snug">
                               {card.text}
                             </p>
                             {card.author && (
-                              <p className="text-[10px] text-slate-400 mt-0.5">
-                                Raised by: <span className="font-semibold text-slate-600">{card.author}</span>
+                              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                                Raised by: <span className="font-semibold text-slate-600 dark:text-slate-300">{card.author}</span>
                               </p>
                             )}
                           </div>
@@ -505,10 +505,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
 
                         {/* Bottom: Assignee & Priority Selector (Only enabled if selected) */}
                         {isSelected && (
-                          <div className="flex flex-wrap items-center gap-2 pl-7 pt-1 border-t border-[#cdeac0]/80">
+                          <div className="flex flex-wrap items-center gap-2 pl-7 pt-1 border-t border-[#cdeac0]/80 dark:border-[#5cb028]/20">
                             {/* Assignee Selector */}
                             <div className="flex items-center gap-1.5">
-                              <User className="w-3 h-3 text-slate-400" />
+                              <User className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                               <select
                                 value={cfg.assigneeName}
                                 onChange={(e) =>
@@ -516,11 +516,11 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                     assigneeName: e.target.value,
                                   })
                                 }
-                                className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer"
+                                className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer"
                               >
-                                <option value="">Unassigned</option>
+                                <option value="" className="dark:bg-slate-900">Unassigned</option>
                                 {selectedProject?.members?.map((m) => (
-                                  <option key={m.id || m.name} value={m.name}>
+                                  <option key={m.id || m.name} value={m.name} className="dark:bg-slate-900">
                                     {m.name} ({m.role})
                                   </option>
                                 ))}
@@ -536,10 +536,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                     priority: e.target.value as any,
                                   })
                                 }
-                                className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer capitalize"
+                                className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer capitalize"
                               >
                                 {(['low', 'medium', 'high', 'critical'] as const).map((p) => (
-                                  <option key={p} value={p}>
+                                  <option key={p} value={p} className="dark:bg-slate-900">
                                     {p} Priority
                                   </option>
                                 ))}

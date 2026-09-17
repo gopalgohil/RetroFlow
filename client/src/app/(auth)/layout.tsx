@@ -1,59 +1,60 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
-import { AnimatedBackground } from '@/components/ui';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import { ThemeToggle } from '@/components/ui';
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between bg-white font-sans antialiased selection:bg-[#5cb028] selection:text-white overflow-x-hidden">
-      {/* Dynamic Animated Aurora & Dot Grid Background (Framer Motion) */}
-      <AnimatedBackground />
+  const pathname = usePathname();
 
-      {/* Top Header with Brand Logo & Back to Home */}
-      <header className="relative z-10 w-full max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-[#5cb028] flex items-center justify-center text-white shadow-sm shadow-[#5cb028]/25 group-hover:scale-105 transition-transform">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+  return (
+    <div className="relative min-h-screen w-full flex flex-col justify-between bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-white font-sans antialiased selection:bg-[#5cb028] selection:text-white transition-colors duration-200">
+      {/* Top Header with Brand Logo, Theme Toggle & Back to Home */}
+      <header className="w-full border-b border-slate-200/80 dark:border-slate-800 sticky top-0 z-50 bg-white/80 dark:bg-[#0b0f17]/90 backdrop-blur-md transition-colors">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center group">
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={140}
+              height={44}
+              className="h-9 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+              priority
+            />
+          </Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link
+              href="/"
+              className="text-xs font-semibold text-slate-500 hover:text-[#5cb028] dark:text-slate-400 dark:hover:text-[#5cb028] transition-colors"
             >
-              <rect width="18" height="18" x="3" y="3" rx="2" />
-              <path d="M7 8h10" />
-              <path d="M7 12h4" />
-              <path d="M7 16h7" />
-            </svg>
+              ← Back to Home
+            </Link>
           </div>
-          <span className="text-xl font-bold text-slate-900 tracking-tight">
-            Retro<span className="text-[#5cb028]">Flow</span>
-          </span>
-        </Link>
-        <Link
-          href="/"
-          className="text-xs font-semibold text-slate-500 hover:text-[#5cb028] transition-colors"
-        >
-          ← Back to Home
-        </Link>
+        </div>
       </header>
 
-      {/* Center Content: Login / Signup Form with Card Border & Subtle Glass Backdrop */}
-      <main className="relative z-10 my-auto py-8 px-4 sm:px-6 w-full flex items-center justify-center">
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-sm">
+      {/* Center Content: Simple Centered Card Box with Dark Mode Surface & Smooth Open Animation */}
+      <main className="my-auto py-4 sm:py-6 px-4 sm:px-6 w-full flex items-center justify-center">
+        <div
+          key={pathname}
+          className="w-full max-w-md bg-white dark:bg-[#0f172a]/95 border border-slate-200/90 dark:border-slate-800/90 rounded-3xl p-5 sm:p-7 shadow-sm dark:shadow-2xl dark:shadow-black/40 animate-auth-open"
+        >
           {children}
         </div>
       </main>
 
       {/* Clean Footer */}
-      <footer className="relative z-10 py-6 text-center text-xs text-slate-400">
+      <footer className="relative z-10 py-6 text-center text-xs text-slate-400 dark:text-slate-600">
         © {new Date().getFullYear()} RetroFlow. All rights reserved.
       </footer>
     </div>
   );
 }
+
