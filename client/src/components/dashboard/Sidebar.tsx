@@ -158,9 +158,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Image
               src="/logo.svg"
               alt="Logo"
-              width={160}
-              height={48}
-              className="h-10 sm:h-11 w-auto object-contain group-hover:scale-105 transition-transform"
+              width={140}
+              height={42}
+              className="h-9 sm:h-[38px] w-auto object-contain group-hover:scale-105 transition-transform"
               priority
             />
           </Link>

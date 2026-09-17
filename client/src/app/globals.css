@@ -214,22 +214,4 @@ body {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
 }
 
-@keyframes authBoxOpen {
-  0% {
-    opacity: 0;
-    transform: scale(0.92) translateY(18px);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.008) translateY(-2px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
 
-.animate-auth-open {
-  animation: authBoxOpen 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform, opacity;
-}

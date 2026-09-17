@@ -14,7 +14,7 @@ export default function AuthLayout({
   const pathname = usePathname();
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-white font-sans antialiased selection:bg-[#5cb028] selection:text-white transition-colors duration-200">
+    <div className="relative min-h-screen w-full flex flex-col justify-between bg-[#f4f6f9] dark:bg-[#0b0f17] text-slate-900 dark:text-white font-sans antialiased selection:bg-[#5cb028] selection:text-white transition-colors duration-200">
       {/* Top Header with Brand Logo, Theme Toggle & Back to Home */}
       <header className="w-full border-b border-slate-200/80 dark:border-slate-800 sticky top-0 z-50 bg-white/80 dark:bg-[#0b0f17]/90 backdrop-blur-md transition-colors">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -40,11 +40,10 @@ export default function AuthLayout({
         </div>
       </header>
 
-      {/* Center Content: Simple Centered Card Box with Dark Mode Surface & Smooth Open Animation */}
-      <main className="my-auto py-4 sm:py-6 px-4 sm:px-6 w-full flex items-center justify-center">
+      {/* Center Content: Centered Card Box (Fixed & Rock-solid, zero reload movement) */}
+      <main className="flex-1 py-6 sm:py-10 px-4 sm:px-6 w-full flex items-center justify-center">
         <div
-          key={pathname}
-          className="w-full max-w-md bg-white dark:bg-[#0f172a]/95 border border-slate-200/90 dark:border-slate-800/90 rounded-3xl p-5 sm:p-7 shadow-sm dark:shadow-2xl dark:shadow-black/40 animate-auth-open"
+          className="w-full max-w-md bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-7 shadow-lg shadow-slate-200/70 dark:shadow-2xl dark:shadow-black/50"
         >
           {children}
         </div>

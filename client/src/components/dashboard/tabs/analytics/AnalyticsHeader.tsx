@@ -55,7 +55,7 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
             title="Filter analytics by project"
             className="w-full appearance-none pl-9 pr-8 py-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all cursor-pointer shadow-2xs disabled:opacity-50"
           >
-            <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">🌐 All Projects (Combined)</option>
+            <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">All Projects (Combined)</option>
             {projects?.map((proj) => (
               <option key={proj.id} value={proj.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
                 {proj.name} ({proj.key}) • {proj.memberCount} members
