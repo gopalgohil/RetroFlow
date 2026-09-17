@@ -56,6 +56,7 @@ export default function LiveRetroBoardPage({
         title={session.retro.title}
         description={session.retro.description}
         isFacilitator={session.isFacilitator}
+        isGuest={session.isGuest}
         currentAuthorName={session.currentAuthorName}
         remainingVotes={session.remainingVotes}
         isRevealed={session.isRevealed}

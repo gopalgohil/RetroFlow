@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, memo } from 'react';
+import Image from 'next/image';
 import { CheckCircle2, Sparkles, ShieldCheck, Mail, User } from 'lucide-react';
 
 export interface ParticipantNameModalProps {
@@ -37,8 +38,14 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
         <div className="bg-white dark:bg-[#0f172a] rounded-2xl p-6 max-w-sm w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 animate-in zoom-in-95">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#5cb028] text-white flex items-center justify-center shadow-md font-black">
-              RF
+            <div className="w-10 h-10 rounded-xl bg-[#5cb028] text-white flex items-center justify-center p-2 shadow-md shrink-0">
+              <Image
+                src="/logo.svg"
+                alt="RetroFlow Logo"
+                width={28}
+                height={28}
+                className="w-full h-auto object-contain brightness-0 invert"
+              />
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">

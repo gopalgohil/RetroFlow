@@ -22,6 +22,7 @@ export interface UseRetroSessionReturn {
   isNamePromptOpen: boolean;
   verifiedGuestEmail: string | null;
   isMagicInvite: boolean;
+  isGuest: boolean;
   setGuestName: (name: string, email?: string) => Promise<void> | void;
   setIsRevealed: React.Dispatch<React.SetStateAction<boolean>>;
   addCard: (topicId: string, text: string) => Promise<void>;
@@ -301,6 +302,30 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
   }, [currentUser, retro?.createdBy, retro?.project]);
 
   const isFacilitator = canExportToSprint;
+
+  // Determine if current participant is an unregistered / external guest
+  const isGuest = useMemo(() => {
+    // 1. Explicit guest flag in user profile
+    if (currentUser?.isGuest) return true;
+
+    // 2. Verified guest from magic invite email without full workspace account
+    if (verifiedGuestEmail && !currentUser?.id) return true;
+
+    // 3. No valid JWT token or guest fallback token in localStorage
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('retroflow_token');
+      if (!token || token.startsWith('guest-token-')) {
+        return true;
+      }
+    }
+
+    // 4. Missing user identifier and role
+    if (!currentUser?.id && !currentUser?.role) {
+      return true;
+    }
+
+    return false;
+  }, [currentUser, verifiedGuestEmail]);
 
   // Derive dynamic user role: Admin decides who is Manager, Developer, QA, etc.
   const effectiveUserRole = useMemo(() => {
@@ -972,6 +997,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     isNamePromptOpen,
     verifiedGuestEmail,
     isMagicInvite,
+    isGuest,
     setGuestName,
     setIsRevealed,
     addCard,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export interface RetroNotFoundProps {
@@ -10,8 +10,18 @@ export interface RetroNotFoundProps {
 
 export const RetroNotFound: React.FC<RetroNotFoundProps> = memo(function RetroNotFound({
   error,
-  isFacilitator,
 }) {
+  const [hasAccount, setHasAccount] = useState(false);
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('retroflow_token');
+      setHasAccount(Boolean(token && !token.startsWith('guest-token-')));
+    } catch {
+      setHasAccount(false);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f17] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans">
       <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 max-w-md shadow-xs">
@@ -21,18 +31,29 @@ export const RetroNotFound: React.FC<RetroNotFoundProps> = memo(function RetroNo
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <Link
-          href="/projects"
-          className="px-4 py-2 rounded-xl bg-[#5cb028] text-white text-xs font-bold shadow-xs hover:bg-[#4e9921] transition-colors cursor-pointer"
-        >
-          ← Back to Projects
-        </Link>
-        <Link
-          href="/dashboard"
-          className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-bold shadow-xs hover:bg-slate-800 dark:hover:bg-slate-700 dark:border dark:border-slate-700 transition-colors cursor-pointer"
-        >
-          ← Workspace Dashboard
-        </Link>
+        {hasAccount ? (
+          <>
+            <Link
+              href="/projects"
+              className="px-4 py-2 rounded-xl bg-[#5cb028] text-white text-xs font-bold shadow-xs hover:bg-[#4e9921] transition-colors cursor-pointer"
+            >
+              ← Back to Projects
+            </Link>
+            <Link
+              href="/dashboard?tab=sessions"
+              className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-bold shadow-xs hover:bg-slate-800 dark:hover:bg-slate-700 dark:border dark:border-slate-700 transition-colors cursor-pointer"
+            >
+              ← Workspace Dashboard
+            </Link>
+          </>
+        ) : (
+          <Link
+            href="/login"
+            className="px-4 py-2 rounded-xl bg-[#5cb028] text-white text-xs font-bold shadow-xs hover:bg-[#4e9921] transition-colors cursor-pointer"
+          >
+            ← Sign In to RetroFlow
+          </Link>
+        )}
       </div>
     </div>
   );

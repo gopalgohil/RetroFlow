@@ -2,6 +2,7 @@
 
 import React, { memo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff, Share2, Sparkles } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -10,6 +11,7 @@ export interface RetroHeaderProps {
   title: string;
   description?: string;
   isFacilitator: boolean;
+  isGuest?: boolean;
   currentAuthorName: string;
   remainingVotes: number;
   isRevealed: boolean;
@@ -33,6 +35,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
   title,
   description,
   isFacilitator,
+  isGuest = false,
   currentAuthorName,
   remainingVotes,
   isRevealed,
@@ -63,27 +66,50 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#0b0f17]/95 backdrop-blur-xl border-b border-slate-200/90 dark:border-slate-800 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
       {/* Left: Role-based Navigation + Session Identity */}
       <div className="flex items-center gap-2.5 sm:gap-3.5">
-        {/* Smart Back button: returns directly to Retrospective Session tab */}
-        <button
-          type="button"
-          onClick={handleGoBack}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-all text-xs font-bold shadow-2xs group cursor-pointer"
-          title="Back to Retrospective Sessions"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#5cb028] transition-colors" />
-          <span className="text-slate-600 dark:text-slate-300 font-bold">
-            {projectKey ? `Project ${projectKey}` : 'Retrospectives'}
-          </span>
-        </button>
+        {/* Smart Back button: ONLY visible for registered workspace team members */}
+        {!isGuest && (
+          <button
+            type="button"
+            onClick={handleGoBack}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-all text-xs font-bold shadow-2xs group cursor-pointer"
+            title="Back to Retrospective Sessions"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#5cb028] transition-colors" />
+            <span className="text-slate-600 dark:text-slate-300 font-bold">
+              {projectKey ? `Project ${projectKey}` : 'Retrospectives'}
+            </span>
+          </button>
+        )}
 
-        {/* Brand Logo - clickable back to main workspace dashboard retrospectives */}
-        <Link
-          href="/dashboard?tab=sessions"
-          title="RetroFlow Retrospective Sessions"
-          className="w-8 h-8 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0 select-none transition-transform hover:scale-105"
-        >
-          RF
-        </Link>
+        {/* Brand Logo: Clickable Link for registered members; Static non-clickable badge for external guests */}
+        {!isGuest ? (
+          <Link
+            href="/dashboard?tab=sessions"
+            title="RetroFlow Retrospective Sessions"
+            className="w-8 h-8 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white flex items-center justify-center p-1.5 shadow-xs shrink-0 select-none transition-transform hover:scale-105"
+          >
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={24}
+              height={24}
+              className="w-full h-auto object-contain brightness-0 invert"
+            />
+          </Link>
+        ) : (
+          <div
+            title="RetroFlow Live Retrospective Session"
+            className="w-8 h-8 rounded-xl bg-[#5cb028] text-white flex items-center justify-center p-1.5 shadow-xs shrink-0 select-none"
+          >
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={24}
+              height={24}
+              className="w-full h-auto object-contain brightness-0 invert"
+            />
+          </div>
+        )}
 
         <div>
           <div className="flex items-center gap-2">
@@ -125,7 +151,9 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           </span>
           <span
             className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 ${
-              userRole?.toLowerCase() === 'admin'
+              isGuest
+                ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60'
+                : userRole?.toLowerCase() === 'admin'
                 ? 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30'
                 : userRole?.toLowerCase() === 'manager' || userRole?.toLowerCase().includes('manager')
                 ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
@@ -133,12 +161,10 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
                 ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60'
                 : userRole?.toLowerCase().includes('qa')
                 ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60'
-                : userRole?.toLowerCase() === 'developer' || verifiedGuestEmail
-                ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
-                : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
             }`}
           >
-            {userRole || (verifiedGuestEmail ? 'Developer' : 'Developer')}
+            {isGuest ? 'Guest Participant' : userRole || 'Developer'}
           </span>
         </div>
 
