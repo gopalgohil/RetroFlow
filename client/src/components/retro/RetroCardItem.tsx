@@ -13,6 +13,7 @@ export interface RetroCardItemProps {
   isCurrentAuthor: boolean;
   currentAuthorName?: string;
   remainingVotes: number;
+  canMoveCrossColumn?: boolean;
   isFirstCard?: boolean;
   isDragTarget?: boolean;
   dropPosition?: 'above' | 'below' | null;
@@ -44,6 +45,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   isCurrentAuthor,
   currentAuthorName,
   remainingVotes,
+  canMoveCrossColumn = true,
   isFirstCard = false,
   isDragTarget = false,
   dropPosition = null,
@@ -285,7 +287,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
               {/* Drag Handle */}
               <div
                 className="text-slate-300 group-hover:text-slate-500 hover:text-indigo-600 transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5"
-                title="Drag to reorder card or move to another column"
+                title={
+                  canMoveCrossColumn
+                    ? 'Drag to reorder card or move across questions'
+                    : 'Drag to reorder card within this question'
+                }
               >
                 <GripVertical className="w-3.5 h-3.5" />
               </div>

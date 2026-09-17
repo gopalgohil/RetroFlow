@@ -201,13 +201,86 @@ export function initRetroSocket(io) {
       }
     });
 
-    // Move Sticky Card between topics/questions
+    // Move Sticky Card between topics/questions (Strictly Admin and Manager only)
     socket.on('card:move', async (payload, callback) => {
       try {
-        const { shareToken, cardId, targetTopicId } = payload || {};
+        const { shareToken, cardId, targetTopicId, user } = payload || {};
 
         if (!shareToken || !cardId || !targetTopicId) {
           if (callback) callback({ error: 'Share token, card ID, and target topic ID are required' });
+          return;
+        }
+
+        const requester = user || currentUser;
+        const requesterEmail = (requester?.email || '').toLowerCase().trim();
+        const requesterRole = (requester?.role || '').toLowerCase().trim();
+
+        const board = await RetroBoard.findOne({ shareToken }).populate('project').lean();
+        if (!board) {
+          if (callback) callback({ error: 'Card or session not found' });
+          return;
+        }
+
+        // Verify if requester is Workspace Admin
+        const isWsAdmin =
+          requesterRole === 'admin' ||
+          requesterEmail === 'gopalgohel249@gmail.com' ||
+          requesterEmail.includes('admin');
+
+        let isManagerOrAdmin =
+          isWsAdmin ||
+          requesterRole === 'manager' ||
+          requesterRole.includes('lead') ||
+          requesterRole.includes('manager');
+
+        // Check if board creator
+        if (!isManagerOrAdmin && board.createdBy) {
+          const createdById =
+            typeof board.createdBy === 'object'
+              ? String(board.createdBy._id || board.createdBy.id || '')
+              : String(board.createdBy);
+          const createdByEmail =
+            typeof board.createdBy === 'object'
+              ? (board.createdBy.email || '').toLowerCase().trim()
+              : '';
+          if (
+            (requester?.id && createdById === String(requester.id)) ||
+            (requesterEmail && createdByEmail === requesterEmail)
+          ) {
+            isManagerOrAdmin = true;
+          }
+        }
+
+        // Check if project lead or manager member in linked project
+        if (!isManagerOrAdmin && board.project) {
+          const leadEmail = (board.project.lead?.email || '').toLowerCase().trim();
+          if (leadEmail && leadEmail === requesterEmail) {
+            isManagerOrAdmin = true;
+          }
+          if (Array.isArray(board.project.members)) {
+            const member = board.project.members.find(
+              (m) => (m.email || '').toLowerCase().trim() === requesterEmail
+            );
+            if (member) {
+              const mRole = (member.role || '').toLowerCase().trim();
+              if (mRole === 'manager' || mRole.includes('lead') || mRole.includes('manager')) {
+                isManagerOrAdmin = true;
+              }
+            }
+          }
+        }
+
+        if (!isManagerOrAdmin) {
+          console.warn(
+            `[Socket Security] Unauthorized cross-question card move blocked for user ${
+              requesterEmail || requester?.name || 'anonymous'
+            } (role: ${requesterRole})`
+          );
+          if (callback) {
+            callback({
+              error: 'Permission denied: Only Admin and Manager can move cards between questions.',
+            });
+          }
           return;
         }
 

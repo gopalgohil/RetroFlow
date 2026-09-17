@@ -35,6 +35,11 @@ export interface RetroColumnProps {
   remainingVotes: number;
   currentAuthorName: string;
   canManageActionItems?: boolean;
+  canMoveCrossColumn?: boolean;
+  activeDragTopicId?: string | null;
+  onDragCardStart?: (cardId: string, topicId: string) => void;
+  onDragCardEnd?: () => void;
+  onCrossColumnRejected?: () => void;
   actionTopicId?: string;
   canEditCard: (card: StickyCard) => boolean;
   canDeleteCard: (card: StickyCard) => boolean;
@@ -58,6 +63,11 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   remainingVotes,
   currentAuthorName,
   canManageActionItems = false,
+  canMoveCrossColumn = true,
+  activeDragTopicId = null,
+  onDragCardStart,
+  onDragCardEnd,
+  onCrossColumnRejected,
   actionTopicId,
   canEditCard,
   canDeleteCard,
@@ -85,6 +95,10 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 
   const ColumnIcon = ICON_MAP[topic.icon] || Smile;
 
+  const isDraggingFromAnotherColumn = Boolean(
+    activeDragTopicId && activeDragTopicId !== topic.topicId
+  );
+
   const handleSubmitCard = () => {
     if (!canAddCard) return;
     const trimmed = cardText.trim();
@@ -101,6 +115,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 
   const handleCardDragStart = (cardId: string, e: React.DragEvent) => {
     setDraggedCardId(cardId);
+    onDragCardStart?.(cardId, topic.topicId);
     e.dataTransfer.setData('text/plain', cardId);
     e.dataTransfer.setData(
       'application/json',
@@ -114,9 +129,22 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
     setDragTargetId(null);
     setDropPosition(null);
     setIsColumnDragOver(false);
+    onDragCardEnd?.();
   };
 
   const handleCardDragOver = (targetCardId: string, e: React.DragEvent) => {
+    // If dragging from another question and user is not Admin/Manager: reject drag hover
+    if (isDraggingFromAnotherColumn && !canMoveCrossColumn) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'none';
+      if (dragTargetId !== null) {
+        setDragTargetId(null);
+        setDropPosition(null);
+      }
+      return;
+    }
+
     if (!draggedCardId || draggedCardId === targetCardId) {
       if (dragTargetId !== null) {
         setDragTargetId(null);
@@ -174,6 +202,12 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 
     // Cross-column drop into this column:
     if (sourceTopicId !== topic.topicId) {
+      // Strictly Admin and Manager only: block cross-question move for regular team members
+      if (!canMoveCrossColumn) {
+        onCrossColumnRejected?.();
+        handleCardDragEnd();
+        return;
+      }
       // If target column is Action Items and user is NOT Admin/Manager: reject!
       if (isActionColumn && !canManageActionItems) {
         handleCardDragEnd();
@@ -213,6 +247,13 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   };
 
   const handleColumnDragOver = (e: React.DragEvent) => {
+    // If dragging from another question and user is not Admin/Manager: reject drop effect
+    if (isDraggingFromAnotherColumn && !canMoveCrossColumn) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'none';
+      if (isColumnDragOver) setIsColumnDragOver(false);
+      return;
+    }
     if (isActionColumn && !canManageActionItems) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -240,14 +281,25 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
       }
     } catch {}
 
-    if (!sourceCardId) return;
+    if (!sourceCardId) {
+      handleCardDragEnd();
+      return;
+    }
 
     if (sourceTopicId !== topic.topicId) {
+      // Strictly Admin and Manager only: block cross-question move for regular team members
+      if (!canMoveCrossColumn) {
+        onCrossColumnRejected?.();
+        handleCardDragEnd();
+        return;
+      }
       if (isActionColumn && !canManageActionItems) {
+        handleCardDragEnd();
         return;
       }
       onMoveCard?.(sourceCardId, topic.topicId);
     }
+    handleCardDragEnd();
   };
 
   return (
@@ -303,7 +355,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         onDragLeave={handleColumnDragLeave}
         onDrop={handleColumnDrop}
         className={`p-2 sm:p-2.5 space-y-2 min-h-[220px] max-h-[calc(100vh-230px)] overflow-y-auto transition-colors ${
-          isColumnDragOver && (canManageActionItems || !isActionColumn)
+          isColumnDragOver && (canManageActionItems || !isActionColumn) && (!isDraggingFromAnotherColumn || canMoveCrossColumn)
             ? 'bg-indigo-50/50 ring-2 ring-indigo-400/70 ring-inset rounded-xl'
             : ''
         }`}
@@ -320,6 +372,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             isCurrentAuthor={card.author === currentAuthorName}
             currentAuthorName={currentAuthorName}
             remainingVotes={remainingVotes}
+            canMoveCrossColumn={canMoveCrossColumn}
             isDragTarget={dragTargetId === card.id}
             dropPosition={dragTargetId === card.id ? dropPosition : null}
             onVote={onVoteCard}

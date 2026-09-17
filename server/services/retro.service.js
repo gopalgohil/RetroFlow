@@ -920,16 +920,89 @@ class RetroService {
   }
 
   /**
-   * Move sticky card to another topic/question column
+   * Move sticky card to another topic/question column (Admin and Manager only)
    */
-  async moveCard(identifier, cardId, { topicId }) {
+  async moveCard(identifier, cardId, { topicId }, user = null) {
     if (!cardId || !topicId) {
       throw ApiError.badRequest('Card ID and target Topic ID are required');
     }
 
-    const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
-      ? { _id: identifier, 'cards.cardId': cardId }
-      : { shareToken: identifier, 'cards.cardId': cardId };
+    const boardQuery =
+      identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+        ? { _id: identifier }
+        : { shareToken: identifier };
+
+    // Verify session exists and check authorization if user identity is present
+    const existingBoard = await RetroBoard.findOne(boardQuery).populate('project').lean();
+    if (!existingBoard) {
+      throw ApiError.notFound('Retrospective session not found');
+    }
+
+    if (user) {
+      const email = (user.email || '').toLowerCase().trim();
+      const role = (user.role || '').toLowerCase().trim();
+      const projectRole = (user.projectRole || '').toLowerCase().trim();
+
+      const isWsAdmin =
+        role === 'admin' ||
+        email === 'gopalgohel249@gmail.com' ||
+        email.includes('admin');
+
+      let isManagerOrAdmin =
+        isWsAdmin ||
+        role === 'manager' ||
+        role.includes('lead') ||
+        role.includes('manager') ||
+        projectRole === 'manager' ||
+        projectRole.includes('lead');
+
+      if (!isManagerOrAdmin && existingBoard.createdBy) {
+        const createdById =
+          typeof existingBoard.createdBy === 'object'
+            ? String(existingBoard.createdBy._id || existingBoard.createdBy.id || '')
+            : String(existingBoard.createdBy);
+        const createdByEmail =
+          typeof existingBoard.createdBy === 'object'
+            ? (existingBoard.createdBy.email || '').toLowerCase().trim()
+            : '';
+        if (
+          (user._id && createdById === String(user._id)) ||
+          (user.id && createdById === String(user.id)) ||
+          (email && createdByEmail === email)
+        ) {
+          isManagerOrAdmin = true;
+        }
+      }
+
+      if (!isManagerOrAdmin && existingBoard.project) {
+        const leadEmail = (existingBoard.project.lead?.email || '').toLowerCase().trim();
+        if (leadEmail && leadEmail === email) {
+          isManagerOrAdmin = true;
+        }
+        if (Array.isArray(existingBoard.project.members)) {
+          const member = existingBoard.project.members.find(
+            (m) => (m.email || '').toLowerCase().trim() === email
+          );
+          if (member) {
+            const mRole = (member.role || '').toLowerCase().trim();
+            if (mRole === 'manager' || mRole.includes('lead') || mRole.includes('manager')) {
+              isManagerOrAdmin = true;
+            }
+          }
+        }
+      }
+
+      if (!isManagerOrAdmin) {
+        throw ApiError.forbidden(
+          'Permission denied: Only Admin and Manager can move cards between questions.'
+        );
+      }
+    }
+
+    const query =
+      identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+        ? { _id: identifier, 'cards.cardId': cardId }
+        : { shareToken: identifier, 'cards.cardId': cardId };
 
     const updatedTime = new Date();
 
@@ -945,7 +1018,7 @@ class RetroService {
     );
 
     if (!retro) {
-      throw ApiError.notFound('Card or retrospective session not found');
+      throw ApiError.notFound('Card not found in retrospective session');
     }
 
     return { cardId, topicId, updatedAt: updatedTime };

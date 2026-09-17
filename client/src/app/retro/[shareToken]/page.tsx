@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, use } from 'react';
+import { ShieldAlert } from 'lucide-react';
 import { useRetroSession } from '@/hooks/useRetroSession';
 import {
   RetroHeader,
@@ -25,6 +26,17 @@ export default function LiveRetroBoardPage({
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isEndSessionModalOpen, setIsEndSessionModalOpen] = useState(false);
   const [exportModalMode, setExportModalMode] = useState<'export_only' | 'end_and_export'>('end_and_export');
+  const [activeDragTopicId, setActiveDragTopicId] = useState<string | null>(null);
+  const [toastFeedback, setToastFeedback] = useState<string | null>(null);
+
+  const handleCrossColumnRejected = () => {
+    setToastFeedback(
+      'Only Admin and Manager can move cards between questions. Team members can reorder within the same question.'
+    );
+    setTimeout(() => {
+      setToastFeedback(null);
+    }, 4000);
+  };
 
   // Encapsulates all DB persistence, Socket.io lifecycle, Identity & Role logic
   const session = useRetroSession(shareToken);
@@ -87,6 +99,11 @@ export default function LiveRetroBoardPage({
                   remainingVotes={session.remainingVotes}
                   currentAuthorName={session.currentAuthorName}
                   canManageActionItems={session.canExportToSprint}
+                  canMoveCrossColumn={session.canMoveCrossColumn}
+                  activeDragTopicId={activeDragTopicId}
+                  onDragCardStart={(_cardId, topicId) => setActiveDragTopicId(topicId)}
+                  onDragCardEnd={() => setActiveDragTopicId(null)}
+                  onCrossColumnRejected={handleCrossColumnRejected}
                   actionTopicId={actionTopic?.topicId}
                   canEditCard={session.canEditCard}
                   canDeleteCard={session.canDeleteCard}
@@ -142,6 +159,14 @@ export default function LiveRetroBoardPage({
         mode={exportModalMode}
         canExport={session.canExportToSprint}
       />
+
+      {/* 6. Real-time Permission Feedback Toast */}
+      {toastFeedback && (
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-slate-900/95 text-white text-xs font-semibold shadow-2xl flex items-center gap-2.5 border border-slate-700/80 backdrop-blur-md animate-in slide-in-from-bottom-5">
+          <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>{toastFeedback}</span>
+        </div>
+      )}
     </div>
   );
 }

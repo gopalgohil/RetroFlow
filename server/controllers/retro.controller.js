@@ -163,7 +163,7 @@ class RetroController {
    * PUT /api/retros/:id/cards/:cardId/move
    */
   moveCard = asyncHandler(async (req, res) => {
-    const moved = await retroService.moveCard(req.params.id, req.params.cardId, req.body);
+    const moved = await retroService.moveCard(req.params.id, req.params.cardId, req.body, req.user);
 
     const io = req.app.get('io');
     if (io) {

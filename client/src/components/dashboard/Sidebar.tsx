@@ -129,7 +129,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: 'Retro Analytics',
             icon: BarChart3,
             sublabel: 'Attendance & Insights',
-            badge: 'Pro',
           },
         ]
       : []),

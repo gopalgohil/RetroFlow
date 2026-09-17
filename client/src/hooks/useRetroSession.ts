@@ -14,6 +14,7 @@ export interface UseRetroSessionReturn {
   isRevealed: boolean;
   isFacilitator: boolean;
   canExportToSprint: boolean;
+  canMoveCrossColumn: boolean;
   currentAuthorName: string;
   currentUser: { id?: string; name: string; email: string; role?: string; projectRole?: string; isGuest?: boolean } | null;
   effectiveUserRole: string;
@@ -343,6 +344,50 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     return 'Developer';
   }, [currentUser, retro?.project, verifiedGuestEmail]);
 
+  // Cross-Column Card Moving Permission: Strictly Admin and Manager only
+  // Regular team members (Developers, QA, Members, Guests) can only reorder cards within the same question.
+  const canMoveCrossColumn = useMemo(() => {
+    if (!currentUser) return false;
+    const wsRole = (currentUser.role || '').toLowerCase().trim();
+    const projRole = ((currentUser as any).projectRole || '').toLowerCase().trim();
+    const effective = (effectiveUserRole || '').toLowerCase().trim();
+    const email = (currentUser.email || '').toLowerCase().trim();
+
+    // 1. Workspace Admin
+    if (
+      wsRole === 'admin' ||
+      effective === 'admin' ||
+      email === 'gopalgohel249@gmail.com' ||
+      email.includes('admin')
+    ) {
+      return true;
+    }
+
+    // 2. Manager or Lead
+    if (
+      wsRole === 'manager' ||
+      wsRole === 'project lead' ||
+      wsRole === 'team lead' ||
+      wsRole.includes('manager') ||
+      wsRole.includes('lead') ||
+      projRole === 'manager' ||
+      projRole === 'project lead' ||
+      projRole.includes('manager') ||
+      projRole.includes('lead') ||
+      effective === 'manager' ||
+      effective.includes('lead')
+    ) {
+      return true;
+    }
+
+    // 3. Creator of retro board or project lead (via canExportToSprint)
+    if (canExportToSprint) {
+      return true;
+    }
+
+    return false;
+  }, [currentUser, effectiveUserRole, canExportToSprint]);
+
   // 2. Socket.io Real-Time Synchronization
   useEffect(() => {
     if (!shareToken) return;
@@ -356,8 +401,10 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         {
           shareToken,
           user: {
+            id: currentUser?.id,
             name: currentAuthorName,
             email: currentUser?.email || '',
+            role: effectiveUserRole,
           },
         },
         (response: any) => {
@@ -732,6 +779,12 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     async (cardId: string, targetTopicId: string) => {
       if (!shareToken || !cardId || !targetTopicId) return;
 
+      // Permission Guard: Only Admin and Manager can move cards across questions
+      if (!canMoveCrossColumn) {
+        console.warn('[RetroSession] Permission denied: Only Admin and Manager can move cards across questions.');
+        return;
+      }
+
       // Optimistic move in local state
       setCards((prev) =>
         prev.map((c) => (c.id === cardId ? { ...c, topicId: targetTopicId } : c))
@@ -743,6 +796,12 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
           shareToken,
           cardId,
           targetTopicId,
+          user: {
+            id: currentUser?.id,
+            email: currentUser?.email,
+            name: currentAuthorName,
+            role: effectiveUserRole,
+          },
         });
       } else {
         try {
@@ -754,7 +813,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         }
       }
     },
-    [shareToken]
+    [shareToken, canMoveCrossColumn, currentUser, currentAuthorName, effectiveUserRole]
   );
 
   const reorderCards = useCallback(
@@ -893,6 +952,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     isRevealed,
     isFacilitator,
     canExportToSprint,
+    canMoveCrossColumn,
     currentAuthorName,
     currentUser,
     effectiveUserRole,
