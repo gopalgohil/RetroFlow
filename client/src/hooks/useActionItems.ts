@@ -51,9 +51,6 @@ export function useActionItems({
         search: debouncedSearch.trim() ? debouncedSearch.trim() : undefined,
       });
       setItems(data || []);
-
-      const openCount = (data || []).filter((it) => it.status !== 'done').length;
-      onActionItemsCountChangeRef.current?.(openCount);
     } catch (err) {
       console.error('[useActionItems] Load action items error:', err);
     } finally {
@@ -68,6 +65,12 @@ export function useActionItems({
   useEffect(() => {
     loadActionItems();
   }, [loadActionItems]);
+
+  // Synchronize open action items count with parent cleanly in post-render effect
+  useEffect(() => {
+    const openCount = items.filter((it) => it.status !== 'done').length;
+    onActionItemsCountChangeRef.current?.(openCount);
+  }, [items]);
 
   // 3. Status update
   const handleStatusChange = useCallback(
@@ -99,12 +102,6 @@ export function useActionItems({
           done: 'Completed',
         };
         notify(`Action item marked as ${statusLabels[newStatus]}`);
-
-        setItems((latestItems) => {
-          const openCount = latestItems.filter((i) => i.status !== 'done').length;
-          onActionItemsCountChangeRef.current?.(openCount);
-          return latestItems;
-        });
       } catch (err) {
         console.error('[useActionItems] Update failed:', err);
         setItems((prev) =>
