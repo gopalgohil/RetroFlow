@@ -87,7 +87,7 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
       try {
         const itemsToExport = actionCards.map((c: any) => ({
           title: c.text,
-          description: `Action item originated from Retrospective: "${retroTitle}". Commit agreed during sprint review.`,
+          description: c.description || '',
           storyPoints: typeof c.storyPoints === 'number' ? c.storyPoints : 3,
           priority: c.priority || 'high',
           assignee: c.assignee ? { name: c.assignee.name, avatar: c.assignee.avatar } : undefined,
@@ -120,9 +120,9 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
         const fallback = ProjectDataService.exportActionItemsToSprint(
           projectId,
           sprintId,
-          actionCards.map((c) => ({
+          actionCards.map((c: any) => ({
             title: c.text,
-            description: `Action item originated from Retrospective: "${retroTitle}".`,
+            description: c.description || '',
             sourceRetroId: retroId,
             sourceRetroTitle: retroTitle,
           }))

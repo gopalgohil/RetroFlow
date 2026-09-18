@@ -139,7 +139,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
             </span>
           </div>
 
-          {item.description && (
+          {item.description && !item.description.startsWith('Action item originated from Retrospective') && (
             <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
               {item.description}
             </p>
