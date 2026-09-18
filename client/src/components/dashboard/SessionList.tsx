@@ -258,7 +258,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">
                       AGENDA TOPICS:
                     </p>
-                    <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
                       {topicsList.map((t: any, idx: number) => {
                         let theme = colorMap[t.color];
                         if (!theme) {
@@ -308,11 +308,11 @@ export const SessionList: React.FC<SessionListProps> = ({
                         return (
                           <span
                             key={t.topicId || idx}
-                            className={`px-1.5 py-0.5 sm:px-2 sm:py-0.5 2xl:px-2.5 2xl:py-1 rounded-lg text-[10.5px] sm:text-[11px] 2xl:text-xs font-bold border transition-all inline-flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 ${theme.bg} ${theme.text} ${theme.border}`}
+                            className={`px-2 py-0.5 rounded-lg text-[10px] sm:text-[10.5px] 2xl:text-xs font-bold border transition-all inline-flex items-center gap-1 tracking-tight ${theme.bg} ${theme.text} ${theme.border}`}
                           >
                             <span>{t.title}</span>
                             <span
-                              className={`inline-flex items-center justify-center min-w-[16px] h-[16px] px-0.5 rounded-full text-[9px] sm:text-[9.5px] 2xl:text-[10px] font-extrabold ${theme.badgeBg} ${theme.badgeText}`}
+                              className={`inline-flex items-center justify-center min-w-[15px] h-[15px] px-0.5 rounded-full text-[8.5px] sm:text-[9px] 2xl:text-[10px] font-extrabold ${theme.badgeBg} ${theme.badgeText}`}
                             >
                               {cardCount}
                             </span>
