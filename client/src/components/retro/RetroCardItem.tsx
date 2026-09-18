@@ -120,20 +120,20 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
         borderColor: `${topicColor}30`,
         borderLeftColor: topicColor,
       }}
-      className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 hover:z-30 dark:bg-slate-900/90 dark:border-slate-800 ${
+      className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 hover:z-30 dark:bg-[#12151c] dark:border-white/[0.08] ${
         canMoveCrossColumn ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
       } ${
-        isDragging ? 'opacity-40 ring-1 ring-[#5cb028]/40' : ''
+        isDragging ? 'opacity-40 ring-1 ring-[#88c958]/40' : ''
       } ${
         !isRevealed ? 'filter blur-xs select-none' : ''
       }`}
     >
       {/* Precision Drop Insertion Line (Zero Layout Shift) */}
       {isDragTarget && dropPosition === 'above' && (
-        <div className="absolute -top-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-[#5cb028] shadow-[0_0_6px_rgba(92,176,40,0.8)] z-30 pointer-events-none animate-pulse" />
+        <div className="absolute -top-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-[#88c958] shadow-[0_0_6px_rgba(136,201,88,0.8)] z-30 pointer-events-none animate-pulse" />
       )}
       {isDragTarget && dropPosition === 'below' && (
-        <div className="absolute -bottom-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-[#5cb028] shadow-[0_0_6px_rgba(92,176,40,0.8)] z-30 pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-[#88c958] shadow-[0_0_6px_rgba(136,201,88,0.8)] z-30 pointer-events-none animate-pulse" />
       )}
       {isEditing ? (
         <div className="space-y-2 animate-in fade-in duration-150">
@@ -150,21 +150,21 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 handleCancelEdit();
               }
             }}
-            className="w-full text-xs text-slate-800 dark:text-slate-100 p-2 rounded-lg border border-[#5cb028] bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-[#5cb028] resize-none shadow-inner"
+            className="w-full text-xs text-slate-800 dark:text-slate-100 p-2 rounded-lg border border-[#88c958] bg-white dark:bg-[#141720] focus:outline-none focus:ring-1 focus:ring-[#88c958] resize-none shadow-inner"
             placeholder="Update your feedback..."
           />
           <div className="flex items-center justify-end gap-1.5">
             <button
               type="button"
               onClick={handleCancelEdit}
-              className="px-2 py-0.5 rounded text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="px-2 py-0.5 rounded text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSaveEdit}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#5cb028] hover:bg-[#4e9921] text-white text-[11px] font-bold shadow-xs cursor-pointer transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#5cb028] hover:bg-[#4e9921] text-white text-[11px] font-bold shadow-xs cursor-pointer transition-colors dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
             >
               <Check className="w-3 h-3" />
               <span>Save</span>
@@ -207,20 +207,20 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
               <div
                 className={`absolute left-0 ${
                   isFirstCard ? 'top-full mt-1.5' : 'bottom-full mb-2'
-                } hidden group-hover/vote-popover:flex flex-col z-50 bg-white dark:bg-[#0f172a] rounded-xl shadow-xl border border-slate-200/90 dark:border-slate-800 p-2.5 min-w-[160px] max-w-[240px] pointer-events-auto animate-in fade-in zoom-in-95 duration-150`}
+                } hidden group-hover/vote-popover:flex flex-col z-50 bg-white dark:bg-[#0e1015] rounded-xl shadow-xl border border-slate-200/90 dark:border-white/[0.08] p-2.5 min-w-[160px] max-w-[240px] pointer-events-auto animate-in fade-in zoom-in-95 duration-150`}
               >
                 {/* Visual tooltip caret arrow */}
                 {isFirstCard ? (
-                  <div className="absolute -top-1 left-3 w-2 h-2 bg-white dark:bg-[#0f172a] border-t border-l border-slate-200 dark:border-slate-800 rotate-45" />
+                  <div className="absolute -top-1 left-3 w-2 h-2 bg-white dark:bg-[#0e1015] border-t border-l border-slate-200 dark:border-white/[0.08] rotate-45" />
                 ) : (
-                  <div className="absolute -bottom-1 left-3 w-2 h-2 bg-white dark:bg-[#0f172a] border-b border-r border-slate-200 dark:border-slate-800 rotate-45" />
+                  <div className="absolute -bottom-1 left-3 w-2 h-2 bg-white dark:bg-[#0e1015] border-b border-r border-slate-200 dark:border-white/[0.08] rotate-45" />
                 )}
-                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider pb-1.5 mb-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider pb-1.5 mb-1.5 border-b border-slate-100 dark:border-white/[0.08] flex items-center justify-between">
                   <span className="flex items-center gap-1">
-                    <ThumbsUp className="w-3 h-3 text-[#5cb028]" />
+                    <ThumbsUp className="w-3 h-3 text-[#88c958]" />
                     <span>Votes</span>
                   </span>
-                  <span className="font-extrabold text-[#3d8318] dark:text-[#5cb028] bg-[#eaf5e3] dark:bg-[#5cb028]/20 px-1.5 py-0.2 rounded-full text-[9px]">
+                  <span className="font-extrabold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/20 px-1.5 py-0.2 rounded-full text-[9px]">
                     {card.votes || 0}
                   </span>
                 </div>
@@ -236,7 +236,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                         cleanName.toLowerCase() === currentAuthorName.toLowerCase();
 
                       const bgGradients = [
-                        'from-[#5cb028] to-[#4e9921]',
+                        'from-[#88c958] to-[#6da742]',
                         'from-sky-500 to-blue-600',
                         'from-emerald-500 to-teal-600',
                         'from-amber-500 to-orange-600',
@@ -254,7 +254,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                           <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">
                             {cleanName}
                             {isMe && (
-                              <span className="text-[10px] text-[#3d8318] dark:text-[#5cb028] font-bold ml-1">
+                              <span className="text-[10px] text-[#3d8318] dark:text-[#88c958] font-bold ml-1">
                                 (You)
                               </span>
                             )}
@@ -270,7 +270,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 )}
 
                 {card.hasVoted && (
-                  <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-800 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
+                  <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-white/[0.08] text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <Check className="w-3 h-3" />
                       <span>You liked this</span>
@@ -298,7 +298,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
               {/* Drag Handle (Strictly Admin and Manager only) */}
               {canMoveCrossColumn && (
                 <div
-                  className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 hover:text-[#5cb028] dark:hover:text-[#5cb028] transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5 dark:hover:bg-white/5"
+                  className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 hover:text-[#88c958] dark:hover:text-[#88c958] transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5 dark:hover:bg-white/5"
                   title="Drag to reorder card or move across questions"
                 >
                   <GripVertical className="w-3.5 h-3.5" />
@@ -312,7 +312,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                     <button
                       onClick={handleStartEdit}
                       title="Edit your thought"
-                      className="p-1 rounded text-slate-400 dark:text-slate-500 hover:text-[#3d8318] dark:hover:text-[#5cb028] hover:bg-[#eaf5e3] dark:hover:bg-[#5cb028]/20 transition-colors cursor-pointer"
+                      className="p-1 rounded text-slate-400 dark:text-slate-500 hover:text-[#3d8318] dark:hover:text-[#88c958] hover:bg-[#eaf5e3] dark:hover:bg-[#88c958]/20 transition-colors cursor-pointer"
                     >
                       <Pencil className="w-3 h-3" />
                     </button>
@@ -337,15 +337,15 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
           </p>
 
           {/* Card Author Attribution: Completely hidden by default, smoothly revealed on mouse hover */}
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pt-1.5 border-t border-slate-200/40 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pt-1.5 border-t border-slate-200/40 dark:border-white/[0.08] flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-1.5 min-w-0">
-              <div className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-[8px] uppercase shrink-0">
+              <div className="w-4 h-4 rounded-full bg-slate-200 dark:bg-[#141720] text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-[8px] uppercase shrink-0">
                 {card.author ? card.author.slice(0, 2) : 'RF'}
               </div>
               <span className="truncate font-medium">by {card.author}</span>
             </div>
             {isCurrentAuthor && (
-              <span className="text-[9px] font-bold text-[#3d8318] dark:text-[#5cb028] bg-[#eaf5e3] dark:bg-[#5cb028]/20 px-1.5 py-0.2 rounded border border-[#cdeac0] dark:border-[#5cb028]/30 shrink-0">
+              <span className="text-[9px] font-bold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/15 px-1.5 py-0.2 rounded border border-[#cdeac0] dark:border-[#88c958]/30 shrink-0">
                 You
               </span>
             )}

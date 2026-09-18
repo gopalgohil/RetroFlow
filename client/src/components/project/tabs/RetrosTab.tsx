@@ -174,7 +174,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Top Banner */}
-      <div className="p-5 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             Project Retrospectives
@@ -189,7 +189,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
           <button
             type="button"
             onClick={onCreateRetroClick}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all hover:scale-[1.01] cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all hover:scale-[1.01] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/20"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Create Retrospective</span>
@@ -199,7 +199,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
       {/* Retrospectives Grid */}
       {!project.retrospectives || project.retrospectives.length === 0 ? (
-        <div className="p-12 text-center bg-white dark:bg-[#0f172a] rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 space-y-3">
+        <div className="p-12 text-center bg-white dark:bg-[#0e1015] rounded-2xl border border-dashed border-slate-200 dark:border-white/[0.08] space-y-3">
           <UserAvatar name="RetroFlow" avatar="RF" size="lg" className="mx-auto" />
           <h4 className="text-sm font-bold text-slate-900 dark:text-white">No Retrospectives Linked Yet</h4>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
@@ -209,7 +209,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
             <button
               type="button"
               onClick={onCreateRetroClick}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5cb028] text-white text-xs font-bold hover:bg-[#4e9921] transition-colors shadow-md shadow-[#5cb028]/20 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-colors shadow-md shadow-[#5cb028]/20 cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/20"
             >
               <Plus className="w-4 h-4" />
               <span>Create Retrospective</span>
@@ -226,7 +226,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
             return (
               <div
                 key={retro.id || retro.shareToken}
-                className="group p-5 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-[#5cb028]/60 dark:hover:border-[#5cb028]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                className="group p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-3">
                   {/* Status & Sprint Badge & Date */}
@@ -235,7 +235,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                       <StatusPill status={retro.status} pulse={isActive} />
 
                       {retro.sprintName && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#88c958]/15 text-[#88c958] border border-[#88c958]/30">
                           {retro.sprintName}
                         </span>
                       )}
@@ -254,21 +254,21 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
                   {/* Stats Pills */}
                   <div className="grid grid-cols-3 gap-2 pt-1">
-                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-100 dark:border-slate-800 text-center">
+                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-100 dark:border-white/[0.08] text-center">
                       <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Topics</span>
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                         {retro.topicsCount || 3} Columns
                       </span>
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-100 dark:border-slate-800 text-center">
+                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-100 dark:border-white/[0.08] text-center">
                       <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Thoughts</span>
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                         {retro.cardsCount || 0} Cards
                       </span>
                     </div>
-                    <div className="p-2 rounded-xl bg-[#eaf5e3]/70 dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30 text-center">
-                      <span className="text-[10px] text-[#3d8318] dark:text-[#5cb028] block">Action Items</span>
-                      <span className="text-xs font-bold text-[#3d8318] dark:text-[#5cb028]">
+                    <div className="p-2 rounded-xl bg-[#88c958]/10 dark:bg-[#88c958]/15 border border-[#88c958]/30 text-center">
+                      <span className="text-[10px] text-[#88c958] block">Action Items</span>
+                      <span className="text-xs font-bold text-[#88c958]">
                         {retro.actionItemsCount || 0} Items
                       </span>
                     </div>
@@ -291,15 +291,15 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                 </div>
 
                 {/* Industry-Standard Action Footer */}
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-2">
                   {/* Left: Launch Board + Share / Invite */}
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/retro/${retro.shareToken}`}
                       className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
                         isActive
-                          ? 'bg-[#5cb028] hover:bg-[#4e9921] text-white shadow-[#5cb028]/20'
-                          : 'bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white'
+                          ? 'bg-[#5cb028] hover:bg-[#4e9921] text-white shadow-xs dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/20'
+                          : 'bg-slate-900 dark:bg-[#141720] hover:bg-slate-800 dark:hover:bg-white/[0.08] text-white'
                       }`}
                     >
                       <span>Open Board</span>
@@ -311,7 +311,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                         type="button"
                         onClick={() => handleShareClick(retro)}
                         title="Share or Invite Teammates"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#eaf5e3]/70 dark:bg-[#5cb028]/20 hover:bg-[#eaf5e3] dark:hover:bg-[#5cb028]/30 text-[#3d8318] dark:text-[#5cb028] border-[#cdeac0] dark:border-[#5cb028]/40 hover:border-[#5cb028]/60 shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#88c958]/10 dark:bg-[#88c958]/15 hover:bg-[#88c958]/20 dark:hover:bg-[#88c958]/25 text-[#88c958] border-[#88c958]/30 dark:border-[#88c958]/40 hover:border-[#88c958]/60 shadow-2xs"
                       >
                         {isCopied ? (
                           <>
@@ -320,7 +320,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                           </>
                         ) : (
                           <>
-                            <Share2 className="w-3.5 h-3.5 text-[#5cb028]" />
+                            <Share2 className="w-3.5 h-3.5 text-[#88c958]" />
                             <span>Share / Invite</span>
                           </>
                         )}
@@ -335,7 +335,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                         type="button"
                         onClick={() => handleOpenEdit(retro)}
                         title="Edit Retrospective Details"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
@@ -358,7 +358,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
           {/* Pagination Controls Footer (Active when > 6 retros) */}
           {totalPages > 1 && (
-            <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
               <div className="text-slate-500 dark:text-slate-400">
                 Showing <strong className="text-slate-800 dark:text-white">{startIndex + 1}</strong> to{' '}
                 <strong className="text-slate-800 dark:text-white">{endIndex}</strong> of{' '}
@@ -370,7 +370,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                   type="button"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={safeCurrentPage <= 1}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#12151c] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   <span>Prev</span>
@@ -383,8 +383,8 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                     onClick={() => setCurrentPage(p)}
                     className={`min-w-[32px] h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       p === safeCurrentPage
-                        ? 'bg-[#5cb028] text-white shadow-xs'
-                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
+                        ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a]'
+                        : 'bg-white dark:bg-[#12151c] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     {p}
@@ -395,7 +395,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                   type="button"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={safeCurrentPage >= totalPages}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#12151c] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
                 >
                   <span>Next</span>
                   <ChevronRight className="w-3.5 h-3.5" />

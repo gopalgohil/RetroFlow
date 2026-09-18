@@ -35,16 +35,16 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
     };
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-        <div className="bg-white dark:bg-[#0f172a] rounded-2xl p-6 max-w-sm w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 animate-in zoom-in-95">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="bg-white dark:bg-[#0e1015] rounded-2xl p-6 max-w-sm w-full border border-slate-200 dark:border-white/[0.08] shadow-2xl space-y-4 animate-in zoom-in-95">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#5cb028] text-white flex items-center justify-center p-2 shadow-md shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#5cb028] text-white flex items-center justify-center p-2 shadow-md shrink-0 font-bold dark:bg-[#88c958] dark:text-[#08090a]">
               <Image
                 src="/logo.svg"
                 alt="RetroFlow Logo"
                 width={28}
                 height={28}
-                className="w-full h-auto object-contain brightness-0 invert"
+                className="w-full h-auto object-contain brightness-0 invert dark:invert-0"
               />
             </div>
             <div>
@@ -80,7 +80,7 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-[#5cb028]" />
+                <User className="w-3.5 h-3.5 text-[#88c958]" />
                 <span>Your Display Name</span>
               </label>
               <input
@@ -90,7 +90,7 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
                 placeholder="e.g. Parth Patel, Alex Rivera..."
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] transition-all bg-white dark:bg-slate-900"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/30 focus:border-[#88c958] transition-all bg-white dark:bg-[#12151c]"
               />
             </div>
 
@@ -98,7 +98,7 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
             {!verifiedEmail && (
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-[#5cb028]" />
+                  <Mail className="w-3.5 h-3.5 text-[#88c958]" />
                   <span>Work / Team Email</span>
                 </label>
                 <input
@@ -107,7 +107,7 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
                   placeholder="e.g. parth@gmail.com"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028] transition-all bg-white dark:bg-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/30 focus:border-[#88c958] transition-all bg-white dark:bg-[#12151c]"
                 />
                 <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
                   Connects you to your Project Dashboard, Sprints & Team Directory.
@@ -118,7 +118,7 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
             <button
               type="submit"
               disabled={!nameInput.trim() || (!verifiedEmail && !emailInput.trim())}
-              className="w-full py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all cursor-pointer disabled:bg-[#5cb028]/40 flex items-center justify-center gap-1.5 mt-2"
+              className="w-full py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 mt-2 dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a] dark:disabled:bg-[#88c958]/40"
             >
               <span>Enter Retrospective Board</span>
               <Sparkles className="w-3.5 h-3.5" />

@@ -585,7 +585,9 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f17] text-slate-900 dark:text-white flex selection:bg-[#5cb028] selection:text-white font-sans transition-colors duration-200">
+    <div
+      className="min-h-screen dark:bg-[#08090a] bg-[#F8FAFC] text-slate-900 dark:text-white flex selection:bg-[#88c958] selection:text-[#08090a] font-sans transition-colors duration-200"
+    >
       {/* Left Navigation Sidebar */}
       <Sidebar
         activeTab={activeTab}
@@ -614,6 +616,7 @@ function DashboardContent() {
           user={activeUser}
           onLogout={handleLogout}
           onUserUpdated={(updated) => setCurrentUser((prev) => ({ ...(prev || {}), ...updated }))}
+          isSessionsTab={activeTab === 'sessions'}
         />
 
         {/* Dynamic View Body with Component Skeletons */}

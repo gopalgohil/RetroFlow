@@ -17,7 +17,7 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Card 1: Team Attendance Rate */}
-      <div className="p-5 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3 relative overflow-hidden group hover:border-[#5cb028]/40 transition-colors">
+      <div className="p-5 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3 relative overflow-hidden group hover:border-[#88c958]/40 transition-colors">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Avg. Attendance Rate
@@ -48,11 +48,11 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
             </span>
           </div>
           {/* Visual Mini Progress Bar */}
-          <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+          <div className="w-full bg-slate-100 dark:bg-white/[0.08] h-1.5 rounded-full mt-3 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
                 summary.averageAttendanceRate >= 80
-                  ? 'bg-emerald-500'
+                  ? 'bg-[#88c958]'
                   : summary.averageAttendanceRate >= 60
                   ? 'bg-amber-500'
                   : 'bg-rose-500'
@@ -67,12 +67,12 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
       </div>
 
       {/* Card 2: Total Retros Conducted */}
-      <div className="p-5 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3 relative overflow-hidden group hover:border-[#5cb028]/40 transition-colors">
+      <div className="p-5 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3 relative overflow-hidden group hover:border-[#88c958]/40 transition-colors">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Total Retros
           </span>
-          <div className="w-8 h-8 rounded-xl bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center">
             <Calendar className="w-4 h-4" />
           </div>
         </div>
@@ -90,13 +90,13 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
       </div>
 
       {/* Card 3: Sprint Champion / Top Contributor */}
-      <div className="p-5 rounded-3xl bg-gradient-to-br from-[#eaf5e3]/50 via-white to-white dark:from-[#5cb028]/15 dark:via-[#0f172a] dark:to-[#0f172a] border border-[#cdeac0] dark:border-slate-800 shadow-xs space-y-3 relative overflow-hidden">
+      <div className="p-5 rounded-3xl bg-gradient-to-br from-[#eaf5e3]/50 via-white to-white dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#12151c] border border-[#cdeac0] dark:border-white/[0.08] shadow-xs space-y-3 relative overflow-hidden">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#3d8318] dark:text-[#5cb028] flex items-center gap-1">
-            <Award className="w-3.5 h-3.5 text-[#5cb028]" />
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#3d8318] dark:text-[#88c958] flex items-center gap-1">
+            <Award className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
             Sprint Champion
           </span>
-          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30">
+          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30">
             🏆 Top Impact
           </span>
         </div>
@@ -121,13 +121,13 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
         ) : (
           <p className="text-xs text-slate-400 dark:text-slate-500 italic pt-2">No contributions recorded yet</p>
         )}
-        <p className="text-[10px] text-[#3d8318]/80 dark:text-[#5cb028] font-medium">
+        <p className="text-[10px] text-[#3d8318]/80 dark:text-[#88c958] font-medium">
           Highest feedback and continuous attendance
         </p>
       </div>
 
       {/* Card 4: Attendance Attention */}
-      <div className="p-5 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3 relative overflow-hidden group hover:border-amber-300 dark:hover:border-amber-700/60 transition-colors">
+      <div className="p-5 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3 relative overflow-hidden group hover:border-amber-300 dark:hover:border-amber-500/40 transition-colors">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Attendance Nudge

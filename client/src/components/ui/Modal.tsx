@@ -66,16 +66,16 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`relative w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto transition-all animate-in zoom-in-95 duration-150`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto transition-all animate-in zoom-in-95 duration-150`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         {(title || icon || showCloseButton) && (
           <div
-            className={`px-6 py-4.5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between shrink-0 ${
+            className={`px-6 py-4.5 border-b border-slate-200/80 dark:border-white/[0.08] flex items-center justify-between shrink-0 ${
               variant === 'danger'
-                ? 'bg-gradient-to-r from-rose-50 via-slate-50/50 to-white dark:from-rose-950/30 dark:via-slate-900/50 dark:to-[#0f172a]'
-                : 'bg-gradient-to-r from-emerald-50/50 via-slate-50/50 to-white dark:from-[#5cb028]/10 dark:via-slate-900/50 dark:to-[#0f172a]'
+                ? 'bg-gradient-to-r from-rose-50 via-slate-50/50 to-white dark:from-rose-950/30 dark:via-[#12151c] dark:to-[#0e1015]'
+                : 'bg-gradient-to-r from-emerald-50/50 via-slate-50/50 to-white dark:from-[#88c958]/10 dark:via-[#12151c] dark:to-[#0e1015]'
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">
@@ -84,7 +84,7 @@ export const Modal: React.FC<ModalProps> = ({
                   className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md shrink-0 ${
                     variant === 'danger'
                       ? 'bg-rose-600 text-white shadow-rose-600/25'
-                      : 'bg-[#5cb028] text-white shadow-[#5cb028]/20'
+                      : 'bg-[#5cb028] text-white shadow-[#5cb028]/25 font-bold dark:bg-[#88c958] dark:text-[#08090a] dark:shadow-[#88c958]/25'
                   }`}
                 >
                   {icon}
@@ -104,7 +104,7 @@ export const Modal: React.FC<ModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0 ml-2"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer shrink-0 ml-2"
                 title="Close modal"
               >
                 <X className="w-5 h-5" />
@@ -118,7 +118,7 @@ export const Modal: React.FC<ModalProps> = ({
 
         {/* Modal Footer */}
         {footer && (
-          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 flex items-center justify-end gap-3 shrink-0">
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50/60 dark:bg-[#12151c] flex items-center justify-end gap-3 shrink-0">
             {footer}
           </div>
         )}

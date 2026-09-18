@@ -11,9 +11,9 @@ export default function ProjectsIndexPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f17] flex items-center justify-center">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] flex items-center justify-center">
       <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 text-sm font-medium">
-        <div className="w-5 h-5 border-2 border-[#5cb028] border-t-transparent rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-[#88c958] border-t-transparent rounded-full animate-spin" />
         <span>Redirecting to My Projects...</span>
       </div>
     </div>

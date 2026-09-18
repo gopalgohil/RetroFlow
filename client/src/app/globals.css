@@ -5,22 +5,30 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
-  --brand-green: #5cb028;
-  --brand-green-hover: #4e9921;
+  --brand-green: #88c958;
+  --brand-green-hover: #96dc63;
   --brand-green-light: #eaf5e3;
   --brand-green-border: #cdeac0;
 }
 
 [data-theme="dark"],
 .dark {
-  --background: #0b0f17;
+  --background: #08090a;
   --foreground: #f8fafc;
+  --brand-green: #88c958;
+  --brand-green-hover: #96dc63;
+  --brand-green-light: rgba(136, 201, 88, 0.12);
+  --brand-green-border: rgba(136, 201, 88, 0.3);
 }
 
 [data-theme="light"],
 .light {
   --background: #f8fafc;
   --foreground: #0f172a;
+  --brand-green: #88c958;
+  --brand-green-hover: #96dc63;
+  --brand-green-light: #eaf5e3;
+  --brand-green-border: #cdeac0;
 }
 
 @theme inline {
@@ -44,16 +52,16 @@ body {
 /* Bulletproof Zero-Flicker Theme Rules (Evaluated at Parse Time) */
 /* ========================================================== */
 
-/* Dark Mode Rules */
+/* Dark Mode Rules (Digiflux Deep Dark Black Theme) */
 [data-theme="dark"] .theme-bg,
 .dark .theme-bg {
-  background-color: #0b0f17 !important;
+  background-color: #08090a !important;
   color: #f8fafc !important;
 }
 [data-theme="dark"] .theme-header,
 .dark .theme-header {
-  background-color: rgba(11, 15, 23, 0.85) !important;
-  border-color: rgba(30, 41, 59, 0.8) !important;
+  background-color: rgba(8, 9, 10, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
 }
 [data-theme="dark"] .theme-brand-name,
 .dark .theme-brand-name {
@@ -69,12 +77,12 @@ body {
 }
 [data-theme="dark"] .theme-card,
 .dark .theme-card {
-  background-color: rgba(15, 23, 42, 0.6) !important;
-  border-color: rgba(30, 41, 59, 0.8) !important;
+  background-color: #0e1015 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
 }
 [data-theme="dark"] .theme-card:hover,
 .dark .theme-card:hover {
-  border-color: rgba(92, 176, 40, 0.6) !important;
+  border-color: rgba(136, 201, 88, 0.5) !important;
 }
 [data-theme="dark"] .theme-card-title,
 .dark .theme-card-title {
@@ -86,29 +94,30 @@ body {
 }
 [data-theme="dark"] .theme-btn-secondary,
 .dark .theme-btn-secondary {
-  background-color: #0f172a !important;
-  color: #e2e8f0 !important;
-  border-color: rgba(51, 65, 85, 0.8) !important;
+  background-color: #12151c !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
 }
 [data-theme="dark"] .theme-btn-secondary:hover,
 .dark .theme-btn-secondary:hover {
-  background-color: #1e293b !important;
+  background-color: #1a1e28 !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
 }
 [data-theme="dark"] .theme-footer,
 .dark .theme-footer {
-  border-color: rgba(30, 41, 59, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
   color: #64748b !important;
 }
 [data-theme="dark"] .theme-glow,
 .dark .theme-glow {
-  background: radial-gradient(circle, rgba(92, 176, 40, 0.2) 0%, rgba(16, 185, 129, 0.15) 40%, transparent 70%) !important;
+  background: radial-gradient(circle, rgba(136, 201, 88, 0.2) 0%, rgba(136, 201, 88, 0.1) 40%, transparent 70%) !important;
   opacity: 1 !important;
 }
 [data-theme="dark"] .theme-pill,
 .dark .theme-pill {
-  background-color: rgba(92, 176, 40, 0.12) !important;
-  color: #86efac !important;
-  border-color: rgba(92, 176, 40, 0.25) !important;
+  background-color: rgba(136, 201, 88, 0.12) !important;
+  color: #88c958 !important;
+  border-color: rgba(136, 201, 88, 0.3) !important;
 }
 [data-theme="dark"] .theme-nav-link,
 .dark .theme-nav-link {
@@ -117,13 +126,13 @@ body {
 [data-theme="dark"] .theme-nav-link:hover,
 .dark .theme-nav-link:hover {
   color: #ffffff !important;
-  background-color: rgba(30, 41, 59, 0.6) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 [data-theme="dark"] .theme-toggle-btn,
 .dark .theme-toggle-btn {
-  background-color: rgba(15, 23, 42, 0.8) !important;
-  border-color: #1e293b !important;
-  color: #fbbf24 !important;
+  background-color: #0e1015 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #88c958 !important;
 }
 
 /* Light Mode Rules (Digiflux Crisp Clean Green Theme) */

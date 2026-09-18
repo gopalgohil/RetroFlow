@@ -34,17 +34,17 @@ export const RetroNoteCard: React.FC<RetroNoteCardProps> = ({
       </div>
 
       {/* Note Body */}
-      <div className="rounded-xl bg-slate-50/90 border border-slate-200/70 p-3.5 space-y-2 hover:border-slate-300 hover:shadow-sm transition-all">
-        <p className="text-xs leading-relaxed text-slate-700 font-normal">
+      <div className="rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.08] p-3.5 space-y-2 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-sm transition-all">
+        <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-200 font-normal">
           {content}
         </p>
 
         <div className="flex items-center justify-between pt-1">
-          <span className="text-[11px] text-slate-400 font-medium">
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
             — {author}
           </span>
           {typeof upvotes === 'number' && (
-            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#eaf5e3] border border-[#cdeac0] shadow-2xs text-[11px] font-semibold text-[#3d8318] select-none">
+            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#88c958]/15 border border-[#88c958]/30 shadow-2xs text-[11px] font-semibold text-[#88c958] select-none">
               <span>👍</span>
               <span>{upvotes}</span>
             </div>

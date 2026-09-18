@@ -71,8 +71,8 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
       showCloseButton={false}
     >
       <div className="space-y-5">
-        {/* 1. Member Identity Card - Simple Clean White */}
-        <div className="relative flex items-center gap-3.5 p-4 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+        {/* 1. Member Identity Card */}
+        <div className="relative flex items-center gap-3.5 p-4 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08]">
           <UserAvatar
             name={member.name || member.email}
             email={member.email}
@@ -86,16 +86,16 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                 {member.name || member.email.split('@')[0]}
               </h4>
               {isSelf && (
-                <span className="text-[10px] font-semibold text-[#3d8318] dark:text-[#5cb028] bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-semibold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 px-1.5 py-0.5 rounded">
                   You
                 </span>
               )}
               {isPrimaryOwner ? (
-                <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-900/60">
+                <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-500/30">
                   Primary Owner
                 </span>
               ) : member.role === 'Admin' ? (
-                <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/[0.08] px-1.5 py-0.5 rounded">
                   Admin
                 </span>
               ) : null}
@@ -106,7 +106,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-3 right-3 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="absolute top-3 right-3 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
             title="Close"
           >
             <X className="w-4 h-4" />
@@ -116,7 +116,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         {/* 2. Key Metadata Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Email Card with 1-click Copy */}
-          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800 space-y-1">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
                 <Mail className="w-3 h-3 text-slate-400 dark:text-slate-500" />
@@ -125,13 +125,13 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
               <button
                 type="button"
                 onClick={handleCopyEmail}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5cb028] hover:text-[#4e9921] cursor-pointer"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5cb028] dark:text-[#88c958] hover:text-[#4e9921] cursor-pointer"
                 title="Copy email to clipboard"
               >
                 {copiedEmail ? (
                   <>
-                    <Check className="w-3 h-3 text-emerald-600" />
-                    <span className="text-emerald-600">Copied!</span>
+                    <Check className="w-3 h-3 text-[#88c958]" />
+                    <span className="text-[#88c958]">Copied!</span>
                   </>
                 ) : (
                   <>
@@ -147,7 +147,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
           </div>
 
           {/* Joined Date Card */}
-          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800 space-y-1">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
               <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
               Joined Date & Time
@@ -158,7 +158,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
           </div>
 
           {/* Workspace Status Card */}
-          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800 space-y-1">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
               <ShieldCheck className="w-3 h-3 text-slate-400 dark:text-slate-500" />
               Account Status
@@ -167,13 +167,13 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
               <span
                 className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-bold ${
                   member.status === 'pending'
-                    ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60'
-                    : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/60'
+                    ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30'
+                    : 'bg-emerald-50 dark:bg-[#88c958]/15 text-emerald-700 dark:text-[#88c958] border border-emerald-200 dark:border-[#88c958]/30'
                 }`}
               >
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
-                    member.status === 'pending' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
+                    member.status === 'pending' ? 'bg-amber-500 animate-pulse' : 'bg-[#88c958]'
                   }`}
                 />
                 <span>{member.status === 'pending' ? 'Pending Approval' : 'Active Member'}</span>
@@ -182,7 +182,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
           </div>
 
           {/* Project Role / Assigned Role */}
-          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800 space-y-1">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
               <Briefcase className="w-3 h-3 text-slate-400 dark:text-slate-500" />
               Project Role
@@ -201,10 +201,10 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         <div className="space-y-2.5 pt-1">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <FolderKanban className="w-3.5 h-3.5 text-[#5cb028]" />
+              <FolderKanban className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
               Assigned Initiatives & Projects
             </span>
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30">
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30">
               {member.projectsCount || 0} Total
             </span>
           </div>
@@ -214,15 +214,15 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
               {member.projectNames.map((projName, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-200"
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.06] text-xs font-medium text-slate-800 dark:text-slate-200"
                 >
-                  <div className="w-2 h-2 rounded-full bg-[#5cb028] shrink-0" />
+                  <div className="w-2 h-2 rounded-full bg-[#88c958] shrink-0" />
                   <span className="truncate">{projName}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-4 rounded-xl bg-slate-50/60 dark:bg-slate-800/20 border border-dashed border-slate-200 dark:border-slate-700 text-center">
+            <div className="p-4 rounded-xl bg-slate-50/60 dark:bg-[#12151c]/50 border border-dashed border-slate-200 dark:border-white/[0.08] text-center">
               <p className="text-xs text-slate-400 dark:text-slate-500">
                 This member is not assigned to any projects currently.
               </p>
@@ -231,11 +231,11 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
         </div>
 
         {/* 4. Footer Close Button */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
+        <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-bold rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white transition-colors cursor-pointer shadow-xs"
+            className="px-4 py-2 text-xs font-bold rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white transition-colors cursor-pointer shadow-xs dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a]"
           >
             Close
           </button>

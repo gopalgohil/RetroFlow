@@ -202,13 +202,13 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
       title={
         <div className="flex items-center gap-2">
           <span>Edit Sprint Dates & Cycle</span>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30 uppercase">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#88c958]/15 text-[#88c958] border border-[#88c958]/30 uppercase">
             Sprint {sprint.number}
           </span>
         </div>
       }
       description="Select custom start and end dates with real-time validation. Countdown and timeline will automatically recalculate."
-      icon={<Calendar className="w-5 h-5 text-[#5cb028]" />}
+      icon={<Calendar className="w-5 h-5 text-[#88c958]" />}
       maxWidth="md"
       footer={
         <div className="flex items-center justify-end gap-2 w-full">
@@ -216,7 +216,7 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
             type="button"
             onClick={onClose}
             disabled={isSaving}
-            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -224,7 +224,7 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
             type="button"
             onClick={handleSave}
             disabled={isSaving || !validation.isValid}
-            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-sm shadow-[#5cb028]/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#88c958] hover:bg-[#76b349] text-[#08090a] text-xs font-bold shadow-sm shadow-[#88c958]/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isSaving ? (
               <span>Saving Dates...</span>
@@ -257,7 +257,7 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Sprint 1 - Foundation & Kickoff"
-            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028]"
+            className="w-full px-3 py-2 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958]"
           />
         </div>
 
@@ -267,12 +267,12 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#5cb028]" />
+                <Calendar className="w-3.5 h-3.5 text-[#88c958]" />
                 <span>Starting Date</span>
                 <span className="text-rose-500">*</span>
               </label>
               {startDate && (
-                <span className="text-[11px] font-mono font-bold text-[#3d8318] dark:text-[#5cb028] bg-[#eaf5e3] dark:bg-[#5cb028]/20 px-1.5 py-0.5 rounded border border-[#cdeac0] dark:border-[#5cb028]/30">
+                <span className="text-[11px] font-mono font-bold text-[#88c958] bg-[#88c958]/15 px-1.5 py-0.5 rounded border border-[#88c958]/30">
                   {formatDateDMY(startDate)}
                 </span>
               )}
@@ -282,10 +282,10 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
               value={startDate}
               onChange={(e) => handleStartDateChange(e.target.value)}
               required
-              className={`w-full px-3 py-2 bg-white dark:bg-slate-900 border rounded-xl text-xs text-slate-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] font-semibold focus:outline-none focus:ring-2 transition-all cursor-pointer ${
+              className={`w-full px-3 py-2 bg-white dark:bg-[#12151c] border rounded-xl text-xs text-slate-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] font-semibold focus:outline-none focus:ring-2 transition-all cursor-pointer ${
                 validation.field === 'startDate'
                   ? 'border-rose-400 dark:border-rose-600 ring-rose-500/20 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-200 dark:border-slate-700 focus:ring-[#5cb028]/20 focus:border-[#5cb028]'
+                  : 'border-slate-200 dark:border-white/[0.08] focus:ring-[#88c958]/20 focus:border-[#88c958]'
               }`}
             />
           </div>
@@ -294,12 +294,12 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[#5cb028]" />
+                <Clock className="w-3.5 h-3.5 text-[#88c958]" />
                 <span>Ending Date</span>
                 <span className="text-rose-500">*</span>
               </label>
               {endDate && (
-                <span className="text-[11px] font-mono font-bold text-[#3d8318] dark:text-[#5cb028] bg-[#eaf5e3] dark:bg-[#5cb028]/20 px-1.5 py-0.5 rounded border border-[#cdeac0] dark:border-[#5cb028]/30">
+                <span className="text-[11px] font-mono font-bold text-[#88c958] bg-[#88c958]/15 px-1.5 py-0.5 rounded border border-[#88c958]/30">
                   {formatDateDMY(endDate)}
                 </span>
               )}
@@ -313,10 +313,10 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
                 setError(null);
               }}
               required
-              className={`w-full px-3 py-2 bg-white dark:bg-slate-900 border rounded-xl text-xs text-slate-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] font-semibold focus:outline-none focus:ring-2 transition-all cursor-pointer ${
+              className={`w-full px-3 py-2 bg-white dark:bg-[#12151c] border rounded-xl text-xs text-slate-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] font-semibold focus:outline-none focus:ring-2 transition-all cursor-pointer ${
                 validation.field === 'endDate'
                   ? 'border-rose-400 dark:border-rose-600 bg-rose-50/20 dark:bg-rose-950/20 ring-rose-500/20 focus:border-rose-500 focus:ring-rose-500/20'
-                  : 'border-slate-200 dark:border-slate-700 focus:ring-[#5cb028]/20 focus:border-[#5cb028]'
+                  : 'border-slate-200 dark:border-white/[0.08] focus:ring-[#88c958]/20 focus:border-[#88c958]'
               }`}
             />
           </div>
@@ -332,14 +332,14 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
 
         {/* Live Calculation Preview Card */}
         {metrics && validation.isValid && (
-          <div className="p-3.5 rounded-2xl border bg-[#eaf5e3]/60 dark:bg-[#5cb028]/10 border-[#cdeac0]/80 dark:border-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028]">
+          <div className="p-3.5 rounded-2xl border bg-[#88c958]/10 border-[#88c958]/20 text-[#88c958]">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#5cb028] shrink-0" />
+                <Sparkles className="w-4 h-4 text-[#88c958] shrink-0" />
                 <span className="font-semibold text-slate-700 dark:text-slate-300">
                   Cycle Duration:
                 </span>
-                <span className="font-bold text-[#3d8318] dark:text-[#5cb028] font-mono">
+                <span className="font-bold text-[#88c958] font-mono">
                   {metrics.durationDays} Days ({formatDateDMY(startDate)} → {formatDateDMY(endDate)})
                 </span>
               </div>
@@ -372,7 +372,7 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
             placeholder="Key deliverables, commitments, or focus areas for this sprint cycle..."
-            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] resize-none"
+            className="w-full px-3 py-2 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] resize-none"
           />
         </div>
       </form>

@@ -37,12 +37,12 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   onClick,
 }) => {
   const iconVariantStyles = {
-    default: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300',
-    success: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400',
-    warning: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400',
-    danger: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400',
-    indigo: 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028]',
-    violet: 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028]',
+    default: 'bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300',
+    success: 'bg-[#88c958]/10 dark:bg-[#88c958]/15 text-[#88c958]',
+    warning: 'bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400',
+    danger: 'bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400',
+    indigo: 'bg-[#88c958]/10 dark:bg-[#88c958]/15 text-[#88c958]',
+    violet: 'bg-[#88c958]/10 dark:bg-[#88c958]/15 text-[#88c958]',
   };
 
   const percentage = progress && progress.total > 0
@@ -52,8 +52,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`p-5 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3 transition-all ${
-        onClick ? 'cursor-pointer hover:border-[#5cb028]/60 hover:shadow-sm' : ''
+      className={`p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xl space-y-3 transition-all ${
+        onClick ? 'cursor-pointer hover:border-[#88c958]/60 hover:shadow-2xl' : 'hover:border-white/[0.16]'
       } ${className}`}
     >
       {/* Top Title & Icon */}

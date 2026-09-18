@@ -148,12 +148,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white dark:bg-[#0b0f17] border-r border-slate-200/80 dark:border-slate-800 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white dark:bg-[#08090a] border-r border-slate-200/80 dark:border-white/[0.08] flex flex-col transition-all duration-300 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Top Header & Brand (Exact h-16 to align seamlessly with DashboardHeader) */}
-        <div className="h-16 flex items-center pl-[38px] pr-6 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
+        <div className="h-16 flex items-center pl-[38px] pr-6 border-b border-slate-200/80 dark:border-white/[0.08] shrink-0">
           <Link href="/dashboard" className="flex items-center group">
             <Image
               src="/logo.svg"
@@ -181,14 +181,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-[#5cb028] text-white shadow-sm shadow-[#5cb028]/25'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                      ? 'bg-[#5cb028] text-white shadow-sm shadow-[#5cb028]/25 dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/25'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.05]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon
                       className={`w-4 h-4 ${
-                        isActive ? 'text-white' : 'text-slate-400 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'
+                        isActive
+                          ? 'text-white dark:text-[#08090a]'
+                          : 'text-slate-400 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'
                       }`}
                     />
                     <div className="text-left">
@@ -203,8 +205,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         isActive
-                          ? 'bg-white/20 text-white'
-                          : 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#86efac] border border-[#cdeac0] dark:border-[#5cb028]/30'
+                          ? 'bg-white/20 text-white dark:bg-[#08090a]/15 dark:text-[#08090a] dark:font-black'
+                          : 'bg-[#eaf5e3] dark:bg-[#88c958]/20 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30'
                       }`}
                     >
                       {item.badge}

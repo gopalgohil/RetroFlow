@@ -103,7 +103,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   return (
     <div className="space-y-6">
       {/* Session Filter Tabs Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-white/[0.08] pb-3">
         <div className="flex items-center gap-2">
           {[
             { id: 'active', label: 'Active Sessions' },
@@ -118,8 +118,8 @@ export const SessionList: React.FC<SessionListProps> = ({
                 onClick={() => handleTabClick(tab.id as any)}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#5cb028] text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_12px_rgba(136,201,88,0.25)]'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.05]'
                 }`}
               >
                 {tab.label}
@@ -129,9 +129,9 @@ export const SessionList: React.FC<SessionListProps> = ({
         </div>
 
         {isCardsLoading ? (
-          <div className="h-4 w-28 rounded bg-slate-200/80 animate-pulse" />
+          <div className="h-4 w-28 rounded bg-slate-200/80 dark:bg-white/[0.06] animate-pulse" />
         ) : (
-          <span className="text-xs font-semibold text-slate-500">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
             {totalItems > ITEMS_PER_PAGE
               ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} Retros`
               : `Showing ${totalItems} of ${sessions.length} Retros`}
@@ -146,15 +146,15 @@ export const SessionList: React.FC<SessionListProps> = ({
 
       {/* Empty State */}
       {!isCardsLoading && filteredSessions.length === 0 && (
-        <div className="p-12 rounded-2xl bg-white border border-dashed border-slate-300 text-center space-y-4 max-w-lg mx-auto">
-          <div className="w-12 h-12 rounded-2xl bg-[#eaf5e3] text-[#3d8318] mx-auto flex items-center justify-center font-black text-lg">
+        <div className="p-12 rounded-2xl bg-white dark:bg-[#0e1015] border border-dashed border-slate-300 dark:border-white/[0.08] text-center space-y-4 max-w-lg mx-auto shadow-xl">
+          <div className="w-12 h-12 rounded-2xl bg-[#88c958]/15 border border-[#88c958]/30 text-[#88c958] mx-auto flex items-center justify-center font-black text-lg">
             RF
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
               {isAdmin ? `No ${activeFilter} sessions found` : 'No retrospective sessions available'}
             </h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
               {isAdmin
                 ? 'Create your first custom agile retrospective session with customized topics, voting limits, and live sync.'
                 : 'You will see live sprint retrospectives here as soon as your Scrum Master or Admin invites you.'}
@@ -163,7 +163,7 @@ export const SessionList: React.FC<SessionListProps> = ({
           {isAdmin && (
             <button
               onClick={onCreateNew}
-              className="px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-sm transition-all cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
             >
               + Create New Retrospective
             </button>
@@ -177,7 +177,7 @@ export const SessionList: React.FC<SessionListProps> = ({
           {paginatedSessions.map((session) => (
             <div
               key={session._id}
-              className="group relative p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 hover:border-[#5cb028]/40 dark:hover:border-[#5cb028]/60 hover:shadow-md dark:hover:shadow-black/40 transition-all flex flex-col justify-between"
+              className="group relative p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] hover:border-[#88c958]/40 dark:hover:border-[#88c958]/60 hover:shadow-xl dark:hover:shadow-[0_0_24px_rgba(0,0,0,0.8)] transition-all flex flex-col justify-between"
             >
               {/* Card Top Row: Status badge & Scheduled Date */}
               <div className="flex items-center justify-between gap-2 mb-3">
@@ -185,22 +185,22 @@ export const SessionList: React.FC<SessionListProps> = ({
                   <span
                     className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                       session.status === 'active'
-                        ? 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#86efac] border border-[#cdeac0] dark:border-[#5cb028]/30'
+                        ? 'bg-[#88c958]/10 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30'
                         : session.status === 'completed'
-                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-                        : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                        ? 'bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]'
+                        : 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30'
                     }`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        session.status === 'active' ? 'bg-[#5cb028] animate-pulse' : 'bg-slate-400'
+                        session.status === 'active' ? 'bg-[#88c958] animate-pulse shadow-[0_0_6px_rgba(136,201,88,0.8)]' : 'bg-slate-400'
                       }`}
                     />
                     {session.status}
                   </span>
 
                   {session.approvalRequired && (
-                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#86efac] border border-[#cdeac0] dark:border-[#5cb028]/30">
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-[#eaf5e3] dark:bg-white/[0.05] text-[#3d8318] dark:text-slate-300 border border-[#cdeac0] dark:border-white/[0.08]">
                       Waiting Room
                     </span>
                   )}
@@ -214,7 +214,7 @@ export const SessionList: React.FC<SessionListProps> = ({
 
               {/* Title & Description */}
               <div className="space-y-1 mb-3">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-[#5cb028] transition-colors">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-[#88c958] transition-colors">
                   {session.title}
                 </h3>
                 {session.description && (
@@ -224,32 +224,33 @@ export const SessionList: React.FC<SessionListProps> = ({
                 )}
               </div>
 
-              {/* Agenda Topics / Questions (Image 1 Matching with Dynamic Card Counts) */}
+              {/* Agenda Topics / Questions (Image Matching with Dynamic Card Counts) */}
               {(() => {
                 const topicsList =
                   session.topics && session.topics.length > 0
                     ? session.topics
                     : [
                         { title: 'What could be improved?', color: '#F43F5E' },
-                        { title: 'What went well?', color: '#5cb028' },
+                        { title: 'What went well?', color: '#88c958' },
                         { title: 'Action Items', color: '#0EA5E9' },
                       ];
 
                 const colorMap: Record<string, { bg: string; text: string; border: string; badgeBg: string; badgeText: string }> = {
-                  '#5cb028': { bg: 'bg-[#eaf5e3]', text: 'text-[#3d8318]', border: 'border-[#cdeac0]', badgeBg: 'bg-[#cdeac0]', badgeText: 'text-[#3d8318]' },
-                  '#10B981': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200/80', badgeBg: 'bg-emerald-200/70', badgeText: 'text-emerald-900' },
-                  '#F43F5E': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200/80', badgeBg: 'bg-rose-200/70', badgeText: 'text-rose-900' },
-                  '#0EA5E9': { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200/80', badgeBg: 'bg-sky-200/70', badgeText: 'text-sky-900' },
-                  '#F59E0B': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200/80', badgeBg: 'bg-amber-200/70', badgeText: 'text-amber-900' },
-                  '#4F46E5': { bg: 'bg-[#eaf5e3]', text: 'text-[#3d8318]', border: 'border-[#cdeac0]', badgeBg: 'bg-[#cdeac0]', badgeText: 'text-[#3d8318]' },
-                  '#8B5CF6': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200/80', badgeBg: 'bg-purple-200/70', badgeText: 'text-purple-900' },
-                  '#EC4899': { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200/80', badgeBg: 'bg-pink-200/70', badgeText: 'text-pink-900' },
-                  '#06B6D4': { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200/80', badgeBg: 'bg-teal-200/70', badgeText: 'text-teal-900' },
+                  '#5cb028': { bg: 'bg-[#eaf5e3] dark:bg-[#88c958]/10', text: 'text-[#3d8318] dark:text-[#88c958]', border: 'border-[#cdeac0] dark:border-[#88c958]/30', badgeBg: 'bg-[#5cb028] dark:bg-[#88c958]', badgeText: 'text-white dark:text-[#08090a]' },
+                  '#88c958': { bg: 'bg-[#eaf5e3] dark:bg-[#88c958]/10', text: 'text-[#3d8318] dark:text-[#88c958]', border: 'border-[#cdeac0] dark:border-[#88c958]/30', badgeBg: 'bg-[#5cb028] dark:bg-[#88c958]', badgeText: 'text-white dark:text-[#08090a]' },
+                  '#10B981': { bg: 'bg-emerald-50 dark:bg-emerald-500/10', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-500/30', badgeBg: 'bg-emerald-600 dark:bg-emerald-500', badgeText: 'text-white dark:text-[#08090a]' },
+                  '#F43F5E': { bg: 'bg-rose-50 dark:bg-rose-500/10', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-500/30', badgeBg: 'bg-rose-500', badgeText: 'text-white' },
+                  '#0EA5E9': { bg: 'bg-sky-50 dark:bg-sky-500/10', text: 'text-sky-700 dark:text-sky-300', border: 'border-sky-200 dark:border-sky-500/30', badgeBg: 'bg-sky-500', badgeText: 'text-white' },
+                  '#F59E0B': { bg: 'bg-amber-50 dark:bg-amber-500/10', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-500/30', badgeBg: 'bg-amber-500', badgeText: 'text-white' },
+                  '#4F46E5': { bg: 'bg-indigo-50 dark:bg-[#88c958]/10', text: 'text-indigo-700 dark:text-[#88c958]', border: 'border-indigo-200 dark:border-[#88c958]/30', badgeBg: 'bg-indigo-600 dark:bg-[#88c958]', badgeText: 'text-white dark:text-[#08090a]' },
+                  '#8B5CF6': { bg: 'bg-purple-50 dark:bg-purple-500/10', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-200 dark:border-purple-500/30', badgeBg: 'bg-purple-500', badgeText: 'text-white' },
+                  '#EC4899': { bg: 'bg-pink-50 dark:bg-pink-500/10', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-200 dark:border-pink-500/30', badgeBg: 'bg-pink-500', badgeText: 'text-white' },
+                  '#06B6D4': { bg: 'bg-teal-50 dark:bg-teal-500/10', text: 'text-teal-700 dark:text-teal-300', border: 'border-teal-200 dark:border-teal-500/30', badgeBg: 'bg-teal-600 dark:bg-teal-500', badgeText: 'text-white dark:text-[#08090a]' },
                 };
 
                 return (
                   <div className="space-y-1.5 mb-4">
-                    <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">
                       AGENDA TOPICS:
                     </p>
                     <div className="flex flex-wrap items-center gap-1.5">
@@ -258,19 +259,19 @@ export const SessionList: React.FC<SessionListProps> = ({
                         if (!theme) {
                           const titleLower = (t.title || '').toLowerCase();
                           if (
+                            titleLower.includes('good') ||
+                            titleLower.includes('well') ||
+                            titleLower.includes('win') ||
+                            titleLower.includes('smile')
+                          ) {
+                            theme = colorMap['#10B981'];
+                          } else if (
                             titleLower.includes('improve') ||
                             titleLower.includes('bad') ||
                             titleLower.includes('frown') ||
                             titleLower.includes('problem')
                           ) {
                             theme = colorMap['#F43F5E'];
-                          } else if (
-                            titleLower.includes('well') ||
-                            titleLower.includes('good') ||
-                            titleLower.includes('win') ||
-                            titleLower.includes('smile')
-                          ) {
-                            theme = colorMap['#10B981'];
                           } else if (
                             titleLower.includes('action') ||
                             titleLower.includes('item') ||
@@ -320,12 +321,12 @@ export const SessionList: React.FC<SessionListProps> = ({
 
 
               {/* Card Footer Actions */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+              <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between gap-2">
                 {/* Left: Launch / Join + Share */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onLaunch(session)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_12px_rgba(136,201,88,0.25)]"
                   >
                     <span>{isAdmin ? 'Open Board' : 'Join Live Board'}</span>
                     <ExternalLink className="w-3 h-3" />
@@ -335,9 +336,9 @@ export const SessionList: React.FC<SessionListProps> = ({
                     <button
                       onClick={() => setInvitingSession(session)}
                       title="Invite Teammates & Developers"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#eaf5e3] hover:bg-[#def0d4] dark:bg-[#5cb028]/20 dark:hover:bg-[#5cb028]/30 text-[#3d8318] dark:text-[#86efac] border-[#cdeac0] dark:border-[#5cb028]/30"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#eaf5e3] hover:bg-[#def0d4] text-[#3d8318] border-[#cdeac0] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:text-white dark:border-white/[0.08]"
                     >
-                      <Share2 className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#86efac]" />
+                      <Share2 className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
                       <span>Share / Invite</span>
                     </button>
                   )}
@@ -349,7 +350,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                     <button
                       onClick={() => onEdit(session)}
                       title="Edit Topics & Rules"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
@@ -371,12 +372,12 @@ export const SessionList: React.FC<SessionListProps> = ({
 
       {/* Enterprise Pagination Controls Footer (Active when > 6 retros) */}
       {!isCardsLoading && totalPages > 1 && (
-        <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           {/* Left: Range Info */}
           <div className="text-slate-500 dark:text-slate-400">
-            Showing <strong className="text-slate-800 dark:text-slate-200">{startIndex + 1}</strong> to{' '}
-            <strong className="text-slate-800 dark:text-slate-200">{endIndex}</strong> of{' '}
-            <strong className="text-slate-800 dark:text-slate-200">{totalItems}</strong> Retros
+            Showing <strong className="text-slate-800 dark:text-white">{startIndex + 1}</strong> to{' '}
+            <strong className="text-slate-800 dark:text-white">{endIndex}</strong> of{' '}
+            <strong className="text-slate-800 dark:text-white">{totalItems}</strong> Retros
           </div>
 
           {/* Right: Page Navigation Controls */}
@@ -386,7 +387,7 @@ export const SessionList: React.FC<SessionListProps> = ({
               type="button"
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={safeCurrentPage <= 1}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
               <span>Prev</span>
@@ -400,8 +401,8 @@ export const SessionList: React.FC<SessionListProps> = ({
                 onClick={() => setCurrentPage(p)}
                 className={`min-w-[32px] h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   p === safeCurrentPage
-                    ? 'bg-[#5cb028] text-white shadow-xs'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_10px_rgba(136,201,88,0.25)]'
+                    : 'bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {p}

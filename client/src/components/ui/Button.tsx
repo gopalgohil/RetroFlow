@@ -22,10 +22,11 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variants = {
     primary:
-      'bg-[#5cb028] hover:bg-[#4e9921] active:bg-[#458b1b] text-white shadow-md shadow-[#5cb028]/20 focus:ring-[#5cb028]',
+      'bg-[#5cb028] hover:bg-[#4e9921] active:bg-[#43831c] text-white font-bold shadow-md shadow-[#5cb028]/25 focus:ring-[#5cb028] dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:active:bg-[#7cb356] dark:text-[#08090a] dark:shadow-[#88c958]/25 dark:focus:ring-[#88c958]',
     outline:
-      'border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 shadow-sm focus:ring-slate-400',
-    ghost: 'text-slate-600 hover:bg-slate-100 active:bg-slate-200 focus:ring-slate-400',
+      'border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-700 dark:text-white shadow-sm focus:ring-[#88c958]',
+    ghost:
+      'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] active:bg-slate-200 dark:active:bg-white/[0.1] focus:ring-[#88c958]',
   };
 
   return (

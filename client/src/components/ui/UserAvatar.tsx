@@ -48,16 +48,16 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   return (
     <div className="relative group/avatar inline-flex shrink-0">
       <div
-        className={`${sizeClasses[size]} bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white font-bold flex items-center justify-center shadow-xs select-none cursor-default ${className}`}
+        className={`${sizeClasses[size]} bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:via-[#7cb356] dark:to-[#6ea347] dark:text-white font-black flex items-center justify-center shadow-xs select-none cursor-default ${className}`}
       >
         {initials}
       </div>
 
       {status && (
         <span
-          className={`absolute -bottom-0.5 -right-0.5 rounded-full border-2 border-white ${
+          className={`absolute -bottom-0.5 -right-0.5 rounded-full border-2 border-white dark:border-[#08090a] ${
             statusDotSizes[size]
-          } ${status === 'online' ? 'bg-emerald-500' : 'bg-slate-400'}`}
+          } ${status === 'online' ? 'bg-[#88c958]' : 'bg-slate-400'}`}
         />
       )}
 

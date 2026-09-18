@@ -211,24 +211,25 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#5cb028] via-[#52a622] to-[#458b1b] text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#5cb028] via-[#52a622] to-[#458b1b] text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#0e1015] dark:border dark:border-white/[0.08] dark:shadow-2xl relative overflow-hidden group">
+        <div className="absolute -right-16 -top-16 w-72 h-72 bg-white/10 dark:bg-[#88c958]/10 rounded-full blur-2xl dark:blur-3xl pointer-events-none" />
+        <div className="relative z-10 space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/30 dark:bg-[#88c958]/10 dark:text-[#88c958] dark:border-[#88c958]/25 shadow-2xs">
               {isAdmin ? 'Admin Supervision' : canCreateProject ? 'Lead / Management' : 'My Projects'}
             </span>
-            <span className="text-xs text-white/90">
+            <span className="text-xs text-white/90 dark:text-slate-400">
               • {tabCounts.all || pagination.totalItems} {isAdmin || canCreateProject ? 'Workspace Projects' : 'Assigned Projects'}
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:font-black">
             {isAdmin
               ? 'Enterprise Project & Sprint Delivery'
               : canCreateProject
               ? 'Agile Projects & Sprints'
               : 'My Projects & Sprints'}
           </h2>
-          <p className="text-xs text-white/90 max-w-xl leading-relaxed">
+          <p className="text-xs text-white/90 dark:text-slate-400 max-w-xl leading-relaxed">
             {isAdmin
               ? 'Complete organization supervisory view across all Scrum sprints, velocity metrics, and retrospectives.'
               : canCreateProject
@@ -241,9 +242,9 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
           <button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#3d8318] text-xs font-bold shadow-md transition-all hover:scale-[1.02] cursor-pointer shrink-0"
+            className="relative z-10 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#3d8318] text-xs font-bold shadow-md transition-all hover:scale-[1.02] cursor-pointer shrink-0 dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_16px_rgba(136,201,88,0.25)] dark:hover:shadow-[0_0_24px_rgba(136,201,88,0.4)]"
           >
-            <Plus className="w-4 h-4 stroke-[2.5] text-[#5cb028]" />
+            <Plus className="w-4 h-4 stroke-[2.5] text-[#5cb028] dark:text-[#08090a]" />
             <span>Create New Project</span>
           </button>
         )}
@@ -251,13 +252,13 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
       {/* View Filter Switcher Bar */}
       <div ref={projectsGridRef} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 rounded-xl w-fit">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] rounded-xl w-fit">
           <button
             type="button"
             onClick={() => handleFilterChange('all')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               filterMode === 'all'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                ? 'bg-white dark:bg-[#141720] text-slate-900 dark:text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -268,7 +269,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             onClick={() => handleFilterChange('managed')}
             className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               filterMode === 'managed'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                ? 'bg-white dark:bg-[#141720] text-slate-900 dark:text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
@@ -361,10 +362,10 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             return (
               <div
                 key={project.id}
-                className={`p-6 rounded-2xl bg-white dark:bg-[#0f172a] border shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-5 group ${
+                className={`p-6 rounded-2xl bg-white dark:bg-[#0e1015] border shadow-xs hover:shadow-xl dark:hover:shadow-[0_0_24px_rgba(0,0,0,0.8)] transition-all flex flex-col justify-between space-y-5 group ${
                   isCurrentLead
-                    ? 'border-[#5cb028]/60 ring-1 ring-[#5cb028]/20'
-                    : 'border-slate-200/90 dark:border-slate-800 hover:border-[#5cb028]/40 dark:hover:border-[#5cb028]/40'
+                    ? 'border-[#88c958]/60 ring-1 ring-[#88c958]/20'
+                    : 'border-slate-200/90 dark:border-white/[0.08] hover:border-[#88c958]/40 dark:hover:border-[#88c958]/40'
                 }`}
               >
                 <div className="space-y-4">
@@ -373,7 +374,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     <div className="flex items-center gap-3 min-w-0">
                       <UserAvatar name={project.name} avatar={project.key} size="lg" />
                       <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#5cb028] transition-colors truncate">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#88c958] transition-colors truncate">
                           {project.name}
                         </h3>
                         <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
@@ -396,9 +397,9 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   </div>
 
                   {/* Dedicated Manager Identity Row */}
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200/60 dark:border-white/[0.08]">
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-[#5cb028] to-[#4e9921] text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
+                      <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] font-black text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
                         {managerAvatar}
                       </div>
                       <div className="min-w-0">
@@ -424,12 +425,12 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
                 {/* Active Sprint Highlights */}
                 {activeSprint ? (
-                  <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/70 space-y-2">
+                  <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.08] space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[150px]">
                         {activeSprint.name.split(' - ')[0]}
                       </span>
-                      <span className="text-[10px] font-bold text-[#5cb028]">
+                      <span className="text-[10px] font-bold text-[#88c958]">
                         {activeSprint.daysLeft} days left
                       </span>
                     </div>
@@ -443,7 +444,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
                     <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
                       <span>Sprint Progress</span>
-                      <span className="font-semibold text-[#5cb028]">
+                      <span className="font-semibold text-[#88c958]">
                         {Math.round(
                           (activeSprint.completedStoryPoints / (activeSprint.totalStoryPoints || 1)) *
                             100
@@ -453,26 +454,26 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     </div>
                   </div>
                 ) : (
-                  <div className="p-3.5 rounded-xl bg-slate-50/60 dark:bg-slate-800/30 border border-dashed border-slate-200 dark:border-slate-700 text-center">
+                  <div className="p-3.5 rounded-xl bg-slate-50/60 dark:bg-[#12151c] border border-dashed border-slate-200 dark:border-white/[0.08] text-center">
                     <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">No active sprint</span>
                   </div>
                 )}
 
                 {/* Project Stats Footer */}
-                <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-center">
-                  <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-white/[0.08] text-center">
+                  <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-[#12151c]">
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Sprints</span>
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                       {project.sprints.length}
                     </span>
                   </div>
-                  <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                  <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-[#12151c]">
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Retros</span>
-                    <span className="text-xs font-bold text-[#5cb028]">
+                    <span className="text-xs font-bold text-[#88c958]">
                       {project.retrospectives.length}
                     </span>
                   </div>
-                  <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                  <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-[#12151c]">
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Members</span>
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                       {project.members.length}
@@ -494,11 +495,11 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       } catch {}
                     }
                   }}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-md shadow-[#5cb028]/20 hover:scale-[1.01] cursor-pointer disabled:opacity-75"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-xs hover:scale-[1.01] cursor-pointer disabled:opacity-75 dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
                 >
                   {openingProjectId === project.id ? (
                     <span className="inline-flex items-center gap-2 animate-pulse">
-                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white dark:border-[#08090a]/30 dark:border-t-[#08090a] rounded-full animate-spin" />
                       <span>Opening Dashboard...</span>
                     </span>
                   ) : (
@@ -518,9 +519,9 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       setProjectToDelete(project);
                     }}
                     title={`Delete ${project.name}`}
-                    className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer shadow-2xs"
+                    className="p-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:border-rose-300 dark:hover:border-rose-500/30 bg-white dark:bg-white/[0.04] text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-all hover:scale-105 cursor-pointer"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -533,7 +534,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
       {/* Enterprise-grade 6-Item Pagination Controls */}
       {pagination.totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/90 dark:border-slate-800">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/90 dark:border-white/[0.08]">
           {/* Pagination Counter Info */}
           <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Showing{' '}
@@ -554,7 +555,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               type="button"
               onClick={() => handlePageChange(pagination.page - 1)}
               disabled={!pagination.hasPrevPage || isFilterLoading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Previous</span>
@@ -574,8 +575,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   disabled={isFilterLoading}
                   className={`min-w-[34px] h-[34px] rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     p === pagination.page
-                      ? 'bg-[#5cb028] text-white shadow-xs shadow-[#5cb028]/30 ring-2 ring-[#5cb028]/20'
-                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_10px_rgba(136,201,88,0.25)]'
+                      : 'bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   {p}
@@ -588,7 +589,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               type="button"
               onClick={() => handlePageChange(pagination.page + 1)}
               disabled={!pagination.hasNextPage || isFilterLoading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
             >
               <span className="hidden sm:inline">Next</span>
               <ChevronRight className="w-4 h-4" />

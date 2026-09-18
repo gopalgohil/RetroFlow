@@ -200,7 +200,7 @@ export const ForgotPasswordForm: React.FC = () => {
             type="submit"
             variant="primary"
             isLoading={isLoading}
-            className="w-full py-3 text-sm font-semibold rounded-xl shadow-md shadow-[#5cb028]/20"
+            className="w-full py-3 text-sm font-semibold rounded-xl shadow-md shadow-[#88c958]/20"
           >
             Send Verification Code
           </Button>
@@ -260,7 +260,7 @@ export const ForgotPasswordForm: React.FC = () => {
                 setIsRedirecting(false);
                 setSuccessMessage(null);
               }}
-              className="text-[#5cb028] hover:underline font-medium"
+              className="text-[#88c958] hover:underline font-medium"
             >
               Change Email
             </button>
@@ -268,7 +268,7 @@ export const ForgotPasswordForm: React.FC = () => {
               <button
                 type="button"
                 onClick={handleResendOtp}
-                className="font-semibold text-[#5cb028] hover:underline cursor-pointer"
+                className="font-semibold text-[#88c958] hover:underline cursor-pointer"
               >
                 Resend OTP
               </button>
@@ -282,7 +282,7 @@ export const ForgotPasswordForm: React.FC = () => {
             variant="primary"
             isLoading={isLoading || isRedirecting}
             disabled={isLoading || isRedirecting}
-            className="w-full py-3 text-sm font-semibold rounded-xl shadow-md shadow-[#5cb028]/20"
+            className="w-full py-3 text-sm font-semibold rounded-xl shadow-md shadow-[#88c958]/20"
           >
             {isRedirecting ? 'Redirecting to Sign In...' : 'Reset Password'}
           </Button>

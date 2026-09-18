@@ -129,11 +129,11 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Header Overview Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#eaf5e3]/60 via-white to-slate-50 dark:from-[#5cb028]/10 dark:via-[#0f172a] dark:to-[#0b0f17] border border-[#cdeac0]/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#eaf5e3]/60 via-white to-slate-50 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#12151c] border border-[#cdeac0]/80 dark:border-white/[0.08] shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30 flex items-center gap-1.5 shadow-2xs">
-              <Sparkles className="w-3 h-3 text-[#5cb028]" />
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30 flex items-center gap-1.5 shadow-2xs">
+              <Sparkles className="w-3 h-3 text-[#5cb028] dark:text-[#88c958]" />
               Retrospective Action Engine
             </span>
             {user?.name && (
@@ -152,12 +152,12 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
 
         {/* Action Toggle (My items vs All Team for Admin/Manager) */}
         {(isAdmin || isManager) && (
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs shrink-0 self-start lg:self-auto">
+          <div className="flex items-center gap-2 bg-white dark:bg-[#12151c] p-1 rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-xs shrink-0 self-start lg:self-auto">
             <button
               onClick={() => handleToggleTeamView(false)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 !viewAllTeam
-                  ? 'bg-[#5cb028] text-white shadow-xs'
+                  ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
@@ -165,9 +165,9 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
             </button>
             <button
               onClick={() => handleToggleTeamView(true)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 viewAllTeam
-                  ? 'bg-[#5cb028] text-white shadow-xs'
+                  ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >

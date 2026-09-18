@@ -50,7 +50,7 @@ export default function LiveRetroBoardPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f17] text-slate-900 dark:text-white flex flex-col font-sans selection:bg-[#5cb028] selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex flex-col font-sans selection:bg-[#88c958] selection:text-[#08090a]">
       {/* 1. Modular Session Navigation Header */}
       <RetroHeader
         title={session.retro.title}
@@ -163,7 +163,7 @@ export default function LiveRetroBoardPage({
 
       {/* 6. Real-time Permission Feedback Toast */}
       {toastFeedback && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-slate-900/95 text-white text-xs font-semibold shadow-2xl flex items-center gap-2.5 border border-slate-700/80 backdrop-blur-md animate-in slide-in-from-bottom-5">
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-slate-900/95 dark:bg-[#0e1015]/95 text-white text-xs font-semibold shadow-2xl flex items-center gap-2.5 border border-slate-700/80 dark:border-white/[0.08] backdrop-blur-md animate-in slide-in-from-bottom-5">
           <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
           <span>{toastFeedback}</span>
         </div>

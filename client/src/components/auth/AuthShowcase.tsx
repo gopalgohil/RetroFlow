@@ -22,15 +22,15 @@ export const AuthShowcase: React.FC<AuthShowcaseProps> = ({
   imageAlt = 'Agile Team Retrospective & Innovation',
 }) => {
   return (
-    <div className="relative flex flex-col justify-between h-full w-full bg-[#f4f9f0] p-8 sm:p-12 lg:p-14 select-none overflow-hidden">
+    <div className="relative flex flex-col justify-between h-full w-full bg-[#f4f9f0] dark:bg-[#08090a] p-8 sm:p-12 lg:p-14 select-none overflow-hidden">
       {/* Background ambient lighting */}
-      <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#5cb028]/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#88c958]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-emerald-200/40 dark:bg-[#88c958]/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Brand Section */}
       <div className="relative z-10 space-y-1">
         <Link href="/" className="inline-flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-[#5cb028] flex items-center justify-center text-white shadow-md shadow-[#5cb028]/25 group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-[#88c958] flex items-center justify-center text-[#08090a] shadow-md shadow-[#88c958]/25 group-hover:scale-105 transition-transform font-bold">
             <svg
               className="w-5 h-5"
               fill="none"
@@ -47,18 +47,18 @@ export const AuthShowcase: React.FC<AuthShowcaseProps> = ({
               <circle cx="16" cy="14" r="1.5" fill="currentColor" />
             </svg>
           </div>
-          <span className="text-2xl font-bold text-slate-900 tracking-tight">
+          <span className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {title}
           </span>
         </Link>
-        <p className="text-slate-600 text-sm font-normal pt-1">
+        <p className="text-slate-600 dark:text-slate-400 text-sm font-normal pt-1">
           {subtitle}
         </p>
       </div>
 
       {/* Middle Illustration Showcase Card */}
       <div className="relative z-10 my-auto py-4">
-        <div className="w-full max-w-lg mx-auto rounded-2xl bg-white/95 backdrop-blur-sm border border-slate-200/75 shadow-lg shadow-slate-900/5 p-6 sm:p-8 flex flex-col items-center text-center">
+        <div className="w-full max-w-lg mx-auto rounded-2xl bg-white/95 dark:bg-[#0e1015] backdrop-blur-sm border border-slate-200/75 dark:border-white/[0.08] shadow-lg shadow-slate-900/5 p-6 sm:p-8 flex flex-col items-center text-center">
           <div className="w-full max-w-[400px] flex items-center justify-center">
             <img
               src={imageSrc}
@@ -68,10 +68,10 @@ export const AuthShowcase: React.FC<AuthShowcaseProps> = ({
           </div>
 
           <div className="mt-6 space-y-2">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
               Collaborative Sprint Retrospectives
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
               Unite your team to reflect on past sprints, spark innovative solutions, and continuously improve team performance.
             </p>
           </div>

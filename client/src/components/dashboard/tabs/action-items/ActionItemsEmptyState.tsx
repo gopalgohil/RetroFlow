@@ -14,8 +14,8 @@ export const ActionItemsEmptyState: React.FC<ActionItemsEmptyStateProps> = React
   onResetFilters,
 }) => {
   return (
-    <div className="p-12 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 text-center space-y-4 max-w-lg mx-auto shadow-xs">
-      <div className="w-14 h-14 rounded-2xl bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30 text-[#3d8318] dark:text-[#5cb028] flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
+    <div className="p-12 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] text-center space-y-4 max-w-lg mx-auto shadow-xs">
+      <div className="w-14 h-14 rounded-2xl bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
         🎯
       </div>
       <div className="space-y-1">
@@ -34,7 +34,7 @@ export const ActionItemsEmptyState: React.FC<ActionItemsEmptyStateProps> = React
         <button
           type="button"
           onClick={onResetFilters}
-          className="py-2 px-4 rounded-xl bg-[#eaf5e3] dark:bg-[#5cb028]/20 hover:bg-[#cdeac0]/50 dark:hover:bg-[#5cb028]/30 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30 text-xs font-bold transition-colors cursor-pointer"
+          className="py-2 px-4 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/15 hover:bg-[#cdeac0]/50 dark:hover:bg-[#88c958]/25 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30 text-xs font-bold transition-colors cursor-pointer"
         >
           Reset All Filters
         </button>

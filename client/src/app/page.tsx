@@ -9,7 +9,7 @@ import { ThemeToggle } from '@/components/ui';
 export default function HomePage() {
 
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col selection:bg-[#5cb028] selection:text-white theme-bg">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col selection:bg-[#88c958] selection:text-[#08090a] theme-bg">
       {/* Top Navigation Bar */}
       <header className="w-full border-b shrink-0 sticky top-0 z-50 theme-header backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -41,7 +41,7 @@ export default function HomePage() {
             {/* Get Started Free Button */}
             <Link
               href="/signup"
-              className="px-4 py-2 text-xs sm:text-sm font-semibold bg-[#5cb028] hover:bg-[#4e9921] text-white rounded-xl shadow-md shadow-[#5cb028]/25 transition-colors duration-200"
+              className="px-4 py-2 text-xs sm:text-sm font-bold bg-[#5cb028] hover:bg-[#4e9921] text-white rounded-xl shadow-md shadow-[#5cb028]/20 transition-all duration-200 hover:scale-105 dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a] dark:shadow-[#88c958]/20"
             >
               Get Started Free
             </Link>
@@ -57,14 +57,14 @@ export default function HomePage() {
         <div className="relative z-10 max-w-3xl space-y-4 sm:space-y-6">
           {/* Tag Pill */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider theme-pill">
-            <span className="w-2 h-2 rounded-full bg-[#5cb028] animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#5cb028] dark:bg-[#88c958] animate-pulse" />
             Continuous Improvement Platform
           </div>
 
           {/* Main Hero Headline */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight theme-heading">
             Turn Sprint Retrospectives Into{' '}
-            <span className="bg-gradient-to-r from-[#5cb028] via-[#4e9921] to-[#3d8318] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#5cb028] via-[#4e9921] to-[#3d8318] dark:from-[#88c958] dark:via-[#96dc63] dark:to-[#76b846] bg-clip-text text-transparent">
               Actionable Growth
             </span>
           </h1>
@@ -79,7 +79,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 sm:pt-3">
             <Link
               href="/signup"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white font-bold text-xs sm:text-sm shadow-lg shadow-[#5cb028]/25 hover:shadow-xl hover:shadow-[#5cb028]/35 transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white font-bold text-xs sm:text-sm shadow-lg shadow-[#5cb028]/25 hover:shadow-xl hover:shadow-[#5cb028]/35 transition-all duration-200 flex items-center justify-center gap-2 dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a] dark:shadow-[#88c958]/25 dark:hover:shadow-[#88c958]/35"
             >
               <span>Start Free Retrospective</span>
               <ArrowRight className="w-4 h-4" />
@@ -119,7 +119,7 @@ export default function HomePage() {
 
           {/* Feature 3 */}
           <div className="p-5 sm:p-6 rounded-2xl border backdrop-blur-sm space-y-2.5 transition-all duration-300 theme-card">
-            <div className="w-10 h-10 rounded-xl bg-[#5cb028]/10 text-[#5cb028] flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-[#88c958]/10 text-[#88c958] flex items-center justify-center font-bold">
               <Target className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold theme-card-title">Actionable Tracking</h3>

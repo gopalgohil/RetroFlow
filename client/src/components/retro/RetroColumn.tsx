@@ -294,7 +294,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   };
 
   return (
-    <div className="flex-1 min-w-[220px] rounded-2xl bg-white/95 dark:bg-[#0f172a] backdrop-blur-sm border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col overflow-hidden transition-all">
+    <div className="flex-1 min-w-[220px] rounded-2xl bg-white/95 dark:bg-[#0e1015] backdrop-blur-sm border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col overflow-hidden transition-all">
       {/* Column Top Accent Header */}
       <div
         style={{
@@ -322,13 +322,13 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
                 type="button"
                 onClick={onExportTopic}
                 title="Select action items and push directly to sprint backlog"
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-[10px] font-bold shadow-2xs transition-all hover:scale-[1.03] cursor-pointer"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-[10px] font-bold shadow-2xs transition-all hover:scale-[1.03] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
               >
-                <Sparkles className="w-2.5 h-2.5" />
+                <Sparkles className="w-2.5 h-2.5 text-white dark:text-[#08090a]" />
                 <span>To Sprint</span>
               </button>
             )}
-            <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-white/90 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0">
+            <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-white/90 dark:bg-[#141720] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08] shrink-0">
               {cards.length}
             </span>
           </div>
@@ -347,7 +347,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         onDrop={handleColumnDrop}
         className={`p-2 sm:p-2.5 space-y-2 min-h-[220px] max-h-[calc(100vh-230px)] overflow-y-auto transition-colors ${
           isColumnDragOver && (canManageActionItems || !isActionColumn) && (!isDraggingFromAnotherColumn || canMoveCrossColumn)
-            ? 'bg-[#eaf5e3]/50 dark:bg-[#5cb028]/10 ring-2 ring-[#5cb028]/70 ring-inset rounded-xl'
+            ? 'bg-[#eaf5e3]/50 dark:bg-[#88c958]/10 ring-2 ring-[#88c958]/70 ring-inset rounded-xl'
             : ''
         }`}
       >
@@ -390,7 +390,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 
         {/* Inline Add Card Input Form */}
         {isInputOpen && canAddCard && (
-          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 border-[#5cb028] shadow-sm space-y-2 animate-in fade-in duration-150">
+          <div className="p-2.5 rounded-xl bg-white dark:bg-[#12151c] border-2 border-[#88c958] shadow-sm space-y-2 animate-in fade-in duration-150">
             <textarea
               autoFocus
               rows={2}
@@ -411,14 +411,14 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
               <button
                 type="button"
                 onClick={handleCancelInput}
-                className="px-2 py-0.5 rounded-lg text-xs text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                className="px-2 py-0.5 rounded-lg text-xs text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#141720] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSubmitCard}
-                className="px-2.5 py-1 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                className="px-2.5 py-1 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
               >
                 Add Card
               </button>
@@ -428,12 +428,12 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
       </div>
 
       {/* Bottom Column "+ Add Card" Trigger or Locked State */}
-      <div className="p-2 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-[#0f172a]">
+      <div className="p-2 border-t border-slate-100 dark:border-white/[0.08] bg-white dark:bg-[#0e1015]">
         {canAddCard ? (
           <button
             type="button"
             onClick={() => setIsInputOpen(true)}
-            className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-[#5cb028]/60 hover:bg-[#eaf5e3]/50 dark:hover:bg-[#5cb028]/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-[#3d8318] dark:hover:text-[#5cb028] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 dark:border-white/10 hover:border-[#88c958]/60 hover:bg-[#eaf5e3]/50 dark:hover:bg-[#88c958]/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-[#3d8318] dark:hover:text-[#88c958] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Card</span>
@@ -441,7 +441,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         ) : (
           <div
             title="Action Items can only be added by Managers or Admins"
-            className="w-full py-2 px-2 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
+            className="w-full py-2 px-2 rounded-xl border border-dashed border-slate-200 dark:border-white/[0.08] bg-slate-50/80 dark:bg-[#12151c]/60 text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
           >
             <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
             <span className="truncate">Only Managers & Admins can add Action Items</span>

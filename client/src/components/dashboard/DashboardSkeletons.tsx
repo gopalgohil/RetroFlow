@@ -71,30 +71,30 @@ export const SessionCardsSkeleton: React.FC<{ count?: number }> = ({ count = 4 }
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="p-5 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-4"
+          className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xl flex flex-col justify-between space-y-4"
         >
           {/* Top Row: Status pill & Date */}
           <div className="flex items-center justify-between">
-            <div className="h-5 w-20 rounded-full bg-emerald-100/70 dark:bg-emerald-950/40" />
-            <div className="h-3.5 w-24 rounded bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-5 w-20 rounded-full bg-[#88c958]/20 dark:bg-[#88c958]/20" />
+            <div className="h-3.5 w-24 rounded bg-slate-100 dark:bg-white/[0.06]" />
           </div>
 
           {/* Title & Description */}
           <div className="space-y-2">
-            <div className="h-5 w-3/4 rounded-lg bg-slate-200 dark:bg-slate-800" />
-            <div className="h-3.5 w-full rounded bg-slate-100 dark:bg-slate-800/60" />
-            <div className="h-3.5 w-2/3 rounded bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-5 w-3/4 rounded-lg bg-slate-200 dark:bg-white/[0.08]" />
+            <div className="h-3.5 w-full rounded bg-slate-100 dark:bg-white/[0.06]" />
+            <div className="h-3.5 w-2/3 rounded bg-slate-100 dark:bg-white/[0.06]" />
           </div>
 
           {/* Footer Buttons */}
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-28 rounded-xl bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30" />
-              <div className="h-8 w-28 rounded-xl bg-slate-100 dark:bg-slate-800" />
+              <div className="h-8 w-28 rounded-xl bg-[#88c958]/25" />
+              <div className="h-8 w-28 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-white/[0.08]" />
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800" />
-              <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800" />
+              <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/[0.06]" />
+              <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/[0.06]" />
             </div>
           </div>
         </div>
@@ -196,26 +196,26 @@ export const SettingsSkeleton: React.FC = () => {
  */
 export const RetroBoardSkeleton: React.FC = () => {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f17] text-slate-900 dark:text-white flex flex-col font-sans animate-pulse">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex flex-col font-sans animate-pulse">
       {/* Top Header Skeleton */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#0b0f17]/95 backdrop-blur-xl border-b border-slate-200/90 dark:border-slate-800 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
+      <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#08090a]/95 backdrop-blur-xl border-b border-slate-200/90 dark:border-white/[0.08] px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
         {/* Left: Back button + Title & Status */}
         <div className="flex items-center gap-4">
-          <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
+          <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-[#141720] shrink-0" />
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">
-              <div className="h-5 w-48 sm:w-64 rounded-lg bg-slate-200 dark:bg-slate-800" />
-              <div className="h-5 w-24 rounded-full bg-emerald-100 dark:bg-emerald-950/40" />
+              <div className="h-5 w-48 sm:w-64 rounded-lg bg-slate-200 dark:bg-[#141720]" />
+              <div className="h-5 w-24 rounded-full bg-emerald-100 dark:bg-[#88c958]/20" />
             </div>
-            <div className="h-3 w-40 sm:w-72 rounded bg-slate-100 dark:bg-slate-800/80" />
+            <div className="h-3 w-40 sm:w-72 rounded bg-slate-100 dark:bg-[#12151c]" />
           </div>
         </div>
 
         {/* Right: Badges & Buttons */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:block h-8 w-36 rounded-xl bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30" />
-          <div className="hidden md:block h-8 w-32 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
-          <div className="h-9 w-36 rounded-xl bg-[#5cb028]/30" />
+          <div className="hidden sm:block h-8 w-36 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/20 border border-[#cdeac0] dark:border-[#88c958]/30" />
+          <div className="hidden md:block h-8 w-32 rounded-xl bg-slate-100 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08]" />
+          <div className="h-9 w-36 rounded-xl bg-[#88c958]/30" />
         </div>
       </header>
 
@@ -231,7 +231,7 @@ export const RetroBoardSkeleton: React.FC = () => {
           ].map((col, idx) => (
             <div
               key={idx}
-              className="flex-1 min-w-[220px] rounded-2xl bg-white/95 dark:bg-[#0f172a] backdrop-blur-sm border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col overflow-hidden transition-all"
+              className="flex-1 min-w-[220px] rounded-2xl bg-white/95 dark:bg-[#0e1015] backdrop-blur-sm border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col overflow-hidden transition-all"
             >
               {/* Column Top Header */}
               <div
@@ -246,9 +246,9 @@ export const RetroBoardSkeleton: React.FC = () => {
                     />
                     <div className={`h-3.5 ${col.titleWidth} rounded bg-slate-300 dark:bg-slate-700`} />
                   </div>
-                  <div className="h-4 w-5 rounded-full bg-white/80 dark:bg-slate-800" />
+                  <div className="h-4 w-5 rounded-full bg-white/80 dark:bg-[#141720]" />
                 </div>
-                <div className="h-2 w-32 rounded bg-slate-200/70 dark:bg-slate-800 ml-8" />
+                <div className="h-2 w-32 rounded bg-slate-200/70 dark:bg-[#141720] ml-8" />
               </div>
 
               {/* Cards List Skeleton */}
@@ -257,23 +257,23 @@ export const RetroBoardSkeleton: React.FC = () => {
                   <div
                     key={cIdx}
                     style={{ borderLeftColor: col.color }}
-                    className="p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 border-l-[3.5px] shadow-2xs space-y-2"
+                    className="p-2.5 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] border-l-[3.5px] shadow-2xs space-y-2"
                   >
                     <div className="space-y-1.5">
-                      <div className="h-3.5 w-full rounded bg-slate-200 dark:bg-slate-800" />
-                      <div className="h-3.5 w-3/4 rounded bg-slate-200 dark:bg-slate-800" />
+                      <div className="h-3.5 w-full rounded bg-slate-200 dark:bg-[#141720]" />
+                      <div className="h-3.5 w-3/4 rounded bg-slate-200 dark:bg-[#141720]" />
                     </div>
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800">
-                      <div className="h-3 w-20 rounded bg-slate-200 dark:bg-slate-800" />
-                      <div className="h-6 w-16 rounded-lg bg-slate-200 dark:bg-slate-800" />
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-white/[0.05]">
+                      <div className="h-3 w-20 rounded bg-slate-200 dark:bg-[#141720]" />
+                      <div className="h-6 w-16 rounded-lg bg-slate-200 dark:bg-[#141720]" />
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Add Note Button Skeleton */}
-              <div className="p-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60">
-                <div className="h-9 w-full rounded-xl bg-slate-200/80 dark:bg-slate-800" />
+              <div className="p-3.5 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50/50 dark:bg-[#12151c]/60">
+                <div className="h-9 w-full rounded-xl bg-slate-200/80 dark:bg-[#141720]" />
               </div>
             </div>
           ))}
@@ -438,7 +438,7 @@ export const ActionItemsSkeleton: React.FC = () => {
   return (
     <div className="space-y-6 animate-pulse">
       {/* 1. Header Overview Banner Skeleton */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#eaf5e3]/60 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900/90 dark:to-[#0b0f17] border border-[#cdeac0]/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#eaf5e3]/60 via-white to-slate-50 dark:from-[#12151c] dark:via-[#0e1015] dark:to-[#08090a] border border-[#cdeac0]/80 dark:border-white/[0.08] shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div className="space-y-2.5 max-w-2xl w-full">
           <div className="flex items-center gap-2">
             <div className="h-5 w-44 rounded-full bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30" />
@@ -652,37 +652,37 @@ export const TabSkeleton: React.FC<TabSkeletonProps> = ({ tab }) => {
  */
 export const DashboardLayoutSkeleton: React.FC<{ tab?: string }> = ({ tab = 'sessions' }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] dark:from-[#0b0f17] dark:via-[#0b0f17] dark:to-[#0f172a] text-slate-900 dark:text-white flex font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] dark:from-[#08090a] dark:via-[#08090a] dark:to-[#0e1015] text-slate-900 dark:text-white flex font-sans">
       {/* Sidebar Skeleton (fixed on large screens) */}
-      <aside className="fixed top-0 bottom-0 left-0 z-50 w-72 bg-white/90 dark:bg-[#0b0f17] backdrop-blur-xl border-r border-slate-200/80 dark:border-slate-800 hidden lg:flex flex-col p-6 animate-pulse">
+      <aside className="fixed top-0 bottom-0 left-0 z-50 w-72 bg-white/90 dark:bg-[#08090a] backdrop-blur-xl border-r border-slate-200/80 dark:border-white/[0.08] hidden lg:flex flex-col p-6 animate-pulse">
         {/* Brand Header */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30" />
+          <div className="w-10 h-10 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/20 border border-[#cdeac0] dark:border-[#88c958]/30" />
           <div className="space-y-1.5 flex-1">
-            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
-            <div className="h-2.5 w-16 bg-slate-100 dark:bg-slate-800/60 rounded" />
+            <div className="h-4 w-24 bg-slate-200 dark:bg-[#141720]" />
+            <div className="h-2.5 w-16 bg-slate-100 dark:bg-[#12151c]" />
           </div>
         </div>
 
         {/* Live Status Pill Skeleton */}
-        <div className="mt-6 p-3 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 h-11" />
+        <div className="mt-6 p-3 rounded-xl bg-slate-50/80 dark:bg-[#12151c]/60 border border-slate-100 dark:border-white/[0.08] h-11" />
 
         {/* Nav Items Skeleton */}
         <div className="mt-6 space-y-2 flex-1">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-10 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 flex items-center px-3.5 gap-3">
-              <div className="w-4 h-4 rounded-md bg-slate-200 dark:bg-slate-700" />
-              <div className="h-3 w-28 rounded bg-slate-200 dark:bg-slate-700" />
+            <div key={i} className="h-10 rounded-xl bg-slate-100/70 dark:bg-[#12151c]/60 flex items-center px-3.5 gap-3">
+              <div className="w-4 h-4 rounded-md bg-slate-200 dark:bg-[#1a1f2c]" />
+              <div className="h-3 w-28 rounded bg-slate-200 dark:bg-[#1a1f2c]" />
             </div>
           ))}
         </div>
 
         {/* User Footer Skeleton */}
-        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-800" />
+        <div className="pt-4 border-t border-slate-100 dark:border-white/[0.08] flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-[#141720]" />
           <div className="space-y-1.5 flex-1">
-            <div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
-            <div className="h-2.5 w-28 bg-slate-100 dark:bg-slate-800/60 rounded" />
+            <div className="h-3 w-20 bg-slate-200 dark:bg-[#141720]" />
+            <div className="h-2.5 w-28 bg-slate-100 dark:bg-[#12151c]" />
           </div>
         </div>
       </aside>
@@ -690,11 +690,11 @@ export const DashboardLayoutSkeleton: React.FC<{ tab?: string }> = ({ tab = 'ses
       {/* Main Workspace Area Skeleton */}
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
         {/* Top Header Skeleton */}
-        <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#0b0f17]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-6 flex items-center justify-between gap-4 animate-pulse">
-          <div className="h-10 w-72 rounded-xl bg-slate-100 dark:bg-slate-800" />
+        <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#08090a]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-white/[0.08] px-6 flex items-center justify-between gap-4 animate-pulse">
+          <div className="h-10 w-72 rounded-xl bg-slate-100 dark:bg-[#12151c]" />
           <div className="flex items-center gap-3">
-            <div className="h-9 w-32 rounded-xl bg-[#eaf5e3] dark:bg-[#5cb028]/20" />
-            <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-800" />
+            <div className="h-9 w-32 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/20" />
+            <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-[#141720]" />
           </div>
         </header>
 

@@ -445,7 +445,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -453,7 +453,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             form="create-project-form"
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#5cb028] to-[#4e9921] hover:from-[#4e9921] hover:to-[#5cb028] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/25"
           >
             <Sparkles className="w-4 h-4" />
             <span>{isSubmitting ? 'Creating Workspace...' : 'Initialize Project'}</span>
@@ -490,10 +490,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                   setErrors((prev) => ({ ...prev, name: 'Project name must be at least 2 characters' }));
                 }
               }}
-              className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all ${
+              className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12151c] border rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all ${
                 touched.name && errors.name
                   ? 'border-rose-400 dark:border-rose-500 focus:ring-rose-500/30 focus:border-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
-                  : 'border-slate-200 dark:border-slate-700 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
+                  : 'border-slate-200 dark:border-white/[0.08] focus:ring-[#88c958]/30 focus:border-[#88c958]'
               }`}
             />
             {touched.name && errors.name ? (
@@ -513,7 +513,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
                 Project Key <span className="text-rose-500">*</span>
               </label>
-              <span className="text-[10px] text-[#3d8318] dark:text-[#5cb028] font-semibold">Auto-generated</span>
+              <span className="text-[10px] text-[#88c958] font-semibold">Auto-generated</span>
             </div>
             <input
               type="text"
@@ -530,10 +530,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                   setErrors((prev) => ({ ...prev, key: 'Project key must be at least 2 characters' }));
                 }
               }}
-              className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl text-xs sm:text-sm font-mono font-bold tracking-wider text-[#3d8318] dark:text-[#5cb028] placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all uppercase ${
+              className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12151c] border rounded-xl text-xs sm:text-sm font-mono font-bold tracking-wider text-[#88c958] placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all uppercase ${
                 touched.key && errors.key
                   ? 'border-rose-400 dark:border-rose-500 focus:ring-rose-500/30 focus:border-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
-                  : 'border-slate-200 dark:border-slate-700 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
+                  : 'border-slate-200 dark:border-white/[0.08] focus:ring-[#88c958]/30 focus:border-[#88c958]'
               }`}
             />
             {touched.key && errors.key ? (
@@ -571,10 +571,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 setErrors((prev) => ({ ...prev, description: 'Project description must be at least 5 characters' }));
               }
             }}
-            className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all resize-none ${
+            className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12151c] border rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all resize-none ${
               touched.description && errors.description
                 ? 'border-rose-400 dark:border-rose-500 focus:ring-rose-500/30 focus:border-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
-                : 'border-slate-200 dark:border-slate-700 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
+                : 'border-slate-200 dark:border-white/[0.08] focus:ring-[#88c958]/30 focus:border-[#88c958]'
             }`}
           />
           {touched.description && errors.description ? (
@@ -590,14 +590,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         </div>
 
         {/* Team Members with Roles */}
-        <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-white/[0.08]">
           <div className="flex items-center justify-between">
             <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-              <Users className="w-3.5 h-3.5 text-[#5cb028]" />
+              <Users className="w-3.5 h-3.5 text-[#88c958]" />
               <span>
                 Team Members & Initial Roles <span className="text-rose-500">*</span>
               </span>
-              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 dark:bg-[#141720] text-slate-600 dark:text-slate-300">
                 {members.length} added
               </span>
             </label>
@@ -612,7 +612,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           )}
 
           {/* Add Member Selector Row */}
-          <div className="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 space-y-3">
+          <div className="p-3.5 rounded-xl bg-slate-50/90 dark:bg-[#12151c]/60 border border-slate-200/90 dark:border-white/[0.08] space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
               {/* Member Dropdown Picker */}
               <div className="sm:col-span-7 relative" ref={memberDropdownRef}>
@@ -633,11 +633,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setIsMemberDropdownOpen((prev) => !prev)}
-                        className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#5cb028] dark:hover:border-[#5cb028] rounded-xl flex items-center justify-between transition-all text-left shadow-2xs cursor-pointer min-h-[42px]"
+                        className="w-full px-3 py-2 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:border-[#88c958] dark:hover:border-[#88c958] rounded-xl flex items-center justify-between transition-all text-left shadow-2xs cursor-pointer min-h-[42px]"
                       >
                         {selectedCount > 1 ? (
                           <div className="flex items-center gap-2 min-w-0 pr-2">
-                            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] font-bold text-xs shrink-0">
+                            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-[#88c958]/15 text-[#88c958] font-bold text-xs shrink-0">
                               {selectedCount} Selected
                             </span>
                             <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">
@@ -653,7 +653,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                           </div>
                         ) : firstSelected ? (
                           <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#5cb028] to-[#4e9921] text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
+                            <div className="w-7 h-7 rounded-lg bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
                               {firstSelected.avatar || firstSelected.name.slice(0, 2).toUpperCase()}
                             </div>
                             <div className="min-w-0">
@@ -667,7 +667,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                           </div>
                         ) : (
                           <div className="flex items-center gap-2.5 text-slate-400 dark:text-slate-500">
-                            <div className="w-7 h-7 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-400 dark:text-slate-500">
+                            <div className="w-7 h-7 rounded-lg border border-dashed border-slate-300 dark:border-white/[0.08] bg-slate-50 dark:bg-[#141720] flex items-center justify-center shrink-0 text-slate-400 dark:text-slate-500">
                               <Users className="w-3.5 h-3.5" />
                             </div>
                             <span className="text-xs font-medium">Select team member(s)...</span>
@@ -676,17 +676,17 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
                         <ChevronDown
                           className={`w-4 h-4 text-slate-400 transition-transform duration-150 shrink-0 ${
-                            isMemberDropdownOpen ? 'rotate-180 text-[#5cb028]' : ''
+                            isMemberDropdownOpen ? 'rotate-180 text-[#88c958]' : ''
                           }`}
                         />
                       </button>
 
                       {/* Dropdown Menu */}
                       {isMemberDropdownOpen && (
-                        <div className="absolute z-50 left-0 right-0 mt-1.5 p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl space-y-1 max-h-60 overflow-y-auto">
+                        <div className="absolute z-50 left-0 right-0 mt-1.5 p-1.5 bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] rounded-xl shadow-xl space-y-1 max-h-60 overflow-y-auto">
                           {/* Quick Select All Header */}
                           {unaddedMembers.length > 0 && (
-                            <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-100 dark:border-slate-700 mb-1">
+                            <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-100 dark:border-white/[0.08] mb-1">
                               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                                 {selectedCount > 0
                                   ? `${selectedCount} of ${unaddedMembers.length} selected`
@@ -699,7 +699,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                   e.stopPropagation();
                                   handleSelectAll(unaddedMembers.map((m) => m.email));
                                 }}
-                                className="text-[11px] font-bold text-[#5cb028] hover:text-[#4e9921] transition-colors cursor-pointer"
+                                className="text-[11px] font-bold text-[#88c958] hover:text-[#76b349] transition-colors cursor-pointer"
                               >
                                 {unaddedMembers.length > 0 &&
                                 unaddedMembers.every((m) =>
@@ -727,10 +727,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                 }}
                                 className={`w-full p-2 rounded-lg flex items-center justify-between text-left transition-colors select-none ${
                                   isAdded
-                                    ? 'opacity-50 bg-slate-50 dark:bg-slate-900/40 cursor-not-allowed text-slate-400 dark:text-slate-500'
+                                    ? 'opacity-50 bg-slate-50 dark:bg-[#12151c]/40 cursor-not-allowed text-slate-400 dark:text-slate-500'
                                     : isSelected
-                                    ? 'bg-[#eaf5e3]/80 dark:bg-[#5cb028]/20 border border-[#cdeac0]/60 dark:border-[#5cb028]/40 text-slate-900 dark:text-white cursor-pointer'
-                                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/60 border border-transparent text-slate-700 dark:text-slate-300 cursor-pointer'
+                                    ? 'bg-[#88c958]/15 dark:bg-[#88c958]/20 border border-[#88c958]/40 text-slate-900 dark:text-white cursor-pointer'
+                                    : 'hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-transparent text-slate-700 dark:text-slate-300 cursor-pointer'
                                 }`}
                               >
                                 <div className="flex items-center gap-2.5 min-w-0 pr-2">
@@ -738,10 +738,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                   <div
                                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${
                                       isAdded
-                                        ? 'border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                                        ? 'border-slate-300 dark:border-white/[0.08] bg-slate-100 dark:bg-[#141720] text-slate-400 dark:text-slate-500'
                                         : isSelected
-                                        ? 'bg-[#5cb028] border-[#5cb028] text-white shadow-xs'
-                                        : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 hover:border-[#5cb028]'
+                                        ? 'bg-[#5cb028] border-[#5cb028] text-white dark:bg-[#88c958] dark:border-[#88c958] dark:text-[#08090a] shadow-xs'
+                                        : 'border-slate-300 dark:border-white/[0.08] bg-white dark:bg-[#141720] hover:border-[#88c958]'
                                     }`}
                                   >
                                     {(isSelected || isAdded) && (
@@ -750,7 +750,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                   </div>
 
                                   {/* Member Avatar */}
-                                  <div className="w-6 h-6 rounded-md bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] font-bold text-[10px] flex items-center justify-center shrink-0">
+                                  <div className="w-6 h-6 rounded-md bg-[#88c958]/15 text-[#88c958] font-bold text-[10px] flex items-center justify-center shrink-0">
                                     {m.avatar || m.name.slice(0, 2).toUpperCase()}
                                   </div>
 
@@ -766,11 +766,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                 </div>
 
                                 {isAdded ? (
-                                  <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 shrink-0">
+                                  <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#141720] shrink-0">
                                     Added
                                   </span>
                                 ) : isSelected ? (
-                                  <span className="text-[10px] font-bold text-[#3d8318] dark:text-[#5cb028] shrink-0">
+                                  <span className="text-[10px] font-bold text-[#88c958] shrink-0">
                                     Selected
                                   </span>
                                 ) : null}
@@ -792,13 +792,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                     setNewMemberRole(e.target.value as ProjectMemberRole);
                     setMemberError('');
                   }}
-                  className="w-full px-2.5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#5cb028]/60 dark:hover:border-[#5cb028]/60 rounded-xl text-xs font-semibold text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer min-h-[42px] shadow-2xs transition-colors"
+                  className="w-full px-2.5 py-2 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 rounded-xl text-xs font-semibold text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#88c958] cursor-pointer min-h-[42px] shadow-2xs transition-colors"
                 >
-                  <option value="Developer" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Developer</option>
-                  <option value="QA" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">QA</option>
-                  <option value="Manager" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Manager</option>
-                  <option value="DevOps" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">DevOps</option>
-                  <option value="Project Lead" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">Project Lead</option>
+                  <option value="Developer" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Developer</option>
+                  <option value="QA" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">QA</option>
+                  <option value="Manager" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Manager</option>
+                  <option value="DevOps" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">DevOps</option>
+                  <option value="Project Lead" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Project Lead</option>
                 </select>
               </div>
 
@@ -807,7 +807,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 <button
                   type="button"
                   onClick={() => handleAddMember()}
-                  className="w-full py-2 px-3 flex items-center justify-center gap-1.5 bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold rounded-xl transition-colors shadow-2xs cursor-pointer min-h-[42px]"
+                  className="w-full py-2 px-3 flex items-center justify-center gap-1.5 bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold rounded-xl transition-colors shadow-2xs cursor-pointer min-h-[42px] dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a]"
                 >
                   <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>
@@ -828,7 +828,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               {members.map((m) => (
                 <div
                   key={m.email}
-                  className="inline-flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                  className="inline-flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-lg bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] text-xs shadow-2xs hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors"
                 >
                   <UserAvatar name={m.name} email={m.email} title={m.email} size="xs" />
                   <span className="font-semibold text-slate-800 dark:text-slate-200">{m.name}</span>
@@ -841,15 +841,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                         handleUpdateMemberRole(m.email, e.target.value as ProjectMemberRole)
                       }
                       title={`Change role for ${m.name}`}
-                      className="appearance-none text-[11px] font-semibold tracking-tight pl-2 pr-5 py-0.5 rounded-md bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/40 hover:bg-[#def0d4] dark:hover:bg-[#5cb028]/30 focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer transition-colors"
+                      className="appearance-none text-[11px] font-semibold tracking-tight pl-2 pr-5 py-0.5 rounded-md bg-[#88c958]/15 text-[#88c958] border border-[#88c958]/30 hover:bg-[#88c958]/25 focus:outline-none focus:ring-1 focus:ring-[#88c958] cursor-pointer transition-colors"
                     >
-                      <option value="Developer" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium">Developer</option>
-                      <option value="QA" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium">QA</option>
-                      <option value="Manager" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium">Manager</option>
-                      <option value="DevOps" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium">DevOps</option>
-                      <option value="Project Lead" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium">Project Lead</option>
+                      <option value="Developer" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">Developer</option>
+                      <option value="QA" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">QA</option>
+                      <option value="Manager" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">Manager</option>
+                      <option value="DevOps" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">DevOps</option>
+                      <option value="Project Lead" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">Project Lead</option>
                     </select>
-                    <ChevronDown className="w-3 h-3 text-[#5cb028] absolute right-1 pointer-events-none" />
+                    <ChevronDown className="w-3 h-3 text-[#88c958] absolute right-1 pointer-events-none" />
                   </div>
                   <button
                     type="button"

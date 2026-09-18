@@ -192,12 +192,12 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl bg-white dark:bg-[#0f172a] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="relative w-full max-w-xl bg-white dark:bg-[#0e1015] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/[0.08] overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between bg-gradient-to-r from-[#eaf5e3]/70 via-white to-slate-50 dark:from-[#5cb028]/10 dark:via-[#0f172a] dark:to-slate-900">
+        <div className="px-6 py-5 border-b border-slate-100 dark:border-white/[0.08] flex items-start justify-between bg-gradient-to-r from-[#eaf5e3]/70 via-white to-slate-50 dark:from-[#88c958]/10 dark:via-[#0e1015] dark:to-[#08090a]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#5cb028] text-white flex items-center justify-center shadow-md shadow-[#5cb028]/20 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#5cb028] text-white flex items-center justify-center shadow-md shadow-[#5cb028]/20 shrink-0 font-bold dark:bg-[#88c958] dark:text-[#08090a] dark:shadow-[#88c958]/20">
               <Share2 className="w-5 h-5" />
             </div>
             <div>
@@ -210,7 +210,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -221,7 +221,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
         <div className="p-6 space-y-6 overflow-y-auto">
           {/* Notification Banners */}
           {successMessage && (
-            <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-medium flex items-start gap-2.5 animate-in fade-in">
+            <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-medium flex items-start gap-2.5 animate-in fade-in">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               <span>{successMessage}</span>
             </div>
@@ -243,7 +243,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
               <span className="text-[11px] text-slate-400 dark:text-slate-500">Teammates can view & participate</span>
             </div>
 
-            <div className="flex items-center gap-2 p-1.5 pl-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-2 p-1.5 pl-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08]">
               <span className="text-xs font-mono text-slate-600 dark:text-slate-300 truncate select-all flex-1">
                 {projectShareUrl}
               </span>
@@ -253,7 +253,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                 className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   copied
                     ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-[#5cb028] hover:bg-[#4e9921] text-white shadow-xs'
+                    : 'bg-[#5cb028] hover:bg-[#4e9921] text-white shadow-xs dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]'
                 }`}
               >
                 {copied ? (
@@ -271,14 +271,14 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
             </div>
           </div>
 
-          <div className="h-px bg-slate-100 dark:bg-slate-800" />
+          <div className="h-px bg-slate-100 dark:bg-white/[0.08]" />
 
           {/* 2. Existing Assigned Members Checklist */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-[#5cb028]" />
+                  <Users className="w-3.5 h-3.5 text-[#88c958]" />
                   <span>Project Members ({project.members.length})</span>
                 </h3>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
@@ -290,11 +290,11 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                 <button
                   type="button"
                   onClick={handleToggleSelectAll}
-                  className="text-xs font-semibold text-[#5cb028] hover:text-[#4e9921] flex items-center gap-1 cursor-pointer"
+                  className="text-xs font-semibold text-[#88c958] hover:text-[#96dc63] flex items-center gap-1 cursor-pointer"
                 >
                   {allSelected ? (
                     <>
-                      <CheckSquare className="w-3.5 h-3.5 text-[#5cb028]" />
+                      <CheckSquare className="w-3.5 h-3.5 text-[#88c958]" />
                       <span>Deselect All</span>
                     </>
                   ) : (
@@ -308,7 +308,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
             </div>
 
             {/* Members Checklist Box */}
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 max-h-52 overflow-y-auto bg-slate-50/40 dark:bg-slate-900/50">
+            <div className="rounded-xl border border-slate-200 dark:border-white/[0.08] divide-y divide-slate-100 dark:divide-white/[0.05] max-h-52 overflow-y-auto bg-slate-50/40 dark:bg-[#12151c]/60">
               {project.members.length === 0 ? (
                 <div className="p-6 text-center text-xs text-slate-400 dark:text-slate-500">
                   No members added to this project yet.
@@ -321,17 +321,17 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                   return (
                     <label
                       key={member.id || member.email}
-                      className="flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer select-none"
+                      className="flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer select-none"
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleToggleMember(member.email)}
-                        className="w-4 h-4 rounded text-[#5cb028] focus:ring-[#5cb028] border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer"
+                        className="w-4 h-4 rounded text-[#88c958] focus:ring-[#88c958] border-slate-300 dark:border-white/20 dark:bg-[#141720] cursor-pointer"
                       />
 
                       {/* Avatar */}
-                      <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] font-bold text-xs flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[#88c958]/15 text-[#88c958] font-bold text-xs flex items-center justify-center shrink-0 border border-[#88c958]/20">
                         {member.avatar || member.name.slice(0, 2).toUpperCase()}
                       </div>
 
@@ -361,7 +361,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                             ? 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/60'
                             : (member.role as string) === 'Project Lead'
                             ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60'
-                            : 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] border border-[#cdeac0] dark:border-[#5cb028]/30'
+                            : 'bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30'
                         }`}
                       >
                         {member.role}
@@ -379,7 +379,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                 value={customMessage}
                 onChange={(e) => setCustomMessage(e.target.value)}
                 placeholder="Optional personal message (e.g. Please join and review current sprint goals)..."
-                className="w-full px-3.5 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028]"
+                className="w-full px-3.5 py-2 rounded-xl text-xs bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-[#141720] focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958]"
               />
             </div>
 
@@ -388,7 +388,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
               type="button"
               disabled={selectedEmails.length === 0 || isSendingInvites}
               onClick={handleSendBatchInvites}
-              className="w-full py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 flex items-center justify-center gap-2 transition-all cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a] dark:shadow-[#88c958]/20"
             >
               {isSendingInvites ? (
                 <>
@@ -406,20 +406,20 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
             </button>
           </div>
 
-          <div className="h-px bg-slate-100 dark:bg-slate-800" />
+          <div className="h-px bg-slate-100 dark:bg-white/[0.08]" />
 
           {/* 3. Expandable Section: + Or invite external member by email */}
           <div className="space-y-3">
             <button
               type="button"
               onClick={() => setShowExternalInvite(!showExternalInvite)}
-              className="text-xs font-bold text-[#5cb028] hover:text-[#4e9921] flex items-center gap-1.5 transition-colors cursor-pointer group"
+              className="text-xs font-bold text-[#88c958] hover:text-[#96dc63] flex items-center gap-1.5 transition-colors cursor-pointer group"
             >
               <span>+ Or invite external member by email</span>
               {showExternalInvite ? (
-                <ChevronUp className="w-3.5 h-3.5 text-[#5cb028]" />
+                <ChevronUp className="w-3.5 h-3.5 text-[#88c958]" />
               ) : (
-                <ChevronDown className="w-3.5 h-3.5 text-[#5cb028] group-hover:translate-y-0.5 transition-transform" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#88c958] group-hover:translate-y-0.5 transition-transform" />
               )}
             </button>
 
@@ -427,10 +427,10 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
             {showExternalInvite && (
               <form
                 onSubmit={handleAddAndInviteExternal}
-                className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-[#cdeac0] dark:border-slate-800 space-y-3.5 animate-in fade-in duration-200"
+                className="p-4 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-[#cdeac0] dark:border-white/[0.08] space-y-3.5 animate-in fade-in duration-200"
               >
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
-                  <UserPlus className="w-3.5 h-3.5 text-[#5cb028]" />
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-white">
+                  <UserPlus className="w-3.5 h-3.5 text-[#88c958]" />
                   <span>Add Member to Project & Send Invite</span>
                 </div>
 
@@ -445,7 +445,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                       value={externalName}
                       onChange={(e) => setExternalName(e.target.value)}
                       placeholder="e.g. Marcus Vance"
-                      className="w-full px-3 py-2 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028]"
+                      className="w-full px-3 py-2 rounded-lg text-xs bg-white dark:bg-[#141720] border border-slate-200 dark:border-white/[0.08] text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958]"
                     />
                   </div>
 
@@ -456,12 +456,12 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                     <select
                       value={externalRole}
                       onChange={(e) => setExternalRole(e.target.value as ProjectMemberRole)}
-                      className="w-full px-3 py-2 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028]"
+                      className="w-full px-3 py-2 rounded-lg text-xs bg-white dark:bg-[#141720] border border-slate-200 dark:border-white/[0.08] text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958]"
                     >
-                      <option value="Developer" className="dark:bg-slate-900">Developer</option>
-                      <option value="QA" className="dark:bg-slate-900">QA Engineer</option>
-                      <option value="Manager" className="dark:bg-slate-900">Project Manager</option>
-                      <option value="Viewer" className="dark:bg-slate-900">Viewer / Stakeholder</option>
+                      <option value="Developer" className="dark:bg-[#141720]">Developer</option>
+                      <option value="QA" className="dark:bg-[#141720]">QA Engineer</option>
+                      <option value="Manager" className="dark:bg-[#141720]">Project Manager</option>
+                      <option value="Viewer" className="dark:bg-[#141720]">Viewer / Stakeholder</option>
                     </select>
                   </div>
                 </div>
@@ -476,14 +476,14 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
                     value={externalEmail}
                     onChange={(e) => setExternalEmail(e.target.value)}
                     placeholder="e.g. marcus@company.com"
-                    className="w-full px-3 py-2 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028]"
+                    className="w-full px-3 py-2 rounded-lg text-xs bg-white dark:bg-[#141720] border border-slate-200 dark:border-white/[0.08] text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958]"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isAddingExternal}
-                  className="w-full py-2.5 px-4 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] disabled:opacity-60 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  className="w-full py-2.5 px-4 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] disabled:opacity-60 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
                 >
                   {isAddingExternal ? (
                     <>
@@ -503,12 +503,12 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50 dark:bg-[#12151c]/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
           <span>Invitations contain secure 1-click project links</span>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.08] font-semibold transition-colors cursor-pointer"
           >
             Done
           </button>

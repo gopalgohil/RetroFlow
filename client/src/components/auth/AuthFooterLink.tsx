@@ -22,7 +22,7 @@ export const AuthFooterLink: React.FC<AuthFooterLinkProps> = ({
         {prompt}{' '}
         <Link
           href={href}
-          className="font-semibold text-[#5cb028] hover:text-[#4e9921] hover:underline transition-colors"
+          className="font-semibold text-[#88c958] hover:text-[#96dc63] hover:underline transition-colors"
         >
           {actionText}
         </Link>

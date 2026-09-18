@@ -30,11 +30,11 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
   };
 
   return (
-    <div className="p-6 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+    <div className="p-6 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-[#5cb028]" />
+          <TrendingUp className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
           <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
             Retrospective Session Trends
           </h3>
@@ -50,11 +50,11 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
           {trends.map((retro) => (
             <div
               key={retro.id}
-              className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 hover:bg-white dark:hover:bg-slate-900 border border-slate-200/70 dark:border-slate-800 hover:border-[#5cb028]/40 dark:hover:border-[#5cb028]/40 hover:shadow-md transition-all space-y-3"
+              className="p-4 rounded-2xl bg-slate-50/80 dark:bg-[#12151c] hover:bg-white dark:hover:bg-[#151922] border border-slate-200/70 dark:border-white/[0.06] hover:border-[#88c958]/40 dark:hover:border-[#88c958]/40 hover:shadow-md transition-all space-y-3"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#3d8318] dark:text-[#5cb028] bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30 px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 px-2 py-0.5 rounded-md">
                     {retro.sprintName}
                   </span>
                   <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate mt-1.5" title={retro.title}>
@@ -68,7 +68,7 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
 
                 <Link
                   href={`/retro/${retro.shareToken}`}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-[#5cb028] hover:bg-[#eaf5e3] dark:hover:bg-[#5cb028]/20 transition-colors shrink-0 cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-[#88c958] hover:bg-[#eaf5e3] dark:hover:bg-[#88c958]/20 transition-colors shrink-0 cursor-pointer"
                   title="Open retro board"
                 >
                   <ArrowUpRight className="w-4 h-4" />
@@ -83,13 +83,13 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
                     {retro.attendeesCount} / {retro.expectedCount} ({retro.attendanceRate}%)
                   </span>
                 </div>
-                <div className="w-full bg-slate-200/70 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200/70 dark:bg-white/[0.08] h-2 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${
                       retro.attendanceRate >= 80
-                        ? 'bg-emerald-500'
+                        ? 'bg-[#88c958]'
                         : retro.attendanceRate >= 60
-                        ? 'bg-[#5cb028]'
+                        ? 'bg-[#88c958]/80'
                         : 'bg-amber-500'
                     }`}
                     style={{ width: `${Math.min(100, retro.attendanceRate)}%` }}
@@ -100,12 +100,12 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
               {/* Bottom Metadata Badges */}
               <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                 <span className="flex items-center gap-1">
-                  <MessageSquare className="w-3.5 h-3.5 text-[#5cb028]" />
+                  <MessageSquare className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
                   <span>{retro.cardsCount} cards</span>
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  <CheckSquare className="w-3.5 h-3.5 text-emerald-500" />
+                  <CheckSquare className="w-3.5 h-3.5 text-[#88c958]" />
                   <span>{retro.actionItemsCount} action items</span>
                 </span>
               </div>
@@ -113,7 +113,7 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
           ))}
         </div>
       ) : (
-        <div className="p-8 rounded-2xl bg-slate-50 dark:bg-slate-900/40 text-center space-y-2 border border-dashed border-slate-200 dark:border-slate-800">
+        <div className="p-8 rounded-2xl bg-slate-50 dark:bg-[#12151c]/50 text-center space-y-2 border border-dashed border-slate-200 dark:border-white/[0.08]">
           <Calendar className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
           <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
             No retrospective sessions found for {selectedProjectName}.

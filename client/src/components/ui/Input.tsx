@@ -50,14 +50,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             ref={ref}
             type={computedType}
-            className={`w-full rounded-xl border bg-white dark:bg-slate-900/90 py-2 px-3.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 
+            className={`w-full rounded-xl border bg-white dark:bg-[#12151c] py-2 px-3.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 
               transition-all duration-150 outline-none
               ${startIcon ? 'pl-10' : 'pl-3.5'}
               ${endIcon || (isPasswordField && showPasswordToggle) ? 'pr-10' : 'pr-3.5'}
               ${
                 error
                   ? 'border-rose-500 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
-                  : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 focus:border-[#5cb028] focus:ring-2 focus:ring-[#5cb028]/20'
+                  : 'border-slate-300 dark:border-white/[0.08] hover:border-slate-400 dark:hover:border-white/[0.16] focus:border-[#88c958] focus:ring-2 focus:ring-[#88c958]/20'
               }
               ${className}`}
             {...props}

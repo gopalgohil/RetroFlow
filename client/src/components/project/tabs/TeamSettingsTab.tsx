@@ -275,12 +275,12 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* Section 1: Team Members Table */}
-      <div className="bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+      <div className="bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl shadow-xs overflow-hidden">
         {/* Table Header & Invite Trigger */}
-        <div className="p-6 border-b border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-6 border-b border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#5cb028]" />
+              <Users className="w-4 h-4 text-[#88c958]" />
               Assigned Team Members ({project.members.length})
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -292,13 +292,13 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             <button
               type="button"
               onClick={() => setIsInviteOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a]"
             >
               <UserPlus className="w-4 h-4" />
               <span>Invite Team Member</span>
             </button>
           ) : (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#12151c] text-slate-500 dark:text-slate-400 text-xs font-semibold">
               <Users className="w-3.5 h-3.5 text-slate-400" />
               <span>Directory View</span>
             </div>
@@ -324,7 +324,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         {/* Members Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-            <thead className="bg-slate-50/80 dark:bg-slate-800/60 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-slate-800">
+            <thead className="bg-slate-50/80 dark:bg-[#12151c] text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-white/[0.08]">
               <tr>
                 <th className="px-6 py-3.5">Member Name</th>
                 <th className="px-6 py-3.5">Email</th>
@@ -336,9 +336,9 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06]">
               {project.members.map((member) => (
-                <tr key={member.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                <tr key={member.id} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.03] transition-colors">
                   <td className="px-6 py-4 flex items-center gap-3">
                     <UserAvatar
                       name={member.name}
@@ -351,7 +351,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                     <div>
                       <p className="font-bold text-slate-900 dark:text-white">{member.name}</p>
                       {project.lead.email === member.email && (
-                        <span className="text-[10px] text-[#3d8318] dark:text-[#5cb028] font-semibold">
+                        <span className="text-[10px] text-[#88c958] font-semibold">
                           Manager
                         </span>
                       )}
@@ -386,7 +386,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                             setRemoveMemberError('');
                             setMemberToRemove(member);
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-500/50 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:border-rose-300 dark:hover:border-rose-500/50 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
                           title={`Remove ${member.name} from project`}
                         >
                           <Trash2 className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors" />
@@ -403,14 +403,14 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
       </div>
 
       {/* Section 2: General Project Configuration */}
-      <div className="bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-6">
-        <div className="border-b border-slate-200/80 dark:border-slate-800 pb-4 flex items-center justify-between">
+      <div className="bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-6 shadow-xs space-y-6">
+        <div className="border-b border-slate-200/80 dark:border-white/[0.08] pb-4 flex items-center justify-between">
           <div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <Settings className="w-4 h-4 text-[#5cb028]" />
+              <Settings className="w-4 h-4 text-[#88c958]" />
               <span>General Project Configuration</span>
               {!canManageProject && (
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-[#141720] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08] flex items-center gap-1">
                   <Lock className="w-3 h-3 text-slate-400" />
                   Read-Only
                 </span>
@@ -452,8 +452,8 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 onChange={(e) => setName(e.target.value)}
                 className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:outline-none ${
                   canManageProject
-                    ? 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
-                    : 'bg-slate-100/70 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed select-none'
+                    ? 'bg-slate-50 dark:bg-[#12151c] border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white focus:ring-2 focus:ring-[#88c958]/30 focus:border-[#88c958]'
+                    : 'bg-slate-100/70 dark:bg-[#12151c]/50 border-slate-200 dark:border-white/[0.08] text-slate-500 dark:text-slate-400 cursor-not-allowed select-none'
                 }`}
               />
             </div>
@@ -468,8 +468,8 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                 onChange={(e) => setDescription(e.target.value)}
                 className={`w-full px-3.5 py-2.5 border rounded-xl text-xs focus:outline-none resize-none ${
                   canManageProject
-                    ? 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#5cb028]/30 focus:border-[#5cb028]'
-                    : 'bg-slate-100/70 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed select-none'
+                    ? 'bg-slate-50 dark:bg-[#12151c] border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white focus:ring-2 focus:ring-[#88c958]/30 focus:border-[#88c958]'
+                    : 'bg-slate-100/70 dark:bg-[#12151c]/50 border-slate-200 dark:border-white/[0.08] text-slate-500 dark:text-slate-400 cursor-not-allowed select-none'
                 }`}
               />
             </div>
@@ -479,7 +479,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             <div className="pt-2">
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold shadow-xs dark:border dark:border-slate-700 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a]"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Configuration</span>
@@ -580,15 +580,15 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
           </div>
         </div>
       ) : (
-        <div className="bg-slate-50 dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-slate-50 dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-[#141720] text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
               <Lock className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>Enterprise Danger Zone</span>
-                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase">
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-200 dark:bg-[#141720] text-slate-600 dark:text-slate-400 uppercase">
                   Restricted
                 </span>
               </h3>
@@ -597,7 +597,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
               </p>
             </div>
           </div>
-          <div className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-400 dark:text-slate-500 shrink-0 select-none">
+          <div className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-400 dark:text-slate-500 shrink-0 select-none">
             🔒 Operations Locked
           </div>
         </div>
@@ -616,14 +616,14 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             <button
               type="button"
               onClick={() => setIsInviteOpen(false)}
-              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleInviteSubmit}
-              className="px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a]"
             >
               Send Invitation
             </button>
@@ -649,14 +649,14 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                     setInviteEmail(found.email);
                   }
                 }}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#5cb028] cursor-pointer"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#88c958] cursor-pointer"
               >
                 {workspaceMembers.map((m) => {
                   const isAlreadyMember = project.members?.some(
                     (p) => p.email.toLowerCase() === m.email.toLowerCase()
                   );
                   return (
-                    <option key={m.email} value={m.email} disabled={isAlreadyMember} className="dark:bg-slate-900">
+                    <option key={m.email} value={m.email} disabled={isAlreadyMember} className="dark:bg-[#12151c]">
                       {m.name} ({m.email}) {isAlreadyMember ? '— Already Added' : ''}
                     </option>
                   );
@@ -670,7 +670,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                     setInviteName('');
                     setInviteEmail('');
                   }}
-                  className="text-[11px] text-[#5cb028] hover:text-[#4e9921] hover:underline font-medium cursor-pointer"
+                  className="text-[11px] text-[#88c958] hover:text-[#76b349] hover:underline font-medium cursor-pointer"
                 >
                   + Or enter custom name & email
                 </button>
@@ -686,7 +686,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                   placeholder="e.g. Jordan Hayes"
                   value={inviteName}
                   onChange={(e) => setInviteName(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -698,7 +698,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
                   placeholder="jordan.h@retroflow.io"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -728,13 +728,13 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
             <select
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value as ProjectMemberRole)}
-              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 cursor-pointer"
             >
-              <option value="Developer" className="dark:bg-slate-900">Developer</option>
-              <option value="QA" className="dark:bg-slate-900">QA</option>
-              <option value="Manager" className="dark:bg-slate-900">Manager</option>
-              <option value="DevOps" className="dark:bg-slate-900">DevOps</option>
-              <option value="Project Lead" className="dark:bg-slate-900">Project Lead</option>
+              <option value="Developer" className="dark:bg-[#12151c]">Developer</option>
+              <option value="QA" className="dark:bg-[#12151c]">QA</option>
+              <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
+              <option value="DevOps" className="dark:bg-[#12151c]">DevOps</option>
+              <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
             </select>
           </div>
 
