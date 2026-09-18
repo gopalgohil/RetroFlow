@@ -16,6 +16,7 @@ import {
   MembersTab,
   AnalyticsTab,
   WelcomeToast,
+  LogoutConfirmModal,
 } from '@/components/dashboard';
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
 import { useDashboardTabs } from '@/hooks/useDashboardTabs';
@@ -163,6 +164,7 @@ function DashboardContent() {
 
   // Modal dialog states
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<RetroBoard | null>(null);
 
   // Auth Logout
@@ -321,25 +323,25 @@ function DashboardContent() {
         {/* Top Header */}
         <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
           <div className="flex items-center gap-3">
-            <Image
-              src="/logo.svg"
-              alt="RetroFlow Logo"
-              width={36}
-              height={36}
-              className="w-9 h-9 rounded-xl object-contain shadow-xs"
-            />
-            <div>
-              <span className="font-extrabold text-base tracking-tight text-slate-900">RetroFlow</span>
-              <span className="text-[10px] uppercase font-bold text-rose-700 ml-2 tracking-wider px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200">
-                Request Rejected
-              </span>
-            </div>
+            <Link href="/" className="flex items-center group">
+              <Image
+                src="/logo.svg"
+                alt="Logo"
+                width={140}
+                height={44}
+                className="h-9 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+                priority
+              />
+            </Link>
+            <span className="text-[10px] uppercase font-bold text-rose-700 tracking-wider px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200">
+              Request Rejected
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => handleClearAndNavigate('/login')}
+              onClick={() => setIsLogoutModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 hover:text-slate-900 transition-all cursor-pointer border border-slate-200 shadow-2xs"
             >
               <LogOut className="w-3.5 h-3.5 text-slate-500" />
@@ -392,7 +394,7 @@ function DashboardContent() {
 
               <button
                 type="button"
-                onClick={() => handleClearAndNavigate('/login')}
+                onClick={() => setIsLogoutModalOpen(true)}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5 text-slate-500" />
@@ -409,6 +411,17 @@ function DashboardContent() {
             gopalgohel249@gmail.com
           </a>
         </footer>
+
+        {/* Logout Confirmation Modal */}
+        <LogoutConfirmModal
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={() => {
+            setIsLogoutModalOpen(false);
+            handleClearAndNavigate('/login');
+          }}
+          user={activeUser}
+        />
       </div>
     );
   }
@@ -423,19 +436,19 @@ function DashboardContent() {
         {/* Top Header */}
         <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
           <div className="flex items-center gap-3">
-            <Image
-              src="/logo.svg"
-              alt="RetroFlow Logo"
-              width={36}
-              height={36}
-              className="w-9 h-9 rounded-xl object-contain shadow-xs"
-            />
-            <div>
-              <span className="font-extrabold text-base tracking-tight text-slate-900">RetroFlow</span>
-              <span className="text-[10px] uppercase font-bold text-amber-700 ml-2 tracking-wider px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
-                Access Review
-              </span>
-            </div>
+            <Link href="/" className="flex items-center group">
+              <Image
+                src="/logo.svg"
+                alt="Logo"
+                width={140}
+                height={44}
+                className="h-9 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+                priority
+              />
+            </Link>
+            <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wider px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
+              Access Review
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -445,7 +458,7 @@ function DashboardContent() {
             </div>
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={() => setIsLogoutModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 hover:text-slate-900 transition-all cursor-pointer border border-slate-200 shadow-2xs"
             >
               <LogOut className="w-3.5 h-3.5 text-slate-500" />
@@ -534,7 +547,7 @@ function DashboardContent() {
 
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={() => setIsLogoutModalOpen(true)}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5 text-slate-500" />
@@ -556,6 +569,17 @@ function DashboardContent() {
         <footer className="px-6 py-3 text-center text-[11px] text-slate-400 border-t border-slate-200/80 bg-white/50 backdrop-blur-xs relative z-10">
           RetroFlow &bull; Enterprise Agile Retrospectives &bull; gopalgohel249@gmail.com
         </footer>
+
+        {/* Logout Confirmation Modal */}
+        <LogoutConfirmModal
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={() => {
+            setIsLogoutModalOpen(false);
+            handleLogout();
+          }}
+          user={activeUser}
+        />
       </div>
     );
   }

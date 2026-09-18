@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { ProjectApiService } from '@/services/projectApi';
-import { EnrichedActionItem, Project } from '@/types/project';
+import { EnrichedActionItem } from '@/types/project';
 import { useDebounce } from '@/hooks/useDebounce';
 
 export interface UseActionItemsOptions {
@@ -16,7 +16,6 @@ export function useActionItems({
   onActionItemsCountChange,
 }: UseActionItemsOptions = {}) {
   const [items, setItems] = useState<EnrichedActionItem[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [toastFeedback, setToastFeedback] = useState<string | null>(null);
@@ -41,18 +40,6 @@ export function useActionItems({
     setTimeout(() => setToastFeedback(null), 3000);
   }, []);
 
-  // 1. Fetch available projects for dropdown
-  useEffect(() => {
-    let isMounted = true;
-    ProjectApiService.getProjects()
-      .then((data) => {
-        if (isMounted) setProjects(data || []);
-      })
-      .catch((err) => console.warn('[useActionItems] Projects load:', err));
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // 2. Fetch action items with backend search & team toggle
   const loadActionItems = useCallback(async () => {
@@ -153,12 +140,9 @@ export function useActionItems({
     return { total, todo, inProgress, done, completionRate };
   }, [items]);
 
-  // Project selector options
+  // Project selector options derived directly from active action items
   const projectOptions = useMemo(() => {
     const map = new Map<string, { id: string; key: string; name: string }>();
-    projects.forEach((p) => {
-      map.set(p.key.toUpperCase(), { id: p.id, key: p.key.toUpperCase(), name: p.name });
-    });
     items.forEach((it) => {
       if (it.projectKey && !map.has(it.projectKey.toUpperCase())) {
         map.set(it.projectKey.toUpperCase(), {
@@ -169,7 +153,7 @@ export function useActionItems({
       }
     });
     return Array.from(map.values());
-  }, [projects, items]);
+  }, [items]);
 
   // Filtered & Sorted items (text search is handled directly by backend API)
   const filteredItems = useMemo(() => {

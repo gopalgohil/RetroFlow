@@ -11,12 +11,10 @@ class MembersService {
    * Retrieves all registered workspace users and whitelisted contributors
    * with assigned project counts and enterprise project roles
    * @param {string|ObjectId} userId - Requesting facilitator ID
-   * @returns {Promise<Array>} List of formatted workspace members
+   * @returns {Promise<Array>} 
    */
   async getWorkspaceMembers(userId, { page = 1, limit = 10, search = '' } = {}) {
-    // 1. Concurrently fetch registered users, facilitator retros, and active projects
-    // Only return users who are verified & have logged in, pre-approved users, or workspace admins.
-    // Unverified users currently on the OTP screen will NEVER appear in the admin dashboard!
+
     const [users, retros, projects] = await Promise.all([
       User.find(
         {
@@ -86,12 +84,12 @@ class MembersService {
       const projectRole = isAdmin
         ? 'Admin'
         : u.projectRole && u.projectRole !== 'Unassigned'
-        ? u.projectRole
-        : stats.isLead
-        ? 'Project Lead'
-        : roleList.length > 0
-        ? roleList[0]
-        : 'Developer';
+          ? u.projectRole
+          : stats.isLead
+            ? 'Project Lead'
+            : roleList.length > 0
+              ? roleList[0]
+              : 'Developer';
 
       // Generate avatar initials
       const nameParts = (u.name || '').trim().split(/\s+/);
