@@ -7,7 +7,6 @@ import {
   Calendar,
   Sparkles,
   FolderKanban,
-  Layers,
   ChevronDown,
   ExternalLink,
 } from 'lucide-react';
@@ -171,13 +170,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
                   <span className="truncate max-w-[200px]">{item.sourceRetroTitle}</span>
                 </span>
               )
-            )}
-
-            {item.sprintName && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-50 dark:bg-[#12151c] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
-                <Layers className="w-3 h-3 text-slate-400" />
-                <span>{item.sprintName}</span>
-              </span>
             )}
 
             {urgency && (
