@@ -116,7 +116,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Action Items',
       icon: CheckSquare,
       sublabel: 'Retrospective Deliverables',
-      badge: openActionItemsCount > 0 ? `${openActionItemsCount} Open` : undefined,
     },
     ...(canViewMembers
       ? [
