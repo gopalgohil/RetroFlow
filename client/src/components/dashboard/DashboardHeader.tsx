@@ -93,7 +93,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#0b0f17]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between gap-4 transition-colors duration-200">
+      <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#0b0f17]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 transition-colors duration-200">
         {/* Left: Mobile Hamburger + Project Switcher */}
         <div className="flex items-center gap-3 shrink-0">
           <button

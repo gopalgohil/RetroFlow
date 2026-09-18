@@ -771,8 +771,8 @@ function ProjectDetailContent() {
           <>
 
             {/* 3. Project Summary Banner */}
-            <div className="bg-white dark:bg-[#0f172a] border-b border-slate-200/80 dark:border-slate-800 px-6 py-6 sm:px-8">
-              <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="bg-white dark:bg-[#0f172a] border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 lg:px-8 py-6">
+              <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-[#5cb028] text-white font-black text-sm flex items-center justify-center shrink-0 shadow-md shadow-[#5cb028]/25">
                     {project.key}
@@ -818,7 +818,7 @@ function ProjectDetailContent() {
               </div>
 
               {/* 4. Tab Navigation Strip */}
-              <div className="max-w-7xl mx-auto mt-6 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1 overflow-x-auto">
+              <div className="w-full mt-6 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1 overflow-x-auto">
                 {[
                   { id: 'overview', label: 'Overview', icon: Activity },
                   { id: 'sprints', label: 'Sprints & Backlog', icon: Layers, count: project.sprints.length },
@@ -858,7 +858,7 @@ function ProjectDetailContent() {
             </div>
 
             {/* 5. Dynamic Tab View Content */}
-            <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto">
+            <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full">
               {isTabTransitioning ? (
                 <>
                   {activeTab === 'overview' && <OverviewTabSkeleton />}

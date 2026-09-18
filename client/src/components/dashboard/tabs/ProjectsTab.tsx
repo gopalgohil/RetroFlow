@@ -299,7 +299,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       {isFilterLoading ? (
         <ProjectCardsSkeleton count={displayedProjects.length > 0 ? Math.min(displayedProjects.length, 3) : 3} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
           {displayedProjects.length === 0 ? (
             <div className="col-span-full p-12 text-center rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 space-y-3">
               <div className="w-14 h-14 rounded-2xl bg-[#eaf5e3] dark:bg-[#5cb028]/15 text-[#3d8318] dark:text-[#5cb028] flex items-center justify-center font-bold mx-auto shadow-2xs">

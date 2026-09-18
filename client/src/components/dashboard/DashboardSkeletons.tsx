@@ -67,7 +67,7 @@ export const SessionsSkeleton: React.FC = () => {
  */
 export const SessionCardsSkeleton: React.FC<{ count?: number }> = ({ count = 4 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-pulse">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 animate-pulse">
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
@@ -331,7 +331,7 @@ export const ProjectsTabSkeleton: React.FC = () => {
  */
 export const ProjectCardsSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 animate-pulse">
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
@@ -699,7 +699,7 @@ export const DashboardLayoutSkeleton: React.FC<{ tab?: string }> = ({ tab = 'ses
         </header>
 
         {/* Dynamic Tab Body Skeleton */}
-        <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-8">
           <TabSkeleton tab={tab} />
         </main>
       </div>

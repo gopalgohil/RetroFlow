@@ -8,8 +8,8 @@ import React from 'react';
  */
 export const ProjectBannerSkeleton: React.FC<{ activeTab?: string }> = ({ activeTab = 'overview' }) => {
   return (
-    <div className="bg-white dark:bg-[#0b0f17] border-b border-slate-200/80 dark:border-slate-800 px-6 py-6 sm:px-8 animate-pulse">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div className="bg-white dark:bg-[#0b0f17] border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 lg:px-8 py-6 animate-pulse">
+      <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-start gap-4">
           {/* Project Key Avatar Skeleton */}
           <div className="w-12 h-12 rounded-2xl bg-[#eaf5e3] dark:bg-[#5cb028]/20 shrink-0" />
@@ -52,7 +52,7 @@ export const ProjectBannerSkeleton: React.FC<{ activeTab?: string }> = ({ active
       </div>
 
       {/* Tab Navigation Strip Skeleton */}
-      <div className="max-w-7xl mx-auto mt-6 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-2 overflow-x-auto">
+      <div className="w-full mt-6 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-2 overflow-x-auto">
         {[
           { id: 'overview', label: 'Overview', width: 'w-24' },
           { id: 'sprints', label: 'Sprints & Backlog', width: 'w-36' },
@@ -329,7 +329,7 @@ export const ProjectDetailSkeleton: React.FC<{
   return (
     <div className="animate-in fade-in duration-150">
       <ProjectBannerSkeleton activeTab={activeTab} />
-      <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto">
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full">
         {activeTab === 'overview' && <OverviewTabSkeleton />}
         {activeTab === 'sprints' && <SprintsTabSkeleton />}
         {activeTab === 'retros' && <RetrosTabSkeleton />}

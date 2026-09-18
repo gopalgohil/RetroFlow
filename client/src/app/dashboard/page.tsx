@@ -617,7 +617,7 @@ function DashboardContent() {
         />
 
         {/* Dynamic View Body with Component Skeletons */}
-        <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-8">
           {isCurrentTabLoading ? (
             <TabSkeleton tab={activeTab} />
           ) : (
