@@ -198,12 +198,6 @@ export const SessionList: React.FC<SessionListProps> = ({
                     />
                     {session.status}
                   </span>
-
-                  {session.approvalRequired && (
-                    <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] font-bold bg-[#eaf5e3] dark:bg-white/[0.05] text-[#3d8318] dark:text-slate-300 border border-[#cdeac0] dark:border-white/[0.08]">
-                      Waiting Room
-                    </span>
-                  )}
                 </div>
 
                 <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 dark:text-slate-500">
