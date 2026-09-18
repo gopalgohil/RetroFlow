@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Sparkles, CheckCircle2 } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Sparkles, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useActionItems } from '@/hooks/useActionItems';
 import { ActionItemsSkeleton, ActionItemsCardsSkeleton } from '@/components/dashboard/DashboardSkeletons';
 import {
@@ -17,6 +17,8 @@ interface ActionItemsTabProps {
   isManager?: boolean;
   onActionItemsCountChange?: (count: number) => void;
 }
+
+const DEFAULT_ITEMS_PER_PAGE = 8;
 
 export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
   user,
@@ -50,10 +52,66 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     handleCycleStatus,
   } = useActionItems({ user, isAdmin, isManager, onActionItemsCountChange });
 
-  // Filter transition loading state for smooth skeleton animation on status/filter changes
-  const [isFilterLoading, setIsFilterLoading] = React.useState(false);
+  // Pagination states (8 items per page)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentLimit, setCurrentLimit] = useState<number>(DEFAULT_ITEMS_PER_PAGE);
+  const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
 
-  const handleStatusFilterChange = React.useCallback(
+  // Filter transition loading state for smooth skeleton animation on status/filter changes
+  const [isFilterLoading, setIsFilterLoading] = useState<boolean>(false);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    selectedProject,
+    selectedStatus,
+    selectedPriority,
+    sortBy,
+    searchQuery,
+    viewAllTeam,
+    currentLimit,
+  ]);
+
+  const totalItems = filteredItems.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / currentLimit));
+  const activePage = Math.min(currentPage, totalPages);
+  const hasPrev = activePage > 1;
+  const hasNext = activePage < totalPages;
+
+  const startRange = totalItems === 0 ? 0 : (activePage - 1) * currentLimit + 1;
+  const endRange = Math.min(activePage * currentLimit, totalItems);
+
+  // Paginated items slice
+  const paginatedItems = useMemo(() => {
+    const startIndex = (activePage - 1) * currentLimit;
+    return filteredItems.slice(startIndex, startIndex + currentLimit);
+  }, [filteredItems, activePage, currentLimit]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage === activePage || newPage < 1 || newPage > totalPages) return;
+    setIsPageLoading(true);
+    setCurrentPage(newPage);
+    setTimeout(() => {
+      setIsPageLoading(false);
+    }, 180);
+  };
+
+  // Page numbers with ellipsis windowing
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (activePage <= 3) {
+      return [1, 2, 3, 4, '...', totalPages];
+    }
+    if (activePage >= totalPages - 2) {
+      return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', activePage - 1, activePage, activePage + 1, '...', totalPages];
+  }, [totalPages, activePage]);
+
+  const handleStatusFilterChange = useCallback(
     (newStatus: string) => {
       if (newStatus === selectedStatus) return;
       setIsFilterLoading(true);
@@ -65,7 +123,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     [selectedStatus, setSelectedStatus]
   );
 
-  const handleProjectFilterChange = React.useCallback(
+  const handleProjectFilterChange = useCallback(
     (newProj: string) => {
       if (newProj === selectedProject) return;
       setIsFilterLoading(true);
@@ -77,7 +135,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     [selectedProject, setSelectedProject]
   );
 
-  const handlePriorityFilterChange = React.useCallback(
+  const handlePriorityFilterChange = useCallback(
     (newPriority: string) => {
       if (newPriority === selectedPriority) return;
       setIsFilterLoading(true);
@@ -89,7 +147,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     [selectedPriority, setSelectedPriority]
   );
 
-  const handleSortFilterChange = React.useCallback(
+  const handleSortFilterChange = useCallback(
     (newSort: 'dueDate' | 'priority' | 'newest') => {
       if (newSort === sortBy) return;
       setIsFilterLoading(true);
@@ -101,7 +159,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     [sortBy, setSortBy]
   );
 
-  const handleResetFiltersWithLoader = React.useCallback(() => {
+  const handleResetFiltersWithLoader = useCallback(() => {
     setIsFilterLoading(true);
     clearAllFilters();
     setTimeout(() => {
@@ -109,7 +167,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     }, 320);
   }, [clearAllFilters]);
 
-  const handleToggleTeamView = React.useCallback(
+  const handleToggleTeamView = useCallback(
     (val: boolean) => {
       if (val === viewAllTeam) return;
       setIsFilterLoading(true);
@@ -200,8 +258,8 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
 
       {/* 4. Action Items List with Smooth UI Skeleton Loader */}
       <div className="space-y-3">
-        {isLoading || isFilterLoading ? (
-          <ActionItemsCardsSkeleton count={filteredItems.length > 0 ? Math.min(filteredItems.length, 3) : 3} />
+        {isLoading || isFilterLoading || isPageLoading ? (
+          <ActionItemsCardsSkeleton count={Math.min(currentLimit, 8)} />
         ) : filteredItems.length === 0 ? (
           <ActionItemsEmptyState
             totalCount={items.length}
@@ -209,10 +267,11 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
             onResetFilters={handleResetFiltersWithLoader}
           />
         ) : (
-          filteredItems.map((item) => (
+          paginatedItems.map((item, idx) => (
             <ActionItemCard
               key={item.id}
               item={item}
+              displayIndex={(activePage - 1) * currentLimit + idx + 1}
               isUpdating={updatingItemId === item.id}
               onStatusChange={handleStatusChange}
               onCycleStatus={handleCycleStatus}
@@ -220,6 +279,83 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
           ))
         )}
       </div>
+
+      {/* 5. Enterprise Pagination Footer (after 8 items) */}
+      {totalItems > 0 && totalPages > 1 && (
+        <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          {/* Left: Range & Limit Selector */}
+          <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+            <span>
+              Showing <strong className="text-slate-800 dark:text-slate-200">{startRange}</strong> to{' '}
+              <strong className="text-slate-800 dark:text-slate-200">{endRange}</strong> of{' '}
+              <strong className="text-slate-800 dark:text-slate-200">{totalItems}</strong> action items
+            </span>
+
+            <div className="flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-white/[0.08]">
+              <span className="text-[11px] text-slate-400 dark:text-slate-500">Rows:</span>
+              <select
+                value={currentLimit}
+                onChange={(e) => setCurrentLimit(Number(e.target.value))}
+                className="px-2 py-1 bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-lg text-[11px] font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#88c958] cursor-pointer"
+              >
+                <option value={8}>8 per page</option>
+                <option value={16}>16 per page</option>
+                <option value={24}>24 per page</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Right: Page Navigation Controls */}
+          <div className="flex items-center gap-1">
+            {/* Previous Button */}
+            <button
+              type="button"
+              onClick={() => handlePageChange(activePage - 1)}
+              disabled={!hasPrev}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#12151c] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Prev</span>
+            </button>
+
+            {/* Page Number Pills */}
+            {pageNumbers.map((p, idx) =>
+              typeof p === 'number' ? (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => handlePageChange(p)}
+                  className={`min-w-[32px] h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    p === activePage
+                      ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black'
+                      : 'bg-slate-50 dark:bg-[#12151c] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08] hover:bg-slate-100 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {p}
+                </button>
+              ) : (
+                <span
+                  key={`ellipsis-${idx}`}
+                  className="px-1 text-slate-400 dark:text-slate-500 font-bold"
+                >
+                  ...
+                </span>
+              )
+            )}
+
+            {/* Next Button */}
+            <button
+              type="button"
+              onClick={() => handlePageChange(activePage + 1)}
+              disabled={!hasNext}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#12151c] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Floating Toast Feedback */}
       {toastFeedback && (

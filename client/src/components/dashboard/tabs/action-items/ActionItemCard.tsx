@@ -3,21 +3,20 @@
 import React from 'react';
 import Link from 'next/link';
 import {
-  Check,
   Calendar,
   Sparkles,
   FolderKanban,
   ChevronDown,
   ExternalLink,
-  CircleDot,
 } from 'lucide-react';
 import { EnrichedActionItem } from '@/types/project';
 
 interface ActionItemCardProps {
   item: EnrichedActionItem;
+  displayIndex?: number;
   isUpdating: boolean;
   onStatusChange: (item: EnrichedActionItem, status: 'todo' | 'in_progress' | 'done') => void;
-  onCycleStatus: (item: EnrichedActionItem) => void;
+  onCycleStatus?: (item: EnrichedActionItem) => void;
 }
 
 const PRIORITY_CONFIG: Record<
@@ -48,6 +47,7 @@ const PRIORITY_CONFIG: Record<
 
 export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
   item,
+  displayIndex,
   isUpdating,
   onStatusChange,
   onCycleStatus,
@@ -113,36 +113,22 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           : 'bg-white dark:bg-[#0e1015] border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-[#88c958]/50 dark:hover:border-[#88c958]/40'
       }`}
     >
-      {/* Left: Task Action Checkbox & Content */}
+      {/* Left: Task Action Index & Content */}
       <div className="flex items-start gap-3.5 flex-1 min-w-0">
-        {/* Interactive Task Checkbox Button */}
-        <button
-          type="button"
-          onClick={() => onCycleStatus(item)}
-          disabled={isUpdating}
-          className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${
-            isDone
-              ? 'bg-[#5cb028] border-[#5cb028] text-white dark:bg-[#88c958] dark:border-[#88c958] dark:text-[#08090a] shadow-xs scale-100'
-              : isInProgress
-              ? 'border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20'
-              : 'border-slate-300 dark:border-white/20 hover:border-[#88c958] dark:hover:border-[#88c958] hover:bg-[#eaf5e3]/50 dark:hover:bg-[#88c958]/10 text-transparent'
-          }`}
-          title={
-            isDone
-              ? 'Task completed! Click to reopen'
-              : isInProgress
-              ? 'In progress. Click to mark complete'
-              : 'Click to start working on this task'
-          }
-        >
-          {isDone ? (
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-          ) : isInProgress ? (
-            <div className="w-2 h-2 rounded-full bg-sky-600 dark:bg-sky-400" />
-          ) : (
-            <Check className="w-3 h-3 text-[#5cb028] dark:text-[#88c958] opacity-0 group-hover:opacity-100 transition-opacity" />
-          )}
-        </button>
+        {/* Item Sequence Number Badge */}
+        {typeof displayIndex === 'number' && (
+          <div
+            className={`mt-0.5 min-w-[28px] h-7 px-1.5 rounded-xl text-xs font-black flex items-center justify-center shrink-0 border select-none transition-all ${
+              isDone
+                ? 'bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border-[#cdeac0] dark:border-[#88c958]/30'
+                : isInProgress
+                ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-500/30'
+                : 'bg-slate-100 dark:bg-[#12151c] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/[0.08]'
+            }`}
+          >
+            {displayIndex}
+          </div>
+        )}
 
         {/* Task Title, Priority & Clean Sub-row */}
         <div className="space-y-2 flex-1 min-w-0">
@@ -154,7 +140,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
                   ? 'line-through text-slate-400 dark:text-slate-500 font-medium'
                   : 'text-slate-900 dark:text-slate-100 group-hover:text-[#3d8318] dark:group-hover:text-[#88c958]'
               }`}
-              onClick={() => onCycleStatus(item)}
+              onClick={() => onCycleStatus?.(item)}
             >
               {item.title}
             </h4>
