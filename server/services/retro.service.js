@@ -177,6 +177,37 @@ class RetroService {
       query.title = { $regex: filters.search.trim(), $options: 'i' };
     }
 
+    // Enterprise Backend Pagination
+    if (filters.page || (filters.limit && String(filters.limit).toLowerCase() !== 'all')) {
+      const pageNum = Math.max(1, parseInt(filters.page, 10) || 1);
+      const limitNum = Math.min(50, Math.max(1, parseInt(filters.limit, 10) || 9));
+      const skip = (pageNum - 1) * limitNum;
+
+      const [totalItems, retros] = await Promise.all([
+        RetroBoard.countDocuments(query),
+        RetroBoard.find(query)
+          .populate('createdBy', 'name email')
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+      ]);
+
+      const totalPages = Math.ceil(totalItems / limitNum) || 1;
+
+      return {
+        retros,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          totalItems,
+          totalPages,
+          hasNextPage: pageNum < totalPages,
+          hasPrevPage: pageNum > 1,
+        },
+      };
+    }
+
     const retros = await RetroBoard.find(query)
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 })

@@ -129,8 +129,15 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
         params: searchQuery ? { search: searchQuery.trim() } : undefined,
         signal: controller.signal,
       });
-      if (controller.signal.aborted) return;
-      const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+      const list = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.data?.retros)
+        ? res.data.retros
+        : Array.isArray(res?.retros)
+        ? res.retros
+        : [];
       setSessions(list);
       try {
         const count = list.filter((s: any) => s.status === 'active').length;

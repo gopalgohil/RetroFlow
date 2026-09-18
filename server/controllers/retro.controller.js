@@ -40,8 +40,8 @@ class RetroController {
    * GET /api/retros
    */
   getUserRetros = asyncHandler(async (req, res) => {
-    const { status, search } = req.query;
-    const retros = await retroService.getUserRetros(req.user, { status, search });
+    const { status, search, page, limit, all } = req.query;
+    const retros = await retroService.getUserRetros(req.user, { status, search, page, limit, all });
     return ApiResponse.ok(res, retros, 'Retrospectives retrieved successfully');
   });
 
