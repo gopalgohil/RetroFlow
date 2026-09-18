@@ -40,6 +40,12 @@ export interface RequestOptions extends RequestInit {
 }
 
 /**
+ * Single-flight in-flight request deduplication map for GET requests.
+ * Prevents identical simultaneous API requests from firing multiple times over the network.
+ */
+const inFlightGetRequests = new Map<string, Promise<any>>();
+
+/**
  * Core Universal Request Handler
  */
 async function request<T = any>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -83,114 +89,154 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
     } catch {}
   }
 
-  const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-    ...(userEmail ? { 'x-user-email': userEmail } : {}),
-    ...(userRole ? { 'x-user-role': userRole } : {}),
-    ...headers,
-  };
+  const method = (customConfig.method || 'GET').toUpperCase();
+  const isGet = method === 'GET';
 
-  const config: RequestInit = {
-    cache: 'no-store',
-    ...customConfig,
-    headers: defaultHeaders,
-  };
-
-  const isDev = process.env.NODE_ENV !== 'production';
-
-  // 1. Log outgoing request in development console with full payload for network observability
-  if (isDev) {
-    const method = (config.method || 'GET').toUpperCase();
-    console.groupCollapsed(
-      `%c🚀 [API Call] ${method} ${endpoint}`,
-      'color: #6366f1; font-weight: bold;'
-    );
-    console.log('📍 Full URL:', url);
-    console.log('👤 Request User Context:', { email: userEmail, role: userRole });
-    if (config.body) {
-      try {
-        console.log('📦 JSON Payload:', JSON.parse(config.body as string));
-      } catch {
-        console.log('📦 Payload:', config.body);
-      }
-    }
-    console.groupEnd();
+  // Coalesce identical simultaneous GET requests to eliminate duplicate network traffic
+  const dedupKey = isGet ? `${url}::${authToken || ''}` : null;
+  if (dedupKey && inFlightGetRequests.has(dedupKey)) {
+    return inFlightGetRequests.get(dedupKey)!;
   }
 
-  try {
-    const startTime = performance.now();
-    const response = await fetch(url, config);
-    const duration = Math.round(performance.now() - startTime);
+  const executeRequest = async (): Promise<T> => {
+    const defaultHeaders: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      ...(userEmail ? { 'x-user-email': userEmail } : {}),
+      ...(userRole ? { 'x-user-role': userRole } : {}),
+      ...headers,
+    };
 
-    let data: any;
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
-    } else {
-      data = await response.text();
-    }
+    const config: RequestInit = {
+      cache: 'no-store',
+      ...customConfig,
+      headers: defaultHeaders,
+    };
 
-    // 2. Log response in development console
+    const isDev = process.env.NODE_ENV !== 'production';
+
+    // 1. Log outgoing request in development console with full payload for network observability
     if (isDev) {
-      const statusColor = response.ok ? '#10b981' : '#f43f5e';
       console.groupCollapsed(
-        `%c${response.ok ? '✅' : '❌'} [API Response] ${response.status} (${duration}ms) ${endpoint}`,
-        `color: ${statusColor}; font-weight: bold;`
+        `%c🚀 [API Call] ${method} ${endpoint}`,
+        'color: #6366f1; font-weight: bold;'
       );
-      console.log('Status:', response.status);
-      console.log('Response Body:', data);
+      console.log('📍 Full URL:', url);
+      console.log('👤 Request User Context:', { email: userEmail, role: userRole });
+      if (config.body) {
+        try {
+          console.log('📦 JSON Payload:', JSON.parse(config.body as string));
+        } catch {
+          console.log('📦 Payload:', config.body);
+        }
+      }
       console.groupEnd();
     }
 
-    // 3. Handle HTTP Errors uniformly
-    if (!response.ok) {
-      const errorMessage =
-        (typeof data === 'object' && data !== null && (data.message || data.error)) ||
-        `Request failed with status ${response.status}`;
+    try {
+      const startTime = performance.now();
+      const response = await fetch(url, config);
+      const duration = Math.round(performance.now() - startTime);
 
-      const error = new Error(errorMessage) as any;
-      error.status = response.status;
-      error.data = data;
+      let data: any;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
+
+      // 2. Log response in development console
+      if (isDev) {
+        const statusColor = response.ok ? '#10b981' : '#f43f5e';
+        console.groupCollapsed(
+          `%c${response.ok ? '✅' : '❌'} [API Response] ${response.status} (${duration}ms) ${endpoint}`,
+          `color: ${statusColor}; font-weight: bold;`
+        );
+        console.log('📦 Response Data:', data);
+        console.groupEnd();
+      }
+
+      // 3. Handle Unauthorized (401) sessions
+      if (response.status === 401 && typeof window !== 'undefined') {
+        const isAuthRoute =
+          endpoint.includes('/auth/login') ||
+          endpoint.includes('/auth/register') ||
+          endpoint.includes('/auth/forgot-password') ||
+          endpoint.includes('/auth/reset-password') ||
+          endpoint.includes('/auth/verify-email');
+
+        if (!isAuthRoute && !window.location.pathname.includes('/retro/')) {
+          console.warn('[API] 401 Unauthorized detected. Clearing session.');
+          localStorage.removeItem('retroflow_token');
+          localStorage.removeItem('retroflow_user');
+          if (
+            window.location.pathname !== '/login' &&
+            window.location.pathname !== '/signup' &&
+            window.location.pathname !== '/'
+          ) {
+            window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+          }
+        }
+      }
+
+      // 4. Unified error handling
+      if (!response.ok) {
+        const errorMessage =
+          (data && typeof data === 'object' && (data.message || data.error)) ||
+          `Request failed with status ${response.status}`;
+
+        const customError = new Error(errorMessage) as any;
+        customError.status = response.status;
+        customError.response = { status: response.status, data };
+        throw customError;
+      }
+
+      return data as T;
+    } catch (error: any) {
+      const isAbort =
+        Boolean(customConfig?.signal?.aborted) ||
+        Boolean(options?.signal?.aborted) ||
+        error?.name === 'AbortError' ||
+        error?.name === 'CanceledError' ||
+        error?.code === 20 ||
+        error?.code === 'ERR_CANCELED' ||
+        (typeof error === 'string' &&
+          (error.toLowerCase().includes('abort') ||
+            error.toLowerCase().includes('cancel') ||
+            error.toLowerCase().includes('unmount') ||
+            error.toLowerCase().includes('request triggered'))) ||
+        (error?.message &&
+          (String(error.message).toLowerCase().includes('aborted') ||
+            String(error.message).toLowerCase().includes('canceled') ||
+            String(error.message).toLowerCase().includes('cancelled') ||
+            String(error.message).toLowerCase().includes('unmount')));
+
+      if (isAbort) {
+        throw error;
+      }
+
+      if (isDev) {
+        const errorMsg =
+          error?.message ||
+          (typeof error === 'string' ? error : null) ||
+          (typeof error?.data?.message === 'string' ? error.data.message : null) ||
+          'Unknown network error';
+        console.error(`❌ [API Error] ${endpoint}:`, errorMsg);
+      }
       throw error;
     }
+  };
 
-    return data;
-  } catch (err: any) {
-    const isAbort =
-      Boolean(customConfig?.signal?.aborted) ||
-      Boolean(options?.signal?.aborted) ||
-      err?.name === 'AbortError' ||
-      err?.name === 'CanceledError' ||
-      err?.code === 20 ||
-      err?.code === 'ERR_CANCELED' ||
-      (typeof err === 'string' &&
-        (err.toLowerCase().includes('abort') ||
-          err.toLowerCase().includes('cancel') ||
-          err.toLowerCase().includes('unmount') ||
-          err.toLowerCase().includes('request triggered'))) ||
-      (err?.message &&
-        (String(err.message).toLowerCase().includes('aborted') ||
-          String(err.message).toLowerCase().includes('canceled') ||
-          String(err.message).toLowerCase().includes('cancelled') ||
-          String(err.message).toLowerCase().includes('unmount')));
-
-    if (isAbort) {
-      // Intentionally aborted requests (e.g. search debounce, component unmount, rapid tab switch)
-      // are normal cancellation lifecycle events and should not be logged as API errors.
-      throw err;
-    }
-
-    if (isDev) {
-      const errorMsg =
-        err?.message ||
-        (typeof err === 'string' ? err : null) ||
-        (typeof err?.data?.message === 'string' ? err.data.message : null) ||
-        'Unknown network error';
-      console.error(`❌ [API Error] ${endpoint}:`, errorMsg);
-    }
-    throw err;
+  if (dedupKey) {
+    const inFlightPromise = executeRequest().finally(() => {
+      inFlightGetRequests.delete(dedupKey);
+    });
+    inFlightGetRequests.set(dedupKey, inFlightPromise);
+    return inFlightPromise;
   }
+
+  return executeRequest();
 }
 
 /**
@@ -198,16 +244,13 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
  */
 export const api = {
   /**
-   * HTTP GET Request
+   * HTTP GET Request with automatic request coalescing
    */
   get: <T = any>(endpoint: string, options?: RequestOptions) =>
     request<T>(endpoint, {
       ...options,
       method: 'GET',
-      params: {
-        _t: Date.now(),
-        ...(options?.params || {}),
-      },
+      params: options?.params,
     }),
 
   /**

@@ -18,7 +18,7 @@ import {
   Project,
 } from '@/types/project';
 import { ProjectDataService } from '@/services/mockProjectData';
-import { ProjectApiService } from '@/services/projectApi';
+import { ProjectApiService, MembersApiService } from '@/services/projectApi';
 import { api, ENDPOINTS } from '@/lib/api';
 import { Modal, StatusPill, UserAvatar } from '@/components/ui';
 
@@ -111,13 +111,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       if (savedUser) currentUser = JSON.parse(savedUser);
     } catch {}
 
-    api
-      .get(ENDPOINTS.MEMBERS, { params: { limit: 50 } })
-      .then((res) => {
-        const rawMembers = Array.isArray(res.data)
-          ? res.data
-          : res.data?.members || [];
-
+    MembersApiService.getWorkspaceMembers()
+      .then((rawMembers) => {
         const combinedMap = new Map<string, WorkspaceMemberOption>();
 
         // 1. Current logged-in user (Admin / Creator) always at top

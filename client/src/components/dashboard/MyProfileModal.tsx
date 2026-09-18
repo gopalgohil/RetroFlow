@@ -151,7 +151,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, user]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

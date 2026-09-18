@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ENDPOINTS } from '@/lib/api';
+import { MembersApiService } from '@/services/projectApi';
 import {
   RetroBoard,
   CreateRetroPayload,
@@ -367,6 +368,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       removedMemberEmailsRef.current.delete(cleanEmail);
       try {
         await api.post(ENDPOINTS.MEMBERS, { email: cleanEmail });
+        MembersApiService.clearMembersCache();
         showToast(`Developer ${email} whitelisted successfully!`);
         await fetchMembers(1, membersLimit, membersSearch);
       } catch (err: any) {
@@ -396,6 +398,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
       try {
         await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(cleanEmail)}`);
+        MembersApiService.clearMembersCache();
         showToast(`Developer ${email} removed from workspace.`);
         await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {
@@ -428,6 +431,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
       try {
         await api.post('/api/members/bulk-remove', { emails: cleanList });
+        MembersApiService.clearMembersCache();
         showToast(`Successfully removed ${emails.length} contributor(s) from workspace.`);
         await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {
@@ -443,6 +447,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     async (email: string, newRole: string) => {
       try {
         await api.patch(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}/role`, { role: newRole });
+        MembersApiService.clearMembersCache();
         setMembers((prev) =>
           prev.map((m) =>
             m.email.toLowerCase() === email.toLowerCase()
@@ -492,6 +497,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
       try {
         await api.patch(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(email)}/approve`, { role });
+        MembersApiService.clearMembersCache();
         showToast(`Access approved for ${email}!`);
         await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {
@@ -526,6 +532,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
       try {
         await api.delete(`${ENDPOINTS.MEMBERS}/${encodeURIComponent(cleanEmail)}/reject`);
+        MembersApiService.clearMembersCache();
         showToast(`Registration request for ${email} rejected.`);
         await fetchMembers(membersPage, membersLimit, membersSearch);
       } catch (err: any) {

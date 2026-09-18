@@ -16,7 +16,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { Project, ProjectMemberRole } from '@/types/project';
-import { ProjectApiService } from '@/services/projectApi';
+import { ProjectApiService, MembersApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
 import { api, ENDPOINTS } from '@/lib/api';
 import { UserAvatar, StatusPill, Modal } from '@/components/ui';
@@ -55,10 +55,8 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
   // Load real workspace members when invite modal opens
   React.useEffect(() => {
     if (!isInviteOpen) return;
-    api
-      .get(ENDPOINTS.MEMBERS, { params: { limit: 50 } })
-      .then((res) => {
-        const raw = Array.isArray(res.data) ? res.data : res.data?.members || [];
+    MembersApiService.getWorkspaceMembers()
+      .then((raw) => {
         const map = new Map<string, any>();
         raw.forEach((m: any) => {
           if (m.email) {
@@ -94,7 +92,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
           setInviteEmail(unadded.email);
         }
       });
-  }, [isInviteOpen, project.members]);
+  }, [isInviteOpen]);
 
   // Settings form state
   const [name, setName] = useState(project.name);

@@ -22,14 +22,57 @@ export interface PaginatedProjectsResponse {
   counts: { all: number; managed: number };
 }
 
+export class MembersApiService {
+  private static inFlightMembersPromise: Promise<any[]> | null = null;
+  private static cachedMembers: { data: any[]; timestamp: number } | null = null;
+  private static readonly CACHE_TTL_MS = 20000; // 20s cache
+
+  public static clearMembersCache(): void {
+    this.inFlightMembersPromise = null;
+    this.cachedMembers = null;
+  }
+
+  static async getWorkspaceMembers(forceRefresh = false): Promise<any[]> {
+    const now = Date.now();
+    if (!forceRefresh && this.cachedMembers && now - this.cachedMembers.timestamp < this.CACHE_TTL_MS) {
+      return this.cachedMembers.data;
+    }
+
+    if (this.inFlightMembersPromise) {
+      return this.inFlightMembersPromise;
+    }
+
+    this.inFlightMembersPromise = (async () => {
+      try {
+        const res = await api.get(ENDPOINTS.MEMBERS, { params: { limit: 50 } });
+        const rawMembers = Array.isArray(res.data)
+          ? res.data
+          : res.data?.members || [];
+        this.cachedMembers = { data: rawMembers, timestamp: Date.now() };
+        return rawMembers;
+      } finally {
+        this.inFlightMembersPromise = null;
+      }
+    })();
+
+    return this.inFlightMembersPromise;
+  }
+}
+
 export class ProjectApiService {
   private static inFlightProjectsPromise: Promise<Project[]> | null = null;
   private static cachedProjects: { data: Project[]; timestamp: number } | null = null;
   private static readonly CACHE_TTL_MS = 3000;
 
+  private static inFlightProjectById: Map<string, Promise<Project>> = new Map();
+  private static cachedProjectById: Map<string, { data: Project; timestamp: number }> = new Map();
+  private static readonly PROJECT_CACHE_TTL_MS = 5000;
+
   public static clearProjectsCache(): void {
     this.inFlightProjectsPromise = null;
     this.cachedProjects = null;
+    this.inFlightProjectById.clear();
+    this.cachedProjectById.clear();
   }
 
   /**
@@ -49,7 +92,7 @@ export class ProjectApiService {
 
     this.inFlightProjectsPromise = (async () => {
       try {
-        const res = await api.get<any>(`${ENDPOINTS.PROJECTS}?all=true`);
+        const res = await api.get<any>(ENDPOINTS.PROJECTS, { params: { all: 'true' } });
         const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
         this.cachedProjects = { data: list, timestamp: Date.now() };
         return list;
@@ -117,11 +160,34 @@ export class ProjectApiService {
 
   /**
    * Fetch single project by ID or key (e.g. 'PGI' or 'proj-pgi')
+   * Includes in-flight request deduplication and 5-second micro-cache
    * GET /api/projects/:id
    */
-  static async getProjectById(idOrKey: string): Promise<Project> {
-    const res = await api.get<any>(`${ENDPOINTS.PROJECTS}/${idOrKey}`);
-    return res?.data || res;
+  static async getProjectById(idOrKey: string, forceRefresh = false): Promise<Project> {
+    const cleanKey = (idOrKey || '').toLowerCase().trim();
+    const now = Date.now();
+    const cached = this.cachedProjectById.get(cleanKey);
+    if (!forceRefresh && cached && now - cached.timestamp < this.PROJECT_CACHE_TTL_MS) {
+      return cached.data;
+    }
+
+    if (this.inFlightProjectById.has(cleanKey)) {
+      return this.inFlightProjectById.get(cleanKey)!;
+    }
+
+    const promise = (async () => {
+      try {
+        const res = await api.get<any>(`${ENDPOINTS.PROJECTS}/${idOrKey}`);
+        const data = res?.data || res;
+        this.cachedProjectById.set(cleanKey, { data, timestamp: Date.now() });
+        return data;
+      } finally {
+        this.inFlightProjectById.delete(cleanKey);
+      }
+    })();
+
+    this.inFlightProjectById.set(cleanKey, promise);
+    return promise;
   }
 
   /**
