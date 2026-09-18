@@ -113,19 +113,17 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
     >
       {/* Left: Task Action Index & Content */}
       <div className="flex items-start gap-3.5 flex-1 min-w-0">
-        {/* Item Sequence Number Badge */}
+        {/* Item Number (Plain dark number) */}
         {typeof displayIndex === 'number' && (
-          <div
-            className={`mt-0.5 min-w-[28px] h-7 px-1.5 rounded-xl text-xs font-black flex items-center justify-center shrink-0 border select-none transition-all ${
+          <span
+            className={`text-sm sm:text-base font-extrabold select-none shrink-0 tabular-nums min-w-[20px] pt-0.5 ${
               isDone
-                ? 'bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border-[#cdeac0] dark:border-[#88c958]/30'
-                : isInProgress
-                ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-500/30'
-                : 'bg-slate-100 dark:bg-[#12151c] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/[0.08]'
+                ? 'text-slate-400 dark:text-slate-500'
+                : 'text-slate-900 dark:text-slate-100'
             }`}
           >
             {displayIndex}
-          </div>
+          </span>
         )}
 
         {/* Task Title, Priority & Clean Sub-row */}
