@@ -55,7 +55,9 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
       }
     });
     const queryStr = searchParams.toString();
-    if (queryStr) url += `?${queryStr}`;
+    if (queryStr) {
+      url += url.includes('?') ? `&${queryStr}` : `?${queryStr}`;
+    }
   }
 
   // Retrieve JWT auth token and user context from localStorage if in browser environment

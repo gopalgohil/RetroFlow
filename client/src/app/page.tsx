@@ -41,7 +41,7 @@ export default function HomePage() {
             {/* Get Started Free Button */}
             <Link
               href="/signup"
-              className="px-4 py-2 text-xs sm:text-sm font-semibold bg-[#5cb028] hover:bg-[#4e9921] text-white rounded-xl shadow-md shadow-[#5cb028]/25 transition-all hover:scale-[1.02]"
+              className="px-4 py-2 text-xs sm:text-sm font-semibold bg-[#5cb028] hover:bg-[#4e9921] text-white rounded-xl shadow-md shadow-[#5cb028]/25 transition-colors duration-200"
             >
               Get Started Free
             </Link>
@@ -79,14 +79,14 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 sm:pt-3">
             <Link
               href="/signup"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white font-bold text-xs sm:text-sm shadow-xl shadow-[#5cb028]/25 transition-all hover:scale-105 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white font-bold text-xs sm:text-sm shadow-lg shadow-[#5cb028]/25 hover:shadow-xl hover:shadow-[#5cb028]/35 transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span>Start Free Retrospective</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/login"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl border font-bold text-xs sm:text-sm transition-all hover:scale-105 theme-btn-secondary"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-xl border font-bold text-xs sm:text-sm transition-colors duration-200 theme-btn-secondary"
             >
               Sign In to Workspace
             </Link>

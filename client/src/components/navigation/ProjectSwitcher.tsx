@@ -103,7 +103,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [isCreateModalOpen]);
+  }, []);
 
   // Click outside listener
   useEffect(() => {

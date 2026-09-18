@@ -116,7 +116,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
   useEffect(() => {
     fetchProjects(currentPage, filterMode);
-  }, [fetchProjects, currentPage, filterMode, isCreateModalOpen]);
+  }, [fetchProjects, currentPage, filterMode]);
 
   const handleDeleteProject = async () => {
     if (!projectToDelete) return;
