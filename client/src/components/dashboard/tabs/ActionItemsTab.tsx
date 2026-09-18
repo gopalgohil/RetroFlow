@@ -274,7 +274,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
               displayIndex={(activePage - 1) * currentLimit + idx + 1}
               isUpdating={updatingItemId === item.id}
               onStatusChange={handleStatusChange}
-              onCycleStatus={handleCycleStatus}
             />
           ))
         )}

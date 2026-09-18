@@ -16,7 +16,6 @@ interface ActionItemCardProps {
   displayIndex?: number;
   isUpdating: boolean;
   onStatusChange: (item: EnrichedActionItem, status: 'todo' | 'in_progress' | 'done') => void;
-  onCycleStatus?: (item: EnrichedActionItem) => void;
 }
 
 const PRIORITY_CONFIG: Record<
@@ -50,7 +49,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
   displayIndex,
   isUpdating,
   onStatusChange,
-  onCycleStatus,
 }) => {
   const isDone = item.status === 'done';
   const isInProgress = item.status === 'in_progress';
@@ -135,12 +133,11 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           {/* Main Task Row */}
           <div className="flex flex-wrap items-center gap-2">
             <h4
-              className={`text-sm font-bold tracking-tight transition-all cursor-pointer ${
+              className={`text-sm font-bold tracking-tight select-text ${
                 isDone
                   ? 'line-through text-slate-400 dark:text-slate-500 font-medium'
-                  : 'text-slate-900 dark:text-slate-100 group-hover:text-[#3d8318] dark:group-hover:text-[#88c958]'
+                  : 'text-slate-900 dark:text-slate-100'
               }`}
-              onClick={() => onCycleStatus?.(item)}
             >
               {item.title}
             </h4>
