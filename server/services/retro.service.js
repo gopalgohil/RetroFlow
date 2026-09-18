@@ -1477,14 +1477,36 @@ class RetroService {
       if (Array.isArray(r.cards)) {
         r.cards.forEach((c) => {
           const authorEmail = c.authorEmail?.toLowerCase()?.trim();
+          const authorName = c.author?.toLowerCase()?.trim();
           if (authorEmail && memberMap.has(authorEmail)) {
             memberMap.get(authorEmail).cardsShared += 1;
+          } else if (authorName) {
+            for (const m of memberMap.values()) {
+              if (
+                m.name?.toLowerCase()?.trim() === authorName ||
+                m.email?.split('@')[0]?.toLowerCase()?.trim() === authorName
+              ) {
+                m.cardsShared += 1;
+                break;
+              }
+            }
           }
+
           if (Array.isArray(c.voters)) {
             c.voters.forEach((v) => {
-              const vEmail = v?.toLowerCase()?.trim();
-              if (vEmail && memberMap.has(vEmail)) {
-                memberMap.get(vEmail).votesCast += 1;
+              const vStr = v?.toLowerCase()?.trim();
+              if (!vStr) return;
+              if (memberMap.has(vStr)) {
+                memberMap.get(vStr).votesCast += 1;
+              } else {
+                for (const m of memberMap.values()) {
+                  const mName = m.name?.toLowerCase()?.trim();
+                  const mEmailUser = m.email?.split('@')[0]?.toLowerCase()?.trim();
+                  if (mName === vStr || mEmailUser === vStr) {
+                    m.votesCast += 1;
+                    break;
+                  }
+                }
               }
             });
           }
@@ -1515,9 +1537,9 @@ class RetroService {
             ? Math.min(100, Math.round((m.retrosAttended / eligibleRetros) * 100))
             : 0;
 
-        let status = 'Active Contributor';
-        if (rate >= 85) status = 'Sprint Champion';
-        else if (rate < 60) status = 'Needs Nudge';
+        let status = 'Active';
+        if (rate >= 85) status = 'Consistent';
+        else if (rate < 60) status = 'Low Attendance';
 
         return {
           email: m.email,

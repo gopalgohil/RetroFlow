@@ -18,7 +18,7 @@ export interface RetroTrendItem {
   actionItemsCount: number;
 }
 
-export type EngagementStatus = 'Sprint Champion' | 'Active Contributor' | 'Needs Nudge';
+export type EngagementStatus = 'Consistent' | 'Active' | 'Low Attendance';
 
 export interface MemberAnalyticsItem {
   email: string;
@@ -61,4 +61,4 @@ export interface AnalyticsData {
   memberAnalytics: MemberAnalyticsItem[];
 }
 
-export type MemberStatusFilter = 'ALL' | 'CHAMPION' | 'ACTIVE' | 'NUDGE';
+export type MemberStatusFilter = 'ALL' | 'CONSISTENT' | 'ACTIVE' | 'LOW';

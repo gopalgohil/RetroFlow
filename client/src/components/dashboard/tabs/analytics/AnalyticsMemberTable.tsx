@@ -39,9 +39,9 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
       if (!matchesSearch) return false;
 
       // 2. Status pill filtering
-      if (statusFilter === 'CHAMPION') return m.status === 'Sprint Champion';
-      if (statusFilter === 'ACTIVE') return m.status === 'Active Contributor';
-      if (statusFilter === 'NUDGE') return m.status === 'Needs Nudge';
+      if (statusFilter === 'CONSISTENT') return m.status === 'Consistent' || m.status === ('Sprint Champion' as any);
+      if (statusFilter === 'ACTIVE') return m.status === 'Active' || m.status === ('Active Contributor' as any);
+      if (statusFilter === 'LOW') return m.status === 'Low Attendance' || m.status === ('Needs Nudge' as any);
 
       return true;
     });
@@ -86,9 +86,9 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
   const statusCounts = useMemo(() => {
     return {
       all: members.length,
-      champion: members.filter((m) => m.status === 'Sprint Champion').length,
-      active: members.filter((m) => m.status === 'Active Contributor').length,
-      nudge: members.filter((m) => m.status === 'Needs Nudge').length,
+      consistent: members.filter((m) => m.status === 'Consistent' || m.status === ('Sprint Champion' as any)).length,
+      active: members.filter((m) => m.status === 'Active' || m.status === ('Active Contributor' as any)).length,
+      low: members.filter((m) => m.status === 'Low Attendance' || m.status === ('Needs Nudge' as any)).length,
     };
   }, [members]);
 
@@ -138,36 +138,39 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
           </button>
           <button
             type="button"
-            onClick={() => setStatusFilter('CHAMPION')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              statusFilter === 'CHAMPION'
+            onClick={() => setStatusFilter('CONSISTENT')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              statusFilter === 'CONSISTENT'
                 ? 'bg-[#5cb028] text-white shadow-2xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black'
                 : 'bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] hover:bg-[#def0d4] dark:hover:bg-[#88c958]/25 border border-transparent dark:border-[#88c958]/30'
             }`}
           >
-            🏆 Champions ({statusCounts.champion})
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Consistent ({statusCounts.consistent})</span>
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter('ACTIVE')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
               statusFilter === 'ACTIVE'
                 ? 'bg-emerald-600 text-white shadow-2xs'
                 : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
             }`}
           >
-            Active ({statusCounts.active})
+            <Users className="w-3.5 h-3.5" />
+            <span>Active ({statusCounts.active})</span>
           </button>
           <button
             type="button"
-            onClick={() => setStatusFilter('NUDGE')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              statusFilter === 'NUDGE'
+            onClick={() => setStatusFilter('LOW')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              statusFilter === 'LOW'
                 ? 'bg-amber-600 text-white shadow-2xs'
                 : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-950/60'
             }`}
           >
-            ⚠️ Nudge ({statusCounts.nudge})
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>Low Attendance ({statusCounts.low})</span>
           </button>
         </div>
       </div>
@@ -286,18 +289,32 @@ export const AnalyticsMemberTable: React.FC<AnalyticsMemberTableProps> = ({ memb
                     {/* Status Badge */}
                     <td className="px-5 py-3.5 text-right">
                       <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                          m.status === 'Sprint Champion'
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                          m.status === 'Consistent' || m.status === ('Sprint Champion' as any)
                             ? 'bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30'
-                            : m.status === 'Active Contributor'
+                            : m.status === 'Active' || m.status === ('Active Contributor' as any)
                             ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/60'
                             : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60'
                         }`}
                       >
-                        {m.status === 'Sprint Champion' && <Award className="w-3 h-3 text-[#5cb028] dark:text-[#88c958]" />}
-                        {m.status === 'Active Contributor' && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
-                        {m.status === 'Needs Nudge' && <AlertTriangle className="w-3 h-3 text-amber-600" />}
-                        <span>{m.status}</span>
+                        {(m.status === 'Consistent' || m.status === ('Sprint Champion' as any)) && (
+                          <CheckCircle2 className="w-3 h-3 text-[#5cb028] dark:text-[#88c958]" />
+                        )}
+                        {(m.status === 'Active' || m.status === ('Active Contributor' as any)) && (
+                          <Users className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                        )}
+                        {(m.status === 'Low Attendance' || m.status === ('Needs Nudge' as any)) && (
+                          <AlertTriangle className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                        )}
+                        <span>
+                          {m.status === ('Sprint Champion' as any)
+                            ? 'Consistent'
+                            : m.status === ('Active Contributor' as any)
+                            ? 'Active'
+                            : m.status === ('Needs Nudge' as any)
+                            ? 'Low Attendance'
+                            : m.status}
+                        </span>
                       </span>
                     </td>
                   </tr>
