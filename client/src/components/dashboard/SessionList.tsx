@@ -173,17 +173,17 @@ export const SessionList: React.FC<SessionListProps> = ({
 
       {/* Sessions Grid */}
       {!isCardsLoading && filteredSessions.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4 lg:gap-4.5 2xl:gap-5">
           {paginatedSessions.map((session) => (
             <div
               key={session._id}
-              className="group relative p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] hover:border-[#88c958]/40 dark:hover:border-[#88c958]/60 hover:shadow-xl dark:hover:shadow-[0_0_24px_rgba(0,0,0,0.8)] transition-all flex flex-col justify-between"
+              className="group relative p-3.5 sm:p-4.5 2xl:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] hover:border-[#88c958]/40 dark:hover:border-[#88c958]/60 hover:shadow-xl dark:hover:shadow-[0_0_24px_rgba(0,0,0,0.8)] transition-all flex flex-col justify-between"
             >
               {/* Card Top Row: Status badge & Scheduled Date */}
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2 mb-2.5">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                       session.status === 'active'
                         ? 'bg-[#88c958]/10 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30'
                         : session.status === 'completed'
@@ -200,7 +200,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                   </span>
 
                   {session.approvalRequired && (
-                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-[#eaf5e3] dark:bg-white/[0.05] text-[#3d8318] dark:text-slate-300 border border-[#cdeac0] dark:border-white/[0.08]">
+                    <span className="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] font-bold bg-[#eaf5e3] dark:bg-white/[0.05] text-[#3d8318] dark:text-slate-300 border border-[#cdeac0] dark:border-white/[0.08]">
                       Waiting Room
                     </span>
                   )}
@@ -214,7 +214,7 @@ export const SessionList: React.FC<SessionListProps> = ({
 
               {/* Title & Description */}
               <div className="space-y-1 mb-3">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-[#88c958] transition-colors">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-[#88c958] transition-colors line-clamp-1">
                   {session.title}
                 </h3>
                 {session.description && (
@@ -230,8 +230,8 @@ export const SessionList: React.FC<SessionListProps> = ({
                   session.topics && session.topics.length > 0
                     ? session.topics
                     : [
-                        { title: 'What could be improved?', color: '#F43F5E' },
                         { title: 'What went well?', color: '#88c958' },
+                        { title: 'What could be improved?', color: '#F43F5E' },
                         { title: 'Action Items', color: '#0EA5E9' },
                       ];
 
@@ -249,11 +249,11 @@ export const SessionList: React.FC<SessionListProps> = ({
                 };
 
                 return (
-                  <div className="space-y-1.5 mb-4">
+                  <div className="space-y-1.5 mb-3.5">
                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">
                       AGENDA TOPICS:
                     </p>
-                    <div className="flex flex-wrap items-center gap-1.5">
+                    <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
                       {topicsList.map((t: any, idx: number) => {
                         let theme = colorMap[t.color];
                         if (!theme) {
@@ -281,8 +281,8 @@ export const SessionList: React.FC<SessionListProps> = ({
                             theme = colorMap['#0EA5E9'];
                           } else {
                             const fallbackColors = [
-                              colorMap['#F43F5E'],
                               colorMap['#10B981'],
+                              colorMap['#F43F5E'],
                               colorMap['#0EA5E9'],
                               colorMap['#8B5CF6'],
                             ];
@@ -303,11 +303,11 @@ export const SessionList: React.FC<SessionListProps> = ({
                         return (
                           <span
                             key={t.topicId || idx}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all inline-flex items-center gap-1.5 ${theme.bg} ${theme.text} ${theme.border}`}
+                            className={`px-1.5 py-0.5 sm:px-2 sm:py-0.5 2xl:px-2.5 2xl:py-1 rounded-lg text-[10.5px] sm:text-[11px] 2xl:text-xs font-bold border transition-all inline-flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 ${theme.bg} ${theme.text} ${theme.border}`}
                           >
                             <span>{t.title}</span>
                             <span
-                              className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-extrabold ${theme.badgeBg} ${theme.badgeText}`}
+                              className={`inline-flex items-center justify-center min-w-[16px] h-[16px] px-0.5 rounded-full text-[9px] sm:text-[9.5px] 2xl:text-[10px] font-extrabold ${theme.badgeBg} ${theme.badgeText}`}
                             >
                               {cardCount}
                             </span>
