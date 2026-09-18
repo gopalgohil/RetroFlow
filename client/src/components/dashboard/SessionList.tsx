@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Calendar,
   ExternalLink,
@@ -14,8 +14,12 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
+  Search,
+  Loader2,
+  X,
 } from 'lucide-react';
 import { RetroBoard } from '@/types/retro';
+import { useDebounce } from '@/hooks/useDebounce';
 import { ShareInviteModal } from './ShareInviteModal';
 import { SessionCardsSkeleton } from './DashboardSkeletons';
 
@@ -27,6 +31,8 @@ interface SessionListProps {
   onCreateNew: () => void;
   isLoading: boolean;
   isAdmin?: boolean;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 const ITEMS_PER_PAGE = 9;
@@ -39,6 +45,8 @@ export const SessionList: React.FC<SessionListProps> = ({
   onCreateNew,
   isLoading,
   isAdmin = true,
+  searchQuery = '',
+  onSearchChange,
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('active');
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +56,42 @@ export const SessionList: React.FC<SessionListProps> = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [invitingSession, setInvitingSession] = useState<RetroBoard | null>(null);
 
-  // Filtered sessions
+  // Debounced Search state (300ms industry standard)
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+  const debouncedSearch = useDebounce(localSearch, 300);
+  const prevPropSearchRef = useRef(searchQuery);
+
+  // Sync if external prop updates independently (e.g. cleared from outside)
+  useEffect(() => {
+    if (prevPropSearchRef.current !== searchQuery) {
+      prevPropSearchRef.current = searchQuery;
+      if (searchQuery !== localSearch) {
+        setLocalSearch(searchQuery);
+      }
+    }
+  }, [searchQuery, localSearch]);
+
+  // Trigger backend search query on debounced value
+  useEffect(() => {
+    if (!onSearchChange) return;
+    const trimmed = debouncedSearch.trim();
+    if (trimmed !== searchQuery) {
+      prevPropSearchRef.current = trimmed;
+      onSearchChange(trimmed);
+      setCurrentPage(1);
+    }
+  }, [debouncedSearch, searchQuery, onSearchChange]);
+
+  const handleClearSearch = () => {
+    setLocalSearch('');
+    prevPropSearchRef.current = '';
+    if (onSearchChange && searchQuery !== '') {
+      onSearchChange('');
+      setCurrentPage(1);
+    }
+  };
+
+  // Status Filtered sessions
   const filteredSessions = sessions.filter((s) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'active') return s.status === 'active';
@@ -109,76 +152,143 @@ export const SessionList: React.FC<SessionListProps> = ({
     });
   };
 
-  const isCardsLoading = isLoading || isFilterLoading || isPageLoading;
+  const isSearchDebouncing = localSearch.trim() !== searchQuery.trim();
+  const isSearching = isSearchDebouncing || isLoading;
+  const isCardsLoading = isLoading || isFilterLoading || isPageLoading || isSearchDebouncing;
+
+  // Tab counts
+  const activeCount = sessions.filter((s) => s.status === 'active').length;
+  const upcomingCount = sessions.filter(
+    (s) => new Date(s.scheduledDate) > new Date() && s.status !== 'completed'
+  ).length;
+  const completedCount = sessions.filter((s) => s.status === 'completed').length;
+  const allCount = sessions.length;
+
+  const tabs = [
+    { id: 'active', label: 'Active Sessions', count: activeCount },
+    { id: 'upcoming', label: 'Upcoming', count: upcomingCount },
+    { id: 'completed', label: 'Completed', count: completedCount },
+    { id: 'all', label: 'All Sessions', count: allCount },
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Session Filter Tabs Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-white/[0.08] pb-3">
-        <div className="flex items-center gap-2">
-          {[
-            { id: 'active', label: 'Active Sessions' },
-            { id: 'upcoming', label: 'Upcoming' },
-            { id: 'completed', label: 'Completed' },
-            { id: 'all', label: 'All Sessions' },
-          ].map((tab) => {
+      {/* Session Filter Tabs Bar with Search */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 border-b border-slate-200/80 dark:border-white/[0.08] pb-3.5">
+        {/* Left: Filter Pills with Dynamic Count Badges */}
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+          {tabs.map((tab) => {
             const isActive = activeFilter === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id as any)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                   isActive
                     ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_12px_rgba(136,201,88,0.25)]'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.05]'
                 }`}
               >
-                {tab.label}
+                <span>{tab.label}</span>
+                <span
+                  className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-extrabold transition-colors ${
+                    isActive
+                      ? 'bg-white/25 text-white dark:bg-[#08090a]/20 dark:text-[#08090a]'
+                      : 'bg-slate-100 dark:bg-white/[0.08] text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  {tab.count}
+                </span>
               </button>
             );
           })}
         </div>
 
-        {isCardsLoading ? (
-          <div className="h-4 w-28 rounded bg-slate-200/80 dark:bg-white/[0.06] animate-pulse" />
-        ) : (
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {totalItems > ITEMS_PER_PAGE
-              ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} Retros`
-              : `Showing ${totalItems} of ${sessions.length} Retros`}
-          </span>
-        )}
+        {/* Right: Debounced Search Bar + Total Counter */}
+        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+          {/* 300ms Debounced Search Input */}
+          <div className="relative w-full sm:w-64 md:w-72">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+              {isSearching ? (
+                <Loader2 className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] animate-spin" />
+              ) : (
+                <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+              )}
+            </div>
+            <input
+              type="text"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              placeholder="Search by title, project, topic..."
+              className="w-full pl-8 pr-8 py-1.5 bg-slate-50 dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.16] rounded-xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all shadow-2xs"
+            />
+            {localSearch && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5 rounded-md hover:bg-slate-200/60 dark:hover:bg-white/[0.1] transition-colors"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {isCardsLoading ? (
+            <div className="h-4 w-24 rounded bg-slate-200/80 dark:bg-white/[0.06] animate-pulse hidden sm:block shrink-0" />
+          ) : (
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline-block shrink-0">
+              {totalItems > ITEMS_PER_PAGE
+                ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} Retros`
+                : `Showing ${totalItems} of ${sessions.length} Retros`}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Loading Skeleton */}
       {isCardsLoading && (
-        <SessionCardsSkeleton count={filteredSessions.length > 0 ? Math.min(filteredSessions.length, 4) : 4} />
+        <SessionCardsSkeleton count={filteredSessions.length > 0 ? Math.min(filteredSessions.length, 6) : 6} />
       )}
 
       {/* Empty State */}
       {!isCardsLoading && filteredSessions.length === 0 && (
-        <div className="p-12 rounded-2xl bg-white dark:bg-[#0e1015] border border-dashed border-slate-300 dark:border-white/[0.08] text-center space-y-4 max-w-lg mx-auto shadow-xl">
+        <div className="p-12 rounded-2xl bg-white dark:bg-[#0e1015] border border-dashed border-slate-300 dark:border-white/[0.08] text-center space-y-4 max-w-lg mx-auto shadow-xl animate-in fade-in duration-150">
           <div className="w-12 h-12 rounded-2xl bg-[#88c958]/15 border border-[#88c958]/30 text-[#88c958] mx-auto flex items-center justify-center font-black text-lg">
-            RF
+            {localSearch ? <Search className="w-5 h-5 text-[#5cb028] dark:text-[#88c958]" /> : 'RF'}
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-              {isAdmin ? `No ${activeFilter} sessions found` : 'No retrospective sessions available'}
+              {localSearch
+                ? `No retrospectives match "${localSearch}"`
+                : isAdmin
+                ? `No ${activeFilter} sessions found`
+                : 'No retrospective sessions available'}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-              {isAdmin
+              {localSearch
+                ? 'Try searching by a different sprint title, project key (e.g. DEM), description, or topic name.'
+                : isAdmin
                 ? 'Create your first custom agile retrospective session with customized topics, voting limits, and live sync.'
                 : 'You will see live sprint retrospectives here as soon as your Scrum Master or Admin invites you.'}
             </p>
           </div>
-          {isAdmin && (
+          {localSearch ? (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] text-slate-700 dark:text-white text-xs font-bold transition-all cursor-pointer"
+            >
+              Clear Search Query
+            </button>
+          ) : isAdmin ? (
             <button
               onClick={onCreateNew}
               className="px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-sm transition-all cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
             >
               + Create New Retrospective
             </button>
-          )}
+          ) : null}
         </div>
       )}
 

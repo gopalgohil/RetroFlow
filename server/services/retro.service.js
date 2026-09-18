@@ -135,15 +135,15 @@ class RetroService {
    * Retrieve all retrospective sessions created by or accessible to user
    */
   async getUserRetros(userOrId, filters = {}) {
-    let query;
     const userId = typeof userOrId === 'object' ? userOrId._id || userOrId.id : userOrId;
     const userRole = typeof userOrId === 'object' ? userOrId.role : null;
     const userEmail =
       typeof userOrId === 'object' && userOrId.email ? userOrId.email.toLowerCase().trim() : null;
 
+    const conditions = [];
+
     if (userRole === 'admin' || userEmail === 'gopalgohel249@gmail.com') {
       // Admin has full workspace visibility
-      query = {};
     } else {
       // Member / Developer: returns retros where developer was invited (approvedMembers), created,
       // or attached to projects where they are assigned members or lead
@@ -160,22 +160,38 @@ class RetroService {
         } catch {}
       }
 
-      query = {
+      conditions.push({
         $or: [
           { createdBy: userId },
           ...(userEmail ? [{ approvedMembers: userEmail }] : []),
           ...(memberProjectIds.length > 0 ? [{ projectId: { $in: memberProjectIds } }] : []),
         ],
-      };
+      });
     }
 
     if (filters.status && filters.status !== 'all') {
-      query.status = filters.status;
+      conditions.push({ status: filters.status });
     }
 
-    if (filters.search) {
-      query.title = { $regex: filters.search.trim(), $options: 'i' };
+    if (filters.search && filters.search.trim()) {
+      const searchRegex = { $regex: filters.search.trim(), $options: 'i' };
+      conditions.push({
+        $or: [
+          { title: searchRegex },
+          { description: searchRegex },
+          { projectKey: searchRegex },
+          { sprintName: searchRegex },
+          { 'topics.title': searchRegex },
+        ],
+      });
     }
+
+    const finalQuery =
+      conditions.length === 0
+        ? {}
+        : conditions.length === 1
+        ? conditions[0]
+        : { $and: conditions };
 
     // Enterprise Backend Pagination
     if (filters.page || (filters.limit && String(filters.limit).toLowerCase() !== 'all')) {
@@ -184,8 +200,8 @@ class RetroService {
       const skip = (pageNum - 1) * limitNum;
 
       const [totalItems, retros] = await Promise.all([
-        RetroBoard.countDocuments(query),
-        RetroBoard.find(query)
+        RetroBoard.countDocuments(finalQuery),
+        RetroBoard.find(finalQuery)
           .populate('createdBy', 'name email')
           .sort({ createdAt: -1 })
           .skip(skip)
@@ -208,7 +224,7 @@ class RetroService {
       };
     }
 
-    const retros = await RetroBoard.find(query)
+    const retros = await RetroBoard.find(finalQuery)
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 })
       .lean();

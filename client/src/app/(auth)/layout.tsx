@@ -18,13 +18,13 @@ export default function AuthLayout({
       {/* Top Header with Brand Logo, Theme Toggle & Back to Home */}
       <header className="w-full border-b border-slate-200/80 dark:border-white/[0.08] sticky top-0 z-50 bg-white/80 dark:bg-[#08090a]/90 backdrop-blur-md transition-colors">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center group">
+          <Link href="/dashboard" className="flex items-center">
             <Image
               src="/logo.svg"
               alt="Logo"
               width={140}
               height={44}
-              className="h-9 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+              className="h-9 sm:h-10 w-auto object-contain"
               priority
             />
           </Link>

@@ -15,6 +15,8 @@ interface SessionsTabProps {
   onCreateNew: () => void;
   isAdmin?: boolean;
   user?: { name?: string; email?: string; role?: string; projectRole?: string } | null;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 /**
@@ -32,6 +34,8 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
   onCreateNew,
   isAdmin = true,
   user,
+  searchQuery,
+  onSearchChange,
 }) => {
   const firstName = user?.name ? user.name.split(' ')[0] : 'there';
   const completedCount = sessions.filter((s) => s.status === 'completed').length;
@@ -78,60 +82,6 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
         )}
       </div>
 
-      {/* 4-Card Metric Stat Row (Digiflux Style) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric 1: Total Retros */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-white/[0.16] dark:shadow-xl dark:hover:shadow-2xl transition-all flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/10 border border-[#cdeac0] dark:border-[#88c958]/20 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shrink-0">
-            <Layers className="w-6 h-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">Total Retros</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{sessions.length}</p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium truncate mt-0.5">All sprint boards</p>
-          </div>
-        </div>
-
-        {/* Metric 2: Active Sessions */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-white/[0.16] dark:shadow-xl dark:hover:shadow-2xl transition-all flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shrink-0 dark:shadow-[0_0_12px_rgba(136,201,88,0.2)]">
-            <Activity className="w-6 h-6 text-[#5cb028] dark:text-[#88c958]" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">Active Sessions</p>
-            <p className="text-xl sm:text-2xl font-black text-[#3d8318] dark:text-[#88c958] leading-tight">{activeSessionsCount}</p>
-            <p className="text-[11px] text-emerald-600 dark:text-[#88c958] font-semibold truncate mt-0.5 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#5cb028] dark:bg-[#88c958] animate-pulse" />
-              <span>Live & in progress</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Metric 3: Discussion Topics */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-white/[0.16] dark:shadow-xl dark:hover:shadow-2xl transition-all flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-rose-50 dark:bg-sky-500/10 border border-rose-100/80 dark:border-sky-500/20 text-rose-600 dark:text-sky-400 flex items-center justify-center shrink-0">
-            <CheckSquare className="w-6 h-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">Sprint Topics</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{totalTopicsCount}</p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium truncate mt-0.5">Questions configured</p>
-          </div>
-        </div>
-
-        {/* Metric 4: Completed Retros */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-white/[0.16] dark:shadow-xl dark:hover:shadow-2xl transition-all flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100/80 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-            <Award className="w-6 h-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">Completed</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{completedCount}</p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium truncate mt-0.5">Resolved sprints</p>
-          </div>
-        </div>
-      </div>
-
       {/* Sessions Grid List */}
       <SessionList
         sessions={sessions}
@@ -141,6 +91,8 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
         onCreateNew={onCreateNew}
         isLoading={isLoading}
         isAdmin={isAdmin}
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
       />
     </div>
   );

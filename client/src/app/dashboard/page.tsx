@@ -214,7 +214,7 @@ function DashboardContent() {
   // Derived loading state for skeleton loader (tab switching and full tab hydration)
   const isCurrentTabLoading =
     isTransitioning ||
-    (activeTab === 'sessions' && isSessionsLoading);
+    (activeTab === 'sessions' && isSessionsLoading && sessions.length === 0 && !searchQuery);
 
   // Check if unapproved developer account
   const isPendingApproval = Boolean(
@@ -323,13 +323,13 @@ function DashboardContent() {
         {/* Top Header */}
         <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center group">
+            <Link href="/dashboard" className="flex items-center">
               <Image
                 src="/logo.svg"
                 alt="Logo"
                 width={140}
                 height={44}
-                className="h-9 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+                className="h-9 sm:h-10 w-auto object-contain"
                 priority
               />
             </Link>
@@ -436,13 +436,13 @@ function DashboardContent() {
         {/* Top Header */}
         <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center group">
+            <Link href="/dashboard" className="flex items-center">
               <Image
                 src="/logo.svg"
                 alt="Logo"
                 width={140}
                 height={44}
-                className="h-9 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+                className="h-9 sm:h-10 w-auto object-contain"
                 priority
               />
             </Link>
@@ -628,7 +628,7 @@ function DashboardContent() {
               {activeTab === 'sessions' && (
                 <SessionsTab
                   sessions={sessions}
-                  isLoading={false}
+                  isLoading={isSessionsLoading}
                   activeSessionsCount={activeSessionsCount}
                   onLaunch={handleLaunchRetro}
                   onEdit={handleEditRetro}
@@ -636,6 +636,8 @@ function DashboardContent() {
                   onCreateNew={handleCreateRetro}
                   isAdmin={canManageSessions}
                   user={activeUser}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
                 />
               )}
 
