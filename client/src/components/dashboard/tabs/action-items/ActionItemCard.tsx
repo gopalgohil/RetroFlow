@@ -9,6 +9,7 @@ import {
   FolderKanban,
   ChevronDown,
   ExternalLink,
+  CircleDot,
 } from 'lucide-react';
 import { EnrichedActionItem } from '@/types/project';
 
@@ -19,11 +20,30 @@ interface ActionItemCardProps {
   onCycleStatus: (item: EnrichedActionItem) => void;
 }
 
-const PRIORITY_STYLES: Record<string, string> = {
-  critical: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-500/30',
-  high: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30',
-  medium: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30',
-  low: 'bg-slate-100 dark:bg-[#12151c] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/[0.08]',
+const PRIORITY_CONFIG: Record<
+  string,
+  { label: string; dot: string; pill: string }
+> = {
+  critical: {
+    label: 'Critical',
+    dot: 'bg-rose-500',
+    pill: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/40',
+  },
+  high: {
+    label: 'High',
+    dot: 'bg-amber-500',
+    pill: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/40',
+  },
+  medium: {
+    label: 'Medium',
+    dot: 'bg-blue-500',
+    pill: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200/80 dark:border-blue-800/40',
+  },
+  low: {
+    label: 'Low',
+    dot: 'bg-slate-400',
+    pill: 'bg-slate-100 text-slate-600 dark:bg-white/[0.06] dark:text-slate-400 border-slate-200/80 dark:border-white/[0.08]',
+  },
 };
 
 export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
@@ -39,7 +59,10 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
   const urgency = React.useMemo(() => {
     if (!item.dueDate) return null;
     if (isDone) {
-      return { label: 'Completed', color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/30' };
+      return {
+        label: 'Completed',
+        className: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-800/30',
+      };
     }
 
     const today = new Date();
@@ -52,21 +75,21 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
     if (diffDays < 0) {
       const daysAgo = Math.abs(diffDays);
       return {
-        label: `Overdue by ${daysAgo} day${daysAgo !== 1 ? 's' : ''}`,
-        color: 'text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-500/30 font-bold',
+        label: `Overdue (${daysAgo}d)`,
+        className: 'text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/40 font-bold',
         isOverdue: true,
       };
     }
     if (diffDays === 0) {
       return {
         label: 'Due Today',
-        color: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-500/30 font-bold',
+        className: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/40 font-bold',
       };
     }
     if (diffDays <= 3) {
       return {
-        label: `Due in ${diffDays} day${diffDays !== 1 ? 's' : ''}`,
-        color: 'text-amber-600 dark:text-amber-400 bg-amber-50/70 dark:bg-amber-950/40 border-amber-200 dark:border-amber-500/30',
+        label: `Due in ${diffDays}d`,
+        className: 'text-amber-600 dark:text-amber-400 bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-800/30',
       };
     }
     return {
@@ -74,39 +97,42 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
         month: 'short',
         day: 'numeric',
       }),
-      color: 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-[#12151c] border-slate-200 dark:border-white/[0.08]',
+      className: 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.04] border-slate-200/70 dark:border-white/[0.06]',
     };
   }, [item.dueDate, isDone]);
+
+  const priorityMeta = PRIORITY_CONFIG[item.priority] || PRIORITY_CONFIG.medium;
 
   return (
     <div
       className={`group p-4 sm:p-5 rounded-2xl border transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
         isDone
-          ? 'bg-slate-50/70 dark:bg-[#0e1015]/60 border-slate-200/60 dark:border-white/[0.05] opacity-75 hover:opacity-100'
+          ? 'bg-slate-50/60 dark:bg-[#0e1015]/50 border-slate-200/60 dark:border-white/[0.04] opacity-75 hover:opacity-100'
           : urgency?.isOverdue
-          ? 'bg-rose-50/20 dark:bg-rose-950/15 border-rose-200/80 dark:border-rose-500/30 shadow-xs hover:shadow-md'
-          : 'bg-white dark:bg-[#0e1015] border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-white/[0.18]'
+          ? 'bg-rose-50/15 dark:bg-rose-950/10 border-rose-200/80 dark:border-rose-900/40 shadow-xs hover:shadow-md'
+          : 'bg-white dark:bg-[#0e1015] border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-[#88c958]/50 dark:hover:border-[#88c958]/40'
       }`}
     >
-      {/* Left: Interactive Checkbox Circle & Item Details */}
+      {/* Left: Task Action Checkbox & Content */}
       <div className="flex items-start gap-3.5 flex-1 min-w-0">
+        {/* Interactive Task Checkbox Button */}
         <button
           type="button"
           onClick={() => onCycleStatus(item)}
           disabled={isUpdating}
-          className={`mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+          className={`mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${
             isDone
-              ? 'bg-[#5cb028] border-[#5cb028] text-white dark:bg-[#88c958] dark:border-[#88c958] dark:text-[#08090a]'
+              ? 'bg-[#5cb028] border-[#5cb028] text-white dark:bg-[#88c958] dark:border-[#88c958] dark:text-[#08090a] shadow-xs scale-100'
               : isInProgress
-              ? 'bg-sky-50 dark:bg-sky-950/50 border-sky-500 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/40'
-              : 'border-slate-300 dark:border-white/20 hover:border-[#88c958] dark:hover:border-[#88c958] hover:bg-[#eaf5e3]/40 dark:hover:bg-[#88c958]/10 text-transparent'
+              ? 'border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20'
+              : 'border-slate-300 dark:border-white/20 hover:border-[#88c958] dark:hover:border-[#88c958] hover:bg-[#eaf5e3]/50 dark:hover:bg-[#88c958]/10 text-transparent'
           }`}
           title={
             isDone
-              ? 'Mark as To Do'
+              ? 'Task completed! Click to reopen'
               : isInProgress
-              ? 'Mark as Completed'
-              : 'Mark as In Progress'
+              ? 'In progress. Click to mark complete'
+              : 'Click to start working on this task'
           }
         >
           {isDone ? (
@@ -114,71 +140,82 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           ) : isInProgress ? (
             <div className="w-2 h-2 rounded-full bg-sky-600 dark:bg-sky-400" />
           ) : (
-            <Check className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Check className="w-3 h-3 text-[#5cb028] dark:text-[#88c958] opacity-0 group-hover:opacity-100 transition-opacity" />
           )}
         </button>
 
-        {/* Content & Metadata */}
-        <div className="space-y-1.5 flex-1 min-w-0">
+        {/* Task Title, Priority & Clean Sub-row */}
+        <div className="space-y-2 flex-1 min-w-0">
+          {/* Main Task Row */}
           <div className="flex flex-wrap items-center gap-2">
             <h4
-              className={`text-sm font-bold tracking-tight transition-all ${
-                isDone ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'
+              className={`text-sm font-bold tracking-tight transition-all cursor-pointer ${
+                isDone
+                  ? 'line-through text-slate-400 dark:text-slate-500 font-medium'
+                  : 'text-slate-900 dark:text-slate-100 group-hover:text-[#3d8318] dark:group-hover:text-[#88c958]'
               }`}
+              onClick={() => onCycleStatus(item)}
             >
               {item.title}
             </h4>
 
-            {/* Priority Tag */}
+            {/* Clean Priority Pill with colored dot */}
             <span
-              className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider border leading-none ${
-                PRIORITY_STYLES[item.priority] || PRIORITY_STYLES.medium
-              }`}
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border leading-none shrink-0 ${priorityMeta.pill}`}
             >
-              {item.priority || 'medium'}
+              <span className={`w-1.5 h-1.5 rounded-full ${priorityMeta.dot}`} />
+              <span>{priorityMeta.label}</span>
             </span>
           </div>
 
+          {/* Optional Custom Description */}
           {item.description && !item.description.startsWith('Action item originated from Retrospective') && (
             <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
               {item.description}
             </p>
           )}
 
-          {/* Context Badges */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          {/* Clean Sub-Metadata Row */}
+          <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            {/* Project Pill */}
             {item.projectKey && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 dark:bg-[#12151c] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08]">
-                <FolderKanban className="w-3 h-3 text-slate-500 dark:text-slate-400" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.06]">
+                <FolderKanban className="w-3 h-3 text-slate-400" />
                 <span>{item.projectKey}</span>
               </span>
             )}
 
+            {/* Origin Retro Link */}
             {item.sourceRetroTitle && (
               item.sourceRetroShareToken ? (
                 <Link
                   href={`/retro/${item.sourceRetroShareToken}`}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] hover:bg-[#def0d4] dark:hover:bg-[#88c958]/25 border border-[#cdeac0] dark:border-[#88c958]/30 transition-colors"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#3d8318] dark:text-[#88c958] hover:underline transition-colors max-w-[240px] truncate"
+                  title="Go to retrospective board"
                 >
-                  <Sparkles className="w-3 h-3 text-[#5cb028] dark:text-[#88c958]" />
-                  <span className="truncate max-w-[200px]">{item.sourceRetroTitle}</span>
-                  <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                  <Sparkles className="w-3 h-3 text-[#5cb028] dark:text-[#88c958] shrink-0" />
+                  <span className="truncate">{item.sourceRetroTitle}</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-60 shrink-0" />
                 </Link>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30">
-                  <Sparkles className="w-3 h-3 text-[#5cb028] dark:text-[#88c958]" />
-                  <span className="truncate max-w-[200px]">{item.sourceRetroTitle}</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#3d8318] dark:text-[#88c958] max-w-[240px] truncate">
+                  <Sparkles className="w-3 h-3 text-[#5cb028] dark:text-[#88c958] shrink-0" />
+                  <span className="truncate">{item.sourceRetroTitle}</span>
                 </span>
               )
             )}
 
+            {/* Due Date Badge */}
             {urgency && (
-              <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] border ${urgency.color}`}
-              >
-                <Calendar className="w-3 h-3" />
-                <span>{urgency.label}</span>
-              </span>
+              <>
+                <span className="text-slate-300 dark:text-white/20">•</span>
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] border font-medium ${urgency.className}`}
+                >
+                  <Calendar className="w-3 h-3" />
+                  <span>{urgency.label}</span>
+                </span>
+              </>
             )}
           </div>
         </div>
@@ -231,3 +268,4 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
 });
 
 ActionItemCard.displayName = 'ActionItemCard';
+
