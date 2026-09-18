@@ -29,7 +29,7 @@ interface SessionListProps {
   isAdmin?: boolean;
 }
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 9;
 
 export const SessionList: React.FC<SessionListProps> = ({
   sessions,
@@ -43,6 +43,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('active');
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [invitingSession, setInvitingSession] = useState<RetroBoard | null>(null);
@@ -73,7 +74,17 @@ export const SessionList: React.FC<SessionListProps> = ({
     setCurrentPage(1);
     setTimeout(() => {
       setIsFilterLoading(false);
-    }, 380);
+    }, 320);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const target = Math.min(Math.max(1, newPage), totalPages);
+    if (target === safeCurrentPage || isPageLoading) return;
+    setIsPageLoading(true);
+    setCurrentPage(target);
+    setTimeout(() => {
+      setIsPageLoading(false);
+    }, 300);
   };
 
   const handleCopyLink = (shareToken: string) => {
@@ -98,7 +109,7 @@ export const SessionList: React.FC<SessionListProps> = ({
     });
   };
 
-  const isCardsLoading = isLoading || isFilterLoading;
+  const isCardsLoading = isLoading || isFilterLoading || isPageLoading;
 
   return (
     <div className="space-y-6">
@@ -364,8 +375,8 @@ export const SessionList: React.FC<SessionListProps> = ({
         </div>
       )}
 
-      {/* Enterprise Pagination Controls Footer (Active when > 6 retros) */}
-      {!isCardsLoading && totalPages > 1 && (
+      {/* Enterprise Pagination Controls Footer (Active when > 9 retros) */}
+      {totalPages > 1 && (
         <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           {/* Left: Range Info */}
           <div className="text-slate-500 dark:text-slate-400">
@@ -379,7 +390,7 @@ export const SessionList: React.FC<SessionListProps> = ({
             {/* Previous Button */}
             <button
               type="button"
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              onClick={() => handlePageChange(safeCurrentPage - 1)}
               disabled={safeCurrentPage <= 1}
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
             >
@@ -392,7 +403,7 @@ export const SessionList: React.FC<SessionListProps> = ({
               <button
                 key={p}
                 type="button"
-                onClick={() => setCurrentPage(p)}
+                onClick={() => handlePageChange(p)}
                 className={`min-w-[32px] h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   p === safeCurrentPage
                     ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_10px_rgba(136,201,88,0.25)]'
@@ -406,9 +417,9 @@ export const SessionList: React.FC<SessionListProps> = ({
             {/* Next Button */}
             <button
               type="button"
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              onClick={() => handlePageChange(safeCurrentPage + 1)}
               disabled={safeCurrentPage >= totalPages}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
             >
               <span>Next</span>
               <ChevronRight className="w-3.5 h-3.5" />

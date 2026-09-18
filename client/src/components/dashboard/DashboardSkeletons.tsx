@@ -65,13 +65,13 @@ export const SessionsSkeleton: React.FC = () => {
  * SessionCardsSkeleton:
  * Standalone grid skeleton of Retrospective Session cards
  */
-export const SessionCardsSkeleton: React.FC<{ count?: number }> = ({ count = 4 }) => {
+export const SessionCardsSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 animate-pulse">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4 lg:gap-4.5 2xl:gap-5 animate-pulse">
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xl flex flex-col justify-between space-y-4"
+          className="p-3.5 sm:p-4.5 2xl:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-md flex flex-col justify-between space-y-4"
         >
           {/* Top Row: Status pill & Date */}
           <div className="flex items-center justify-between">
