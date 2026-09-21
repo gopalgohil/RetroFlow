@@ -1501,7 +1501,7 @@ class ProjectService {
 
       await emailService.sendEmail({
         to: normalizedEmail,
-        subject: `Invitation: Join "${project.name}" Project on RetroFlow`,
+        subject: `Invitation: Join "${project.name}" Project on Digiflux`,
         htmlContent,
       });
 

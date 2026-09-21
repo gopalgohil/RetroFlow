@@ -16,7 +16,7 @@ class SettingsService {
     if (!settings) {
       settings = await WorkspaceSettings.create({
         userId,
-        workspaceName: 'RetroFlow Agile Core',
+        workspaceName: 'Digiflux Agile Core',
         organizationName: 'Agile Engineering Team',
         defaultVotingLimit: 1,
         allowAnonymousFeedback: true,

@@ -63,7 +63,7 @@ class AuthService {
     const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
     await emailService.sendEmail({
       to: user.email,
-      subject: 'RetroFlow - Verify Your Email Address',
+      subject: 'Digiflux - Verify Your Email Address',
       htmlContent: emailHtml,
     });
 
@@ -140,7 +140,7 @@ class AuthService {
     const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
     await emailService.sendEmail({
       to: user.email,
-      subject: 'RetroFlow - Your New Verification Code',
+      subject: 'Digiflux - Your New Verification Code',
       htmlContent: emailHtml,
     });
 
@@ -205,7 +205,7 @@ class AuthService {
       const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
       await emailService.sendEmail({
         to: user.email,
-        subject: 'RetroFlow - Complete Your Email Verification',
+        subject: 'Digiflux - Complete Your Email Verification',
         htmlContent: emailHtml,
       });
 
@@ -274,7 +274,7 @@ class AuthService {
     const emailHtml = emailService.getOtpTemplate(otp, user.name);
     await emailService.sendEmail({
       to: user.email,
-      subject: 'RetroFlow - Your 6-Digit Password Reset Code',
+      subject: 'Digiflux - Your 6-Digit Password Reset Code',
       htmlContent: emailHtml,
     });
 

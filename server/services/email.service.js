@@ -15,7 +15,7 @@ class EmailService {
    */
   async sendEmail({ to, subject, htmlContent }) {
     const apiKey = env.BREVO_API_KEY || process.env.BREVO_API_KEY;
-    const senderEmail = env.BREVO_SENDER_EMAIL || 'support@retroflow.app';
+    const senderEmail = env.BREVO_SENDER_EMAIL || 'support@digiflux.app';
     const senderName = env.BREVO_SENDER_NAME || 'Digiflux';
 
     // Development fallback simulation if API key is not yet set
@@ -134,8 +134,8 @@ class EmailService {
               <!-- Digiflux Brand Header with Signature Light Mode Workspace Badge -->
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 22px;">
                 <tr>
-                  <td style="background-color: #5cb028; background: linear-gradient(135deg, #6ec437 0%, #5cb028 50%, #4a941e 100%); color: #ffffff; font-weight: 900; font-size: 14px; padding: 6px 11px; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1; text-align: center; box-shadow: 0 2px 4px rgba(92, 176, 40, 0.25);">
-                    DF
+                  <td align="center" valign="middle" style="width: 34px; height: 34px; background-color: #5cb028; background: linear-gradient(135deg, #92dc5a 0%, #5cb028 55%, #4a941e 100%); color: #ffffff; font-weight: 900; font-size: 18px; border-radius: 9px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 34px; text-align: center; box-shadow: 0 2px 5px rgba(92, 176, 40, 0.3); border: 1px solid #7ecc43;">
+                    D
                   </td>
                   <td style="padding-left: 10px; font-size: 20px; font-weight: 900; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.5px;">
                     digi<span style="color: #5cb028;">flux</span>
