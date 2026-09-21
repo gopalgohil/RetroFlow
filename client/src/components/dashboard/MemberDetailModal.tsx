@@ -34,7 +34,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
   if (!member) return null;
 
   const emailLower = member.email?.toLowerCase().trim();
-  const isPrimaryOwner = emailLower === 'gopalgohel249@gmail.com';
+  const isPrimaryOwner = Boolean(member.isPrimaryLead || (member as any).isPrimaryOwner);
   const isSelf = emailLower === currentEmail?.toLowerCase().trim();
 
   // Format joined date nicely

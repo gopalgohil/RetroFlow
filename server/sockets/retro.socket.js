@@ -1,6 +1,9 @@
 import crypto from 'crypto';
 import RetroBoard from '../models/RetroBoard.js';
 import projectService from '../services/project.service.js';
+import retroService from '../services/retro.service.js';
+import { isSuperAdmin } from '../config/admin.config.js';
+import { verifyToken } from '../utils/token.js';
 
 /**
  * Socket.io Real-Time Retrospective Collaboration Controller
@@ -9,20 +12,90 @@ import projectService from '../services/project.service.js';
 export function initRetroSocket(io) {
   const retroNamespace = io.of('/retro');
 
+  // Socket JWT Authentication Middleware
+  retroNamespace.use((socket, next) => {
+    try {
+      const token =
+        socket.handshake.auth?.token ||
+        (socket.handshake.headers?.authorization &&
+        socket.handshake.headers.authorization.startsWith('Bearer ')
+          ? socket.handshake.headers.authorization.split(' ')[1]
+          : null);
+
+      if (token) {
+        try {
+          const decoded = verifyToken(token);
+          if (decoded) {
+            const email = (decoded.email || '').toLowerCase().trim();
+            socket.user = {
+              id: decoded.id || decoded._id,
+              name: decoded.name || (email ? email.split('@')[0] : 'Teammate'),
+              email,
+              role: decoded.role || 'member',
+              projectRole: decoded.projectRole || null,
+              isGuest: Boolean(decoded.isGuest),
+            };
+          }
+        } catch (tokenErr) {
+          // Allow connection as guest/unauthenticated
+        }
+      }
+      next();
+    } catch (err) {
+      next();
+    }
+  });
+
   retroNamespace.on('connection', (socket) => {
     let currentShareToken = null;
     let currentUser = null;
 
+    // Cryptographically verified identity helper (Bug 7 Fix: Prevents client payload spoofing)
+    function getAuthenticatedUser(payload) {
+      // 1. If payload or handshake contains a signed JWT token, verify it
+      const tokenCandidate = payload?.token || socket.handshake.auth?.token;
+      if (tokenCandidate) {
+        try {
+          const decoded = verifyToken(tokenCandidate);
+          if (decoded) {
+            const email = (decoded.email || '').toLowerCase().trim();
+            return {
+              id: decoded.id || decoded._id,
+              name: decoded.name || (email ? email.split('@')[0] : 'Teammate'),
+              email,
+              role: decoded.role || 'member',
+              projectRole: decoded.projectRole || null,
+              isGuest: Boolean(decoded.isGuest),
+            };
+          }
+        } catch (e) {}
+      }
+
+      // 2. Return verified user from connection handshake
+      if (socket.user) {
+        return socket.user;
+      }
+
+      return null;
+    }
+
     // 1. Join Retrospective Room
-    socket.on('join:retro', async ({ shareToken, user }, callback) => {
+    socket.on('join:retro', async (payload, callback) => {
       try {
+        const { shareToken, user } = payload || {};
         if (!shareToken) {
           if (callback) callback({ error: 'Missing shareToken' });
           return;
         }
 
         currentShareToken = shareToken;
-        currentUser = user || { name: 'Teammate' };
+        const verifiedUser = getAuthenticatedUser(payload);
+        if (verifiedUser) {
+          socket.user = verifiedUser;
+          currentUser = verifiedUser;
+        } else {
+          currentUser = user ? { name: user.name || 'Teammate', email: '', isGuest: true } : { name: 'Teammate', email: '', isGuest: true };
+        }
 
         const roomName = `retro:${shareToken}`;
         socket.join(roomName);
@@ -78,19 +151,26 @@ export function initRetroSocket(io) {
     // 2. Add Sticky Card
     socket.on('card:add', async (payload, callback) => {
       try {
-        const { shareToken, topicId, text, author, authorEmail } = payload || {};
+        const { shareToken, topicId, text } = payload || {};
 
         if (!shareToken || !topicId || !text?.trim()) {
           if (callback) callback({ error: 'Topic and card text are required' });
           return;
         }
 
+        const authUser = getAuthenticatedUser(payload);
+        const authorName = (authUser?.name || payload?.author || currentUser?.name || 'Developer').trim();
+        // Strict: If authenticated, lock authorEmail to verified email (cannot spoof authorEmail)
+        const authorEmail = authUser?.email
+          ? authUser.email.toLowerCase().trim()
+          : (payload?.authorEmail || '').toLowerCase().trim();
+
         const newCard = {
           cardId: crypto.randomUUID(),
           topicId,
           text: text.trim(),
-          author: (author || currentUser?.name || 'Developer').trim(),
-          authorEmail: authorEmail || currentUser?.email || '',
+          author: authorName,
+          authorEmail: authorEmail,
           votes: 0,
           voters: [],
           createdAt: new Date(),
@@ -122,13 +202,21 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 3. Edit Sticky Card (Author Only - Feedback Integrity Guard)
+    // 3. Edit Sticky Card (Author Only - Cryptographically Verified Guard)
     socket.on('card:edit', async (payload, callback) => {
       try {
-        const { shareToken, cardId, text, user } = payload || {};
+        const { shareToken, cardId, text } = payload || {};
 
         if (!shareToken || !cardId || !text?.trim()) {
           if (callback) callback({ error: 'Card ID and new text are required' });
+          return;
+        }
+
+        const authUser = getAuthenticatedUser(payload);
+        if (!authUser) {
+          if (callback) {
+            callback({ error: 'Authentication required to edit cards. Please log in or rejoin the session.' });
+          }
           return;
         }
 
@@ -144,28 +232,25 @@ export function initRetroSocket(io) {
         }
 
         const targetCard = existingBoard.cards[0];
-        const requester = user || currentUser;
+        const targetEmail = (targetCard.authorEmail || '').toLowerCase().trim();
+        const userEmail = (authUser.email || '').toLowerCase().trim();
+        const targetAuthor = (targetCard.author || '').toLowerCase().trim();
+        const userName = (authUser.name || '').toLowerCase().trim();
 
-        if (requester) {
-          const isAuthor =
-            (requester.email &&
-              targetCard.authorEmail &&
-              requester.email.trim().toLowerCase() === targetCard.authorEmail.trim().toLowerCase()) ||
-            (requester.name &&
-              targetCard.author &&
-              requester.name.trim().toLowerCase() === targetCard.author.trim().toLowerCase());
+        const isAuthor =
+          Boolean(userEmail && targetEmail && userEmail === targetEmail) ||
+          Boolean(!targetEmail && targetAuthor && userName && userName === targetAuthor);
 
-          if (!isAuthor) {
-            console.warn(
-              `[Socket Security] Unauthorized edit attempt on card ${cardId} by ${
-                requester.name || requester.email
-              }`
-            );
-            if (callback) {
-              callback({ error: 'Permission denied: Only the original author can edit this feedback.' });
-            }
-            return;
+        if (!isAuthor) {
+          console.warn(
+            `[Socket Security] Blocked unauthorized edit attempt on card ${cardId} by ${
+              authUser.email || authUser.name
+            } (Original author: ${targetCard.authorEmail || targetCard.author})`
+          );
+          if (callback) {
+            callback({ error: 'Permission denied: Only the original author can edit this feedback.' });
           }
+          return;
         }
 
         const trimmedText = text.trim();
@@ -210,8 +295,7 @@ export function initRetroSocket(io) {
       // 1. Workspace Admin
       const isWsAdmin =
         requesterRole === 'admin' ||
-        requesterEmail === 'gopalgohel249@gmail.com' ||
-        requesterEmail.includes('admin');
+        isSuperAdmin(requesterEmail);
 
       if (isWsAdmin) return true;
 
@@ -243,13 +327,17 @@ export function initRetroSocket(io) {
       }
 
       // 4. Linked Project Lead or Manager member
-      if (board?.project) {
-        const leadEmail = (board.project.lead?.email || '').toLowerCase().trim();
+      const linkedProject = (board?.projectId && typeof board.projectId === 'object')
+        ? board.projectId
+        : ((board?.project && typeof board.project === 'object') ? board.project : null);
+
+      if (linkedProject) {
+        const leadEmail = (linkedProject.lead?.email || '').toLowerCase().trim();
         if (leadEmail && leadEmail === requesterEmail) {
           return true;
         }
-        if (Array.isArray(board.project.members)) {
-          const member = board.project.members.find(
+        if (Array.isArray(linkedProject.members)) {
+          const member = linkedProject.members.find(
             (m) => (m.email || '').toLowerCase().trim() === requesterEmail
           );
           if (member) {
@@ -267,15 +355,20 @@ export function initRetroSocket(io) {
     // Move Sticky Card between topics/questions (Strictly Admin and Manager only)
     socket.on('card:move', async (payload, callback) => {
       try {
-        const { shareToken, cardId, targetTopicId, user } = payload || {};
+        const { shareToken, cardId, targetTopicId } = payload || {};
 
         if (!shareToken || !cardId || !targetTopicId) {
           if (callback) callback({ error: 'Share token, card ID, and target topic ID are required' });
           return;
         }
 
-        const requester = user || currentUser;
-        const board = await RetroBoard.findOne({ shareToken }).populate('project').lean();
+        const requester = getAuthenticatedUser(payload);
+        if (!requester) {
+          if (callback) callback({ error: 'Authentication required to move cards.' });
+          return;
+        }
+
+        const board = await RetroBoard.findOne({ shareToken }).populate('projectId').lean();
         if (!board) {
           if (callback) callback({ error: 'Card or session not found' });
           return;
@@ -330,15 +423,20 @@ export function initRetroSocket(io) {
     // Reorder Sticky Cards within a specific topic (Strictly Admin and Manager only)
     socket.on('cards:reorder', async (payload, callback) => {
       try {
-        const { shareToken, topicId, cardIds, user } = payload || {};
+        const { shareToken, topicId, cardIds } = payload || {};
 
         if (!shareToken || !topicId || !Array.isArray(cardIds)) {
           if (callback) callback({ error: 'Share token, topic ID, and cardIds array are required' });
           return;
         }
 
-        const requester = user || currentUser;
-        const board = await RetroBoard.findOne({ shareToken }).populate('project').lean();
+        const requester = getAuthenticatedUser(payload);
+        if (!requester) {
+          if (callback) callback({ error: 'Authentication required to reorder cards.' });
+          return;
+        }
+
+        const board = await RetroBoard.findOne({ shareToken }).populate('projectId').lean();
         if (!board) {
           if (callback) callback({ error: 'Session not found' });
           return;
@@ -358,7 +456,7 @@ export function initRetroSocket(io) {
           return;
         }
 
-        const result = await retroService.reorderCards(shareToken, topicId, cardIds);
+        const result = await retroService.reorderCards(shareToken, topicId, cardIds, requester);
 
         const roomName = `retro:${shareToken}`;
         retroNamespace.to(roomName).emit('cards:reordered', result);
@@ -370,13 +468,55 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 4. Delete Sticky Card
+    // 4. Delete Sticky Card (Author or Facilitator/Admin/Manager only)
     socket.on('card:delete', async (payload, callback) => {
       try {
         const { shareToken, cardId } = payload || {};
 
         if (!shareToken || !cardId) {
           if (callback) callback({ error: 'Share token and card ID are required' });
+          return;
+        }
+
+        const authUser = getAuthenticatedUser(payload);
+        if (!authUser) {
+          if (callback) {
+            callback({ error: 'Authentication required to delete cards. Please log in or rejoin the session.' });
+          }
+          return;
+        }
+
+        const board = await RetroBoard.findOne(
+          { shareToken, 'cards.cardId': cardId },
+          { createdBy: 1, projectId: 1, projectKey: 1, 'cards.$': 1 }
+        ).populate('projectId').lean();
+
+        if (!board || !board.cards || board.cards.length === 0) {
+          if (callback) callback({ error: 'Card or session not found' });
+          return;
+        }
+
+        const targetCard = board.cards[0];
+        const targetEmail = (targetCard.authorEmail || '').toLowerCase().trim();
+        const userEmail = (authUser.email || '').toLowerCase().trim();
+        const targetAuthor = (targetCard.author || '').toLowerCase().trim();
+        const userName = (authUser.name || '').toLowerCase().trim();
+
+        const isAuthor =
+          Boolean(userEmail && targetEmail && userEmail === targetEmail) ||
+          Boolean(!targetEmail && targetAuthor && userName && userName === targetAuthor);
+
+        const isPrivileged = checkAdminOrManager(board, authUser);
+
+        if (!isAuthor && !isPrivileged) {
+          console.warn(
+            `[Socket Security] Unauthorized card deletion attempt on card ${cardId} by ${
+              authUser.email || authUser.name
+            }`
+          );
+          if (callback) {
+            callback({ error: 'Permission denied: Only the original author or team manager can delete this card.' });
+          }
           return;
         }
 
@@ -397,7 +537,7 @@ export function initRetroSocket(io) {
         // Dynamically sync real-time card and action item counts to parent projects
         projectService.syncRetroBoardToProjects(shareToken, retroNamespace).catch(() => {});
 
-        if (callback) callback({ success: true });
+        if (callback) callback({ success: true, cardId });
       } catch (err) {
         console.error('[Socket] card:delete error:', err);
         if (callback) callback({ error: 'Failed to remove card' });
@@ -407,7 +547,7 @@ export function initRetroSocket(io) {
     // 5. Toggle Like / Unlike Sticky Card (Dynamic real-time toggle)
     socket.on('card:vote', async (payload, callback) => {
       try {
-        const { shareToken, cardId, voter } = payload || {};
+        const { shareToken, cardId, voter, voterEmail } = payload || {};
 
         if (!shareToken || !cardId) {
           if (callback) callback({ error: 'Share token and card ID are required' });
@@ -426,24 +566,36 @@ export function initRetroSocket(io) {
           return;
         }
 
-        const voterName = (voter || 'Developer').trim();
+        const authUser = getAuthenticatedUser(payload);
+        const voterName = (authUser?.name || voter || 'Developer').trim();
+        const normalizedEmail = (authUser?.email || voterEmail || '').toLowerCase().trim();
+        const normalizedName = voterName.toLowerCase().trim();
+
+        // Safe matcher to identify this specific user's votes uniquely (Fixes Bug 6 voter conflict)
+        const isThisVoter = (v) => {
+          const vLower = (v || '').toLowerCase().trim();
+          if (normalizedEmail && vLower === normalizedEmail) return true;
+          if (normalizedEmail && vLower.includes(normalizedEmail)) return true;
+          if (normalizedName && vLower === normalizedName) return true;
+          return false;
+        };
+
         if (!Array.isArray(targetCard.voters)) {
           targetCard.voters = [];
         }
 
-        const existingIndex = targetCard.voters.findIndex(
-          (v) => v.toLowerCase() === voterName.toLowerCase()
-        );
+        const existingIndex = targetCard.voters.findIndex(isThisVoter);
 
         let hasVoted = false;
         if (existingIndex !== -1) {
-          // UNLIKE
+          // UNLIKE / UNVOTE
           targetCard.voters.splice(existingIndex, 1);
           targetCard.votes = Math.max(0, (targetCard.votes || 1) - 1);
           hasVoted = false;
         } else {
-          // LIKE
-          targetCard.voters.push(voterName);
+          // LIKE / VOTE: Strictly 1 vote per card per participant (cannot vote multiple times on the same card, but can vote on other cards)
+          const voterIdentifier = normalizedEmail || voterName;
+          targetCard.voters.push(voterIdentifier);
           targetCard.votes = (targetCard.votes || 0) + 1;
           hasVoted = true;
         }

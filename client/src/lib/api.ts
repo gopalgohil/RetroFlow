@@ -68,25 +68,11 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
 
   // Retrieve JWT auth token and user context from localStorage if in browser environment
   let authToken = token || null;
-  let userEmail: string | null = null;
-  let userRole: string | null = null;
 
   if (typeof window !== 'undefined') {
     if (!authToken) {
       authToken = localStorage.getItem('retroflow_token');
     }
-    try {
-      const savedUser = localStorage.getItem('retroflow_user');
-      if (savedUser) {
-        const u = JSON.parse(savedUser);
-        userEmail = u.email || null;
-        const isAdmin =
-          u.role === 'admin' ||
-          u.email === 'gopalgohel249@gmail.com' ||
-          (u.email && u.email.toLowerCase().includes('admin'));
-        userRole = isAdmin ? 'admin' : (u.role || 'member');
-      }
-    } catch {}
   }
 
   const method = (customConfig.method || 'GET').toUpperCase();
@@ -102,8 +88,6 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
     const defaultHeaders: HeadersInit = {
       'Content-Type': 'application/json',
       ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      ...(userEmail ? { 'x-user-email': userEmail } : {}),
-      ...(userRole ? { 'x-user-role': userRole } : {}),
       ...headers,
     };
 
@@ -122,7 +106,6 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
         'color: #6366f1; font-weight: bold;'
       );
       console.log('📍 Full URL:', url);
-      console.log('👤 Request User Context:', { email: userEmail, role: userRole });
       if (config.body) {
         try {
           console.log('📦 JSON Payload:', JSON.parse(config.body as string));

@@ -3,6 +3,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from './asyncHandler.js';
 import { verifyToken } from '../utils/token.js';
 import User from '../models/User.js';
+import { isSuperAdmin } from '../config/admin.config.js';
 
 /**
  * Middleware to protect private routes requiring valid JWT authentication.
@@ -19,26 +20,6 @@ export const protect = asyncHandler(async (req, res, next) => {
   }
 
   if (!token) {
-    if (req.headers['x-user-email']) {
-      const email = String(req.headers['x-user-email']).toLowerCase().trim();
-      const dbUser = await User.findOne({ email });
-      if (dbUser) {
-        req.user = dbUser;
-        return next();
-      }
-      const isAdmin =
-        email === 'gopalgohel249@gmail.com' || req.headers['x-user-role'] === 'admin';
-      req.user = {
-        _id: isAdmin
-          ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
-          : new mongoose.Types.ObjectId(),
-        id: isAdmin ? 'user-admin' : `guest-${email.split('@')[0]}`,
-        email,
-        name: email.split('@')[0],
-        role: isAdmin ? 'admin' : (req.headers['x-user-role'] || 'member'),
-      };
-      return next();
-    }
     throw ApiError.unauthorized('You must be logged in to access this resource.');
   }
 
@@ -53,18 +34,11 @@ export const protect = asyncHandler(async (req, res, next) => {
     }
 
     if (!user) {
-      // Resolve from decoded JWT payload or headers (e.g. Solution 1 guest session)
-      const email = (
-        decoded.email ||
-        req.headers['x-user-email'] ||
-        'gopalgohel249@gmail.com'
-      )
-        .toLowerCase()
-        .trim();
+      // Resolve strictly from verified decoded JWT payload
+      const email = (decoded.email || '').toLowerCase().trim();
       const isAdmin =
-        email === 'gopalgohel249@gmail.com' ||
-        decoded.role === 'admin' ||
-        req.headers['x-user-role'] === 'admin';
+        isSuperAdmin(email) ||
+        decoded.role === 'admin';
       user = {
         _id:
           decoded.id && mongoose.Types.ObjectId.isValid(decoded.id)
@@ -72,10 +46,10 @@ export const protect = asyncHandler(async (req, res, next) => {
             : isAdmin
             ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
             : new mongoose.Types.ObjectId(),
-        id: decoded.id || (isAdmin ? 'user-admin' : `guest-${email.split('@')[0]}`),
+        id: decoded.id || (isAdmin ? 'user-admin' : (email ? `guest-${email.split('@')[0]}` : 'guest-user')),
         email,
-        name: decoded.name || email.split('@')[0],
-        role: isAdmin ? 'admin' : decoded.role || req.headers['x-user-role'] || 'member',
+        name: decoded.name || (email ? email.split('@')[0] : 'Guest User'),
+        role: isAdmin ? 'admin' : (decoded.role || 'member'),
         isGuest: Boolean(decoded.isGuest),
       };
     }
@@ -83,27 +57,6 @@ export const protect = asyncHandler(async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    if (req.headers['x-user-email']) {
-      const email = String(req.headers['x-user-email']).toLowerCase().trim();
-      const dbUser = await User.findOne({ email });
-      if (dbUser) {
-        req.user = dbUser;
-        return next();
-      }
-      const isAdmin =
-        email === 'gopalgohel249@gmail.com' || req.headers['x-user-role'] === 'admin';
-      req.user = {
-        _id: isAdmin
-          ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
-          : new mongoose.Types.ObjectId(),
-        id: isAdmin ? 'user-admin' : `guest-${email.split('@')[0]}`,
-        email,
-        name: email.split('@')[0],
-        role: isAdmin ? 'admin' : (req.headers['x-user-role'] || 'member'),
-      };
-      return next();
-    }
-
     if (error.name === 'JsonWebTokenError') {
       throw ApiError.unauthorized('Invalid authentication token.');
     }
@@ -139,7 +92,7 @@ export const optionalAuth = asyncHandler(async (req, res, next) => {
       } else if (decoded && (decoded.email || decoded.id)) {
         const email = (decoded.email || '').toLowerCase().trim();
         const isAdmin =
-          email === 'gopalgohel249@gmail.com' || decoded.role === 'admin';
+          isSuperAdmin(email) || decoded.role === 'admin';
         req.user = {
           _id:
             decoded.id && mongoose.Types.ObjectId.isValid(decoded.id)
@@ -150,38 +103,13 @@ export const optionalAuth = asyncHandler(async (req, res, next) => {
           id: decoded.id || `guest-${email.split('@')[0]}`,
           email,
           name: decoded.name || email.split('@')[0] || 'Developer',
-          role: isAdmin ? 'admin' : decoded.role || 'member',
+          role: isAdmin ? 'admin' : (decoded.role || 'member'),
           isGuest: Boolean(decoded.isGuest),
         };
       }
     } catch {
       // Ignore token errors for optional auth
     }
-  }
-
-  // Gracefully enrich user identity from x-user-email / x-user-role headers if token was omitted or in dev testing
-  if (!req.user && req.headers['x-user-email']) {
-    try {
-      const email = String(req.headers['x-user-email']).toLowerCase().trim();
-      const user = await User.findOne({ email }).select(
-        '-password -resetPasswordOtp -resetPasswordExpires'
-      );
-      if (user) {
-        req.user = user;
-      } else {
-        const isAdmin =
-          email === 'gopalgohel249@gmail.com' || req.headers['x-user-role'] === 'admin';
-        req.user = {
-          _id: isAdmin
-            ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
-            : new mongoose.Types.ObjectId(),
-          id: isAdmin ? 'user-admin' : `guest-${email.split('@')[0]}`,
-          email,
-          name: email.split('@')[0],
-          role: isAdmin ? 'admin' : String(req.headers['x-user-role'] || 'member').toLowerCase(),
-        };
-      }
-    } catch {}
   }
 
   next();
@@ -200,18 +128,15 @@ export const requireManagerOrAdmin = asyncHandler(async (req, res, next) => {
   const email = (user.email || '').toLowerCase().trim();
   const role = (user.role || '').toLowerCase().trim();
   const projectRole = (user.projectRole || '').toLowerCase().trim();
-  const headerRole = String(req.headers['x-user-role'] || '').toLowerCase().trim();
 
   const isAdmin =
     role === 'admin' ||
-    email === 'gopalgohel249@gmail.com' ||
-    headerRole === 'admin';
+    isSuperAdmin(email);
 
   const isManager =
     isAdmin ||
     role === 'manager' ||
-    projectRole === 'manager' ||
-    headerRole === 'manager';
+    projectRole === 'manager';
 
   if (!isManager) {
     throw ApiError.forbidden('Access denied. Retro Analytics is reserved strictly for Workspace Administrators and Managers.');

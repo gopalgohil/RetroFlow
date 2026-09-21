@@ -24,7 +24,7 @@ export const createRetroSchema = z.object({
   status: z.enum(['draft', 'active', 'completed']).optional().default('active'),
   approvalRequired: z.boolean().optional().default(false),
   revealMode: z.boolean().optional().default(false),
-  votingLimit: z.number().min(1).max(20).optional().default(5),
+  votingLimit: z.number().min(1).max(20).optional().default(1),
   backgroundTheme: z.enum(['sailboat', 'standard', 'space', 'mountain', 'minimal']).optional().default('standard'),
   topics: z.array(topicValidationSchema).min(1, 'At least one topic column is required'),
   approvedMembers: z.array(z.string().email('Invalid email')).optional().default([]),

@@ -1,14 +1,14 @@
+import mongoose from 'mongoose';
 import RetroBoard from '../models/RetroBoard.js';
 import Project from '../models/Project.js';
 import User from '../models/User.js';
 import projectService from './project.service.js';
-import mongoose from 'mongoose';
-import { ApiError } from '../utils/ApiError.js';
-import env from '../config/env.js';
 import emailService from './email.service.js';
+import { ApiError } from '../utils/ApiError.js';
+import { generateToken, verifyToken } from '../utils/token.js';
 import crypto from 'crypto';
+import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 import jwt from 'jsonwebtoken';
-import { generateToken } from '../utils/token.js';
 
 
 class RetroService {
@@ -142,7 +142,7 @@ class RetroService {
 
     const conditions = [];
 
-    if (userRole === 'admin' || userEmail === 'gopalgohel249@gmail.com') {
+    if (userRole === 'admin' || isSuperAdmin(userEmail)) {
       // Admin has full workspace visibility
     } else {
       // Member / Developer: returns retros where developer was invited (approvedMembers), created,
@@ -270,7 +270,7 @@ class RetroService {
           author: 'Sarah Jenkins',
           authorEmail: 'sarah.j@retroflow.io',
           votes: 6,
-          voters: ['sarah.j@retroflow.io', 'gopalgohel249@gmail.com', 'priya.s@retroflow.io'],
+          voters: ['sarah.j@retroflow.io', getSuperAdminEmail(), 'priya.s@retroflow.io'],
           createdAt: new Date(Date.now() - 12 * 86400000),
           updatedAt: new Date(Date.now() - 12 * 86400000),
         },
@@ -290,9 +290,9 @@ class RetroService {
           topicId: 'topic-1',
           text: 'Idempotency key caching prevents duplicate customer credit charges under network retries.',
           author: 'Gopal',
-          authorEmail: 'gopalgohel249@gmail.com',
+          authorEmail: getSuperAdminEmail(),
           votes: 8,
-          voters: ['gopalgohel249@gmail.com', 'priya.s@retroflow.io', 'marcus.c@retroflow.io'],
+          voters: [getSuperAdminEmail(), 'priya.s@retroflow.io', 'marcus.c@retroflow.io'],
           createdAt: new Date(Date.now() - 10 * 86400000),
           updatedAt: new Date(Date.now() - 10 * 86400000),
         },
@@ -325,7 +325,7 @@ class RetroService {
           author: 'Marcus Chen',
           authorEmail: 'marcus.c@retroflow.io',
           votes: 5,
-          voters: ['marcus.c@retroflow.io', 'gopalgohel249@gmail.com'],
+          voters: ['marcus.c@retroflow.io', getSuperAdminEmail()],
           createdAt: new Date(Date.now() - 7 * 86400000),
           updatedAt: new Date(Date.now() - 7 * 86400000),
         },
@@ -361,7 +361,7 @@ class RetroService {
           author: 'Priya Sharma',
           authorEmail: 'priya.s@retroflow.io',
           votes: 5,
-          voters: ['priya.s@retroflow.io', 'gopalgohel249@gmail.com'],
+          voters: ['priya.s@retroflow.io', getSuperAdminEmail()],
           createdAt: new Date(Date.now() - 2 * 86400000),
           updatedAt: new Date(Date.now() - 2 * 86400000),
         },
@@ -370,9 +370,9 @@ class RetroService {
           topicId: 'topic-3',
           text: 'Setup Slack webhook notification channel for unhandled refund failure webhooks.',
           author: 'Gopal',
-          authorEmail: 'gopalgohel249@gmail.com',
+          authorEmail: getSuperAdminEmail(),
           votes: 6,
-          voters: ['gopalgohel249@gmail.com', 'marcus.c@retroflow.io'],
+          voters: [getSuperAdminEmail(), 'marcus.c@retroflow.io'],
           createdAt: new Date(Date.now() - 1 * 86400000),
           updatedAt: new Date(Date.now() - 1 * 86400000),
         },
@@ -408,7 +408,7 @@ class RetroService {
           author: 'David Miller',
           authorEmail: 'david.m@retroflow.io',
           votes: 4,
-          voters: ['david.m@retroflow.io', 'gopalgohel249@gmail.com'],
+          voters: ['david.m@retroflow.io', getSuperAdminEmail()],
           createdAt: new Date(Date.now() - 18 * 86400000),
           updatedAt: new Date(Date.now() - 18 * 86400000),
         },
@@ -431,7 +431,7 @@ class RetroService {
       status: retroLink?.status || 'active',
       approvalRequired: false,
       revealMode: false,
-      votingLimit: 5,
+      votingLimit: 1,
       backgroundTheme: 'standard',
       topics,
       approvedMembers: Array.from(memberEmails),
@@ -474,7 +474,7 @@ class RetroService {
         );
         let creatorId = linkedProject.createdBy || userId;
         if (!creatorId) {
-          const adminUser = await User.findOne({ $or: [{ role: 'admin' }, { email: 'gopalgohel249@gmail.com' }] });
+          const adminUser = await User.findOne({ $or: [{ role: 'admin' }, { email: getSuperAdminEmail() }] });
           creatorId = adminUser?._id || null;
         }
         const seedPayload = this.buildSeedRetroData(identifier, retroLink, linkedProject, creatorId);
@@ -580,8 +580,7 @@ class RetroService {
 
     const isAdmin =
       userRole === 'admin' ||
-      userEmail === 'gopalgohel249@gmail.com' ||
-      userEmail.includes('admin');
+      isSuperAdmin(userEmail);
 
     const isManager =
       userProjectRole === 'Manager' ||
@@ -934,9 +933,9 @@ class RetroService {
   }
 
   /**
-   * Update sticky card content
+   * Update sticky card content (Author only)
    */
-  async updateCard(identifier, cardId, { text }) {
+  async updateCard(identifier, cardId, { text }, user = null) {
     if (!cardId || !text?.trim()) {
       throw ApiError.badRequest('Card ID and text are required');
     }
@@ -944,6 +943,26 @@ class RetroService {
     const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
       ? { _id: identifier, 'cards.cardId': cardId }
       : { shareToken: identifier, 'cards.cardId': cardId };
+
+    if (user) {
+      const existing = await RetroBoard.findOne(query, { 'cards.$': 1 }).lean();
+      if (!existing || !existing.cards || existing.cards.length === 0) {
+        throw ApiError.notFound('Card or retrospective session not found');
+      }
+      const targetCard = existing.cards[0];
+      const targetEmail = (targetCard.authorEmail || '').toLowerCase().trim();
+      const userEmail = (user.email || '').toLowerCase().trim();
+      const targetAuthor = (targetCard.author || '').toLowerCase().trim();
+      const userName = (user.name || '').toLowerCase().trim();
+
+      const isAuthor =
+        Boolean(userEmail && targetEmail && userEmail === targetEmail) ||
+        Boolean(!targetEmail && targetAuthor && userName && userName === targetAuthor);
+
+      if (!isAuthor) {
+        throw ApiError.forbidden('Permission denied: Only the original author can edit this feedback.');
+      }
+    }
 
     const trimmedText = text.trim();
     const updatedTime = new Date();
@@ -980,7 +999,7 @@ class RetroService {
         : { shareToken: identifier };
 
     // Verify session exists and check authorization if user identity is present
-    const existingBoard = await RetroBoard.findOne(boardQuery).populate('project').lean();
+    const existingBoard = await RetroBoard.findOne(boardQuery).populate('projectId').lean();
     if (!existingBoard) {
       throw ApiError.notFound('Retrospective session not found');
     }
@@ -992,8 +1011,7 @@ class RetroService {
 
       const isWsAdmin =
         role === 'admin' ||
-        email === 'gopalgohel249@gmail.com' ||
-        email.includes('admin');
+        isSuperAdmin(email);
 
       let isManagerOrAdmin =
         isWsAdmin ||
@@ -1021,13 +1039,17 @@ class RetroService {
         }
       }
 
-      if (!isManagerOrAdmin && existingBoard.project) {
-        const leadEmail = (existingBoard.project.lead?.email || '').toLowerCase().trim();
+      const linkedProject = (existingBoard.projectId && typeof existingBoard.projectId === 'object')
+        ? existingBoard.projectId
+        : ((existingBoard.project && typeof existingBoard.project === 'object') ? existingBoard.project : null);
+
+      if (!isManagerOrAdmin && linkedProject) {
+        const leadEmail = (linkedProject.lead?.email || '').toLowerCase().trim();
         if (leadEmail && leadEmail === email) {
           isManagerOrAdmin = true;
         }
-        if (Array.isArray(existingBoard.project.members)) {
-          const member = existingBoard.project.members.find(
+        if (Array.isArray(linkedProject.members)) {
+          const member = linkedProject.members.find(
             (m) => (m.email || '').toLowerCase().trim() === email
           );
           if (member) {
@@ -1083,7 +1105,7 @@ class RetroService {
       ? { _id: identifier }
       : { shareToken: identifier };
 
-    const retro = await RetroBoard.findOne(query).populate('project');
+    const retro = await RetroBoard.findOne(query).populate('projectId');
     if (!retro) {
       throw ApiError.notFound('Retrospective session not found');
     }
@@ -1095,8 +1117,7 @@ class RetroService {
 
       const isWsAdmin =
         role === 'admin' ||
-        email === 'gopalgohel249@gmail.com' ||
-        email.includes('admin');
+        isSuperAdmin(email);
 
       let isManagerOrAdmin =
         isWsAdmin ||
@@ -1124,13 +1145,17 @@ class RetroService {
         }
       }
 
-      if (!isManagerOrAdmin && retro.project) {
-        const leadEmail = (retro.project.lead?.email || '').toLowerCase().trim();
+      const linkedProject = (retro.projectId && typeof retro.projectId === 'object')
+        ? retro.projectId
+        : ((retro.project && typeof retro.project === 'object') ? retro.project : null);
+
+      if (!isManagerOrAdmin && linkedProject) {
+        const leadEmail = (linkedProject.lead?.email || '').toLowerCase().trim();
         if (leadEmail && leadEmail === email) {
           isManagerOrAdmin = true;
         }
-        if (Array.isArray(retro.project.members)) {
-          const member = retro.project.members.find(
+        if (Array.isArray(linkedProject.members)) {
+          const member = linkedProject.members.find(
             (m) => (m.email || '').toLowerCase().trim() === email
           );
           if (member) {
@@ -1185,11 +1210,81 @@ class RetroService {
   }
 
   /**
-   * Delete a sticky card
+   * Delete a sticky card (Author or Manager/Admin only)
    */
-  async deleteCard(identifier, cardId) {
+  async deleteCard(identifier, cardId, user = null) {
     if (!cardId) {
       throw ApiError.badRequest('Card ID is required');
+    }
+
+    const cardQuery = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+      ? { _id: identifier, 'cards.cardId': cardId }
+      : { shareToken: identifier, 'cards.cardId': cardId };
+
+    if (user) {
+      const existing = await RetroBoard.findOne(cardQuery, { createdBy: 1, projectId: 1, projectKey: 1, 'cards.$': 1 })
+        .populate('projectId')
+        .lean();
+
+      if (!existing || !existing.cards || existing.cards.length === 0) {
+        throw ApiError.notFound('Card or retrospective session not found');
+      }
+
+      const targetCard = existing.cards[0];
+      const targetEmail = (targetCard.authorEmail || '').toLowerCase().trim();
+      const userEmail = (user.email || '').toLowerCase().trim();
+      const targetAuthor = (targetCard.author || '').toLowerCase().trim();
+      const userName = (user.name || '').toLowerCase().trim();
+
+      const isAuthor =
+        Boolean(userEmail && targetEmail && userEmail === targetEmail) ||
+        Boolean(!targetEmail && targetAuthor && userName && userName === targetAuthor);
+
+      const email = userEmail;
+      const role = (user.role || '').toLowerCase().trim();
+      const projectRole = (user.projectRole || '').toLowerCase().trim();
+      let isManagerOrAdmin =
+        role === 'admin' ||
+        isSuperAdmin(email) ||
+        role === 'manager' ||
+        role.includes('lead') ||
+        role.includes('manager') ||
+        projectRole === 'manager' ||
+        projectRole.includes('lead');
+
+      if (!isManagerOrAdmin && existing.createdBy) {
+        const createdById = typeof existing.createdBy === 'object' ? String(existing.createdBy._id || existing.createdBy.id || '') : String(existing.createdBy);
+        const createdByEmail = typeof existing.createdBy === 'object' ? (existing.createdBy.email || '').toLowerCase().trim() : '';
+        if ((user._id && createdById === String(user._id)) || (user.id && createdById === String(user.id)) || (email && createdByEmail === email)) {
+          isManagerOrAdmin = true;
+        }
+      }
+
+      const linkedProject = (existing.projectId && typeof existing.projectId === 'object')
+        ? existing.projectId
+        : ((existing.project && typeof existing.project === 'object') ? existing.project : null);
+
+      if (!isManagerOrAdmin && linkedProject) {
+        const leadEmail = (linkedProject.lead?.email || '').toLowerCase().trim();
+        if (leadEmail && leadEmail === email) {
+          isManagerOrAdmin = true;
+        }
+        if (Array.isArray(linkedProject.members)) {
+          const member = linkedProject.members.find(
+            (m) => (m.email || '').toLowerCase().trim() === email
+          );
+          if (member) {
+            const mRole = (member.role || '').toLowerCase().trim();
+            if (mRole === 'manager' || mRole.includes('lead') || mRole.includes('manager')) {
+              isManagerOrAdmin = true;
+            }
+          }
+        }
+      }
+
+      if (!isAuthor && !isManagerOrAdmin) {
+        throw ApiError.forbidden('Permission denied: Only the original author or manager can delete this card.');
+      }
     }
 
     const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
@@ -1216,7 +1311,7 @@ class RetroService {
   /**
    * Toggle Like / Unlike on a sticky card
    */
-  async voteCard(identifier, cardId, voter = null) {
+  async voteCard(identifier, cardId, voter = null, voterEmail = null) {
     if (!cardId) {
       throw ApiError.badRequest('Card ID is required');
     }
@@ -1236,14 +1331,23 @@ class RetroService {
     }
 
     const voterName = (voter || 'Developer').trim();
+    const normalizedEmail = (voterEmail || '').toLowerCase().trim();
+    const normalizedName = voterName.toLowerCase().trim();
+
+    // Safe matcher to identify this specific user's votes uniquely (Fixes Bug 6 voter conflict)
+    const isThisVoter = (v) => {
+      const vLower = (v || '').toLowerCase().trim();
+      if (normalizedEmail && vLower === normalizedEmail) return true;
+      if (normalizedEmail && vLower.includes(normalizedEmail)) return true;
+      if (normalizedName && vLower === normalizedName) return true;
+      return false;
+    };
 
     if (!Array.isArray(card.voters)) {
       card.voters = [];
     }
 
-    const existingIndex = card.voters.findIndex(
-      (v) => v.toLowerCase() === voterName.toLowerCase()
-    );
+    const existingIndex = card.voters.findIndex(isThisVoter);
 
     let hasVoted = false;
 
@@ -1253,8 +1357,9 @@ class RetroService {
       card.votes = Math.max(0, (card.votes || 1) - 1);
       hasVoted = false;
     } else {
-      // LIKE: Add vote & voter
-      card.voters.push(voterName);
+      // LIKE: Strictly 1 vote per card per participant (cannot vote multiple times on the same card, but can vote on other cards)
+      const voterIdentifier = normalizedEmail || voterName;
+      card.voters.push(voterIdentifier);
       card.votes = (card.votes || 0) + 1;
       hasVoted = true;
     }
@@ -1276,7 +1381,7 @@ class RetroService {
    */
   async getRetroAnalytics(user, { projectId = 'all' } = {}) {
     const userEmail = (user.email || '').toLowerCase().trim();
-    const isAdmin = user.role === 'admin' || userEmail === 'gopalgohel249@gmail.com';
+    const isAdmin = user.role === 'admin' || isSuperAdmin(userEmail);
 
     // 1. Fetch available projects for dropdown filter
     const allProjects = await Project.find(

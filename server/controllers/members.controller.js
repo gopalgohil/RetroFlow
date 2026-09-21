@@ -2,6 +2,7 @@ import { asyncHandler } from '../middlewares/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 import membersService from '../services/members.service.js';
+import { isSuperAdmin } from '../config/admin.config.js';
 
 /**
  * Members Controller
@@ -108,7 +109,7 @@ class MembersController {
   approveMember = asyncHandler(async (req, res) => {
     const isAdmin =
       req.user.role === 'admin' ||
-      req.user.email === 'gopalgohel249@gmail.com';
+      isSuperAdmin(req.user.email);
     if (!isAdmin) {
       throw ApiError.forbidden('Only workspace administrators can approve access requests.');
     }
@@ -134,7 +135,7 @@ class MembersController {
   rejectMember = asyncHandler(async (req, res) => {
     const isAdmin =
       req.user.role === 'admin' ||
-      req.user.email === 'gopalgohel249@gmail.com';
+      isSuperAdmin(req.user.email);
     if (!isAdmin) {
       throw ApiError.forbidden('Only workspace administrators can reject access requests.');
     }

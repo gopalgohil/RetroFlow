@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { api, ENDPOINTS } from '@/lib/api';
-import { getRetroSocket } from '@/lib/socket';
+import { getRetroSocket, updateRetroSocketAuth } from '@/lib/socket';
 import { RetroBoard, StickyCard } from '@/types/retro';
 
 export interface UseRetroSessionReturn {
@@ -56,7 +56,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [remainingVotes, setRemainingVotes] = useState<number>(5);
+  const [remainingVotes, setRemainingVotes] = useState<number>(1);
   const [isRevealed, setIsRevealed] = useState<boolean>(true);
 
   const [participantName, setParticipantName] = useState<string>('');
@@ -194,9 +194,6 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         const res = await api.get(`${ENDPOINTS.RETROS}/${shareToken}`);
         const sessionData: RetroBoard = res.data;
         setRetro(sessionData);
-        setRemainingVotes(sessionData.votingLimit || 5);
-        setIsRevealed(!sessionData.revealMode);
-
         if (sessionData.cards && Array.isArray(sessionData.cards)) {
           setCards(
             sessionData.cards.map((c: any) => ({
@@ -210,16 +207,32 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
               voters: Array.isArray(c.voters) ? c.voters : [],
               hasVoted: Array.isArray(c.voters) && (
                 c.voters.some((v: string) => {
-                    const vLower = v.toLowerCase().trim();
+                    const vLower = (v || '').toLowerCase().trim();
                     return (
-                        (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim()) ||
-                        (currentUser?.email && vLower === currentUser.email.toLowerCase().trim())
+                        (currentUser?.email && vLower === currentUser.email.toLowerCase().trim()) ||
+                        (currentUser?.email && vLower.includes(currentUser.email.toLowerCase().trim())) ||
+                        (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim())
                     );
                 })
               ),
               createdAt: c.createdAt,
             }))
           );
+
+          const votedCount = sessionData.cards.filter(
+            (c: any) =>
+              Array.isArray(c.voters) &&
+              c.voters.some((v: string) => {
+                const vLower = (v || '').toLowerCase().trim();
+                return (
+                  (currentUser?.email && vLower === currentUser.email.toLowerCase().trim()) ||
+                  (currentUser?.email && vLower.includes(currentUser.email.toLowerCase().trim())) ||
+                  (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim())
+                );
+              })
+          ).length;
+          const limit = sessionData.votingLimit || 1;
+          setRemainingVotes(Math.max(0, limit - votedCount));
         }
       } catch (err: any) {
         setError(err.message || 'Unable to load retrospective session');
@@ -245,11 +258,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     const email = currentUser.email?.toLowerCase().trim() || '';
 
     // 1. Workspace Admin
-    if (
-      role === 'admin' ||
-      email === 'gopalgohel249@gmail.com' ||
-      email.includes('admin')
-    ) {
+    if (role === 'admin') {
       return true;
     }
 
@@ -339,7 +348,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     const projRole = currentUser.projectRole?.trim();
 
     // 1. Workspace Admin
-    if (wsRole === 'admin' || emailLower === 'gopalgohel249@gmail.com') {
+    if (wsRole === 'admin') {
       return 'Admin';
     }
 
@@ -381,9 +390,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     // 1. Workspace Admin
     if (
       wsRole === 'admin' ||
-      effective === 'admin' ||
-      email === 'gopalgohel249@gmail.com' ||
-      email.includes('admin')
+      effective === 'admin'
     ) {
       return true;
     }
@@ -421,10 +428,12 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
 
     const handleConnect = () => {
       setSocketConnected(true);
+      const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
       socket.emit(
         'join:retro',
         {
           shareToken,
+          token,
           user: {
             id: currentUser?.id,
             name: currentAuthorName,
@@ -463,15 +472,17 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
                 Array.isArray(c.voters) &&
                 c.voters.some(
                   (v: string) => {
-                    const vLower = v.toLowerCase().trim();
+                    const vLower = (v || '').toLowerCase().trim();
                     return (
-                      (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim()) ||
-                      (currentUser?.email && vLower === currentUser.email.toLowerCase().trim())
+                      (currentUser?.email && vLower === currentUser.email.toLowerCase().trim()) ||
+                      (currentUser?.email && vLower.includes(currentUser.email.toLowerCase().trim())) ||
+                      (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim())
                     );
                   }
                 )
             ).length;
-            setRemainingVotes(Math.max(0, (retro?.votingLimit || 5) - votedCount));
+            const limit = retro?.votingLimit || response?.votingLimit || 1;
+            setRemainingVotes(Math.max(0, limit - votedCount));
           }
         }
       );
@@ -550,16 +561,17 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     };
 
     const onCardVoted = (payload: { cardId: string; votes: number; voters?: string[] }) => {
-      setCards((prev) =>
-        prev.map((c) => {
+      setCards((prev) => {
+        const nextCards = prev.map((c) => {
           if (c.id === payload.cardId) {
             const updatedVoters = payload.voters || c.voters || [];
             const hasVoted = updatedVoters.some(
               (v: string) => {
-                const vLower = v.toLowerCase().trim();
+                const vLower = (v || '').toLowerCase().trim();
                 return (
-                  (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim()) ||
-                  (currentUser?.email && vLower === currentUser.email.toLowerCase().trim())
+                  (currentUser?.email && vLower === currentUser.email.toLowerCase().trim()) ||
+                  (currentUser?.email && vLower.includes(currentUser.email.toLowerCase().trim())) ||
+                  (currentAuthorName && vLower === currentAuthorName.toLowerCase().trim())
                 );
               }
             );
@@ -572,8 +584,14 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
             };
           }
           return c;
-        })
-      );
+        });
+
+        const activeVoteCount = nextCards.filter((c) => c.hasVoted).length;
+        const limit = retro?.votingLimit || 1;
+        setRemainingVotes(Math.max(0, limit - activeVoteCount));
+
+        return nextCards;
+      });
     };
 
     socket.on('card:created', onCardCreated);
@@ -657,6 +675,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
           const userPayload = res.data.user;
           setCurrentUser(userPayload);
           localStorage.setItem('retroflow_token', res.data.token);
+          updateRetroSocketAuth(res.data.token);
           localStorage.setItem('retroflow_user', JSON.stringify(userPayload));
           sessionStorage.setItem(`retroflow_guest_${shareToken}`, JSON.stringify(userPayload));
           sessionStorage.setItem('retroflow_participant_name', trimmed);
@@ -700,12 +719,14 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
       const trimmed = text.trim();
       if (!trimmed || !shareToken) return;
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
       const payload = {
         shareToken,
         topicId,
         text: trimmed,
         author: currentAuthorName,
         authorEmail: currentUser?.email || '',
+        token,
       };
 
       const socket = getRetroSocket();
@@ -748,32 +769,34 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         prev.map((c) => (c.id === cardId ? { ...c, text: trimmed } : c))
       );
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
       const socket = getRetroSocket();
       if (socket && socket.connected) {
-        socket.emit('card:edit', {
-          shareToken,
-          cardId,
-          text: trimmed,
-          user: {
-            name: currentAuthorName,
-            email: currentUser?.email || '',
+        socket.emit(
+          'card:edit',
+          {
+            shareToken,
+            cardId,
+            text: trimmed,
+            token,
           },
-        });
+          (res: any) => {
+            if (res?.error) {
+              console.warn('[RetroSession] Failed to update card:', res.error);
+            }
+          }
+        );
       } else {
         try {
           await api.put(`${ENDPOINTS.RETROS}/${shareToken}/cards/${cardId}`, {
             text: trimmed,
-            user: {
-              name: currentAuthorName,
-              email: currentUser?.email || '',
-            },
           });
         } catch (err) {
           console.error('[RetroSession] Failed to update card:', err);
         }
       }
     },
-    [shareToken, currentAuthorName, currentUser?.email]
+    [shareToken]
   );
 
   const deleteCard = useCallback(
@@ -783,12 +806,22 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
       // Optimistic Removal
       setCards((prev) => prev.filter((c) => c.id !== cardId));
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
       const socket = getRetroSocket();
       if (socket && socket.connected) {
-        socket.emit('card:delete', {
-          shareToken,
-          cardId,
-        });
+        socket.emit(
+          'card:delete',
+          {
+            shareToken,
+            cardId,
+            token,
+          },
+          (res: any) => {
+            if (res?.error) {
+              console.warn('[RetroSession] Failed to delete card:', res.error);
+            }
+          }
+        );
       } else {
         try {
           await api.delete(`${ENDPOINTS.RETROS}/${shareToken}/cards/${cardId}`);
@@ -815,18 +848,14 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         prev.map((c) => (c.id === cardId ? { ...c, topicId: targetTopicId } : c))
       );
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
       const socket = getRetroSocket();
       if (socket && socket.connected) {
         socket.emit('card:move', {
           shareToken,
           cardId,
           targetTopicId,
-          user: {
-            id: currentUser?.id,
-            email: currentUser?.email,
-            name: currentAuthorName,
-            role: effectiveUserRole,
-          },
+          token,
         });
       } else {
         try {
@@ -838,7 +867,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         }
       }
     },
-    [shareToken, canMoveCrossColumn, currentUser, currentAuthorName, effectiveUserRole]
+    [shareToken, canMoveCrossColumn]
   );
 
   const reorderCards = useCallback(
@@ -874,18 +903,14 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         });
       });
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
       const socket = getRetroSocket();
       if (socket && socket.connected) {
         socket.emit('cards:reorder', {
           shareToken,
           topicId,
           cardIds,
-          user: {
-            id: currentUser?.id,
-            email: currentUser?.email,
-            name: currentAuthorName,
-            role: effectiveUserRole,
-          },
+          token,
         });
       } else {
         try {
@@ -897,7 +922,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         }
       }
     },
-    [shareToken, canMoveCrossColumn, currentUser, currentAuthorName, effectiveUserRole]
+    [shareToken, canMoveCrossColumn]
   );
 
   const voteCard = useCallback(
@@ -911,16 +936,14 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
       const isCurrentlyVoted =
         Boolean(targetCard.hasVoted) ||
         (Array.isArray(targetCard.voters) &&
-          targetCard.voters.some(
-            (v) =>
-              v.toLowerCase() === voterIdentifier.toLowerCase() ||
-              (currentUser?.email && v.toLowerCase() === currentUser.email.toLowerCase())
-          ));
-
-      // If user has not voted yet and has no votes remaining, do nothing
-      if (!isCurrentlyVoted && remainingVotes <= 0) {
-        return;
-      }
+          targetCard.voters.some((v) => {
+            const vLower = (v || '').toLowerCase().trim();
+            return (
+              (currentUser?.email && vLower === currentUser.email.toLowerCase().trim()) ||
+              (currentUser?.email && vLower.includes(currentUser.email.toLowerCase().trim())) ||
+              (voterIdentifier && vLower === voterIdentifier.toLowerCase().trim())
+            );
+          }));
 
       const willBeVoted = !isCurrentlyVoted;
 
@@ -929,16 +952,19 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         prev.map((c) => {
           if (c.id === cardId) {
             let updatedVoters = Array.isArray(c.voters) ? [...c.voters] : [];
+            const voterToken = currentUser?.email || voterIdentifier;
             if (willBeVoted) {
-              if (!updatedVoters.some((v) => v.toLowerCase() === voterIdentifier.toLowerCase())) {
-                updatedVoters.push(voterIdentifier);
+              if (!updatedVoters.some((v) => (v || '').toLowerCase().trim() === voterToken.toLowerCase().trim())) {
+                updatedVoters.push(voterToken);
               }
             } else {
-              updatedVoters = updatedVoters.filter(
-                (v) =>
-                  v.toLowerCase() !== voterIdentifier.toLowerCase() &&
-                  (!currentUser?.email || v.toLowerCase() !== currentUser.email.toLowerCase())
-              );
+              updatedVoters = updatedVoters.filter((v) => {
+                const vLower = (v || '').toLowerCase().trim();
+                return (
+                  (!currentUser?.email || (vLower !== currentUser.email.toLowerCase().trim() && !vLower.includes(currentUser.email.toLowerCase().trim()))) &&
+                  (!voterIdentifier || vLower !== voterIdentifier.toLowerCase().trim())
+                );
+              });
             }
 
             const newVoteCount = willBeVoted
@@ -956,23 +982,63 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         })
       );
 
-      // Dynamically adjust remaining votes quota
-      setRemainingVotes((prev) => (willBeVoted ? Math.max(0, prev - 1) : prev + 1));
+      // Dynamically adjust remaining votes quota (Strict 1 limit)
+      setRemainingVotes((prev) => (willBeVoted ? Math.max(0, prev - 1) : Math.min(1, prev + 1)));
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
       const socket = getRetroSocket();
       if (socket && socket.connected) {
-        socket.emit('card:vote', {
-          shareToken,
-          cardId,
-          voter: voterIdentifier,
-        });
+        socket.emit(
+          'card:vote',
+          {
+            shareToken,
+            cardId,
+            voter: voterIdentifier,
+            voterEmail: currentUser?.email || '',
+            token,
+          },
+          (res: any) => {
+            if (res?.error) {
+              console.warn('[RetroSession] Server rejected vote:', res.error);
+              // Revert optimistic update on server rejection
+              setCards((prev) =>
+                prev.map((c) => {
+                  if (c.id === cardId) {
+                    return {
+                      ...c,
+                      votes: isCurrentlyVoted ? (c.votes || 0) + 1 : Math.max(0, (c.votes || 1) - 1),
+                      hasVoted: isCurrentlyVoted,
+                    };
+                  }
+                  return c;
+                })
+              );
+              setRemainingVotes(isCurrentlyVoted ? 0 : 1);
+            }
+          }
+        );
       } else {
         try {
           await api.post(`${ENDPOINTS.RETROS}/${shareToken}/cards/${cardId}/vote`, {
             voter: voterIdentifier,
+            voterEmail: currentUser?.email || '',
           });
         } catch (err) {
           console.error('[RetroSession] Failed to toggle vote on card:', err);
+          // Revert optimistic update on error
+          setCards((prev) =>
+            prev.map((c) => {
+              if (c.id === cardId) {
+                return {
+                  ...c,
+                  votes: isCurrentlyVoted ? (c.votes || 0) + 1 : Math.max(0, (c.votes || 1) - 1),
+                  hasVoted: isCurrentlyVoted,
+                };
+              }
+              return c;
+            })
+          );
+          setRemainingVotes(isCurrentlyVoted ? 0 : 1);
         }
       }
     },

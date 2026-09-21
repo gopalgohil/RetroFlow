@@ -97,7 +97,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const [description, setDescription] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
   const [revealMode, setRevealMode] = useState(false);
-  const [votingLimit, setVotingLimit] = useState(5);
+  const [votingLimit, setVotingLimit] = useState(1);
   const [approvalRequired, setApprovalRequired] = useState(false);
   const [approvedMembers, setApprovedMembers] = useState<string[]>([]);
   const [backgroundTheme, setBackgroundTheme] = useState<'sailboat' | 'standard' | 'space' | 'mountain' | 'minimal'>('standard');
@@ -120,7 +120,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setDescription(initialData.description || '');
       setScheduledDate(initialData.scheduledDate ? new Date(initialData.scheduledDate).toISOString().slice(0, 16) : '');
       setRevealMode(initialData.revealMode || false);
-      setVotingLimit(initialData.votingLimit || 5);
+      setVotingLimit(initialData.votingLimit || 1);
       setApprovalRequired(initialData.approvalRequired || false);
       setApprovedMembers(initialData.approvedMembers || []);
       setBackgroundTheme(initialData.backgroundTheme || 'standard');
@@ -133,7 +133,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       const today = new Date();
       setScheduledDate(today.toISOString().slice(0, 16));
       setRevealMode(false);
-      setVotingLimit(5);
+      setVotingLimit(1);
       setApprovalRequired(true); // Project privacy: restrict access to project members
       const memberEmails = (projectContext.members || []).map((m) => m.email.toLowerCase().trim());
       setApprovedMembers(memberEmails);
@@ -173,7 +173,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       tomorrow.setHours(14, 0, 0, 0);
       setScheduledDate(tomorrow.toISOString().slice(0, 16));
       setRevealMode(false);
-      setVotingLimit(5);
+      setVotingLimit(1);
       setApprovalRequired(false);
       setApprovedMembers([]);
       setBackgroundTheme('standard');

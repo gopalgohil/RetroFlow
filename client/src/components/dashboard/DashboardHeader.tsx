@@ -43,10 +43,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   const userEmail = activeUser.email?.toLowerCase().trim();
   const userRole = activeUser.role?.toLowerCase().trim();
-  const isRealAdmin = Boolean(
-    userRole === 'admin' ||
-    (userEmail && userEmail === 'gopalgohel249@gmail.com')
-  );
+  const isRealAdmin = Boolean(userRole === 'admin');
 
   const isUserAdmin = isAdmin !== undefined ? (isAdmin && isRealAdmin) : isRealAdmin;
 
@@ -189,7 +186,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5"
                         title={activeUser.email}
                       >
-                        {activeUser.email || 'gopalgohel249@gmail.com'}
+                        {activeUser.email || ''}
                       </p>
                     </div>
                   </div>

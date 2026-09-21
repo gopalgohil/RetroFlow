@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import projectController from '../controllers/project.controller.js';
-import { optionalAuth } from '../middlewares/auth.middleware.js';
+import { protect, optionalAuth } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
 import {
   createProjectSchema,
@@ -24,13 +24,13 @@ router.get('/', optionalAuth, projectController.getAllProjects);
  * @route   GET /api/projects/my/action-items
  * @desc    Get action items assigned to the current user
  */
-router.get('/my/action-items', optionalAuth, projectController.getMyActionItems);
+router.get('/my/action-items', protect, projectController.getMyActionItems);
 
 /**
  * @route   PATCH /api/projects/my/action-items/:itemId/status
  * @desc    Update status of an action item
  */
-router.patch('/my/action-items/:itemId/status', optionalAuth, projectController.updateActionItemStatus);
+router.patch('/my/action-items/:itemId/status', protect, projectController.updateActionItemStatus);
 
 /**
  * @route   GET /api/projects/:id

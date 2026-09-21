@@ -114,7 +114,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    defaultVotingLimit: Number(e.target.value) || 5,
+                    defaultVotingLimit: Number(e.target.value) || 1,
                   }))
                 }
                 className="mt-1.5 w-full px-3.5 py-2 bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs font-semibold text-slate-800 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all"

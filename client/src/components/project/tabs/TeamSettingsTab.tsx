@@ -29,9 +29,7 @@ interface TeamSettingsTabProps {
   currentUserRole?: string;
 }
 
-const DEFAULT_WORKSPACE_MEMBERS = [
-  { id: 'lead-gopal', name: 'Gopal', email: 'gopalgohel249@gmail.com' },
-];
+const DEFAULT_WORKSPACE_MEMBERS: Array<{ id: string; name: string; email: string }> = [];
 
 export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
   project,

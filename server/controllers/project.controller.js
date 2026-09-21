@@ -2,6 +2,7 @@ import { asyncHandler } from '../middlewares/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import projectService from '../services/project.service.js';
 import Project from '../models/Project.js';
+import { isSuperAdmin } from '../config/admin.config.js';
 
 class ProjectController {
   /**
@@ -15,8 +16,7 @@ class ProjectController {
     const isAdmin =
       Boolean(user) &&
       (userRole === 'admin' ||
-        userEmail === 'gopalgohel249@gmail.com' ||
-        userEmail?.includes('admin'));
+        isSuperAdmin(userEmail));
 
     const { page, limit, filter, search, all } = req.query;
 
@@ -81,8 +81,7 @@ class ProjectController {
     const userRole = (user.role || '').toLowerCase();
     const isAdmin =
       userRole === 'admin' ||
-      userEmail === 'gopalgohel249@gmail.com' ||
-      userEmail?.includes('admin');
+      isSuperAdmin(userEmail);
 
     const userProjectRole = (user.projectRole || '').toLowerCase();
     const isManager =

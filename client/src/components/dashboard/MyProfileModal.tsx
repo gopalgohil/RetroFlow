@@ -157,11 +157,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
 
   const userEmail = profileData.email?.toLowerCase().trim();
   const userRole = profileData.role?.toLowerCase().trim();
-  const isAdmin = Boolean(
-    userRole === 'admin' ||
-    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
-    userEmail?.includes('admin')
-  );
+  const isAdmin = Boolean(userRole === 'admin');
 
   const displayName = profileData.name || user?.name || 'Member';
   const displayEmail = profileData.email || user?.email || '';

@@ -8,6 +8,7 @@ import env from '../config/env.js';
 import emailService from './email.service.js';
 import { generateToken } from '../utils/token.js';
 import { ApiError } from '../utils/ApiError.js';
+import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 
 /**
  * Canonical Default Project Payload (Payment Gateway Integration)
@@ -22,12 +23,12 @@ const CANONICAL_PGI_PROJECT = {
   customCadenceDays: 14,
   lead: {
     id: 'lead-1',
-    name: 'Gopal',
-    email: 'gopalgohel249@gmail.com',
-    avatar: 'G',
+    name: 'Workspace Lead',
+    email: getSuperAdminEmail(),
+    avatar: 'WL',
   },
   members: [
-    { id: 'm-1', name: 'Gopal', email: 'gopalgohel249@gmail.com', role: 'Manager', avatar: 'G' },
+    { id: 'm-1', name: 'Workspace Lead', email: getSuperAdminEmail(), role: 'Manager', avatar: 'WL' },
   ],
   velocityHistory: [
     { sprintName: 'Sprint 10', committedPoints: 35, completedPoints: 34 },
@@ -218,11 +219,10 @@ class ProjectService {
     const userRole = (currentUser?.role || '').toLowerCase();
 
     // 1. Enterprise RBAC Check
-    const isAdmin =
-      !currentUser ||
-      userRole === 'admin' ||
-      userEmail === 'gopalgohel249@gmail.com' ||
-      userEmail?.includes('admin');
+    const isAdmin = Boolean(
+      currentUser &&
+      (userRole === 'admin' || isSuperAdmin(userEmail))
+    );
 
     // 2. Base Accessible Query Construction
     let baseQuery = { isArchived: { $ne: true } };
@@ -523,14 +523,20 @@ class ProjectService {
     await this.syncProjectRetrospectives(project);
 
     // Admin has unrestricted master access to all projects
-    const isAdmin =
-      !currentUser ||
-      currentUser.role?.toLowerCase() === 'admin' ||
-      currentUser.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
-      currentUser.email?.toLowerCase().includes('admin');
+    const isAdmin = Boolean(
+      currentUser &&
+      (currentUser.role?.toLowerCase() === 'admin' ||
+       isSuperAdmin(currentUser.email?.toLowerCase()))
+    );
 
     if (isAdmin) {
       return project;
+    }
+
+    if (!currentUser) {
+      const error = new Error('Authentication required to access project.');
+      error.statusCode = 401;
+      throw error;
     }
 
     // RBAC Authorization enforcement strictly for non-admin members
@@ -561,8 +567,7 @@ class ProjectService {
 
     const isAdmin =
       currentUser.role?.toLowerCase() === 'admin' ||
-      currentUser.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
-      currentUser.email?.toLowerCase().includes('admin');
+      isSuperAdmin(currentUser.email?.toLowerCase());
 
     if (isAdmin) return;
 
@@ -604,8 +609,8 @@ class ProjectService {
       throw new Error(`Project key "${key}" already exists. Please choose a distinct key.`);
     }
 
-    const leadName = payload.lead?.name?.trim() || 'Gopal';
-    const leadEmail = payload.lead?.email?.toLowerCase().trim() || 'gopalgohel249@gmail.com';
+    const leadName = payload.lead?.name?.trim() || currentUser?.name || 'Project Lead';
+    const leadEmail = payload.lead?.email?.toLowerCase().trim() || currentUser?.email || getSuperAdminEmail();
     const leadAvatar =
       payload.lead?.avatar ||
       leadName
@@ -622,12 +627,17 @@ class ProjectService {
       (m) => m.email?.toLowerCase().trim() !== leadEmail
     );
 
+    const leadMemberInPayload = (payload.members || []).find(
+      (m) => m.email?.toLowerCase().trim() === leadEmail
+    );
+    const leadRole = leadMemberInPayload?.role || payload.lead?.role || 'Manager';
+
     const members = [
       {
         id: `m-lead-${Date.now()}`,
         name: leadName,
         email: leadEmail,
-        role: 'Manager',
+        role: leadRole,
         avatar: leadAvatar,
         joinedAt: new Date(),
       },
@@ -1054,11 +1064,15 @@ class ProjectService {
     const userRole = currentUser?.role?.toLowerCase().trim();
     const userProjectRole = currentUser?.projectRole?.toLowerCase().trim();
 
+    if (!currentUser) {
+      const error = new Error('Authentication required to access action items.');
+      error.statusCode = 401;
+      throw error;
+    }
+
     const isAdmin =
-      !currentUser ||
       userRole === 'admin' ||
-      userEmail === 'gopalgohel249@gmail.com' ||
-      userEmail?.includes('admin');
+      isSuperAdmin(userEmail);
 
     const isManager =
       isAdmin ||
@@ -1319,8 +1333,7 @@ class ProjectService {
 
     const isAdmin =
       currentUser?.role?.toLowerCase() === 'admin' ||
-      currentUser?.email?.toLowerCase() === 'gopalgohel249@gmail.com' ||
-      currentUser?.email?.toLowerCase().includes('admin');
+      isSuperAdmin(currentUser?.email?.toLowerCase());
 
     const email = currentUser?.email?.toLowerCase()?.trim();
     const isProjectMemberManager = Boolean(

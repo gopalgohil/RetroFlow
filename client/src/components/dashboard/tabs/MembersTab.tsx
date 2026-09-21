@@ -342,7 +342,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 members.map((m, index) => {
                   const emailLower = m.email?.toLowerCase().trim();
                   const isSelf = emailLower === currentEmail?.toLowerCase().trim();
-                  const isPrimaryOwner = emailLower === 'gopalgohel249@gmail.com';
+                  const isPrimaryOwner = Boolean(m.isPrimaryLead || (m as any).isPrimaryOwner);
 
                   return (
                     <tr

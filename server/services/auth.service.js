@@ -4,6 +4,7 @@ import RetroBoard from '../models/RetroBoard.js';
 import { ApiError } from '../utils/ApiError.js';
 import { generateToken } from '../utils/token.js';
 import emailService from './email.service.js';
+import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 
 /**
  * Authentication Business Logic Service
@@ -37,8 +38,7 @@ class AuthService {
     } else {
       // Check if email was pre-approved via Instant Member Access / retro whitelists
       const isPreApproved = Boolean(
-        normalizedEmail === 'gopalgohel249@gmail.com' ||
-        normalizedEmail.includes('admin') ||
+        isSuperAdmin(normalizedEmail) ||
         (await RetroBoard.exists({ approvedMembers: normalizedEmail }))
       );
 
@@ -159,9 +159,9 @@ class AuthService {
     let user = await User.findOne({ email: normalizedEmail });
 
     // If Admin account doesn't exist yet in fresh database, auto-provision Admin account
-    if (!user && (normalizedEmail === 'gopalgohel249@gmail.com' || normalizedEmail.includes('admin'))) {
+    if (!user && isSuperAdmin(normalizedEmail)) {
       user = await User.create({
-        name: 'Gopal',
+        name: 'Workspace Admin',
         email: normalizedEmail,
         password,
         role: 'admin',
@@ -184,7 +184,7 @@ class AuthService {
     }
 
     // Ensure Admin is always verified and has admin role
-    if (normalizedEmail === 'gopalgohel249@gmail.com' && (!user.isVerified || user.role !== 'admin')) {
+    if (isSuperAdmin(normalizedEmail) && (!user.isVerified || user.role !== 'admin')) {
       await User.updateOne(
         { _id: user._id },
         { $set: { isVerified: true, role: 'admin', projectRole: 'Manager' } }
@@ -226,8 +226,7 @@ class AuthService {
 
     const isAdmin = Boolean(
       user.role === 'admin' ||
-      user.email === 'gopalgohel249@gmail.com' ||
-      normalizedEmail.includes('admin')
+      isSuperAdmin(user.email)
     );
 
     const effectiveRole = isAdmin
@@ -243,7 +242,7 @@ class AuthService {
         email: user.email,
         role: user.role || 'member',
         projectRole: effectiveRole,
-        isApproved: Boolean(user.role === 'admin' || user.email === 'gopalgohel249@gmail.com' || user.isApproved),
+        isApproved: Boolean(user.role === 'admin' || isSuperAdmin(user.email) || user.isApproved),
       },
       token,
     };
@@ -327,7 +326,7 @@ class AuthService {
     }
 
     const email = user.email.toLowerCase().trim();
-    const isAdmin = user.role === 'admin' || email === 'gopalgohel249@gmail.com' || email.includes('admin');
+    const isAdmin = user.role === 'admin' || isSuperAdmin(email);
 
     // Retrieve active projects the user participates in or created
     const userProjects = await Project.find({
@@ -419,8 +418,7 @@ class AuthService {
     let user = await User.findOne({ email: normalizedEmail });
 
     const isAdmin = Boolean(
-      normalizedEmail === 'gopalgohel249@gmail.com' ||
-      normalizedEmail.includes('admin')
+      isSuperAdmin(normalizedEmail)
     );
 
     if (user) {

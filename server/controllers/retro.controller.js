@@ -1,6 +1,7 @@
 import { asyncHandler } from '../middlewares/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import retroService from '../services/retro.service.js';
+import { isSuperAdmin } from '../config/admin.config.js';
 
 class RetroController {
   /**
@@ -13,8 +14,7 @@ class RetroController {
     const userEmail = user?.email?.toLowerCase().trim();
     const isAdmin =
       userRole === 'admin' ||
-      userEmail === 'gopalgohel249@gmail.com' ||
-      userEmail?.includes('admin');
+      isSuperAdmin(userEmail);
     const isManager =
       user?.projectRole === 'Manager' ||
       userRole === 'manager' ||
@@ -82,8 +82,7 @@ class RetroController {
     const userEmail = user?.email?.toLowerCase().trim();
     const isAdmin =
       userRole === 'admin' ||
-      userEmail === 'gopalgohel249@gmail.com' ||
-      userEmail?.includes('admin');
+      isSuperAdmin(userEmail);
     const isManager =
       user?.projectRole === 'Manager' ||
       userRole === 'manager' ||
@@ -148,7 +147,7 @@ class RetroController {
    * PUT /api/retros/:id/cards/:cardId
    */
   updateCard = asyncHandler(async (req, res) => {
-    const updated = await retroService.updateCard(req.params.id, req.params.cardId, req.body);
+    const updated = await retroService.updateCard(req.params.id, req.params.cardId, req.body, req.user);
 
     const io = req.app.get('io');
     if (io) {
@@ -194,7 +193,7 @@ class RetroController {
    * DELETE /api/retros/:id/cards/:cardId
    */
   deleteCard = asyncHandler(async (req, res) => {
-    const result = await retroService.deleteCard(req.params.id, req.params.cardId);
+    const result = await retroService.deleteCard(req.params.id, req.params.cardId, req.user);
 
     const io = req.app.get('io');
     if (io) {
@@ -209,11 +208,13 @@ class RetroController {
    * POST /api/retros/:id/cards/:cardId/vote
    */
   voteCard = asyncHandler(async (req, res) => {
-    const voter = req.body.voter || req.user?.name || req.user?.email || 'Developer';
+    const voter = req.body.voter || req.user?.name || 'Developer';
+    const voterEmail = req.body.voterEmail || req.user?.email || null;
     const result = await retroService.voteCard(
       req.params.id,
       req.params.cardId,
-      voter
+      voter,
+      voterEmail
     );
 
     const io = req.app.get('io');

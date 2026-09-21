@@ -85,7 +85,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   const isManagerOrAdmin = Boolean(
     isAdmin ||
     currentUser?.role === 'admin' ||
-    currentUser?.email === 'gopalgohel249@gmail.com' ||
     currentUser?.projectRole === 'Manager' ||
     currentUser?.role?.toLowerCase().includes('manager')
   );
@@ -194,9 +193,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
   const isWorkspaceAdmin = Boolean(
     isAdmin ||
-    userRole === 'admin' ||
-    (userEmail && userEmail === 'gopalgohel249@gmail.com') ||
-    (userEmail && userEmail.includes('admin'))
+    userRole === 'admin'
   );
 
   const isManager = Boolean(

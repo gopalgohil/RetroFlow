@@ -4,6 +4,9 @@ import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { ProjectApiService } from '@/services/projectApi';
+
+const WORKSPACE_SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@retroflow.io';
 import {
   Sidebar,
   DashboardHeader,
@@ -92,10 +95,7 @@ function DashboardContent() {
   const userRole = activeUser.role?.toLowerCase().trim();
   const userProjectRole = (activeUser as any).projectRole;
 
-  const isAdmin = Boolean(
-    userRole === 'admin' ||
-    (userEmail && userEmail === 'gopalgohel249@gmail.com')
-  );
+  const isAdmin = Boolean(userRole === 'admin');
 
   const isManager = Boolean(
     isAdmin ||
@@ -377,7 +377,7 @@ function DashboardContent() {
                 <span>What should you do?</span>
               </div>
               <p className="text-[11px] text-rose-800 leading-relaxed">
-                If you believe this was an error, please contact your workspace administrator at <strong className="font-semibold text-rose-950">gopalgohel249@gmail.com</strong>, or you can submit a new registration.
+                If you believe this was an error, please contact your workspace administrator at <strong className="font-semibold text-rose-950">{WORKSPACE_SUPPORT_EMAIL}</strong>, or you can submit a new registration.
               </p>
             </div>
 
@@ -407,8 +407,8 @@ function DashboardContent() {
         {/* Footer */}
         <footer className="py-4 text-center text-xs text-slate-400 relative z-10">
           Need immediate access? Contact workspace owner at{' '}
-          <a href="mailto:gopalgohel249@gmail.com" className="font-semibold text-[#5cb028] hover:underline">
-            gopalgohel249@gmail.com
+          <a href={`mailto:${WORKSPACE_SUPPORT_EMAIL}`} className="font-semibold text-[#5cb028] hover:underline">
+            {WORKSPACE_SUPPORT_EMAIL}
           </a>
         </footer>
 
@@ -558,8 +558,8 @@ function DashboardContent() {
             {/* Contact Support info */}
             <p className="text-[11px] text-slate-400 pt-3 border-t border-slate-100">
               Need immediate access? Contact workspace owner at{' '}
-              <a href="mailto:gopalgohel249@gmail.com" className="text-[#5cb028] underline font-medium hover:text-[#4e9921]">
-                gopalgohel249@gmail.com
+              <a href={`mailto:${WORKSPACE_SUPPORT_EMAIL}`} className="text-[#5cb028] underline font-medium hover:text-[#4e9921]">
+                {WORKSPACE_SUPPORT_EMAIL}
               </a>
             </p>
           </div>
@@ -567,7 +567,7 @@ function DashboardContent() {
 
         {/* Minimal Footer */}
         <footer className="px-6 py-3 text-center text-[11px] text-slate-400 border-t border-slate-200/80 bg-white/50 backdrop-blur-xs relative z-10">
-          RetroFlow &bull; Enterprise Agile Retrospectives &bull; gopalgohel249@gmail.com
+          RetroFlow &bull; Enterprise Agile Retrospectives
         </footer>
 
         {/* Logout Confirmation Modal */}

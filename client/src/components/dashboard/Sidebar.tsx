@@ -50,10 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const isAdmin =
     propIsAdmin !== undefined
       ? propIsAdmin
-      : Boolean(
-          userRole === 'admin' ||
-          (userEmail && userEmail === 'gopalgohel249@gmail.com')
-        );
+      : Boolean(userRole === 'admin');
 
   const isManager = Boolean(
     isAdmin ||

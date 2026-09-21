@@ -68,7 +68,6 @@ export const WelcomeToast: React.FC<WelcomeToastProps> = ({
 
   const isAdmin =
     user?.role === 'admin' ||
-    user?.email === 'gopalgohel249@gmail.com' ||
     (user as any)?.role === 'admin';
 
   const displayName = user?.name?.trim() || (isAdmin ? 'Admin' : 'Team Member');

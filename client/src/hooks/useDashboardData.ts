@@ -16,7 +16,7 @@ import { DashboardTab } from './useDashboardTabs';
 const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettingsData = {
   workspaceName: 'RetroFlow Agile Core',
   organizationName: 'Agile Engineering Team',
-  defaultVotingLimit: 5,
+  defaultVotingLimit: 1,
   allowAnonymousFeedback: true,
   timerDefaultMinutes: 10,
   enableSlackNotifications: false,

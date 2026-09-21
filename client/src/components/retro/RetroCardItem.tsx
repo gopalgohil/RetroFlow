@@ -179,25 +179,18 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             <div className="relative group/vote-popover">
               <button
                 type="button"
-                onClick={() => canInteract && onVote(card.id)}
-                disabled={!card.hasVoted && remainingVotes <= 0}
+                onClick={() => onVote(card.id)}
                 title={
                   card.hasVoted
-                    ? 'You liked this thought. Click to unlike'
-                    : remainingVotes <= 0
-                    ? 'No votes remaining'
-                    : 'Click to like this thought (1 vote limit)'
+                    ? 'You voted for this thought. Click to unlike'
+                    : 'Click to vote for this thought (1 vote per card)'
                 }
                 style={{
                   color: card.hasVoted ? '#ffffff' : topicColor,
                   backgroundColor: card.hasVoted ? topicColor : `${topicColor}15`,
                   borderColor: card.hasVoted ? topicColor : `${topicColor}30`,
                 }}
-                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all shadow-2xs ${
-                  !card.hasVoted && remainingVotes <= 0
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:scale-105 active:scale-95 cursor-pointer'
-                }`}
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <ThumbsUp className={`w-3 h-3 ${card.hasVoted ? 'fill-current' : ''}`} />
                 <span>{card.votes || 0}</span>

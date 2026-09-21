@@ -36,9 +36,7 @@ interface WorkspaceMemberOption {
   avatar?: string;
 }
 
-const DEFAULT_WORKSPACE_LEADS: WorkspaceMemberOption[] = [
-  { id: 'lead-gopal', name: 'Gopal', email: 'gopalgohel249@gmail.com', role: 'Admin', avatar: 'G' },
-];
+const DEFAULT_WORKSPACE_LEADS: WorkspaceMemberOption[] = [];
 
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   isOpen,
@@ -378,9 +376,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       currentMembers.find((m) => m.role === 'Manager') ||
       availableLeads[0] || {
         id: 'lead-primary',
-        name: 'Gopal',
-        email: 'gopalgohel249@gmail.com',
-        avatar: 'G',
+        name: 'Project Lead',
+        email: '',
+        avatar: 'PL',
       };
 
     const cleanLeadName = designatedLead.name.replace(/\s*\(You\)\s*/i, '').trim();

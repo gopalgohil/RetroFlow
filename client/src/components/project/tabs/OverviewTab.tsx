@@ -57,6 +57,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const todoTasks = totalTasks - completedTasks;
   const totalMembers = project.members?.length || 0;
 
+  const leadOrManager =
+    project.members?.find((m) => (m.role || '').toLowerCase() === 'manager') ||
+    project.members?.find((m) => (m.role || '').toLowerCase() === 'project lead') ||
+    project.lead;
+  const leadRoleLabel =
+    leadOrManager && 'role' in leadOrManager && (leadOrManager.role || '').toLowerCase() === 'project lead'
+      ? 'Lead'
+      : 'Manager';
+  const leadDisplayName = leadOrManager?.name || 'Assigned Manager';
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* 1. Reusable KPI Metric Cards Grid */}
@@ -136,7 +146,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           unit={`contributor${totalMembers !== 1 ? 's' : ''}`}
           icon={<Users className="w-4 h-4" />}
           variant="violet"
-          subtitle={`Lead: ${project.lead?.name || 'Assigned Lead'} • ${project.type?.toUpperCase() || 'SCRUM'}`}
+          subtitle={`${leadRoleLabel}: ${leadDisplayName}`}
         />
       </div>
 

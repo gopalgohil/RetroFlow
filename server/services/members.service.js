@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import RetroBoard from '../models/RetroBoard.js';
 import Project from '../models/Project.js';
+import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 
 /**
  * Members & Whitelist Service
@@ -20,7 +21,7 @@ class MembersService {
         {
           $or: [
             { role: 'admin' },
-            { email: 'gopalgohel249@gmail.com' },
+            { email: getSuperAdminEmail() },
             { isApproved: true },
             { isVerified: true, hasLoggedIn: true },
           ],
@@ -76,8 +77,7 @@ class MembersService {
       const emailLower = u.email.toLowerCase().trim();
       const isAdmin =
         u.role === 'admin' ||
-        emailLower === 'gopalgohel249@gmail.com' ||
-        emailLower.includes('admin');
+        isSuperAdmin(emailLower);
 
       const stats = projectStatsMap.get(emailLower) || { count: 0, roles: new Set(), names: [], isLead: false };
       const roleList = Array.from(stats.roles);
@@ -110,7 +110,7 @@ class MembersService {
         projectRole,
         projectsCount: stats.count,
         projectNames: stats.names,
-        isPrimaryLead: emailLower === 'gopalgohel249@gmail.com',
+        isPrimaryLead: isSuperAdmin(emailLower),
         avatar,
         status: (!u.isApproved && !isAdmin) ? 'pending' : 'active',
         isApproved: Boolean(isAdmin || u.isApproved),
@@ -135,7 +135,7 @@ class MembersService {
             projectNames: stats?.names || [proj.name || proj.key],
             status: 'active',
             isWhitelisted: true,
-            isPrimaryLead: emailLower === 'gopalgohel249@gmail.com',
+            isPrimaryLead: isSuperAdmin(emailLower),
             avatar: proj.lead.avatar || proj.lead.name?.slice(0, 2).toUpperCase() || 'L',
             joinedAt: new Date(),
           });
@@ -269,7 +269,7 @@ class MembersService {
     const cleanEmail = email.toLowerCase().trim();
 
     // Guard: Prevent removing primary workspace owner
-    if (cleanEmail === 'gopalgohel249@gmail.com') {
+    if (isSuperAdmin(cleanEmail)) {
       throw new Error('Primary Workspace Owner cannot be removed.');
     }
 
@@ -288,9 +288,9 @@ class MembersService {
         $set: {
           lead: {
             id: 'lead-primary',
-            name: 'Gopal',
-            email: 'gopalgohel249@gmail.com',
-            avatar: 'G',
+            name: 'Workspace Lead',
+            email: getSuperAdminEmail(),
+            avatar: 'WL',
           },
         },
       }
@@ -332,7 +332,7 @@ class MembersService {
       throw new Error(`User with email "${cleanEmail}" not found.`);
     }
 
-    if (user.role === 'admin' || cleanEmail === 'gopalgohel249@gmail.com') {
+    if (user.role === 'admin' || isSuperAdmin(cleanEmail)) {
       throw new Error('Admin role cannot be modified.');
     }
 
@@ -353,9 +353,9 @@ class MembersService {
         { 'lead.email': cleanEmail },
         {
           $set: {
-            'lead.name': 'Gopal',
-            'lead.email': 'gopalgohel249@gmail.com',
-            'lead.avatar': 'GG',
+            'lead.name': 'Workspace Lead',
+            'lead.email': getSuperAdminEmail(),
+            'lead.avatar': 'WL',
           },
         }
       );
@@ -409,7 +409,7 @@ class MembersService {
   async rejectMember(adminUserId, email) {
     const cleanEmail = email.toLowerCase().trim();
 
-    if (cleanEmail === 'gopalgohel249@gmail.com') {
+    if (isSuperAdmin(cleanEmail)) {
       throw new Error('Primary Workspace Owner cannot be rejected.');
     }
 

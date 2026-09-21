@@ -35,8 +35,9 @@ async function run() {
   }
 
   // Also ensure admin has Manager projectRole
+  const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalgohel249@gmail.com').toLowerCase().trim();
   await User.updateOne(
-    { email: 'gopalgohel249@gmail.com' },
+    { email: adminEmail },
     { $set: { role: 'admin', projectRole: 'Manager' } }
   );
 

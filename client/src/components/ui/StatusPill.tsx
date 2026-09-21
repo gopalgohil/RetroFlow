@@ -32,7 +32,7 @@ export const StatusPill: React.FC<StatusPillProps> = ({
   pulse = false,
   className = '',
 }) => {
-  const normalized = status.toLowerCase();
+  const normalized = (status || '').toLowerCase().trim();
 
   const getStyles = () => {
     switch (normalized) {
@@ -41,31 +41,52 @@ export const StatusPill: React.FC<StatusPillProps> = ({
         return {
           pill: 'bg-emerald-50 dark:bg-[#88c958]/10 text-emerald-700 dark:text-[#88c958] border-emerald-200 dark:border-[#88c958]/30',
           dot: 'bg-[#88c958]',
-          defaultLabel: status === 'on_track' ? 'On Track' : 'Active',
+          defaultLabel: normalized === 'on_track' ? 'On Track' : 'Active',
           hasDot: true,
         };
       case 'at_risk':
+        return {
+          pill: 'bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-500/30',
+          dot: 'bg-amber-400',
+          defaultLabel: 'At Risk',
+          hasDot: true,
+        };
       case 'qa':
+      case 'qa / tester':
+      case 'qa_tester':
+      case 'tester':
+        return {
+          pill: 'bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-500/30',
+          dot: 'bg-amber-400',
+          defaultLabel: status || 'QA',
+          hasDot: false,
+        };
       case 'draft':
         return {
           pill: 'bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-500/30',
           dot: 'bg-amber-400',
-          defaultLabel: status === 'at_risk' ? 'At Risk' : status,
-          hasDot: normalized === 'at_risk',
+          defaultLabel: 'Draft',
+          hasDot: false,
         };
       case 'delayed':
+        return {
+          pill: 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-500/30',
+          dot: 'bg-rose-400',
+          defaultLabel: 'Delayed',
+          hasDot: true,
+        };
       case 'bug':
         return {
           pill: 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-500/30',
           dot: 'bg-rose-400',
-          defaultLabel: status === 'delayed' ? 'Delayed' : 'Bug',
-          hasDot: normalized === 'delayed',
+          defaultLabel: 'Bug',
+          hasDot: false,
         };
       case 'upcoming':
         return {
           pill: 'bg-[#eaf5e3] dark:bg-[#88c958]/10 text-[#3d8318] dark:text-[#88c958] border-[#cdeac0] dark:border-[#88c958]/30',
           dot: 'bg-[#88c958]',
-          defaultLabel: status,
+          defaultLabel: status || 'Upcoming',
           hasDot: false,
         };
       case 'developer':
@@ -103,12 +124,18 @@ export const StatusPill: React.FC<StatusPillProps> = ({
           defaultLabel: 'Designer',
           hasDot: false,
         };
-      case 'admin':
       case 'manager':
         return {
           pill: 'bg-[#eaf5e3] dark:bg-[#88c958]/10 text-[#3d8318] dark:text-[#88c958] border-[#cdeac0] dark:border-[#88c958]/30',
           dot: 'bg-[#88c958]',
-          defaultLabel: status === 'manager' ? 'Manager' : 'Admin',
+          defaultLabel: 'Manager',
+          hasDot: false,
+        };
+      case 'admin':
+        return {
+          pill: 'bg-[#eaf5e3] dark:bg-[#88c958]/10 text-[#3d8318] dark:text-[#88c958] border-[#cdeac0] dark:border-[#88c958]/30',
+          dot: 'bg-[#88c958]',
+          defaultLabel: 'Admin',
           hasDot: false,
         };
       case 'project lead':
@@ -132,7 +159,7 @@ export const StatusPill: React.FC<StatusPillProps> = ({
         return {
           pill: 'bg-slate-100 dark:bg-white/[0.05] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/[0.08]',
           dot: 'bg-slate-400',
-          defaultLabel: status.replace('_', ' '),
+          defaultLabel: status ? status.replace(/_/g, ' ') : '',
           hasDot: false,
         };
     }

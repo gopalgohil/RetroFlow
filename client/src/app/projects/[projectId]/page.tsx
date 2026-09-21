@@ -88,6 +88,7 @@ function ProjectDetailContent() {
     return null;
   });
   const [accessDeniedError, setAccessDeniedError] = useState<string | null>(null);
+  const [projectNotFoundError, setProjectNotFoundError] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'sprints' | 'retros' | 'team'>(
     (tabParam as any) || 'overview'
   );
@@ -181,8 +182,7 @@ function ProjectDetailContent() {
       (currentUser as any).isApproved === false &&
       currentUser.role !== 'admin' &&
       currentUser.role !== 'manager' &&
-      (currentUser as any).projectRole !== 'Manager' &&
-      currentUser.email !== 'gopalgohel249@gmail.com'
+      (currentUser as any).projectRole !== 'Manager'
     ) {
       router.push('/dashboard');
     }
@@ -319,9 +319,12 @@ function ProjectDetailContent() {
       .then((p) => {
         if (isMounted && p) {
           setProject(p);
+          setProjectNotFoundError(false);
           try {
             sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
           } catch { }
+        } else if (isMounted && !p) {
+          setProjectNotFoundError(true);
         }
       })
       .catch((err: any) => {
@@ -334,7 +337,18 @@ function ProjectDetailContent() {
             return;
           }
           const fallback = ProjectDataService.getProjectById(projectId);
-          if (fallback) setProject(fallback);
+          if (fallback) {
+            setProject(fallback);
+          } else if (err?.status === 404 || err?.message?.toLowerCase().includes('not found')) {
+            setProject(null);
+            setProjectNotFoundError(true);
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('retroflow_active_project_id');
+              try {
+                sessionStorage.removeItem(`retroflow_cached_project_${projectId}`);
+              } catch {}
+            }
+          }
         }
       })
       .finally(() => {
@@ -477,10 +491,7 @@ function ProjectDetailContent() {
   const userRole = activeUser.role?.toLowerCase().trim();
   const userProjectRole = (activeUser as any).projectRole;
 
-  const isWorkspaceAdmin = Boolean(
-    userRole === 'admin' ||
-    (userEmail && userEmail === 'gopalgohel249@gmail.com')
-  );
+  const isWorkspaceAdmin = Boolean(userRole === 'admin');
 
   const isDesignatedLead = Boolean(
     userEmail && project?.lead?.email?.toLowerCase().trim() === userEmail
@@ -695,7 +706,7 @@ function ProjectDetailContent() {
                           className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5"
                           title={activeUser.email}
                         >
-                          {activeUser.email || 'gopalgohel249@gmail.com'}
+                          {activeUser.email || ''}
                         </p>
                       </div>
                     </div>
@@ -765,6 +776,32 @@ function ProjectDetailContent() {
               </button>
             </div>
           </div>
+        ) : projectNotFoundError ? (
+          <div className="flex-1 p-6 sm:p-8 flex items-center justify-center min-h-[50vh]">
+            <div className="max-w-md w-full p-8 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
+                📁
+              </div>
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Project Not Found</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  This project may have been deleted, or the link is invalid.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem('retroflow_active_project_id');
+                  }
+                  router.push('/dashboard?tab=projects');
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a]"
+              >
+                Go to Projects Dashboard
+              </button>
+            </div>
+          </div>
         ) : !project || isSwitchingProject || isLoading ? (
           <ProjectDetailSkeleton activeTab={activeTab} />
         ) : (
@@ -788,13 +825,29 @@ function ProjectDetailContent() {
                     <p className="text-xs text-slate-500 dark:text-slate-400 max-w-2xl">{project.description}</p>
 
                     <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 dark:text-slate-500 pt-1 font-medium">
-                      <span>
-                        Manager:{' '}
-                        <strong className="text-slate-800 dark:text-slate-200">
-                          {project.members?.find((m) => (m.role || '').toLowerCase() === 'manager')?.name || project.lead?.name || 'Gopal'}
-                        </strong>
-                        {(isManager || isProjectLead) && <span className="text-[#3d8318] dark:text-[#88c958] font-bold ml-1">(You)</span>}
-                      </span>
+                      {(() => {
+                        const projectManager =
+                          project.members?.find((m) => (m.role || '').toLowerCase() === 'manager') ||
+                          project.lead;
+                        const isSelf = Boolean(
+                          userEmail &&
+                          projectManager?.email &&
+                          projectManager.email.toLowerCase().trim() === userEmail
+                        );
+                        return (
+                          <span>
+                            Manager:{' '}
+                            <strong className="text-slate-800 dark:text-slate-200">
+                              {projectManager?.name || 'Project Lead'}
+                            </strong>
+                            {isSelf && (
+                              <span className="text-[#3d8318] dark:text-[#88c958] font-bold ml-1">
+                                (You)
+                              </span>
+                            )}
+                          </span>
+                        );
+                      })()}
                       <span>•</span>
                       <span>{project.members.length} team members</span>
                     </div>
@@ -997,10 +1050,7 @@ function ProjectDetailFallback() {
     projectRole: 'Developer',
   };
 
-  const isWorkspaceAdmin = Boolean(
-    activeUser.role === 'admin' ||
-    activeUser.email?.toLowerCase().trim() === 'gopalgohel249@gmail.com'
-  );
+  const isWorkspaceAdmin = Boolean(activeUser.role === 'admin');
 
   const initials = activeUser.name
     ? activeUser.name

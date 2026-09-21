@@ -187,7 +187,7 @@ const retroBoardSchema = new mongoose.Schema(
     },
     votingLimit: {
       type: Number,
-      default: 5, // Maximum votes per developer
+      default: 1, // Maximum 1 vote per participant
       min: 1,
       max: 20,
     },

@@ -26,7 +26,7 @@ const workspaceSettingsSchema = new mongoose.Schema(
     },
     defaultVotingLimit: {
       type: Number,
-      default: 5,
+      default: 1,
       min: 1,
       max: 20,
     },
