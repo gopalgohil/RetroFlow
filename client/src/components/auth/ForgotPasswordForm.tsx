@@ -32,9 +32,18 @@ export const ForgotPasswordForm: React.FC = () => {
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  // Restore session from sessionStorage if available (persists step 2 across page reloads)
+  // Restore session from sessionStorage ONLY on page reload (F5 / mobile refresh)
+  // If user navigated fresh (e.g. from /login), clear session and start fresh at Step 1
   useEffect(() => {
     try {
+      const navEntry = (typeof window !== 'undefined' && window.performance?.getEntriesByType?.('navigation')?.[0]) as PerformanceNavigationTiming | undefined;
+      const isReload = navEntry ? navEntry.type === 'reload' : (typeof window !== 'undefined' && (window.performance as any)?.navigation?.type === 1);
+
+      if (!isReload) {
+        sessionStorage.removeItem(FORGOT_PWD_SESSION_KEY);
+        return;
+      }
+
       const raw = sessionStorage.getItem(FORGOT_PWD_SESSION_KEY);
       if (raw) {
         const data = JSON.parse(raw);
@@ -368,6 +377,13 @@ export const ForgotPasswordForm: React.FC = () => {
         prompt="Remember your password?"
         actionText="Sign in"
         href="/login"
+        onClick={() => {
+          try {
+            sessionStorage.removeItem(FORGOT_PWD_SESSION_KEY);
+          } catch {
+            // Storage access fallback
+          }
+        }}
       />
     </div>
   );

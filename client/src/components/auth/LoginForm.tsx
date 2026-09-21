@@ -265,6 +265,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
           <Link
             href="/forgot-password"
+            onClick={() => {
+              try {
+                sessionStorage.removeItem('retroflow_forgot_password_session');
+              } catch {
+                // Storage access fallback
+              }
+            }}
             className="text-xs sm:text-sm font-semibold text-[#88c958] hover:text-[#96dc63] hover:underline transition-colors"
           >
             Forgot password?

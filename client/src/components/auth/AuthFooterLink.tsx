@@ -8,6 +8,7 @@ export interface AuthFooterLinkProps {
   actionText: string;
   href: string;
   className?: string;
+  onClick?: () => void;
 }
 
 export const AuthFooterLink: React.FC<AuthFooterLinkProps> = ({
@@ -15,6 +16,7 @@ export const AuthFooterLink: React.FC<AuthFooterLinkProps> = ({
   actionText,
   href,
   className = '',
+  onClick,
 }) => {
   return (
     <div className={`text-center pt-2 ${className}`}>
@@ -22,6 +24,7 @@ export const AuthFooterLink: React.FC<AuthFooterLinkProps> = ({
         {prompt}{' '}
         <Link
           href={href}
+          onClick={onClick}
           className="font-semibold text-[#88c958] hover:text-[#96dc63] hover:underline transition-colors"
         >
           {actionText}
