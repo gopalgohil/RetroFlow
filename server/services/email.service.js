@@ -16,7 +16,7 @@ class EmailService {
   async sendEmail({ to, subject, htmlContent }) {
     const apiKey = env.BREVO_API_KEY || process.env.BREVO_API_KEY;
     const senderEmail = env.BREVO_SENDER_EMAIL || 'support@retroflow.app';
-    const senderName = env.BREVO_SENDER_NAME || 'RetroFlow';
+    const senderName = env.BREVO_SENDER_NAME || 'Digiflux';
 
     // Development fallback simulation if API key is not yet set
     if (!apiKey || apiKey === 'your_brevo_api_key_here') {
@@ -61,6 +61,7 @@ class EmailService {
 
   /**
    * Helper to wrap template contents in a robust mobile-first email layout
+   * Designed with Digiflux Light Mode theme: crisp whites, slate tones, and signature leaf-green accents
    */
   _wrapEmail({ title, bodyHtml }) {
     return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -70,7 +71,7 @@ class EmailService {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="x-apple-disable-message-reformatting" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>${title || 'RetroFlow'}</title>
+  <title>${title || 'Digiflux'}</title>
   <style type="text/css">
     /* Reset styles */
     body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
@@ -130,17 +131,17 @@ class EmailService {
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="max-width: 520px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); overflow: hidden;">
           <tr>
             <td class="email-card-content" style="padding: 30px 26px;">
-              <!-- Logo Header -->
+              <!-- Digiflux Brand Header with Signature Light Mode Workspace Badge -->
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 22px;">
                 <tr>
-                  <td style="background-color: #4f46e5; color: #ffffff; font-weight: 800; font-size: 13px; padding: 5px 9px; border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1;">
-                    RF
+                  <td style="background-color: #5cb028; background: linear-gradient(135deg, #6ec437 0%, #5cb028 50%, #4a941e 100%); color: #ffffff; font-weight: 900; font-size: 14px; padding: 6px 11px; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1; text-align: center; box-shadow: 0 2px 4px rgba(92, 176, 40, 0.25);">
+                    DF
                   </td>
-                  <td style="padding-left: 8px; font-size: 19px; font-weight: 800; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.3px;">
-                    RetroFlow
+                  <td style="padding-left: 10px; font-size: 20px; font-weight: 900; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.5px;">
+                    digi<span style="color: #5cb028;">flux</span>
                   </td>
-                  <td style="padding-left: 6px;">
-                    <span style="display: inline-block; font-size: 10px; font-weight: 800; color: #4f46e5; background-color: #eef2ff; border: 1px solid #c7d2fe; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Workspace</span>
+                  <td style="padding-left: 8px;">
+                    <span style="display: inline-block; font-size: 10px; font-weight: 800; color: #2d6614; background-color: #eaf5e3; border: 1px solid #cdeac0; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Workspace</span>
                   </td>
                 </tr>
               </table>
@@ -153,7 +154,7 @@ class EmailService {
                 <tr>
                   <td align="center" style="padding-top: 18px;">
                     <p style="font-size: 11px; color: #94a3b8; margin: 0; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                      &copy; ${new Date().getFullYear()} RetroFlow Inc. Continuous Improvement for Modern Agile Teams.
+                      &copy; ${new Date().getFullYear()} Digiflux. Continuous Improvement for Modern Agile Teams.
                     </p>
                   </td>
                 </tr>
@@ -176,6 +177,7 @@ class EmailService {
 
   /**
    * Generates a modern responsive HTML template for OTP verification emails
+   * Features green dotted/dashed border matching website light mode
    */
   getOtpTemplate(otpCode, recipientName = 'Agile Teammate') {
     const bodyHtml = `
@@ -186,14 +188,14 @@ class EmailService {
         Hello <strong>${recipientName}</strong>,
       </p>
       <p style="font-size: 14px; line-height: 22px; color: #334155; margin: 0 0 20px 0;">
-        We received a request to reset your RetroFlow workspace password. Enter the 6-digit verification code below:
+        We received a request to reset your Digiflux workspace password. Enter the 6-digit verification code below:
       </p>
 
-      <!-- OTP Code Box -->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0; background-color: #eef2ff; border: 2px dashed #6366f1; border-radius: 12px;">
+      <!-- OTP Code Box (Dotted/Dashed Green Border, Light Mode Theme) -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 22px 0; background-color: #f4fbf0; border: 2px dashed #5cb028; border-radius: 14px;">
         <tr>
-          <td align="center" style="padding: 20px 12px;">
-            <span class="otp-code" style="font-size: 34px; font-family: 'Courier New', monospace; font-weight: 800; letter-spacing: 8px; color: #4338ca; display: inline-block;">
+          <td align="center" style="padding: 22px 14px;">
+            <span class="otp-code" style="font-size: 34px; font-family: 'Courier New', Courier, monospace; font-weight: 800; letter-spacing: 8px; color: #2d6614; display: inline-block;">
               ${otpCode}
             </span>
           </td>
@@ -204,11 +206,12 @@ class EmailService {
         ⏱ This code is valid for <strong>10 minutes</strong>. If you did not initiate this request, no action is needed — your account is safe.
       </p>
     `;
-    return this._wrapEmail({ title: 'Password Reset - RetroFlow', bodyHtml });
+    return this._wrapEmail({ title: 'Password Reset - Digiflux', bodyHtml });
   }
 
   /**
    * Generates a modern responsive HTML template for Signup Email Verification
+   * Features green dotted/dashed border matching website light mode
    */
   getSignupVerificationTemplate(otpCode, recipientName = 'Agile Teammate') {
     const bodyHtml = `
@@ -216,17 +219,17 @@ class EmailService {
         Verify Your Email Address
       </h1>
       <p style="font-size: 14px; line-height: 22px; color: #334155; margin: 0 0 12px 0;">
-        Welcome to RetroFlow, <strong>${recipientName}</strong>! 🎉
+        Welcome to Digiflux, <strong>${recipientName}</strong>! 🎉
       </p>
       <p style="font-size: 14px; line-height: 22px; color: #334155; margin: 0 0 20px 0;">
         To complete your account registration and activate your workspace, please enter this 6-digit verification code:
       </p>
 
-      <!-- OTP Code Box -->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0; background-color: #eef2ff; border: 2px dashed #6366f1; border-radius: 12px;">
+      <!-- OTP Code Box (Dotted/Dashed Green Border, Light Mode Theme) -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 22px 0; background-color: #f4fbf0; border: 2px dashed #5cb028; border-radius: 14px;">
         <tr>
-          <td align="center" style="padding: 20px 12px;">
-            <span class="otp-code" style="font-size: 34px; font-family: 'Courier New', monospace; font-weight: 800; letter-spacing: 8px; color: #4338ca; display: inline-block;">
+          <td align="center" style="padding: 22px 14px;">
+            <span class="otp-code" style="font-size: 34px; font-family: 'Courier New', Courier, monospace; font-weight: 800; letter-spacing: 8px; color: #2d6614; display: inline-block;">
               ${otpCode}
             </span>
           </td>
@@ -237,11 +240,12 @@ class EmailService {
         ⏱ This code is valid for <strong>10 minutes</strong>. Once verified, you will be able to log in to your account.
       </p>
     `;
-    return this._wrapEmail({ title: 'Verify Your Email - RetroFlow', bodyHtml });
+    return this._wrapEmail({ title: 'Verify Your Email - Digiflux', bodyHtml });
   }
 
   /**
    * Generates a modern responsive HTML template for Retrospective Invitations
+   * Features Digiflux leaf-green light mode colors
    */
   getRetroInvitationTemplate({
     retroTitle,
@@ -258,9 +262,9 @@ class EmailService {
         ? topics
             .map(
               (t) => `
-          <span style="display: inline-block; background-color: ${t.color || '#4f46e5'}18; color: ${
-                t.color || '#4f46e5'
-              }; border: 1px solid ${t.color || '#4f46e5'}35; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 6px; margin: 3px 4px 3px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; white-space: nowrap;">
+          <span style="display: inline-block; background-color: ${t.color || '#5cb028'}18; color: ${
+                t.color || '#3d8318'
+              }; border: 1px solid ${t.color || '#5cb028'}35; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 6px; margin: 3px 4px 3px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; white-space: nowrap;">
             ${t.title}
           </span>
         `
@@ -270,7 +274,7 @@ class EmailService {
 
     const bodyHtml = `
       <div style="margin-bottom: 14px;">
-        <span style="display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 3px 8px; border-radius: 6px;">
+        <span style="display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; background-color: #eaf5e3; color: #2d6614; border: 1px solid #cdeac0; padding: 3px 8px; border-radius: 6px;">
           ✨ 1-Click Magic Entry &bull; Zero Passwords
         </span>
       </div>
@@ -282,10 +286,10 @@ class EmailService {
       </p>
 
       <!-- Retrospective Card Box -->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8faff; border: 1px solid #e0e7ff; border-left: 4px solid #4f46e5; border-radius: 10px; margin-bottom: 20px;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #fbfdf9; border: 1px solid #dcf0d0; border-left: 4px solid #5cb028; border-radius: 12px; margin-bottom: 20px;">
         <tr>
           <td class="retro-card-padding" style="padding: 16px 18px;">
-            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #4f46e5; letter-spacing: 0.5px; margin-bottom: 4px;">
+            <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #3d8318; letter-spacing: 0.5px; margin-bottom: 4px;">
               &#9679; Interactive Agile Session
             </div>
             <div class="session-heading" style="font-size: 17px; line-height: 23px; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">
@@ -316,7 +320,7 @@ class EmailService {
         customMessage
           ? `
         <!-- Custom Message Box -->
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; background-color: #f8fafc; border-left: 3px solid #6366f1; border-radius: 0 8px 8px 0;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; background-color: #f8fafc; border-left: 3px solid #5cb028; border-radius: 0 8px 8px 0;">
           <tr>
             <td style="padding: 12px 16px;">
               <p style="font-size: 13px; color: #334155; font-style: italic; margin: 0; line-height: 1.5;">
@@ -330,14 +334,14 @@ class EmailService {
           : ''
       }
 
-      <!-- Direct Mobile-Friendly CTA Button -->
+      <!-- Direct Mobile-Friendly CTA Button (Digiflux Green) -->
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 22px 0 16px 0;">
         <tr>
           <td align="center">
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
               <tr>
-                <td align="center" style="background-color: #4f46e5; border-radius: 10px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);">
-                  <a href="${inviteUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #4f46e5; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                <td align="center" style="background-color: #5cb028; border-radius: 10px; box-shadow: 0 4px 14px rgba(92, 176, 40, 0.3);">
+                  <a href="${inviteUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
                     Join Live Retrospective Board &rarr;
                   </a>
                 </td>
@@ -350,18 +354,19 @@ class EmailService {
       <!-- Fallback Direct Link -->
       <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
         Or paste this link into your browser:<br />
-        <a href="${inviteUrl}" style="color: #4f46e5; text-decoration: underline; word-break: break-all; font-weight: 500;">${inviteUrl}</a>
+        <a href="${inviteUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${inviteUrl}</a>
       </p>
     `;
 
     return this._wrapEmail({
-      title: `Invitation: ${retroTitle} - RetroFlow`,
+      title: `Invitation: ${retroTitle} - Digiflux`,
       bodyHtml,
     });
   }
 
   /**
    * Project Invitation Email Template
+   * Features Digiflux leaf-green light mode colors
    */
   getProjectInvitationTemplate({
     projectName,
@@ -375,7 +380,7 @@ class EmailService {
   }) {
     const bodyHtml = `
       <div style="text-align: center; margin-bottom: 24px;">
-        <div style="display: inline-block; width: 52px; height: 52px; line-height: 52px; border-radius: 16px; background-color: #ede9fe; color: #6366f1; font-size: 20px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+        <div style="display: inline-block; width: 52px; height: 52px; line-height: 52px; border-radius: 16px; background-color: #eaf5e3; color: #2d6614; border: 1px solid #cdeac0; font-size: 20px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
           ${projectKey || 'PRJ'}
         </div>
         <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 14px 0 6px 0; letter-spacing: -0.5px;">
@@ -393,7 +398,7 @@ class EmailService {
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 4px;">Project Details</div>
             <div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">${projectName} (${projectKey})</div>
             <div style="font-size: 12px; color: #64748b;">
-              Project Lead: <strong style="color: #334155;">${projectLead || 'Designated Lead'}</strong> &bull; Assigned Role: <strong style="color: #4f46e5;">${role}</strong>
+              Project Lead: <strong style="color: #334155;">${projectLead || 'Designated Lead'}</strong> &bull; Assigned Role: <strong style="color: #3d8318;">${role}</strong>
             </div>
           </td>
         </tr>
@@ -402,7 +407,7 @@ class EmailService {
       ${
         customMessage
           ? `
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; background-color: #f8fafc; border-left: 3px solid #6366f1; border-radius: 0 8px 8px 0;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; background-color: #f8fafc; border-left: 3px solid #5cb028; border-radius: 0 8px 8px 0;">
           <tr>
             <td style="padding: 12px 16px;">
               <p style="font-size: 13px; color: #334155; font-style: italic; margin: 0; line-height: 1.5;">
@@ -416,14 +421,14 @@ class EmailService {
           : ''
       }
 
-      <!-- Direct Mobile-Friendly CTA Button -->
+      <!-- Direct Mobile-Friendly CTA Button (Digiflux Green) -->
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0 16px 0;">
         <tr>
           <td align="center">
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
               <tr>
-                <td align="center" style="background-color: #4f46e5; border-radius: 10px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);">
-                  <a href="${inviteUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #4f46e5; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                <td align="center" style="background-color: #5cb028; border-radius: 10px; box-shadow: 0 4px 14px rgba(92, 176, 40, 0.3);">
+                  <a href="${inviteUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
                     Open Project Dashboard &rarr;
                   </a>
                 </td>
@@ -436,12 +441,12 @@ class EmailService {
       <!-- Fallback Direct Link -->
       <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
         Or copy and paste this link in your browser:<br />
-        <a href="${inviteUrl}" style="color: #4f46e5; text-decoration: underline; word-break: break-all; font-weight: 500;">${inviteUrl}</a>
+        <a href="${inviteUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${inviteUrl}</a>
       </p>
     `;
 
     return this._wrapEmail({
-      title: `Invitation: ${projectName} - RetroFlow`,
+      title: `Invitation: ${projectName} - Digiflux`,
       bodyHtml,
     });
   }

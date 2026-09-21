@@ -13,7 +13,7 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
   BREVO_API_KEY: z.string().optional(),
   BREVO_SENDER_EMAIL: z.string().email().optional().default('support@retroflow.app'),
-  BREVO_SENDER_NAME: z.string().optional().default('RetroFlow'),
+  BREVO_SENDER_NAME: z.string().optional().default('Digiflux'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
