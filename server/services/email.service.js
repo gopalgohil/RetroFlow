@@ -15,8 +15,8 @@ class EmailService {
    */
   async sendEmail({ to, subject, htmlContent }) {
     const apiKey = env.BREVO_API_KEY || process.env.BREVO_API_KEY;
-    const senderEmail = env.BREVO_SENDER_EMAIL || 'support@digiflux.app';
-    const senderName = env.BREVO_SENDER_NAME || 'Digiflux';
+    const senderEmail = env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || 'gopalgohel249@gmail.com';
+    const senderName = env.BREVO_SENDER_NAME || process.env.BREVO_SENDER_NAME || 'Digiflux';
 
     // Development fallback simulation if API key is not yet set
     if (!apiKey || apiKey === 'your_brevo_api_key_here') {
@@ -64,7 +64,7 @@ class EmailService {
    * Designed with Digiflux Light Mode theme: crisp whites, slate tones, and signature leaf-green accents
    */
   _wrapEmail({ title, preheader, bodyHtml }) {
-    const previewText = preheader || 'Your verification code for Digiflux workspace';
+    const previewText = preheader || 'Your verification code for Digiflux';
     return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
@@ -126,7 +126,7 @@ class EmailService {
     ${previewText}
   </div>
   <div style="display: none; font-size: 1px; color: #ffffff; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
-    &#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;
+    &#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;
   </div>
   <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc;">
     <tr>
@@ -139,17 +139,20 @@ class EmailService {
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="max-width: 520px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); overflow: hidden;">
           <tr>
             <td class="email-card-content" style="padding: 30px 26px;">
-              <!-- Digiflux Brand Header with Signature Light Mode Workspace Badge -->
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 22px;">
+              <!-- Digiflux Brand Header (Clean Circular Avatar without Square Borders or Workspace Tag) -->
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 24px; border-collapse: collapse; border: 0;">
                 <tr>
-                  <td align="center" valign="middle" style="width: 34px; height: 34px; background-color: #5cb028; background: linear-gradient(135deg, #92dc5a 0%, #5cb028 55%, #4a941e 100%); color: #ffffff; font-weight: 900; font-size: 18px; border-radius: 9px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 34px; text-align: center; box-shadow: 0 2px 5px rgba(92, 176, 40, 0.3); border: 1px solid #7ecc43;">
-                    D
+                  <td valign="middle" style="padding-right: 12px; border: 0; vertical-align: middle;">
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border: 0;">
+                      <tr>
+                        <td align="center" valign="middle" style="width: 36px; height: 36px; background-color: #5cb028; background: linear-gradient(135deg, #88c958 0%, #5cb028 100%); color: #ffffff; font-weight: 900; font-size: 19px; border-radius: 50%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 36px; text-align: center; border: 0; outline: none; mso-line-height-rule: exactly;">
+                          D
+                        </td>
+                      </tr>
+                    </table>
                   </td>
-                  <td style="padding-left: 10px; font-size: 20px; font-weight: 900; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.5px;">
+                  <td valign="middle" style="font-size: 22px; font-weight: 900; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.5px; line-height: 36px; border: 0; vertical-align: middle;">
                     digi<span style="color: #5cb028;">flux</span>
-                  </td>
-                  <td style="padding-left: 8px;">
-                    <span style="display: inline-block; font-size: 10px; font-weight: 800; color: #2d6614; background-color: #eaf5e3; border: 1px solid #cdeac0; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Workspace</span>
                   </td>
                 </tr>
               </table>
@@ -196,7 +199,7 @@ class EmailService {
         Hello <strong>${recipientName}</strong>,
       </p>
       <p style="font-size: 14px; line-height: 22px; color: #334155; margin: 0 0 20px 0;">
-        We received a request to reset your Digiflux workspace password. Enter the 6-digit verification code below:
+        We received a request to reset your Digiflux password. Enter the 6-digit verification code below:
       </p>
 
       <!-- OTP Code Box (Dotted/Dashed Green Border, Light Mode Theme) -->
@@ -234,7 +237,7 @@ class EmailService {
         Welcome to Digiflux, <strong>${recipientName}</strong>! 🎉
       </p>
       <p style="font-size: 14px; line-height: 22px; color: #334155; margin: 0 0 20px 0;">
-        To complete your account registration and activate your workspace, please enter this 6-digit verification code:
+        To complete your account registration, please enter this 6-digit verification code:
       </p>
 
       <!-- OTP Code Box (Dotted/Dashed Green Border, Light Mode Theme) -->
@@ -266,7 +269,7 @@ class EmailService {
   getRetroInvitationTemplate({
     retroTitle,
     inviteUrl,
-    senderName = 'Your Workspace Admin',
+    senderName = 'Your Team Admin',
     description = '',
     customMessage = '',
     topics = [],
