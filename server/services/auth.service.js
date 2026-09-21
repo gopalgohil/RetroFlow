@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import Project from '../models/Project.js';
 import RetroBoard from '../models/RetroBoard.js';
@@ -5,6 +6,28 @@ import { ApiError } from '../utils/ApiError.js';
 import { generateToken } from '../utils/token.js';
 import emailService from './email.service.js';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
+
+/**
+ * Cryptographically hashes an OTP with bcrypt before persisting to MongoDB Atlas.
+ * Ensures plaintext OTPs are never stored in the database.
+ */
+const hashOtp = async (otp) => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(otp.toString().trim(), salt);
+};
+
+/**
+ * Securely verifies a submitted OTP against the stored database value.
+ * Supports salted bcrypt hashes and maintains graceful backwards compatibility.
+ */
+const verifyOtp = async (plainOtp, storedOtp) => {
+  if (!plainOtp || !storedOtp) return false;
+  const trimmed = plainOtp.toString().trim();
+  if (storedOtp.startsWith('$2')) {
+    return bcrypt.compare(trimmed, storedOtp);
+  }
+  return storedOtp === trimmed;
+};
 
 /**
  * Authentication Business Logic Service
@@ -24,15 +47,16 @@ class AuthService {
       throw ApiError.conflict('An account with this email address already exists. Please sign in.');
     }
 
-    // Generate secure 6-digit verification OTP
+    // Generate secure 6-digit verification OTP and bcrypt hash for MongoDB Atlas
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const hashedOtp = await hashOtp(otp);
 
     if (user && !user.isVerified) {
       // Re-use existing unverified profile and update credentials
       user.name = name.trim();
       user.password = password; // pre-save hook will hash
-      user.verificationOtp = otp;
+      user.verificationOtp = hashedOtp;
       user.verificationOtpExpires = otpExpires;
       await user.save();
     } else {
@@ -52,12 +76,12 @@ class AuthService {
         isVerified: false,
         isApproved: isPreApproved,
         hasLoggedIn: false,
-        verificationOtp: otp,
+        verificationOtp: hashedOtp,
         verificationOtpExpires: otpExpires,
       });
     }
 
-    console.log(`\n📬 [Signup Verification OTP for ${user.email}]: ${otp} (Valid 10m)\n`);
+    console.log(`\n📬 [Signup Verification OTP for ${user.email}]: ${otp} (Hashed in DB, Valid 10m)\n`);
 
     // Dispatch verification email via Brevo API
     const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
@@ -94,7 +118,8 @@ class AuthService {
       };
     }
 
-    if (!user.verificationOtp || user.verificationOtp !== otp.trim()) {
+    const isOtpValid = await verifyOtp(otp, user.verificationOtp);
+    if (!isOtpValid) {
       throw ApiError.badRequest('Invalid or incorrect verification code.');
     }
 
@@ -131,11 +156,11 @@ class AuthService {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.verificationOtp = otp;
+    user.verificationOtp = await hashOtp(otp);
     user.verificationOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    console.log(`\n📬 [Resent Verification OTP for ${user.email}]: ${otp} (Valid 10m)\n`);
+    console.log(`\n📬 [Resent Verification OTP for ${user.email}]: ${otp} (Hashed in DB, Valid 10m)\n`);
 
     const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
     await emailService.sendEmail({
@@ -198,9 +223,11 @@ class AuthService {
     if (!user.isVerified) {
       // Auto-dispatch a fresh OTP so the user can easily verify right away
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      user.verificationOtp = otp;
+      user.verificationOtp = await hashOtp(otp);
       user.verificationOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
       await user.save();
+
+      console.log(`\n📬 [Login Verification OTP for ${user.email}]: ${otp} (Hashed in DB, Valid 10m)\n`);
 
       const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
       await emailService.sendEmail({
@@ -265,11 +292,11 @@ class AuthService {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    user.resetPasswordOtp = otp;
+    user.resetPasswordOtp = await hashOtp(otp);
     user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    console.log(`\n🔑 [Password Reset OTP for ${user.email}]: ${otp} (10m lifespan)\n`);
+    console.log(`\n🔑 [Password Reset OTP for ${user.email}]: ${otp} (Hashed in DB, 10m lifespan)\n`);
 
     const emailHtml = emailService.getOtpTemplate(otp, user.name);
     await emailService.sendEmail({
@@ -295,7 +322,8 @@ class AuthService {
       throw ApiError.notFound('User not found.');
     }
 
-    if (!user.resetPasswordOtp || user.resetPasswordOtp !== otp.trim()) {
+    const isOtpValid = await verifyOtp(otp, user.resetPasswordOtp);
+    if (!isOtpValid) {
       throw ApiError.badRequest('Invalid or incorrect verification code.');
     }
 
