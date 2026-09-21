@@ -11,6 +11,9 @@ import {
 } from '@/lib/validations/auth';
 import { api, ENDPOINTS } from '@/lib/api';
 
+const FORGOT_PWD_SESSION_KEY = 'retroflow_forgot_password_session';
+const FORGOT_PWD_SESSION_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
+
 export const ForgotPasswordForm: React.FC = () => {
   const router = useRouter();
   const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -28,6 +31,32 @@ export const ForgotPasswordForm: React.FC = () => {
   const [isAccountNotFound, setIsAccountNotFound] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
+
+  // Restore session from sessionStorage if available (persists step 2 across page reloads)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(FORGOT_PWD_SESSION_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        const now = Date.now();
+        if (data?.step === 2 && data?.email && now - (data.sentAt || 0) < FORGOT_PWD_SESSION_EXPIRY_MS) {
+          setEmail(data.email);
+          setStep(2);
+          const elapsed = Math.floor((now - (data.sentAt || now)) / 1000);
+          const remaining = Math.max(0, 60 - elapsed);
+          setCountdown(remaining);
+          setCanResend(remaining === 0);
+          setSuccessMessage(
+            data.message || `A 6-digit verification code has been dispatched to ${data.email}`
+          );
+        } else {
+          sessionStorage.removeItem(FORGOT_PWD_SESSION_KEY);
+        }
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
 
   // Timer for OTP resend cooldown
   useEffect(() => {
@@ -66,12 +95,27 @@ export const ForgotPasswordForm: React.FC = () => {
         email: validation.data.email,
       });
 
+      const msg = data.message || `A 6-digit OTP code has been sent to ${email}`;
+      try {
+        sessionStorage.setItem(
+          FORGOT_PWD_SESSION_KEY,
+          JSON.stringify({
+            step: 2,
+            email: validation.data.email,
+            sentAt: Date.now(),
+            message: msg,
+          })
+        );
+      } catch {
+        // Storage access fallback
+      }
+
       setStep(2);
       setCountdown(60);
       setCanResend(false);
       setIsRedirecting(false);
       setIsAccountNotFound(false);
-      setSuccessMessage(data.message || `A 6-digit OTP code has been sent to ${email}`);
+      setSuccessMessage(msg);
     } catch (err: any) {
       const isNotFound =
         err.status === 404 ||
@@ -117,6 +161,12 @@ export const ForgotPasswordForm: React.FC = () => {
         newPassword: validation.data.password,
       });
 
+      try {
+        sessionStorage.removeItem(FORGOT_PWD_SESSION_KEY);
+      } catch {
+        // Storage access fallback
+      }
+
       setIsRedirecting(true);
       setSuccessMessage('🎉 Password reset successfully! Redirecting you to sign in...');
 
@@ -139,7 +189,21 @@ export const ForgotPasswordForm: React.FC = () => {
     setGeneralError(null);
     try {
       const data = await api.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
-      setSuccessMessage(data.message || `New OTP sent to ${email}`);
+      const msg = data.message || `New OTP sent to ${email}`;
+      try {
+        sessionStorage.setItem(
+          FORGOT_PWD_SESSION_KEY,
+          JSON.stringify({
+            step: 2,
+            email,
+            sentAt: Date.now(),
+            message: msg,
+          })
+        );
+      } catch {
+        // Storage access fallback
+      }
+      setSuccessMessage(msg);
     } catch (err: any) {
       setGeneralError(err.message || 'Error resending OTP');
     }
@@ -256,11 +320,21 @@ export const ForgotPasswordForm: React.FC = () => {
             <button
               type="button"
               onClick={() => {
+                try {
+                  sessionStorage.removeItem(FORGOT_PWD_SESSION_KEY);
+                } catch {
+                  // Storage access fallback
+                }
                 setStep(1);
+                setOtp('');
+                setNewPassword('');
+                setConfirmPassword('');
+                setFieldErrors({});
                 setIsRedirecting(false);
                 setSuccessMessage(null);
+                setGeneralError(null);
               }}
-              className="text-[#88c958] hover:underline font-medium"
+              className="text-[#88c958] hover:underline font-medium cursor-pointer"
             >
               Change Email
             </button>
