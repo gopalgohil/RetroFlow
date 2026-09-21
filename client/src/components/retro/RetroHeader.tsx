@@ -85,8 +85,8 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
         {!isGuest ? (
           <Link
             href="/dashboard?tab=sessions"
-            title="RetroFlow Retrospective Sessions"
-            className="w-8 h-8 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white flex items-center justify-center p-1.5 shadow-xs shrink-0 select-none transition-transform hover:scale-105 font-bold dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
+            title="Digiflux Retrospective Sessions"
+            className="w-8 h-8 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white flex items-center justify-center p-1.5 shadow-xs shrink-0 select-none font-bold dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
           >
             <Image
               src="/logo.svg"

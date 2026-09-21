@@ -14,13 +14,13 @@ export default function HomePage() {
       <header className="w-full border-b shrink-0 sticky top-0 z-50 theme-header backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center group">
+          <Link href="/" className="flex items-center select-none" title="Digiflux">
             <Image
               src="/logo.svg"
-              alt="Logo"
+              alt="Digiflux Logo"
               width={140}
               height={44}
-              className="h-9 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+              className="h-9 sm:h-10 w-auto object-contain"
               priority
               unoptimized
             />
