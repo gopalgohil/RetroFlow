@@ -183,10 +183,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
         />
 
         <Input
-          label="Work Email"
+          label="Email"
           type="email"
           name="email"
-          placeholder="name@company.com"
+          placeholder="name@example.com"
           value={formData.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
           error={fieldErrors.email}

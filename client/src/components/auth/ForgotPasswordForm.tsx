@@ -225,7 +225,7 @@ export const ForgotPasswordForm: React.FC = () => {
         title={step === 1 ? 'Forgot your password?' : 'Enter verification code'}
         subtitle={
           step === 1
-            ? 'Enter your work email address to receive a 6-digit verification code.'
+            ? 'Enter your email address to receive a 6-digit verification code.'
             : `We sent a 6-digit OTP code to ${email}. Please enter it below.`
         }
       />
@@ -254,9 +254,9 @@ export const ForgotPasswordForm: React.FC = () => {
       {step === 1 && (
         <form onSubmit={handleRequestOtp} className="space-y-4" noValidate>
           <Input
-            label="Work Email"
+            label="Email"
             type="email"
-            placeholder="name@company.com"
+            placeholder="name@example.com"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);

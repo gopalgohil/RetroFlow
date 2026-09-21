@@ -113,7 +113,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
   const handleInviteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteName.trim() || !inviteEmail.trim()) {
-      setInviteError('Please fill in both name and work email.');
+      setInviteError('Please fill in both name and email.');
       return;
     }
     if (!inviteEmail.includes('@')) {
@@ -689,11 +689,11 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Work Email</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Email</label>
                 <input
                   type="email"
                   required
-                  placeholder="jordan.h@retroflow.io"
+                  placeholder="jordan.h@example.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-900 dark:text-white"

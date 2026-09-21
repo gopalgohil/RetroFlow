@@ -142,7 +142,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
     }
 
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      setErrorMessage('Please enter a valid work email address.');
+      setErrorMessage('Please enter a valid email address.');
       return;
     }
 
@@ -468,7 +468,7 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
 
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                    Work Email Address
+                    Email Address
                   </label>
                   <input
                     type="email"

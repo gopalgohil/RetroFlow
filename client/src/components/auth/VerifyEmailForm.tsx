@@ -114,9 +114,9 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {!hasEmailFromParam && (
           <Input
-            label="Work Email"
+            label="Email"
             type="email"
-            placeholder="name@company.com"
+            placeholder="name@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
