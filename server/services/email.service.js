@@ -63,7 +63,8 @@ class EmailService {
    * Helper to wrap template contents in a robust mobile-first email layout
    * Designed with Digiflux Light Mode theme: crisp whites, slate tones, and signature leaf-green accents
    */
-  _wrapEmail({ title, bodyHtml }) {
+  _wrapEmail({ title, preheader, bodyHtml }) {
+    const previewText = preheader || 'Your verification code for Digiflux workspace';
     return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
@@ -120,6 +121,13 @@ class EmailService {
   </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <!-- Hidden Preheader Snippet (Sets clean preview text in Gmail/Outlook inbox and prevents header badge from leaking) -->
+  <div style="display: none; font-size: 1px; color: #ffffff; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+    ${previewText}
+  </div>
+  <div style="display: none; font-size: 1px; color: #ffffff; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+    &#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;
+  </div>
   <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc;">
     <tr>
       <td align="center" class="outer-td" style="padding: 28px 12px;">
@@ -206,7 +214,11 @@ class EmailService {
         ⏱ This code is valid for <strong>10 minutes</strong>. If you did not initiate this request, no action is needed — your account is safe.
       </p>
     `;
-    return this._wrapEmail({ title: 'Password Reset - Digiflux', bodyHtml });
+    return this._wrapEmail({
+      title: 'Password Reset - Digiflux',
+      preheader: 'Your 6-digit verification code to reset your password.',
+      bodyHtml,
+    });
   }
 
   /**
@@ -240,7 +252,11 @@ class EmailService {
         ⏱ This code is valid for <strong>10 minutes</strong>. Once verified, you will be able to log in to your account.
       </p>
     `;
-    return this._wrapEmail({ title: 'Verify Your Email - Digiflux', bodyHtml });
+    return this._wrapEmail({
+      title: 'Verify Your Email - Digiflux',
+      preheader: 'Your 6-digit verification code to activate your account.',
+      bodyHtml,
+    });
   }
 
   /**
@@ -360,6 +376,7 @@ class EmailService {
 
     return this._wrapEmail({
       title: `Invitation: ${retroTitle} - Digiflux`,
+      preheader: `${senderName} invited you to join "${retroTitle}" retrospective session.`,
       bodyHtml,
     });
   }
@@ -447,6 +464,7 @@ class EmailService {
 
     return this._wrapEmail({
       title: `Invitation: ${projectName} - Digiflux`,
+      preheader: `${senderName || 'Your Project Lead'} invited you to join "${projectName}" on Digiflux.`,
       bodyHtml,
     });
   }
