@@ -18,7 +18,7 @@ export default function AuthLayout({
       {/* Top Header with Brand Logo, Theme Toggle & Back to Home */}
       <header className="w-full border-b border-slate-200/80 dark:border-white/[0.08] sticky top-0 z-50 bg-white/80 dark:bg-[#08090a]/90 backdrop-blur-md transition-colors">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center">
+          <Link href="/" className="flex items-center" title="Return to Home">
             <Image
               src="/logo.svg"
               alt="Logo"
@@ -52,7 +52,7 @@ export default function AuthLayout({
 
       {/* Clean Footer */}
       <footer className="relative z-10 py-6 text-center text-xs text-slate-400 dark:text-slate-600">
-        © {new Date().getFullYear()} RetroFlow. All rights reserved.
+        © {new Date().getFullYear()} Digiflux. All rights reserved.
       </footer>
     </div>
   );

@@ -132,8 +132,8 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t shrink-0 py-3.5 sm:py-4 text-center text-xs theme-footer">
-        © {new Date().getFullYear()} RetroFlow Inc. All rights reserved.
+      <footer className="max-w-7xl mx-auto px-6 py-12 border-t border-slate-200 dark:border-white/[0.08] text-center text-xs text-slate-400 dark:text-slate-600">
+        © {new Date().getFullYear()} Digiflux Inc. All rights reserved.
       </footer>
     </div>
   );
