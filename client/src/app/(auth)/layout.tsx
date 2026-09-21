@@ -26,6 +26,7 @@ export default function AuthLayout({
               height={44}
               className="h-9 sm:h-10 w-auto object-contain"
               priority
+              unoptimized
             />
           </Link>
           <div className="flex items-center gap-3">

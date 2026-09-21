@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 /**
  * Sessions Skeleton:
@@ -196,13 +198,27 @@ export const SettingsSkeleton: React.FC = () => {
  */
 export const RetroBoardSkeleton: React.FC = () => {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex flex-col font-sans animate-pulse">
-      {/* Top Header Skeleton */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#08090a]/95 backdrop-blur-xl border-b border-slate-200/90 dark:border-white/[0.08] px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
-        {/* Left: Back button + Title & Status */}
-        <div className="flex items-center gap-4">
-          <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-[#141720] shrink-0" />
-          <div className="space-y-1.5">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex flex-col font-sans">
+      {/* Top Header Skeleton: Real stable Logo badge, pulse ONLY the variable text lines */}
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#08090a]/95 backdrop-blur-xl border-b border-slate-200/90 dark:border-white/[0.08] px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 shadow-xs transition-colors duration-200">
+        {/* Left: Real Logo badge (Rock-solid, NEVER pulses or disappears on reload) + Title Skeleton */}
+        <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+          <div
+            title="RetroFlow Retrospective Sessions"
+            className="w-8 h-8 rounded-xl bg-[#5cb028] text-white flex items-center justify-center p-1.5 shadow-xs shrink-0 select-none font-bold dark:bg-[#88c958] dark:text-[#08090a]"
+          >
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={24}
+              height={24}
+              className="w-full h-auto object-contain brightness-0 invert dark:invert-0"
+              priority
+              unoptimized
+            />
+          </div>
+
+          <div className="space-y-1.5 animate-pulse">
             <div className="flex items-center gap-2.5">
               <div className="h-5 w-48 sm:w-64 rounded-lg bg-slate-200 dark:bg-[#141720]" />
               <div className="h-5 w-24 rounded-full bg-emerald-100 dark:bg-[#88c958]/20" />
@@ -212,7 +228,7 @@ export const RetroBoardSkeleton: React.FC = () => {
         </div>
 
         {/* Right: Badges & Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 animate-pulse">
           <div className="hidden sm:block h-8 w-36 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/20 border border-[#cdeac0] dark:border-[#88c958]/30" />
           <div className="hidden md:block h-8 w-32 rounded-xl bg-slate-100 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08]" />
           <div className="h-9 w-36 rounded-xl bg-[#88c958]/30" />
@@ -652,23 +668,30 @@ export const TabSkeleton: React.FC<TabSkeletonProps> = ({ tab }) => {
  */
 export const DashboardLayoutSkeleton: React.FC<{ tab?: string }> = ({ tab = 'sessions' }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F0F4FF] via-[#F8FAFC] to-[#FFFFFF] dark:from-[#08090a] dark:via-[#08090a] dark:to-[#0e1015] text-slate-900 dark:text-white flex font-sans">
-      {/* Sidebar Skeleton (fixed on large screens) */}
-      <aside className="fixed top-0 bottom-0 left-0 z-50 w-72 bg-white/90 dark:bg-[#08090a] backdrop-blur-xl border-r border-slate-200/80 dark:border-white/[0.08] hidden lg:flex flex-col p-6 animate-pulse">
-        {/* Brand Header */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/20 border border-[#cdeac0] dark:border-[#88c958]/30" />
-          <div className="space-y-1.5 flex-1">
-            <div className="h-4 w-24 bg-slate-200 dark:bg-[#141720]" />
-            <div className="h-2.5 w-16 bg-slate-100 dark:bg-[#12151c]" />
-          </div>
+    <div className="min-h-screen dark:bg-[#08090a] bg-[#F8FAFC] text-slate-900 dark:text-white flex selection:bg-[#88c958] selection:text-[#08090a] font-sans transition-colors duration-200">
+      {/* Sidebar Skeleton (fixed on large screens) - Real stable Logo header, NO pulse */}
+      <aside className="fixed top-0 bottom-0 left-0 z-50 w-72 bg-white dark:bg-[#08090a] border-r border-slate-200/80 dark:border-white/[0.08] hidden lg:flex flex-col">
+        {/* Brand Header: Exact h-16 to align seamlessly with DashboardHeader, Rock-solid Logo */}
+        <div className="h-16 flex items-center pl-[38px] pr-6 border-b border-slate-200/80 dark:border-white/[0.08] shrink-0">
+          <Link
+            href="/dashboard"
+            className="flex items-center cursor-pointer select-none"
+            title="Go to Retrospective Sessions"
+          >
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={140}
+              height={42}
+              className="h-9 sm:h-[38px] w-auto object-contain"
+              priority
+              unoptimized
+            />
+          </Link>
         </div>
 
-        {/* Live Status Pill Skeleton */}
-        <div className="mt-6 p-3 rounded-xl bg-slate-50/80 dark:bg-[#12151c]/60 border border-slate-100 dark:border-white/[0.08] h-11" />
-
-        {/* Nav Items Skeleton */}
-        <div className="mt-6 space-y-2 flex-1">
+        {/* Nav Items Skeleton (Pulsing only below the header) */}
+        <div className="px-4 pt-12 pb-6 flex-1 overflow-y-auto space-y-2 animate-pulse">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="h-10 rounded-xl bg-slate-100/70 dark:bg-[#12151c]/60 flex items-center px-3.5 gap-3">
               <div className="w-4 h-4 rounded-md bg-slate-200 dark:bg-[#1a1f2c]" />
@@ -676,30 +699,21 @@ export const DashboardLayoutSkeleton: React.FC<{ tab?: string }> = ({ tab = 'ses
             </div>
           ))}
         </div>
-
-        {/* User Footer Skeleton */}
-        <div className="pt-4 border-t border-slate-100 dark:border-white/[0.08] flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-[#141720]" />
-          <div className="space-y-1.5 flex-1">
-            <div className="h-3 w-20 bg-slate-200 dark:bg-[#141720]" />
-            <div className="h-2.5 w-28 bg-slate-100 dark:bg-[#12151c]" />
-          </div>
-        </div>
       </aside>
 
       {/* Main Workspace Area Skeleton */}
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
         {/* Top Header Skeleton */}
-        <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#08090a]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-white/[0.08] px-6 flex items-center justify-between gap-4 animate-pulse">
-          <div className="h-10 w-72 rounded-xl bg-slate-100 dark:bg-[#12151c]" />
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-32 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/20" />
-            <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-[#141720]" />
+        <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#08090a]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+          <div className="h-9 w-40 rounded-xl bg-slate-100 dark:bg-[#12151c] animate-pulse" />
+          <div className="flex items-center gap-2.5 animate-pulse">
+            <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-[#12151c]" />
+            <div className="h-9 w-32 rounded-2xl bg-slate-100 dark:bg-[#12151c]" />
           </div>
         </header>
 
         {/* Dynamic Tab Body Skeleton */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-8">
+        <main className="flex-1 px-3.5 sm:px-5 lg:px-6 xl:px-6 2xl:px-8 py-5 sm:py-6 lg:py-8 w-full space-y-6 sm:space-y-8">
           <TabSkeleton tab={tab} />
         </main>
       </div>

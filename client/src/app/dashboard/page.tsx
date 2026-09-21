@@ -331,6 +331,7 @@ function DashboardContent() {
                 height={44}
                 className="h-9 sm:h-10 w-auto object-contain"
                 priority
+                unoptimized
               />
             </Link>
             <span className="text-[10px] uppercase font-bold text-rose-700 tracking-wider px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200">
@@ -444,6 +445,7 @@ function DashboardContent() {
                 height={44}
                 className="h-9 sm:h-10 w-auto object-contain"
                 priority
+                unoptimized
               />
             </Link>
             <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wider px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
@@ -757,9 +759,59 @@ function DashboardContent() {
   );
 }
 
+function DashboardFallback() {
+  const [user, setUser] = useState<{ name?: string; email?: string; role?: string; projectRole?: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('retroflow_user');
+      if (saved) setUser(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const activeUser = {
+    name: user?.name || '',
+    email: user?.email || '',
+    role: user?.role || 'member',
+    projectRole: user?.projectRole || 'Developer',
+  };
+
+  const isWorkspaceAdmin = Boolean(activeUser.role === 'admin');
+
+  return (
+    <div className="min-h-screen dark:bg-[#08090a] bg-[#F8FAFC] text-slate-900 dark:text-white flex selection:bg-[#88c958] selection:text-[#08090a] font-sans transition-colors duration-200">
+      {/* Real persistent Sidebar: identical DOM node, logo never moves or disappears */}
+      <Sidebar
+        activeTab="sessions"
+        setActiveTab={() => {}}
+        activeSessionsCount={0}
+        user={activeUser}
+        isAdmin={isWorkspaceAdmin}
+        isOpen={false}
+      />
+
+      {/* Main Workspace Area */}
+      <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
+        {/* Top Sticky Header */}
+        <DashboardHeader
+          onOpenMobileMenu={() => {}}
+          isAdmin={isWorkspaceAdmin}
+          user={activeUser}
+          isSessionsTab={true}
+        />
+
+        {/* Dynamic View Body Skeleton */}
+        <main className="flex-1 px-3.5 sm:px-5 lg:px-6 xl:px-6 2xl:px-8 py-5 sm:py-6 lg:py-8 w-full space-y-6 sm:space-y-8">
+          <TabSkeleton tab="sessions" />
+        </main>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<DashboardLayoutSkeleton />}>
+    <Suspense fallback={<DashboardFallback />}>
       <DashboardContent />
     </Suspense>
   );

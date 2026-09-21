@@ -94,6 +94,8 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
               width={24}
               height={24}
               className="w-full h-auto object-contain brightness-0 invert dark:invert-0"
+              priority
+              unoptimized
             />
           </Link>
         ) : (
@@ -107,6 +109,8 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
               width={24}
               height={24}
               className="w-full h-auto object-contain brightness-0 invert dark:invert-0"
+              priority
+              unoptimized
             />
           </div>
         )}

@@ -22,6 +22,7 @@ export default function HomePage() {
               height={44}
               className="h-9 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
               priority
+              unoptimized
             />
           </Link>
 

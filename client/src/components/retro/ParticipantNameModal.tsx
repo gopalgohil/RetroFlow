@@ -45,6 +45,8 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
                 width={28}
                 height={28}
                 className="w-full h-auto object-contain brightness-0 invert dark:invert-0"
+                priority
+                unoptimized
               />
             </div>
             <div>
