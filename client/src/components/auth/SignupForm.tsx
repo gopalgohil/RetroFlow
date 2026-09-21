@@ -201,6 +201,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
           placeholder="Create a password"
           value={formData.password}
           onChange={(e) => handleInputChange('password', e.target.value)}
+          onCopy={(e) => e.preventDefault()}
+          onCut={(e) => e.preventDefault()}
           error={fieldErrors.password}
           required
           autoComplete="new-password"
@@ -213,6 +215,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
           placeholder="Re-enter your password"
           value={formData.confirmPassword}
           onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+          onPaste={(e) => {
+            e.preventDefault();
+            setFieldErrors((prev) => ({
+              ...prev,
+              confirmPassword: 'Copy-paste is disabled. Please type your password manually.',
+            }));
+          }}
+          onDrop={(e) => e.preventDefault()}
           error={fieldErrors.confirmPassword}
           required
           autoComplete="new-password"

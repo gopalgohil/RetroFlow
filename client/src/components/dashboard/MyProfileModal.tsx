@@ -489,6 +489,8 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                     type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    onCopy={(e) => e.preventDefault()}
+                    onCut={(e) => e.preventDefault()}
                     placeholder="Minimum 8 characters"
                     className="w-full pl-3.5 pr-10 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:outline-hidden focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
                   />
@@ -512,6 +514,11 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      setPasswordErrorMessage('Copy-paste is disabled. Please type your password manually.');
+                    }}
+                    onDrop={(e) => e.preventDefault()}
                     placeholder="Re-type new password"
                     className="w-full pl-3.5 pr-10 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:outline-hidden focus:ring-2 focus:ring-[#5cb028]/20 focus:border-[#5cb028] transition-all"
                   />

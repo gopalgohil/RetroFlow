@@ -307,6 +307,8 @@ export const ForgotPasswordForm: React.FC = () => {
               setNewPassword(e.target.value);
               if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: '' }));
             }}
+            onCopy={(e) => e.preventDefault()}
+            onCut={(e) => e.preventDefault()}
             error={fieldErrors.password}
             helperText={!fieldErrors.password ? 'Must contain letters and numbers' : undefined}
             required
@@ -321,6 +323,14 @@ export const ForgotPasswordForm: React.FC = () => {
               setConfirmPassword(e.target.value);
               if (fieldErrors.confirmPassword) setFieldErrors((prev) => ({ ...prev, confirmPassword: '' }));
             }}
+            onPaste={(e) => {
+              e.preventDefault();
+              setFieldErrors((prev) => ({
+                ...prev,
+                confirmPassword: 'Copy-paste is disabled. Please type your password manually.',
+              }));
+            }}
+            onDrop={(e) => e.preventDefault()}
             error={fieldErrors.confirmPassword}
             required
           />
