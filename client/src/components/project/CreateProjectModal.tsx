@@ -38,6 +38,9 @@ interface WorkspaceMemberOption {
 
 const DEFAULT_WORKSPACE_LEADS: WorkspaceMemberOption[] = [];
 
+export const MAX_PROJECT_NAME_LENGTH = 50;
+export const MAX_PROJECT_DESCRIPTION_LENGTH = 250;
+
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   isOpen,
   onClose,
@@ -93,6 +96,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   // Dynamic Workspace Members fetch on Modal Open
   React.useEffect(() => {
     if (!isOpen) {
+      setName('');
+      setKey('');
+      setIsKeyManuallyEdited(false);
+      setDescription('');
       setIsMemberDropdownOpen(false);
       setSelectedMemberEmails([]);
       setNewMemberRole('Developer');
@@ -204,6 +211,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       errs.name = 'Project name is required and cannot be blank';
     } else if (name.trim().length < 2) {
       errs.name = 'Project name must be at least 2 characters';
+    } else if (name.length > MAX_PROJECT_NAME_LENGTH) {
+      errs.name = `Project name cannot exceed ${MAX_PROJECT_NAME_LENGTH} characters (currently ${name.length} characters)`;
     }
 
     if (!key.trim()) {
@@ -218,9 +227,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       errs.description = 'Project description is required and cannot be blank';
     } else if (description.trim().length < 5) {
       errs.description = 'Project description must be at least 5 characters';
+    } else if (description.length > MAX_PROJECT_DESCRIPTION_LENGTH) {
+      errs.description = `Project description cannot exceed ${MAX_PROJECT_DESCRIPTION_LENGTH} characters (currently ${description.length} characters)`;
     }
 
-    if (currentMembers.length === 0) {
+    if (currentMembers.length === 0 && selectedMemberEmails.length === 0) {
       errs.members = 'Please add at least one team member to this project';
     }
 
@@ -228,12 +239,47 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     return Object.keys(errs).length === 0;
   };
 
+  // Character limit tracking
+  const isNameOverLimit = name.length > MAX_PROJECT_NAME_LENGTH;
+  const isDescriptionOverLimit = description.length > MAX_PROJECT_DESCRIPTION_LENGTH;
+
+  // Real-time field validities
+  const isNameValid = name.trim().length >= 2 && !isNameOverLimit;
+  const isKeyValid = key.trim().length >= 2 && /^[A-Z0-9]+$/i.test(key.trim());
+  const isDescriptionValid = description.trim().length >= 5 && !isDescriptionOverLimit;
+  const hasMembers = members.length >= 1 || selectedMemberEmails.length >= 1;
+
+  // Form validity: button is disabled until all required fields are filled and valid
+  const isFormValid =
+    isNameValid &&
+    isKeyValid &&
+    isDescriptionValid &&
+    hasMembers &&
+    !isNameOverLimit &&
+    !isDescriptionOverLimit;
+
+  // Immediate red error messages when over limit or touched
+  const nameError = isNameOverLimit
+    ? `Project name cannot exceed ${MAX_PROJECT_NAME_LENGTH} characters (currently ${name.length} characters)`
+    : (touched.name ? errors.name : undefined);
+
+  const descriptionError = isDescriptionOverLimit
+    ? `Project description cannot exceed ${MAX_PROJECT_DESCRIPTION_LENGTH} characters (currently ${description.length} characters)`
+    : (touched.description ? errors.description : undefined);
+
   // Auto-generate 3-4 letter project key from project name
   const handleNameChange = (val: string) => {
     setName(val);
-    if (errors.name) {
+    if (val.length > MAX_PROJECT_NAME_LENGTH) {
+      setErrors((prev) => ({
+        ...prev,
+        name: `Project name cannot exceed ${MAX_PROJECT_NAME_LENGTH} characters (currently ${val.length} characters)`,
+        general: undefined,
+      }));
+    } else if (errors.name) {
       setErrors((prev) => ({ ...prev, name: undefined, general: undefined }));
     }
+
     if (!isKeyManuallyEdited) {
       const words = val.trim().split(/\s+/).filter(Boolean);
       let derivedKey = '';
@@ -250,6 +296,19 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       if (derivedKey && errors.key) {
         setErrors((prev) => ({ ...prev, key: undefined }));
       }
+    }
+  };
+
+  const handleDescriptionChange = (val: string) => {
+    setDescription(val);
+    if (val.length > MAX_PROJECT_DESCRIPTION_LENGTH) {
+      setErrors((prev) => ({
+        ...prev,
+        description: `Project description cannot exceed ${MAX_PROJECT_DESCRIPTION_LENGTH} characters (currently ${val.length} characters)`,
+        general: undefined,
+      }));
+    } else if (errors.description) {
+      setErrors((prev) => ({ ...prev, description: undefined, general: undefined }));
     }
   };
 
@@ -450,8 +509,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           <button
             form="create-project-form"
             type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/25"
+            disabled={!isFormValid || isSubmitting}
+            title={
+              !isFormValid
+                ? 'Please complete all required fields (*), add at least one member, and stay within character limits'
+                : 'Initialize Project'
+            }
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 transition-all hover:scale-[1.01] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/25"
           >
             <Sparkles className="w-4 h-4" />
             <span>{isSubmitting ? 'Creating Workspace...' : 'Initialize Project'}</span>
@@ -471,9 +535,20 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         {/* Section 1: Project Identity & Key */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2 space-y-1.5">
-            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-              Project Name <span className="text-rose-500">*</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                Project Name <span className="text-rose-500">*</span>
+              </label>
+              <span
+                className={`text-[11px] font-mono transition-colors ${
+                  isNameOverLimit
+                    ? 'text-rose-500 font-bold'
+                    : 'text-slate-400 dark:text-slate-500'
+                }`}
+              >
+                {name.length}/{MAX_PROJECT_NAME_LENGTH}
+              </span>
+            </div>
             <input
               type="text"
               required
@@ -486,18 +561,23 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                   setErrors((prev) => ({ ...prev, name: 'Project name is required and cannot be blank' }));
                 } else if (name.trim().length < 2) {
                   setErrors((prev) => ({ ...prev, name: 'Project name must be at least 2 characters' }));
+                } else if (name.length > MAX_PROJECT_NAME_LENGTH) {
+                  setErrors((prev) => ({
+                    ...prev,
+                    name: `Project name cannot exceed ${MAX_PROJECT_NAME_LENGTH} characters (currently ${name.length} characters)`,
+                  }));
                 }
               }}
               className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12151c] border rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all ${
-                touched.name && errors.name
+                nameError
                   ? 'border-rose-400 dark:border-rose-500 focus:ring-rose-500/30 focus:border-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
                   : 'border-slate-200 dark:border-white/[0.08] focus:ring-[#88c958]/30 focus:border-[#88c958]'
               }`}
             />
-            {touched.name && errors.name ? (
+            {nameError ? (
               <p className="text-[11px] text-rose-500 font-medium flex items-center gap-1 animate-in fade-in">
-                <AlertCircle className="w-3 h-3 shrink-0" />
-                <span>{errors.name}</span>
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>{nameError}</span>
               </p>
             ) : (
               <p className="text-[11px] text-slate-400 dark:text-slate-500">
@@ -547,38 +627,49 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
         {/* Description */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-            Project Description <span className="text-rose-500">*</span>
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+              Project Description <span className="text-rose-500">*</span>
+            </label>
+            <span
+              className={`text-[11px] font-mono transition-colors ${
+                isDescriptionOverLimit
+                  ? 'text-rose-500 font-bold'
+                  : 'text-slate-400 dark:text-slate-500'
+              }`}
+            >
+              {description.length}/{MAX_PROJECT_DESCRIPTION_LENGTH}
+            </span>
+          </div>
           <textarea
             rows={2}
             required
             placeholder="Primary goals, technical scope, or architecture notes..."
             value={description}
-            onChange={(e) => {
-              setDescription(e.target.value);
-              if (errors.description) {
-                setErrors((prev) => ({ ...prev, description: undefined, general: undefined }));
-              }
-            }}
+            onChange={(e) => handleDescriptionChange(e.target.value)}
             onBlur={() => {
               setTouched((prev) => ({ ...prev, description: true }));
               if (!description.trim()) {
                 setErrors((prev) => ({ ...prev, description: 'Project description is required and cannot be blank' }));
               } else if (description.trim().length < 5) {
                 setErrors((prev) => ({ ...prev, description: 'Project description must be at least 5 characters' }));
+              } else if (description.length > MAX_PROJECT_DESCRIPTION_LENGTH) {
+                setErrors((prev) => ({
+                  ...prev,
+                  description: `Project description cannot exceed ${MAX_PROJECT_DESCRIPTION_LENGTH} characters (currently ${description.length} characters)`,
+                }));
               }
             }}
             className={`w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#12151c] border rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all resize-none ${
-              touched.description && errors.description
+              descriptionError
                 ? 'border-rose-400 dark:border-rose-500 focus:ring-rose-500/30 focus:border-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
                 : 'border-slate-200 dark:border-white/[0.08] focus:ring-[#88c958]/30 focus:border-[#88c958]'
             }`}
           />
-          {touched.description && errors.description ? (
+          {descriptionError ? (
             <p className="text-[11px] text-rose-500 font-medium flex items-center gap-1 animate-in fade-in">
-              <AlertCircle className="w-3 h-3 shrink-0" />
-              <span>{errors.description}</span>
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{descriptionError}</span>
             </p>
           ) : (
             <p className="text-[11px] text-slate-400 dark:text-slate-500">
