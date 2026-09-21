@@ -78,6 +78,10 @@ const TEMPLATE_PRESETS = [
   },
 ];
 
+export const MIN_RETRO_TOPICS = 1;
+export const MAX_RETRO_TOPICS = 6;
+export const MAX_TOPIC_TITLE_LENGTH = 60;
+
 export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   isOpen,
   onClose,
@@ -215,11 +219,19 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
+    if (field === 'title' && errorMessage) {
+      setErrorMessage(null);
+    }
   };
 
   const handleAddTopic = () => {
+    if (topics.length >= MAX_RETRO_TOPICS) {
+      setErrorMessage(`Maximum ${MAX_RETRO_TOPICS} topic columns allowed.`);
+      return;
+    }
+    setErrorMessage(null);
     const newOrder = topics.length;
-    const colors = ['#10B981', '#0EA5E9', '#F43F5E', '#F59E0B', '#8B5CF6'];
+    const colors = ['#10B981', '#0EA5E9', '#F43F5E', '#F59E0B', '#8B5CF6', '#EC4899'];
     const chosenColor = colors[newOrder % colors.length];
 
     setTopics((prev) => [
@@ -236,7 +248,11 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   };
 
   const handleDeleteTopic = (index: number) => {
-    if (topics.length <= 1) return; // Must keep at least 1 topic
+    if (topics.length <= MIN_RETRO_TOPICS) {
+      setErrorMessage(`At least ${MIN_RETRO_TOPICS} topic column is required.`);
+      return;
+    }
+    setErrorMessage(null);
     setTopics((prev) => prev.filter((_, idx) => idx !== index));
   };
 
@@ -269,9 +285,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const handleApplyPreset = (preset: (typeof TEMPLATE_PRESETS)[0]) => {
     setBackgroundTheme(preset.theme as any);
     setTopics(
-      preset.topics.map((t, idx) => ({
+      preset.topics.slice(0, MAX_RETRO_TOPICS).map((t, idx) => ({
         topicId: `topic-${Date.now()}-${idx}`,
-        title: t.title,
+        title: t.title.slice(0, MAX_TOPIC_TITLE_LENGTH),
         description: t.description,
         icon: t.icon,
         color: t.color,
@@ -280,14 +296,41 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     );
   };
 
+  // Real-time validity checks
+  const hasOverLimitTopic = topics.some((t) => t.title.length > MAX_TOPIC_TITLE_LENGTH);
+  const hasEmptyTopic = topics.some((t) => !t.title.trim());
+  const isTopicsCountValid = topics.length >= MIN_RETRO_TOPICS && topics.length <= MAX_RETRO_TOPICS;
+  const isFormValid = title.trim().length > 0 && isTopicsCountValid && !hasOverLimitTopic && !hasEmptyTopic;
+
   const handleSave = async () => {
     if (!title.trim()) {
       setErrorMessage('Please provide a retrospective session title.');
       setActiveTab('general');
       return;
     }
-    if (topics.length === 0) {
-      setErrorMessage('Please configure at least one topic column.');
+    if (topics.length < MIN_RETRO_TOPICS) {
+      setErrorMessage(`Please configure at least ${MIN_RETRO_TOPICS} topic column.`);
+      setActiveTab('topics');
+      return;
+    }
+    if (topics.length > MAX_RETRO_TOPICS) {
+      setErrorMessage(`You can configure at most ${MAX_RETRO_TOPICS} topic columns.`);
+      setActiveTab('topics');
+      return;
+    }
+
+    const emptyTopicIndex = topics.findIndex((t) => !t.title.trim());
+    if (emptyTopicIndex !== -1) {
+      setErrorMessage(`Topic column #${emptyTopicIndex + 1} must have a title.`);
+      setActiveTab('topics');
+      return;
+    }
+
+    const overLimitTopicIndex = topics.findIndex((t) => t.title.length > MAX_TOPIC_TITLE_LENGTH);
+    if (overLimitTopicIndex !== -1) {
+      setErrorMessage(
+        `Topic column #${overLimitTopicIndex + 1} title cannot exceed ${MAX_TOPIC_TITLE_LENGTH} characters (currently ${topics[overLimitTopicIndex].title.length} characters).`
+      );
       setActiveTab('topics');
       return;
     }
@@ -470,6 +513,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                     Quick Presets (TeamRetro Templates):
                   </span>
+                  <span className={`text-xs font-mono font-bold ${topics.length >= MAX_RETRO_TOPICS ? 'text-amber-500' : 'text-slate-500 dark:text-slate-400'}`}>
+                    Topic Columns: {topics.length}/{MAX_RETRO_TOPICS}
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
                   {TEMPLATE_PRESETS.map((preset) => {
@@ -588,13 +634,40 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
 
                       {/* Topic Title & Description Inputs */}
                       <div className="flex-1 w-full space-y-1.5">
-                        <input
-                          type="text"
-                          value={topic.title}
-                          onChange={(e) => handleUpdateTopic(index, 'title', e.target.value)}
-                          placeholder="e.g. What went well?"
-                          className="w-full font-bold text-xs text-slate-900 dark:text-white bg-transparent border-b border-transparent hover:border-slate-200 dark:hover:border-white/[0.08] focus:border-[#88c958] dark:focus:border-[#88c958] focus:outline-none px-1 py-0.5"
-                        />
+                        <div className="flex items-center justify-between gap-2">
+                          <input
+                            type="text"
+                            value={topic.title}
+                            onChange={(e) => handleUpdateTopic(index, 'title', e.target.value)}
+                            placeholder="e.g. What went well?"
+                            className={`w-full font-bold text-xs text-slate-900 dark:text-white bg-transparent border-b px-1 py-0.5 focus:outline-none transition-colors ${
+                              topic.title.length > MAX_TOPIC_TITLE_LENGTH
+                                ? 'border-rose-500 text-rose-600 dark:text-rose-400 focus:border-rose-500'
+                                : !topic.title.trim()
+                                ? 'border-rose-400 dark:border-rose-500/60'
+                                : 'border-transparent hover:border-slate-200 dark:hover:border-white/[0.08] focus:border-[#88c958] dark:focus:border-[#88c958]'
+                            }`}
+                          />
+                          <span
+                            className={`text-[10px] font-mono shrink-0 transition-colors ${
+                              topic.title.length > MAX_TOPIC_TITLE_LENGTH
+                                ? 'text-rose-500 font-bold'
+                                : 'text-slate-400 dark:text-slate-500'
+                            }`}
+                          >
+                            {topic.title.length}/{MAX_TOPIC_TITLE_LENGTH}
+                          </span>
+                        </div>
+                        {topic.title.length > MAX_TOPIC_TITLE_LENGTH && (
+                          <p className="text-[11px] text-rose-500 font-medium flex items-center gap-1 animate-in fade-in">
+                            <span>Topic title cannot exceed {MAX_TOPIC_TITLE_LENGTH} characters (currently {topic.title.length})</span>
+                          </p>
+                        )}
+                        {!topic.title.trim() && (
+                          <p className="text-[11px] text-rose-500 font-medium flex items-center gap-1 animate-in fade-in">
+                            <span>Topic title cannot be blank</span>
+                          </p>
+                        )}
                         <input
                           type="text"
                           value={topic.description}
@@ -630,9 +703,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                         <button
                           type="button"
                           onClick={() => handleDeleteTopic(index)}
-                          disabled={topics.length <= 1}
-                          title="Delete Column"
-                          className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-30 transition-colors cursor-pointer"
+                          disabled={topics.length <= MIN_RETRO_TOPICS}
+                          title={topics.length <= MIN_RETRO_TOPICS ? `Must keep at least ${MIN_RETRO_TOPICS} topic column` : 'Delete Column'}
+                          className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -643,17 +716,32 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
               </div>
 
               {/* Distinct Circular Add Button */}
-              <div className="flex flex-col items-center justify-center pt-2">
+              <div className="flex flex-col items-center justify-center pt-2 gap-1.5">
                 <button
                   type="button"
                   onClick={handleAddTopic}
-                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-[#0e1015] hover:bg-[#eaf5e3] dark:hover:bg-[#88c958]/10 border-2 border-dashed border-[#cdeac0] dark:border-[#88c958]/40 hover:border-[#88c958] text-xs font-bold text-[#3d8318] dark:text-[#88c958] shadow-xs transition-all hover:scale-105 cursor-pointer"
+                  disabled={topics.length >= MAX_RETRO_TOPICS}
+                  title={
+                    topics.length >= MAX_RETRO_TOPICS
+                      ? `Maximum ${MAX_RETRO_TOPICS} topic columns allowed`
+                      : 'Add New Topic Column'
+                  }
+                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-[#0e1015] hover:bg-[#eaf5e3] dark:hover:bg-[#88c958]/10 border-2 border-dashed border-[#cdeac0] dark:border-[#88c958]/40 hover:border-[#88c958] text-xs font-bold text-[#3d8318] dark:text-[#88c958] shadow-xs transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
                 >
                   <div className="w-5 h-5 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] flex items-center justify-center text-xs group-hover:rotate-90 transition-transform">
                     <Plus className="w-3.5 h-3.5 stroke-[3]" />
                   </div>
-                  <span>Add New Topic Column</span>
+                  <span>
+                    {topics.length >= MAX_RETRO_TOPICS
+                      ? `Max Limit Reached (${MAX_RETRO_TOPICS}/${MAX_RETRO_TOPICS})`
+                      : `Add New Topic Column (${topics.length}/${MAX_RETRO_TOPICS})`}
+                  </span>
                 </button>
+                {topics.length >= MAX_RETRO_TOPICS && (
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                    Retrospectives are limited to a maximum of {MAX_RETRO_TOPICS} topic columns.
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -672,8 +760,13 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           <button
             type="button"
             onClick={handleSave}
-            disabled={isSubmitting || !title.trim()}
-            className="px-6 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 disabled:opacity-50 transition-all hover:scale-[1.02] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a]"
+            disabled={isSubmitting || !isFormValid}
+            title={
+              !isFormValid
+                ? `Please provide a session title and ensure 1 to 6 topic columns with titles up to ${MAX_TOPIC_TITLE_LENGTH} characters`
+                : initialData ? 'Save Changes' : 'Create & Open Board'
+            }
+            className="px-6 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all hover:scale-[1.02] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a]"
           >
             {isSubmitting ? 'Saving...' : initialData ? 'Save Changes' : 'Create & Open Board →'}
           </button>

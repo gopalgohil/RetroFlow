@@ -47,6 +47,20 @@ export const emailValidation = z
   });
 
 /**
+ * Helper to validate an email string using Universal Email Validation
+ */
+export function validateEmailAddress(email: string): { isValid: boolean; error?: string } {
+  if (!email || !email.trim()) {
+    return { isValid: false, error: 'Email address is required' };
+  }
+  const result = emailValidation.safeParse(email.trim());
+  if (!result.success) {
+    return { isValid: false, error: result.error.issues[0]?.message || 'Please enter a valid email address' };
+  }
+  return { isValid: true };
+}
+
+/**
  * Zod Schema for User Registration (Sign Up)
  */
 export const signupSchema = z

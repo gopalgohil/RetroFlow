@@ -21,6 +21,7 @@ import {
 
 import { Project, ProjectMemberRole } from '@/types/project';
 import ProjectApiService from '@/services/projectApi';
+import { validateEmailAddress } from '@/lib/validations/auth';
 
 interface ShareProjectModalProps {
   isOpen: boolean;
@@ -141,8 +142,9 @@ export const ShareProjectModal: React.FC<ShareProjectModalProps> = ({
       return;
     }
 
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      setErrorMessage('Please enter a valid email address.');
+    const emailCheck = validateEmailAddress(email);
+    if (!emailCheck.isValid) {
+      setErrorMessage(emailCheck.error || 'Please enter a valid email address.');
       return;
     }
 

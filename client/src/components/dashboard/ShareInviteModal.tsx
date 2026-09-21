@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import { api, ENDPOINTS } from '@/lib/api';
+import { validateEmailAddress } from '@/lib/validations/auth';
 
 export interface ShareInviteSession {
   _id: string;
@@ -68,8 +69,9 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
     setSuccessMessage(null);
 
     const trimmedEmail = email.trim().toLowerCase();
-    if (!trimmedEmail || !/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
-      setErrorMessage('Please enter a valid email address.');
+    const emailCheck = validateEmailAddress(trimmedEmail);
+    if (!emailCheck.isValid) {
+      setErrorMessage(emailCheck.error || 'Please enter a valid email address.');
       return;
     }
 

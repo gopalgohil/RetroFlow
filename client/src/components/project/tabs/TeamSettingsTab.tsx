@@ -20,6 +20,7 @@ import { ProjectApiService, MembersApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
 import { api, ENDPOINTS } from '@/lib/api';
 import { UserAvatar, StatusPill, Modal } from '@/components/ui';
+import { validateEmailAddress } from '@/lib/validations/auth';
 
 interface TeamSettingsTabProps {
   project: Project;
@@ -116,8 +117,9 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
       setInviteError('Please fill in both name and email.');
       return;
     }
-    if (!inviteEmail.includes('@')) {
-      setInviteError('Please enter a valid email address.');
+    const emailCheck = validateEmailAddress(inviteEmail.trim());
+    if (!emailCheck.isValid) {
+      setInviteError(emailCheck.error || 'Please enter a valid email address.');
       return;
     }
 

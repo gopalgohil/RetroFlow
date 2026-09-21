@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { emailValidation } from './auth.js';
 
 const memberInputSchema = z.object({
   name: z
@@ -6,10 +7,7 @@ const memberInputSchema = z.object({
     .trim()
     .min(2, 'Name must be at least 2 characters')
     .max(80, 'Name must be under 80 characters'),
-  email: z
-    .string({ required_error: 'Member email is required' })
-    .trim()
-    .email('Please provide a valid work email'),
+  email: emailValidation,
   role: z
     .enum(['Manager', 'Developer', 'QA', 'QA / Tester', 'DevOps', 'Project Lead', 'Viewer'])
     .default('Developer'),
@@ -130,7 +128,7 @@ export const updateSprintDatesSchema = z
 
 export const inviteProjectMembersSchema = z.object({
   emails: z
-    .array(z.string().email('Valid email address required'))
+    .array(emailValidation)
     .min(1, 'At least one email address must be selected to send invitations'),
   message: z.string().trim().max(500).optional(),
 });
