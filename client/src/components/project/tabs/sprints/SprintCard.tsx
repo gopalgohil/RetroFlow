@@ -13,6 +13,7 @@ export interface SprintCardProps {
   isExpanded: boolean;
   canManageProject: boolean;
   updatingItemId: string | null;
+  deletingItemId?: string | null;
   onToggleExpand: (sprintId: string) => void;
   onStartSprint: (sprint: Sprint) => void;
   onCompleteSprint: (sprint: Sprint) => void;
@@ -22,6 +23,7 @@ export interface SprintCardProps {
     itemId: string,
     newStatus: 'todo' | 'in_progress' | 'done'
   ) => Promise<void>;
+  onDeleteItem?: (sprintId: string, itemId: string) => Promise<void> | void;
 }
 
 /**
@@ -35,11 +37,13 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   isExpanded,
   canManageProject,
   updatingItemId,
+  deletingItemId = null,
   onToggleExpand,
   onStartSprint,
   onCompleteSprint,
   onEditDates,
   onUpdateItemStatus,
+  onDeleteItem,
 }) => {
   const percentComplete = Math.round(
     ((sprint.completedStoryPoints || 0) / (sprint.totalStoryPoints || 1)) * 100
@@ -191,7 +195,10 @@ export const SprintCard: React.FC<SprintCardProps> = ({
           projectId={projectId}
           sprint={sprint}
           updatingItemId={updatingItemId}
+          deletingItemId={deletingItemId}
+          canManageProject={canManageProject}
           onUpdateItemStatus={onUpdateItemStatus}
+          onDeleteItem={onDeleteItem}
         />
       )}
     </div>

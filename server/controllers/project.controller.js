@@ -158,6 +158,20 @@ class ProjectController {
   });
 
   /**
+   * Delete an individual backlog item in a sprint
+   * DELETE /api/projects/:id/sprints/:sprintId/items/:itemId
+   */
+  deleteSprintItem = asyncHandler(async (req, res) => {
+    const project = await projectService.deleteSprintItem(
+      req.params.id,
+      req.params.sprintId,
+      req.params.itemId,
+      req.user
+    );
+    return ApiResponse.ok(res, project, 'Sprint backlog item deleted successfully');
+  });
+
+  /**
    * Get paginated backlog items & action items for an individual sprint
    * GET /api/projects/:id/sprints/:sprintId/items
    */

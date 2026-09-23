@@ -98,6 +98,16 @@ router.patch(
 );
 
 /**
+ * @route   DELETE /api/projects/:id/sprints/:sprintId/items/:itemId
+ * @desc    Delete an individual backlog item from a sprint
+ */
+router.delete(
+  '/:id/sprints/:sprintId/items/:itemId',
+  optionalAuth,
+  projectController.deleteSprintItem
+);
+
+/**
  * @route   GET /api/projects/:id/sprints/:sprintId/items
  * @desc    Get paginated sprint backlog & action items (10 per page default)
  */

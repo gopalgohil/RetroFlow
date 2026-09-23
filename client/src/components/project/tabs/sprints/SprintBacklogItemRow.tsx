@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, ChevronDown } from 'lucide-react';
+import { Sparkles, ChevronDown, Trash2 } from 'lucide-react';
 import { BacklogItem } from '@/types/project';
 import { StatusPill, UserAvatar } from '@/components/ui';
 
@@ -9,11 +9,14 @@ interface SprintBacklogItemRowProps {
   sprintId: string;
   item: BacklogItem;
   isUpdating: boolean;
+  canManageProject?: boolean;
+  isDeleting?: boolean;
   onUpdateStatus: (
     sprintId: string,
     itemId: string,
     newStatus: 'todo' | 'in_progress' | 'done'
   ) => Promise<void>;
+  onDeleteItem?: (sprintId: string, itemId: string) => void;
 }
 
 /**
@@ -21,9 +24,9 @@ interface SprintBacklogItemRowProps {
  * Highly optimized, memoized single backlog / action item card.
  */
 export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.memo(
-  ({ sprintId, item, isUpdating, onUpdateStatus }) => {
+  ({ sprintId, item, isUpdating, canManageProject = false, isDeleting = false, onUpdateStatus, onDeleteItem }) => {
     return (
-      <div className="p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
+      <div className="group p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
         {/* Left: Type badge & Title */}
         <div className="flex items-center gap-3">
           <StatusPill status={item.type} />
@@ -40,7 +43,7 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
           </div>
         </div>
 
-        {/* Right: Story points, Assignee, Status Select Dropdown */}
+        {/* Right: Story points, Assignee, Status Select Dropdown, Delete Action */}
         <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
           {item.storyPoints !== undefined && (
             <span
@@ -64,7 +67,7 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
           <div className="relative inline-block">
             <select
               value={item.status}
-              disabled={isUpdating}
+              disabled={isUpdating || isDeleting}
               onChange={(e) =>
                 onUpdateStatus(
                   sprintId,
@@ -95,6 +98,19 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
               <ChevronDown className="w-3.5 h-3.5 opacity-60 text-current" />
             </div>
           </div>
+
+          {/* Admin / Manager / Lead Delete Action */}
+          {canManageProject && onDeleteItem && (
+            <button
+              type="button"
+              disabled={isDeleting || isUpdating}
+              onClick={() => onDeleteItem(sprintId, item.id)}
+              className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Delete backlog item from sprint and action items"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
     );

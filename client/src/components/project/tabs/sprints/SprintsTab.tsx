@@ -44,12 +44,20 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     return active ? [active] : [];
   });
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [editingDatesSprint, setEditingDatesSprint] = useState<Sprint | null>(null);
 
   // Reusable confirmation dialog state for sprint start/complete
   const [confirmSprint, setConfirmSprint] = useState<{
     sprint: Sprint;
     action: 'start' | 'complete';
+  } | null>(null);
+
+  // Confirmation dialog state for backlog item deletion
+  const [itemToDelete, setItemToDelete] = useState<{
+    sprintId: string;
+    itemId: string;
+    title: string;
   } | null>(null);
 
   const allSprints = project.sprints || [];
@@ -287,6 +295,55 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     }
   };
 
+  const handleDeleteItem = async (sprintId: string, itemId: string) => {
+    const updatedSprints = project.sprints.map((sp) => {
+      if (sp.id === sprintId) {
+        const updatedItems = sp.items.filter((it) => it.id !== itemId);
+        const totalPts = updatedItems.reduce(
+          (sum, it) => sum + (typeof it.storyPoints === 'number' ? it.storyPoints : 3),
+          0
+        );
+        const completedPts = updatedItems
+          .filter((it) => it.status === 'done')
+          .reduce(
+            (sum, it) => sum + (typeof it.storyPoints === 'number' ? it.storyPoints : 3),
+            0
+          );
+
+        return {
+          ...sp,
+          items: updatedItems,
+          totalStoryPoints: totalPts,
+          completedStoryPoints: completedPts,
+        };
+      }
+      return sp;
+    });
+
+    const optimisticProject = { ...project, sprints: updatedSprints };
+    onProjectUpdated(optimisticProject);
+    setDeletingItemId(itemId);
+
+    try {
+      const updated = await ProjectApiService.deleteSprintItem(
+        project.id,
+        sprintId,
+        itemId
+      );
+      if (updated) onProjectUpdated(updated);
+    } catch (err) {
+      console.warn('[SprintsTab] API delete item fallback to mock:', err);
+      const fallback = ProjectDataService.deleteSprintItem(
+        project.id,
+        sprintId,
+        itemId
+      );
+      if (fallback) onProjectUpdated(fallback);
+    } finally {
+      setDeletingItemId(null);
+    }
+  };
+
   const handleStartSprint = async (sprint: Sprint) => {
     try {
       const updated = await ProjectApiService.startSprint(project.id, sprint.id);
@@ -354,11 +411,17 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               isExpanded={expandedSprintIds.includes(sprint.id)}
               canManageProject={canManageProject}
               updatingItemId={updatingItemId}
+              deletingItemId={deletingItemId}
               onToggleExpand={toggleExpand}
               onStartSprint={(sp) => setConfirmSprint({ sprint: sp, action: 'start' })}
               onCompleteSprint={(sp) => setConfirmSprint({ sprint: sp, action: 'complete' })}
               onEditDates={(sp) => setEditingDatesSprint(sp)}
               onUpdateItemStatus={handleUpdateItemStatus}
+              onDeleteItem={(sprintId, itemId) => {
+                const sp = project.sprints.find((s) => s.id === sprintId);
+                const it = sp?.items.find((i) => i.id === itemId);
+                setItemToDelete({ sprintId, itemId, title: it?.title || 'Backlog Item' });
+              }}
             />
           ))}
         </div>
@@ -400,6 +463,25 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
           }
           confirmLabel={confirmSprint.action === 'start' ? 'Start Sprint' : 'Complete Sprint'}
           variant={confirmSprint.action === 'start' ? 'primary' : 'success'}
+        />
+      )}
+
+      {/* 5. Backlog Item Deletion Confirmation Dialog */}
+      {itemToDelete && (
+        <ConfirmDialog
+          isOpen={Boolean(itemToDelete)}
+          onClose={() => setItemToDelete(null)}
+          onConfirm={() => {
+            if (itemToDelete) {
+              handleDeleteItem(itemToDelete.sprintId, itemToDelete.itemId);
+              setItemToDelete(null);
+            }
+          }}
+          title="Delete Backlog Item?"
+          message={`Are you sure you want to delete "${itemToDelete.title}"? This item will be permanently removed from this sprint backlog and from assigned team member action items.`}
+          confirmLabel="Delete Item"
+          cancelLabel="Cancel"
+          variant="danger"
         />
       )}
 

@@ -263,6 +263,21 @@ export class ProjectApiService {
   }
 
   /**
+   * Delete an individual backlog item / action item from a sprint
+   * DELETE /api/projects/:id/sprints/:sprintId/items/:itemId
+   */
+  static async deleteSprintItem(
+    projectId: string,
+    sprintId: string,
+    itemId: string
+  ): Promise<Project> {
+    const res = await api.delete<ApiResponseWrapper<Project>>(
+      `${ENDPOINTS.PROJECTS}/${projectId}/sprints/${sprintId}/items/${itemId}`
+    );
+    return res.data;
+  }
+
+  /**
    * Fetch paginated sprint backlog items & action items
    * GET /api/projects/:id/sprints/:sprintId/items?page=X&limit=Y
    */

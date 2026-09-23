@@ -802,6 +802,71 @@ class ProjectService {
   }
 
   /**
+   * Delete an individual backlog item / action item from a sprint
+   * Recalculates total and completed story points, and removes matching card from retro if applicable
+   */
+  async deleteSprintItem(idOrKey, sprintId, itemId, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
+
+    const sprint = project.sprints.find((s) => s.id === sprintId);
+    if (!sprint) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
+
+    const itemIndex = sprint.items.findIndex(
+      (i) => i.id === itemId || (i._id && i._id.toString() === itemId)
+    );
+    if (itemIndex === -1) throw new Error(`Item with ID ${itemId} not found in sprint ${sprint.name}`);
+
+    const [deletedItem] = sprint.items.splice(itemIndex, 1);
+
+    // Dynamically recalculate completed and total story points for this sprint
+    sprint.completedStoryPoints = sprint.items
+      .filter((i) => i.status === 'done')
+      .reduce((acc, i) => acc + (typeof i.storyPoints === 'number' ? i.storyPoints : 3), 0);
+
+    sprint.totalStoryPoints = sprint.items.reduce(
+      (acc, i) => acc + (typeof i.storyPoints === 'number' ? i.storyPoints : 3),
+      0
+    );
+
+    await project.save();
+
+    // If item originated from a retrospective, remove the corresponding card from the retro session
+    // so it does not reappear in the developer's "Action Items" dashboard
+    if (deletedItem.sourceRetroId || deletedItem.title) {
+      try {
+        const retroQuery = deletedItem.sourceRetroId
+          ? {
+              $or: [
+                ...(deletedItem.sourceRetroId.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: deletedItem.sourceRetroId }] : []),
+                { shareToken: deletedItem.sourceRetroId },
+              ],
+            }
+          : { projectId: project._id };
+
+        await RetroBoard.updateMany(
+          retroQuery,
+          {
+            $pull: {
+              cards: {
+                $or: [
+                  ...(deletedItem.id ? [{ cardId: deletedItem.id }] : []),
+                  { text: deletedItem.title },
+                ],
+              },
+            },
+          }
+        );
+      } catch (err) {
+        console.warn('[deleteSprintItem] Retro card cleanup warning:', err.message);
+      }
+    }
+
+    return project;
+  }
+
+  /**
    * Get paginated backlog items & action items for an individual sprint
    * Industry-standard pagination metadata (page, limit=10, totalItems, totalPages, hasNextPage, hasPrevPage)
    */
