@@ -59,6 +59,12 @@ router.put(
   validate(updateProjectSchema),
   projectController.updateProject
 );
+router.patch(
+  '/:id',
+  optionalAuth,
+  validate(updateProjectSchema),
+  projectController.updateProject
+);
 
 /**
  * @route   POST /api/projects/:id/sprints/:sprintId/start
@@ -92,6 +98,26 @@ router.patch(
 );
 
 /**
+ * @route   GET /api/projects/:id/sprints/:sprintId/items
+ * @desc    Get paginated sprint backlog & action items (10 per page default)
+ */
+router.get(
+  '/:id/sprints/:sprintId/items',
+  optionalAuth,
+  projectController.getSprintItems
+);
+
+/**
+ * @route   GET /api/projects/:id/sprints
+ * @desc    Get paginated sprints for a project (10 per page default)
+ */
+router.get(
+  '/:id/sprints',
+  optionalAuth,
+  projectController.getProjectSprints
+);
+
+/**
  * @route   PATCH /api/projects/:id/sprints/:sprintId/dates
  * @desc    Update custom start/end dates and goal of an individual sprint
  */
@@ -118,6 +144,12 @@ router.post(
  * @desc    Remove a team member from the project
  */
 router.delete('/:id/members/:memberId', optionalAuth, projectController.removeMember);
+
+/**
+ * @route   PATCH /api/projects/:id/members/:memberId/role
+ * @desc    Update a team member's role in the project
+ */
+router.patch('/:id/members/:memberId/role', optionalAuth, projectController.updateMemberRole);
 
 /**
  * @route   POST /api/projects/:id/invite
@@ -152,6 +184,7 @@ router.post(
  * @desc    Archive or restore project (Soft Delete)
  */
 router.post('/:id/archive', optionalAuth, projectController.archiveProject);
+router.patch('/:id/archive', optionalAuth, projectController.archiveProject);
 
 /**
  * @route   DELETE /api/projects/:id

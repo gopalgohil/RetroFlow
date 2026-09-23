@@ -59,7 +59,7 @@ class RetroController {
    * PUT /api/retros/:id
    */
   updateRetro = asyncHandler(async (req, res) => {
-    const updated = await retroService.updateRetro(req.params.id, req.user._id, req.body);
+    const updated = await retroService.updateRetro(req.params.id, req.user, req.body);
     return ApiResponse.ok(res, updated, 'Retrospective session updated successfully!');
   });
 
@@ -99,7 +99,7 @@ class RetroController {
       });
     }
 
-    const result = await retroService.inviteTeammate(req.params.id, req.user._id, req.body);
+    const result = await retroService.inviteTeammate(req.params.id, req.user, req.body);
     return ApiResponse.ok(res, result, result.message);
   });
 

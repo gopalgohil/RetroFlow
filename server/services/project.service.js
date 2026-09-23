@@ -802,6 +802,121 @@ class ProjectService {
   }
 
   /**
+   * Get paginated backlog items & action items for an individual sprint
+   * Industry-standard pagination metadata (page, limit=10, totalItems, totalPages, hasNextPage, hasPrevPage)
+   */
+  async getSprintItems(
+    idOrKey,
+    sprintId,
+    { page = 1, limit = 10, status = 'all', search = '' } = {},
+    currentUser = null
+  ) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+
+    const sprint = project.sprints.find((s) => s.id === sprintId);
+    if (!sprint) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
+
+    let items = Array.isArray(sprint.items) ? [...sprint.items] : [];
+
+    // Optional status filtering ('todo' | 'in_progress' | 'done')
+    if (status && status !== 'all') {
+      items = items.filter((it) => it.status === status);
+    }
+
+    // Optional search filtering
+    if (search && search.trim()) {
+      const q = search.toLowerCase().trim();
+      items = items.filter(
+        (it) =>
+          it.title?.toLowerCase().includes(q) ||
+          it.description?.toLowerCase().includes(q) ||
+          it.assignee?.name?.toLowerCase().includes(q)
+      );
+    }
+
+    const totalItems = items.length;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const totalPages = Math.ceil(totalItems / limitNum) || 1;
+
+    const startIndex = (pageNum - 1) * limitNum;
+    const paginatedItems = items.slice(startIndex, startIndex + limitNum);
+
+    return {
+      items: paginatedItems,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        totalItems,
+        totalPages,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1,
+      },
+    };
+  }
+
+  /**
+   * Industry-Standard Project Sprints Pagination & Retrieval
+   * Supports page, limit (default 10), status filter ('all' | 'active' | 'upcoming' | 'completed'), and search
+   */
+  async getProjectSprints(
+    idOrKey,
+    { page = 1, limit = 10, status = 'all', search = '' } = {},
+    currentUser = null
+  ) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+
+    const allSprints = Array.isArray(project.sprints) ? [...project.sprints] : [];
+
+    const statusCounts = {
+      all: allSprints.length,
+      active: allSprints.filter((s) => s.status === 'active').length,
+      upcoming: allSprints.filter((s) => s.status === 'upcoming').length,
+      completed: allSprints.filter((s) => s.status === 'completed').length,
+    };
+
+    let filtered = allSprints;
+
+    // Filter by status if specified
+    if (status && status !== 'all') {
+      filtered = filtered.filter((s) => s.status === status);
+    }
+
+    // Filter by search query if provided
+    if (search && search.trim()) {
+      const q = search.toLowerCase().trim();
+      filtered = filtered.filter(
+        (s) =>
+          s.name?.toLowerCase().includes(q) ||
+          s.goal?.toLowerCase().includes(q)
+      );
+    }
+
+    const totalItems = filtered.length;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const totalPages = Math.ceil(totalItems / limitNum) || 1;
+
+    const startIndex = (pageNum - 1) * limitNum;
+    const paginatedSprints = filtered.slice(startIndex, startIndex + limitNum);
+
+    return {
+      sprints: paginatedSprints,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        totalItems,
+        totalPages,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1,
+      },
+      statusCounts,
+    };
+  }
+
+  /**
    * Update custom start/end dates and goal of an individual sprint
    */
   async updateSprintDates(idOrKey, sprintId, { startDate, endDate, goal, name }, currentUser = null) {
@@ -887,15 +1002,13 @@ class ProjectService {
       console.error('[addMember] Failed to sync approvedMembers in RetroBoard:', err);
     }
 
-    if ((memberData.role || '').toLowerCase() === 'manager') {
-      try {
-        await User.updateOne(
-          { email, role: { $ne: 'admin' } },
-          { $set: { projectRole: 'Manager' } }
-        );
-      } catch (err) {
-        console.error('[addMember] Failed to sync manager role to User:', err);
-      }
+    try {
+      await User.updateOne(
+        { email, role: { $ne: 'admin' } },
+        { $set: { projectRole: memberData.role || 'Developer' } }
+      );
+    } catch (err) {
+      console.error('[addMember] Failed to sync role to User:', err);
     }
 
     return project;
@@ -936,6 +1049,42 @@ class ProjectService {
       );
     } catch (err) {
       console.error('[removeMember] Failed to remove member from RetroBoard approvedMembers:', err);
+    }
+
+    return project;
+  }
+
+  /**
+   * Update a team member's role in the project
+   */
+  async updateMemberRole(idOrKey, memberIdOrEmail, newRole, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
+
+    const member = project.members.find(
+      (m) => m.id === memberIdOrEmail || m.email.toLowerCase() === memberIdOrEmail.toLowerCase()
+    );
+    if (!member) throw new Error('Member not found in this project');
+
+    if (
+      project.lead?.email?.toLowerCase() === member.email.toLowerCase() &&
+      newRole !== 'Manager' &&
+      newRole !== 'Project Lead'
+    ) {
+      throw new Error('Designated project lead must remain a Manager or Project Lead');
+    }
+
+    member.role = newRole;
+    await project.save();
+
+    try {
+      await User.updateOne(
+        { email: member.email.toLowerCase(), role: { $ne: 'admin' } },
+        { $set: { projectRole: newRole } }
+      );
+    } catch (err) {
+      console.warn('[updateMemberRole] User projectRole sync error:', err);
     }
 
     return project;

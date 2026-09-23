@@ -24,6 +24,12 @@ router.post(
   validate(whitelistMemberSchema),
   membersController.addWhitelistMember
 );
+router.post(
+  '/whitelist',
+  protect,
+  validate(whitelistMemberSchema),
+  membersController.addWhitelistMember
+);
 
 /**
  * @route   PATCH /api/members/:email/role
@@ -55,6 +61,11 @@ router.post(
  */
 router.delete(
   '/:email',
+  protect,
+  membersController.removeWhitelistMember
+);
+router.delete(
+  '/whitelist/:email',
   protect,
   membersController.removeWhitelistMember
 );

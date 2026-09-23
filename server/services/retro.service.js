@@ -544,11 +544,94 @@ class RetroService {
   /**
    * Update an existing retrospective session
    */
-  async updateRetro(retroId, userId, payload) {
-    const retro = await RetroBoard.findOne({ _id: retroId, createdBy: userId });
+  async updateRetro(retroId, currentUser, payload) {
+    let query;
+    if (typeof retroId === 'string' && retroId.length === 24 && /^[0-9a-fA-F]{24}$/.test(retroId)) {
+      query = { _id: retroId };
+    } else {
+      query = { $or: [{ _id: retroId }, { shareToken: retroId }] };
+    }
+
+    let retro = await RetroBoard.findOne(query);
+
+    // If not found in RetroBoard, check if registered under any Project and auto-provision
+    if (!retro) {
+      const linkedProject = await Project.findOne({
+        $or: [
+          { 'retrospectives.shareToken': retroId },
+          { 'retrospectives.id': retroId },
+        ],
+      });
+
+      if (linkedProject) {
+        const retroLink = (linkedProject.retrospectives || []).find(
+          (r) => r.shareToken === retroId || r.id === retroId
+        );
+        let creatorId = linkedProject.createdBy || (currentUser?._id || currentUser);
+        if (!creatorId) {
+          const adminUser = await User.findOne({ $or: [{ role: 'admin' }, { email: getSuperAdminEmail() }] });
+          creatorId = adminUser?._id || null;
+        }
+        const seedPayload = this.buildSeedRetroData(retroId, retroLink, linkedProject, creatorId);
+        retro = await RetroBoard.create(seedPayload);
+      }
+    }
 
     if (!retro) {
-      throw ApiError.notFound('Retrospective session not found or you do not have permission to edit it.');
+      throw ApiError.notFound('Retrospective session not found.');
+    }
+
+    // Role & permission resolution
+    const userId = (currentUser?._id || currentUser || '').toString();
+    const userRole = (currentUser?.role || '').toLowerCase();
+    const userEmail = (currentUser?.email || '').toLowerCase().trim();
+    const userProjectRole = currentUser?.projectRole;
+
+    const isAdmin =
+      userRole === 'admin' ||
+      isSuperAdmin(userEmail);
+
+    const isManager =
+      userProjectRole === 'Manager' ||
+      userProjectRole === 'Project Lead' ||
+      userRole === 'manager' ||
+      userRole.includes('manager');
+
+    const isCreator =
+      retro.createdBy &&
+      (retro.createdBy.toString() === userId ||
+       (retro.createdBy._id && retro.createdBy._id.toString() === userId));
+
+    let hasProjectPermission = false;
+    if (retro.projectId || retro.projectKey) {
+      try {
+        const project = await Project.findOne(
+          retro.projectId ? { _id: retro.projectId } : { key: retro.projectKey }
+        ).lean();
+
+        if (project) {
+          const isProjectLead = project.lead?.email?.toLowerCase().trim() === userEmail;
+          const isProjectMgr = project.members?.some(
+            (m) => m.email?.toLowerCase().trim() === userEmail && (m.role === 'Manager' || m.role === 'Project Lead')
+          );
+          const isProjectMember = project.members?.some(
+            (m) => m.email?.toLowerCase().trim() === userEmail
+          );
+          if (isProjectLead || isProjectMgr || isProjectMember) {
+            hasProjectPermission = true;
+          }
+        }
+      } catch (err) {
+        console.warn('[updateRetro] Project permission check error:', err);
+      }
+    }
+
+    const isApprovedParticipant =
+      retro.approvedMembers && userEmail &&
+      retro.approvedMembers.map((e) => e.toLowerCase().trim()).includes(userEmail);
+
+    if (!isAdmin && !isManager && !isCreator && !hasProjectPermission && !isApprovedParticipant) {
+      throw ApiError.forbidden('Retrospective session not found or you do not have permission to edit it.');
     }
 
     // Format topics if provided in payload
@@ -561,10 +644,34 @@ class RetroService {
         color: t.color || '#10B981',
         order: typeof t.order === 'number' ? t.order : idx,
       }));
+
+      // When a topic column is deleted, clean up orphaned cards attached to that deleted topic column
+      const updatedTopicIds = new Set(payload.topics.map((t) => t.topicId));
+      if (Array.isArray(retro.cards)) {
+        retro.cards = retro.cards.filter((card) => updatedTopicIds.has(card.topicId));
+      }
     }
 
     Object.assign(retro, payload);
     await retro.save();
+
+    // Sync project retrospectives array if this session is project-linked
+    if (retro.projectId || retro.projectKey) {
+      try {
+        await Project.updateOne(
+          retro.projectId
+            ? { _id: retro.projectId, 'retrospectives.id': retro._id.toString() }
+            : { key: retro.projectKey, 'retrospectives.id': retro._id.toString() },
+          {
+            $set: {
+              'retrospectives.$.title': retro.title,
+              'retrospectives.$.scheduledDate': retro.scheduledDate,
+              'retrospectives.$.status': retro.status,
+            },
+          }
+        );
+      } catch {}
+    }
 
     return retro;
   }
@@ -587,13 +694,20 @@ class RetroService {
       userRole === 'manager' ||
       userRole.includes('manager');
 
+    let deleteQuery;
+    if (typeof retroId === 'string' && retroId.length === 24 && /^[0-9a-fA-F]{24}$/.test(retroId)) {
+      deleteQuery = { _id: retroId };
+    } else {
+      deleteQuery = { $or: [{ _id: retroId }, { shareToken: retroId }] };
+    }
+
     let retro;
     if (isAdmin || isManager) {
       // Workspace Admins and Managers can delete any retro session
-      retro = await RetroBoard.findByIdAndDelete(retroId);
+      retro = await RetroBoard.findOneAndDelete(deleteQuery);
     } else {
       // Regular facilitators can only delete sessions they created
-      retro = await RetroBoard.findOneAndDelete({ _id: retroId, createdBy: userId });
+      retro = await RetroBoard.findOneAndDelete({ ...deleteQuery, createdBy: userId });
     }
 
     if (!retro) {
@@ -606,11 +720,58 @@ class RetroService {
   /**
    * Dispatch an email invitation to a developer/teammate
    */
-  async inviteTeammate(retroId, userId, { email, message }) {
-    const retro = await RetroBoard.findOne({ _id: retroId, createdBy: userId }).populate('createdBy', 'name email');
+  async inviteTeammate(retroId, currentUser, { email, message }) {
+    let query;
+    if (typeof retroId === 'string' && retroId.length === 24 && /^[0-9a-fA-F]{24}$/.test(retroId)) {
+      query = { _id: retroId };
+    } else {
+      query = { $or: [{ _id: retroId }, { shareToken: retroId }] };
+    }
+
+    const retro = await RetroBoard.findOne(query).populate('createdBy', 'name email');
 
     if (!retro) {
       throw ApiError.notFound('Retrospective session not found or you do not have permission to invite teammates.');
+    }
+
+    const userId = (currentUser?._id || currentUser || '').toString();
+    const userRole = (currentUser?.role || '').toLowerCase();
+    const userEmail = (currentUser?.email || '').toLowerCase().trim();
+    const userProjectRole = currentUser?.projectRole;
+
+    const isAdmin = userRole === 'admin' || isSuperAdmin(userEmail);
+    const isManager =
+      userProjectRole === 'Manager' ||
+      userProjectRole === 'Project Lead' ||
+      userRole === 'manager' ||
+      userRole.includes('manager');
+
+    const isCreator =
+      retro.createdBy &&
+      (retro.createdBy.toString() === userId ||
+       (retro.createdBy._id && retro.createdBy._id.toString() === userId));
+
+    let hasProjectPermission = false;
+    if (retro.projectId || retro.projectKey) {
+      try {
+        const project = await Project.findOne(
+          retro.projectId ? { _id: retro.projectId } : { key: retro.projectKey }
+        ).lean();
+
+        if (project) {
+          const isProjectLead = project.lead?.email?.toLowerCase().trim() === userEmail;
+          const isProjectMgr = project.members?.some(
+            (m) => m.email?.toLowerCase().trim() === userEmail && (m.role === 'Manager' || m.role === 'Project Lead')
+          );
+          if (isProjectLead || isProjectMgr) {
+            hasProjectPermission = true;
+          }
+        }
+      } catch (err) {}
+    }
+
+    if (!isAdmin && !isManager && !isCreator && !hasProjectPermission) {
+      throw ApiError.forbidden('Retrospective session not found or you do not have permission to invite teammates.');
     }
 
     const normalizedEmail = email.toLowerCase().trim();
@@ -1402,11 +1563,25 @@ class RetroService {
       ? allProjects
       : await Project.find({}, 'name key members lead retrospectives').lean();
 
+    // Helper to calculate deduplicated members count for a project
+    const getProjectUniqueMemberCount = (p) => {
+      const emailSet = new Set();
+      if (Array.isArray(p.members)) {
+        p.members.forEach((m) => {
+          if (m.email) emailSet.add(m.email.toLowerCase().trim());
+        });
+      }
+      if (p.lead?.email) {
+        emailSet.add(p.lead.email.toLowerCase().trim());
+      }
+      return emailSet.size > 0 ? emailSet.size : (p.members?.length || 0);
+    };
+
     const formattedProjects = projectsList.map((p) => ({
       id: p._id.toString(),
       name: p.name,
       key: p.key,
-      memberCount: (p.members?.length || 0) + (p.lead ? 1 : 0),
+      memberCount: getProjectUniqueMemberCount(p),
     }));
 
     // 2. Determine project scope filter
@@ -1542,7 +1717,7 @@ class RetroService {
             (r.projectKey && p.key.toUpperCase() === r.projectKey.toUpperCase())
         );
         if (linkedP) {
-          expectedCount = (linkedP.members?.length || 0) + (linkedP.lead ? 1 : 0);
+          expectedCount = getProjectUniqueMemberCount(linkedP);
         }
       }
       if (expectedCount === 0) {

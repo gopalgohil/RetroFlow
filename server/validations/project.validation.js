@@ -67,7 +67,7 @@ export const exportActionItemsSchema = z.object({
         title: z
           .string({ required_error: 'Action item title is required' })
           .trim()
-          .min(2, 'Action item must be at least 2 characters'),
+          .min(1, 'Action item title is required'),
         description: z.string().trim().optional().default(''),
         priority: z.enum(['low', 'medium', 'high', 'critical']).optional().default('high'),
         storyPoints: z.number().min(0).max(100).optional().default(3),

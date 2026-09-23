@@ -280,6 +280,27 @@ export class ProjectDataService {
     return project;
   }
 
+  public static updateMemberRole(
+    projectId: string,
+    memberIdOrEmail: string,
+    role: Project['members'][0]['role']
+  ): Project | null {
+    const projects = this.getStoredProjects();
+    const projIndex = projects.findIndex((p) => p.id === projectId);
+    if (projIndex === -1) return null;
+
+    const project = projects[projIndex];
+    const member = project.members.find(
+      (m) => m.id === memberIdOrEmail || m.email.toLowerCase() === memberIdOrEmail.toLowerCase()
+    );
+    if (member) {
+      member.role = role;
+      projects[projIndex] = project;
+      this.saveProjects(projects);
+    }
+    return project;
+  }
+
   public static exportActionItemsToSprint(
     projectId: string,
     targetSprintId: string,

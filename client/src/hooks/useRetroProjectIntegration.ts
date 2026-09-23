@@ -107,6 +107,9 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
         setExportedCount(result.exportedCount);
         setLastExportedSprint(result.targetSprint);
 
+        // Invalidate project cache so project sprint view immediately receives fresh items
+        ProjectApiService.clearProjectsCache();
+
         // Synchronize local cache as well
         ProjectDataService.exportActionItemsToSprint(projectId, sprintId, itemsToExport);
 

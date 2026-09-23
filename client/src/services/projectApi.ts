@@ -5,7 +5,7 @@
  */
 
 import { api, ENDPOINTS } from '@/lib/api';
-import { Project, CreateProjectPayload, ProjectMemberRole, EnrichedActionItem } from '@/types/project';
+import { Project, Sprint, CreateProjectPayload, ProjectMemberRole, EnrichedActionItem, BacklogItem } from '@/types/project';
 import { PaginationMeta } from '@/types/retro';
 
 export interface ApiResponseWrapper<T> {
@@ -263,6 +263,44 @@ export class ProjectApiService {
   }
 
   /**
+   * Fetch paginated sprint backlog items & action items
+   * GET /api/projects/:id/sprints/:sprintId/items?page=X&limit=Y
+   */
+  static async getSprintItems(
+    projectId: string,
+    sprintId: string,
+    options?: { page?: number; limit?: number; status?: string; search?: string }
+  ): Promise<{ items: BacklogItem[]; pagination: PaginationMeta }> {
+    const res = await api.get<ApiResponseWrapper<{ items: BacklogItem[]; pagination: PaginationMeta }>>(
+      `${ENDPOINTS.PROJECTS}/${projectId}/sprints/${sprintId}/items`,
+      { params: options }
+    );
+    return res.data;
+  }
+
+  /**
+   * Fetch paginated project sprints
+   * GET /api/projects/:id/sprints?page=X&limit=Y&status=Z
+   */
+  static async getProjectSprints(
+    projectId: string,
+    options?: { page?: number; limit?: number; status?: string; search?: string }
+  ): Promise<{
+    sprints: Sprint[];
+    pagination: PaginationMeta;
+    statusCounts?: { all: number; active: number; upcoming: number; completed: number };
+  }> {
+    const res = await api.get<
+      ApiResponseWrapper<{
+        sprints: Sprint[];
+        pagination: PaginationMeta;
+        statusCounts?: { all: number; active: number; upcoming: number; completed: number };
+      }>
+    >(`${ENDPOINTS.PROJECTS}/${projectId}/sprints`, { params: options });
+    return res.data;
+  }
+
+  /**
    * Update custom dates and goal of an individual sprint
    * PATCH /api/projects/:id/sprints/:sprintId/dates
    */
@@ -300,6 +338,22 @@ export class ProjectApiService {
   static async removeMember(projectId: string, memberId: string): Promise<Project> {
     const res = await api.delete<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/members/${memberId}`
+    );
+    return res.data;
+  }
+
+  /**
+   * Update a team member's role in project
+   * PATCH /api/projects/:id/members/:memberId/role
+   */
+  static async updateMemberRole(
+    projectId: string,
+    memberIdOrEmail: string,
+    role: ProjectMemberRole
+  ): Promise<Project> {
+    const res = await api.patch<ApiResponseWrapper<Project>>(
+      `${ENDPOINTS.PROJECTS}/${projectId}/members/${memberIdOrEmail}/role`,
+      { role }
     );
     return res.data;
   }

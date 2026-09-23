@@ -98,19 +98,18 @@ function ProjectDetailContent() {
   const [isSwitchingProject, setIsSwitchingProject] = useState(false);
   const [isTabTransitioning, setIsTabTransitioning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeSessionsCount, setActiveSessionsCount] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = sessionStorage.getItem('retroflow_active_sessions_count');
-        if (cached !== null) return parseInt(cached, 10) || 0;
-      } catch {}
-    }
-    return 0;
-  });
+  const [activeSessionsCount, setActiveSessionsCount] = useState<number>(0);
 
   // Dynamically sync live active retrospective sessions count for sidebar
   useEffect(() => {
     let isMounted = true;
+    try {
+      const cached = sessionStorage.getItem('retroflow_active_sessions_count');
+      if (cached !== null) {
+        const parsed = parseInt(cached, 10);
+        if (!isNaN(parsed) && parsed > 0) setActiveSessionsCount(parsed);
+      }
+    } catch {}
     api
       .get(ENDPOINTS.RETROS)
       .then((res) => {
@@ -1061,15 +1060,7 @@ function ProjectDetailFallback() {
         .slice(0, 2)
     : 'G';
 
-  const [activeSessionsCount] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = sessionStorage.getItem('retroflow_active_sessions_count');
-        if (cached !== null) return parseInt(cached, 10) || 0;
-      } catch {}
-    }
-    return 0;
-  });
+  const [activeSessionsCount] = useState<number>(0);
 
   const displayRole = isWorkspaceAdmin
     ? 'Admin'

@@ -275,10 +275,8 @@ const retroBoardSchema = new mongoose.Schema(
 );
 
 // Indexes for high-speed dashboard, whitelisting, and real-time session lookups
-retroBoardSchema.index({ shareToken: 1 });
 retroBoardSchema.index({ createdBy: 1, createdAt: -1 });
 retroBoardSchema.index({ approvedMembers: 1 });
-retroBoardSchema.index({ projectId: 1 });
 retroBoardSchema.index({ projectKey: 1 });
 retroBoardSchema.index({ 'attendees.email': 1 });
 

@@ -118,6 +118,11 @@ router.put(
   optionalAuth,
   retroController.updateCard
 );
+router.patch(
+  '/:id/cards/:cardId',
+  optionalAuth,
+  retroController.updateCard
+);
 
 /**
  * @route   PUT /api/retros/:id/cards/:cardId/move

@@ -158,6 +158,35 @@ class ProjectController {
   });
 
   /**
+   * Get paginated backlog items & action items for an individual sprint
+   * GET /api/projects/:id/sprints/:sprintId/items
+   */
+  getSprintItems = asyncHandler(async (req, res) => {
+    const { page, limit, status, search } = req.query;
+    const result = await projectService.getSprintItems(
+      req.params.id,
+      req.params.sprintId,
+      { page, limit, status, search },
+      req.user
+    );
+    return ApiResponse.ok(res, result, 'Sprint backlog items retrieved successfully');
+  });
+
+  /**
+   * Get paginated sprints for a project
+   * GET /api/projects/:id/sprints
+   */
+  getProjectSprints = asyncHandler(async (req, res) => {
+    const { page, limit, status, search } = req.query;
+    const result = await projectService.getProjectSprints(
+      req.params.id,
+      { page, limit, status, search },
+      req.user
+    );
+    return ApiResponse.ok(res, result, 'Project sprints retrieved successfully');
+  });
+
+  /**
    * Update custom dates and goal of an individual sprint
    * PATCH /api/projects/:id/sprints/:sprintId/dates
    */
@@ -187,6 +216,21 @@ class ProjectController {
   removeMember = asyncHandler(async (req, res) => {
     const project = await projectService.removeMember(req.params.id, req.params.memberId, req.user);
     return ApiResponse.ok(res, project, 'Team member removed from project');
+  });
+
+  /**
+   * Update a team member's role in project
+   * PATCH /api/projects/:id/members/:memberId/role
+   */
+  updateMemberRole = asyncHandler(async (req, res) => {
+    const { role } = req.body;
+    const project = await projectService.updateMemberRole(
+      req.params.id,
+      req.params.memberId,
+      role,
+      req.user
+    );
+    return ApiResponse.ok(res, project, 'Project member role updated successfully.');
   });
 
   /**

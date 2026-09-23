@@ -100,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'sessions',
       label: 'Retrospective Sessions',
       icon: LayoutDashboard,
-      badge: activeSessionsCount > 0 ? `${activeSessionsCount} Live` : undefined,
+      badge: isMounted && activeSessionsCount > 0 ? `${activeSessionsCount} Live` : undefined,
     },
     {
       id: 'projects',
