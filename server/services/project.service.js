@@ -832,8 +832,9 @@ class ProjectService {
 
     await project.save();
 
-    // If item originated from a retrospective, remove the corresponding card from the retro session
-    // so it does not reappear in the developer's "Action Items" dashboard
+    // If item originated from a retrospective, preserve the card in the retro session
+    // (historical meeting record remains intact), but mark isSprintRemoved: true
+    // so it does not appear as an active work item in the developer's "Action Items" dashboard.
     if (deletedItem.sourceRetroId || deletedItem.title) {
       try {
         const retroQuery = deletedItem.sourceRetroId
@@ -848,18 +849,23 @@ class ProjectService {
         await RetroBoard.updateMany(
           retroQuery,
           {
-            $pull: {
-              cards: {
+            $set: {
+              'cards.$[elem].isSprintRemoved': true,
+            },
+          },
+          {
+            arrayFilters: [
+              {
                 $or: [
-                  ...(deletedItem.id ? [{ cardId: deletedItem.id }] : []),
-                  { text: deletedItem.title },
+                  ...(deletedItem.id ? [{ 'elem.cardId': deletedItem.id }] : []),
+                  { 'elem.text': deletedItem.title },
                 ],
               },
-            },
+            ],
           }
         );
       } catch (err) {
-        console.warn('[deleteSprintItem] Retro card cleanup warning:', err.message);
+        console.warn('[deleteSprintItem] Retro card preservation update warning:', err.message);
       }
     }
 
@@ -1381,6 +1387,11 @@ class ProjectService {
       );
 
       for (const card of matchingCards) {
+        // Skip cards that were removed from the sprint backlog
+        if (card.isSprintRemoved) {
+          continue;
+        }
+
         // Prevent duplicate if already exported to a sprint backlog
         if (seenCardIds.has(card.cardId) || seenCardIds.has(`${retro._id.toString()}-${card.text}`)) {
           continue;

@@ -94,6 +94,10 @@ const cardSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    isSprintRemoved: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
