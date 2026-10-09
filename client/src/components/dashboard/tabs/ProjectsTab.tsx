@@ -487,9 +487,11 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     setOpeningProjectId(project.id);
                     if (typeof window !== 'undefined') {
                       localStorage.setItem('retroflow_active_project_id', project.id);
+                      localStorage.setItem('retroflow_cached_active_project', JSON.stringify(project));
                       try {
                         sessionStorage.setItem(`retroflow_cached_project_${project.id}`, JSON.stringify(project));
                       } catch {}
+                      window.dispatchEvent(new CustomEvent('retroflow_active_project_changed', { detail: project }));
                     }
                   }}
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-xs hover:scale-[1.01] cursor-pointer disabled:opacity-75 dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
@@ -589,9 +591,11 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
           fetchProjects(1, filterMode);
           if (typeof window !== 'undefined' && newProj) {
             localStorage.setItem('retroflow_active_project_id', newProj.id);
+            localStorage.setItem('retroflow_cached_active_project', JSON.stringify(newProj));
             try {
               sessionStorage.setItem(`retroflow_cached_project_${newProj.id}`, JSON.stringify(newProj));
             } catch {}
+            window.dispatchEvent(new CustomEvent('retroflow_active_project_changed', { detail: newProj }));
           }
           router.push(`/projects/${newProj.id}`);
         }}

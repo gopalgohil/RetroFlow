@@ -465,9 +465,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       setIsSubmitting(false);
       if (typeof window !== 'undefined' && created?.id) {
         localStorage.setItem('retroflow_active_project_id', created.id);
+        localStorage.setItem('retroflow_cached_active_project', JSON.stringify(created));
         try {
           sessionStorage.setItem(`retroflow_cached_project_${created.id}`, JSON.stringify(created));
         } catch {}
+        window.dispatchEvent(new CustomEvent('retroflow_active_project_changed', { detail: created }));
       }
       onProjectCreated(created);
       onClose();

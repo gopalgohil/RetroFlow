@@ -159,6 +159,7 @@ export default function LiveRetroBoardPage({
         sprintName={session.retro.sprintName}
         mode={exportModalMode}
         canExport={session.canExportToSprint}
+        currentUser={session.currentUser}
       />
 
       {/* 6. Real-time Permission Feedback Toast */}

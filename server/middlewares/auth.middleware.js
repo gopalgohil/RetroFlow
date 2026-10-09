@@ -145,4 +145,26 @@ export const requireManagerOrAdmin = asyncHandler(async (req, res, next) => {
   next();
 });
 
+/**
+ * Guard middleware restricting access strictly to Workspace Administrators only.
+ * Non-admins (including project managers, developers, guests) are rejected with 403 Forbidden.
+ */
+export const requireAdmin = asyncHandler(async (req, res, next) => {
+  const user = req.user;
+  if (!user) {
+    throw ApiError.unauthorized('Authentication required to access this resource.');
+  }
+
+  const email = (user.email || '').toLowerCase().trim();
+  const role = (user.role || '').toLowerCase().trim();
+
+  const isAdmin = role === 'admin' || isSuperAdmin(email);
+
+  if (!isAdmin) {
+    throw ApiError.forbidden('Access denied. This resource is reserved strictly for Workspace Administrators.');
+  }
+
+  next();
+});
+
 export default protect;

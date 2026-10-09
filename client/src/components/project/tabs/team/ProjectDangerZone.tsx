@@ -71,12 +71,14 @@ export const ProjectDangerZone: React.FC<ProjectDangerZoneProps> = ({
 
       if (typeof window !== 'undefined') {
         localStorage.removeItem('retroflow_active_project_id');
+        localStorage.removeItem('retroflow_cached_active_project');
         try {
           sessionStorage.removeItem(`retroflow_cached_project_${project.id}`);
           if (project.key) {
             sessionStorage.removeItem(`retroflow_cached_project_${project.key}`);
           }
         } catch {}
+        window.dispatchEvent(new CustomEvent('retroflow_active_project_changed', { detail: null }));
       }
 
       ProjectApiService.clearProjectsCache();

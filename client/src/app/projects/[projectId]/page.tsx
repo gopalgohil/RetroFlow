@@ -249,9 +249,11 @@ function ProjectDetailContent() {
     setAccessDeniedError(null);
     if (typeof window !== 'undefined') {
       localStorage.setItem('retroflow_active_project_id', selectedProj.id);
+      localStorage.setItem('retroflow_cached_active_project', JSON.stringify(selectedProj));
       try {
         sessionStorage.setItem(`retroflow_cached_project_${selectedProj.id}`, JSON.stringify(selectedProj));
       } catch { }
+      window.dispatchEvent(new CustomEvent('retroflow_active_project_changed', { detail: selectedProj }));
     }
     router.push(`/projects/${selectedProj.id}?tab=${activeTab}`);
 
@@ -268,7 +270,9 @@ function ProjectDetailContent() {
           setProject(p);
           try {
             sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
+            localStorage.setItem('retroflow_cached_active_project', JSON.stringify(p));
           } catch { }
+          window.dispatchEvent(new CustomEvent('retroflow_active_project_changed', { detail: p }));
         }
       })
       .catch((err: any) => {
@@ -321,7 +325,10 @@ function ProjectDetailContent() {
           setProjectNotFoundError(false);
           try {
             sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
+            localStorage.setItem('retroflow_cached_active_project', JSON.stringify(p));
+            localStorage.setItem('retroflow_active_project_id', p.id);
           } catch { }
+          window.dispatchEvent(new CustomEvent('retroflow_active_project_changed', { detail: p }));
         } else if (isMounted && !p) {
           setProjectNotFoundError(true);
         }

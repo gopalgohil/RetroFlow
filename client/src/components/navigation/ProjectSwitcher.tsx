@@ -40,6 +40,81 @@ const getProjectManager = (proj: Project | null | undefined) => {
   return null;
 };
 
+const STORAGE_ACTIVE_PROJ_ID = 'retroflow_active_project_id';
+const STORAGE_CACHED_ACTIVE_PROJ = 'retroflow_cached_active_project';
+const STORAGE_CACHED_PROJS_LIST = 'retroflow_cached_projects_list';
+const EVENT_ACTIVE_PROJ_CHANGED = 'retroflow_active_project_changed';
+
+const getInitialActiveProject = (): Project | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    // 1. Direct active project cache
+    const saved = localStorage.getItem(STORAGE_CACHED_ACTIVE_PROJ);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && (parsed.id || parsed.name)) return parsed;
+    }
+
+    // 2. Check active project ID and match session/local cache
+    const storedId = localStorage.getItem(STORAGE_ACTIVE_PROJ_ID);
+    if (storedId) {
+      const byId =
+        sessionStorage.getItem(`retroflow_cached_project_${storedId}`) ||
+        localStorage.getItem(`retroflow_cached_project_${storedId}`);
+      if (byId) {
+        const parsed = JSON.parse(byId);
+        if (parsed && (parsed.id || parsed.name)) return parsed;
+      }
+    }
+
+    // 3. Fallback to first project in cached project list
+    const savedList = localStorage.getItem(STORAGE_CACHED_PROJS_LIST);
+    if (savedList) {
+      const parsedList = JSON.parse(savedList);
+      if (Array.isArray(parsedList) && parsedList.length > 0) {
+        if (storedId) {
+          const match = parsedList.find(
+            (p: Project) => p.id === storedId || p.key?.toLowerCase() === storedId.toLowerCase()
+          );
+          if (match) return match;
+        }
+        return parsedList[0];
+      }
+    }
+  } catch {}
+  return null;
+};
+
+const getInitialProjects = (): Project[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const savedList = localStorage.getItem(STORAGE_CACHED_PROJS_LIST);
+    if (savedList) {
+      const parsedList = JSON.parse(savedList);
+      if (Array.isArray(parsedList) && parsedList.length > 0) return parsedList;
+    }
+  } catch {}
+  return [];
+};
+
+const getInitialActiveProjectId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem(STORAGE_ACTIVE_PROJ_ID) || null;
+  } catch {
+    return null;
+  }
+};
+
+const getInitialUser = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const saved = localStorage.getItem('retroflow_user');
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return null;
+};
+
 export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   currentProjectId,
   currentProject,
@@ -52,30 +127,46 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>(getInitialProjects);
+  const [cachedActiveProject, setCachedActiveProject] = useState<Project | null>(getInitialActiveProject);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     email?: string;
     name?: string;
     role?: string;
     projectRole?: string;
-  } | null>(null);
-  const [activeStoredProjectId, setActiveStoredProjectId] = useState<string | null>(null);
+  } | null>(getInitialUser);
+  const [activeStoredProjectId, setActiveStoredProjectId] = useState<string | null>(getInitialActiveProjectId);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Sync storage & cross-tab events
   useEffect(() => {
-    const syncUser = () => {
+    const syncStorage = () => {
       try {
-        const saved = localStorage.getItem('retroflow_user');
-        if (saved) setCurrentUser(JSON.parse(saved));
-        const storedProj = localStorage.getItem('retroflow_active_project_id');
-        if (storedProj) setActiveStoredProjectId(storedProj);
+        const storedProj = localStorage.getItem(STORAGE_CACHED_ACTIVE_PROJ);
+        if (storedProj) {
+          const parsed = JSON.parse(storedProj);
+          if (parsed?.id) setCachedActiveProject(parsed);
+        }
+        const storedId = localStorage.getItem(STORAGE_ACTIVE_PROJ_ID);
+        if (storedId) setActiveStoredProjectId(storedId);
+
+        const savedUser = localStorage.getItem('retroflow_user');
+        if (savedUser) setCurrentUser(JSON.parse(savedUser));
       } catch {}
     };
-    syncUser();
-    window.addEventListener('focus', syncUser);
-    return () => window.removeEventListener('focus', syncUser);
+
+    syncStorage();
+    window.addEventListener('storage', syncStorage);
+    window.addEventListener(EVENT_ACTIVE_PROJ_CHANGED, syncStorage);
+    window.addEventListener('focus', syncStorage);
+
+    return () => {
+      window.removeEventListener('storage', syncStorage);
+      window.removeEventListener(EVENT_ACTIVE_PROJ_CHANGED, syncStorage);
+      window.removeEventListener('focus', syncStorage);
+    };
   }, [isOpen]);
 
   // Active project resolution
@@ -85,25 +176,101 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     activeStoredProjectId ||
     '';
 
+  const allProjects = React.useMemo(() => {
+    let list = [...projects];
+    if (
+      currentProject &&
+      !list.some(
+        (p) =>
+          p.id === currentProject.id ||
+          p.key?.toLowerCase() === currentProject.key?.toLowerCase()
+      )
+    ) {
+      list = [currentProject, ...list];
+    }
+    if (
+      cachedActiveProject &&
+      !list.some(
+        (p) =>
+          p.id === cachedActiveProject.id ||
+          p.key?.toLowerCase() === cachedActiveProject.key?.toLowerCase()
+      )
+    ) {
+      list = [...list, cachedActiveProject];
+    }
+    return list;
+  }, [projects, currentProject, cachedActiveProject]);
+
+  const activeProject =
+    (currentProject &&
+      (currentProject.id === resolvedProjectId ||
+        currentProject.key?.toLowerCase() === resolvedProjectId.toLowerCase())
+      ? currentProject
+      : null) ||
+    allProjects.find(
+      (p) =>
+        p.id === resolvedProjectId || p.key?.toLowerCase() === resolvedProjectId.toLowerCase()
+    ) ||
+    currentProject ||
+    (cachedActiveProject &&
+      (!resolvedProjectId ||
+        cachedActiveProject.id === resolvedProjectId ||
+        cachedActiveProject.key?.toLowerCase() === resolvedProjectId.toLowerCase())
+      ? cachedActiveProject
+      : null) ||
+    allProjects[0] ||
+    cachedActiveProject ||
+    null;
+
+  // Background sync with live REST API
   useEffect(() => {
     let isMounted = true;
-    // Live REST API request -> visible in browser Network tab!
     ProjectApiService.getProjects(true)
       .then((list) => {
-        if (isMounted) {
-          setProjects(Array.isArray(list) ? list : []);
+        if (isMounted && Array.isArray(list)) {
+          setProjects(list);
+          try {
+            localStorage.setItem(STORAGE_CACHED_PROJS_LIST, JSON.stringify(list));
+          } catch {}
+
+          const targetId = resolvedProjectId || activeStoredProjectId || '';
+          const matched =
+            (targetId ? list.find((p) => p.id === targetId || p.key?.toLowerCase() === targetId.toLowerCase()) : null) ||
+            (activeProject?.id ? list.find((p) => p.id === activeProject.id) : null) ||
+            list[0] ||
+            null;
+
+          if (matched) {
+            setCachedActiveProject(matched);
+            try {
+              localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, JSON.stringify(matched));
+              if (!targetId && matched.id) {
+                localStorage.setItem(STORAGE_ACTIVE_PROJ_ID, matched.id);
+                setActiveStoredProjectId(matched.id);
+              }
+            } catch {}
+          }
         }
       })
-      .catch(() => {
-        if (isMounted) {
-          setProjects([]);
-        }
-      });
+      .catch(() => {});
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [resolvedProjectId]);
+
+  // Cache whenever activeProject updates
+  useEffect(() => {
+    if (activeProject && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, JSON.stringify(activeProject));
+        if (activeProject.id) {
+          localStorage.setItem(STORAGE_ACTIVE_PROJ_ID, activeProject.id);
+          sessionStorage.setItem(`retroflow_cached_project_${activeProject.id}`, JSON.stringify(activeProject));
+        }
+      } catch {}
+    }
+  }, [activeProject]);
 
   // Click outside listener
   useEffect(() => {
@@ -117,27 +284,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
-
-  const allProjects = React.useMemo(() => {
-    if (currentProject && !projects.some((p) => p.id === currentProject.id || p.key.toLowerCase() === currentProject.key.toLowerCase())) {
-      return [currentProject, ...projects];
-    }
-    return projects;
-  }, [projects, currentProject]);
-
-  const activeProject =
-    (currentProject &&
-      (currentProject.id === resolvedProjectId ||
-        currentProject.key.toLowerCase() === resolvedProjectId.toLowerCase())
-      ? currentProject
-      : null) ||
-    allProjects.find(
-      (p) =>
-        p.id === resolvedProjectId || p.key.toLowerCase() === resolvedProjectId.toLowerCase()
-    ) ||
-    currentProject ||
-    allProjects[0] ||
-    null;
 
   const filteredProjects = allProjects.filter(
     (p) =>
@@ -161,11 +307,16 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
   const handleSelect = (project: Project) => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('retroflow_active_project_id', project.id);
+      localStorage.setItem(STORAGE_ACTIVE_PROJ_ID, project.id);
+      localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, JSON.stringify(project));
       try {
         sessionStorage.setItem(`retroflow_cached_project_${project.id}`, JSON.stringify(project));
       } catch {}
+      window.dispatchEvent(new CustomEvent(EVENT_ACTIVE_PROJ_CHANGED, { detail: project }));
     }
+    setActiveStoredProjectId(project.id);
+    setCachedActiveProject(project);
+
     if (onSelectProject) {
       onSelectProject(project);
     } else {
@@ -175,16 +326,32 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   };
 
   const handleProjectCreated = (newProj: Project) => {
-    try {
-      sessionStorage.setItem(`retroflow_cached_project_${newProj.id}`, JSON.stringify(newProj));
-    } catch {}
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(`retroflow_cached_project_${newProj.id}`, JSON.stringify(newProj));
+        localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, JSON.stringify(newProj));
+        localStorage.setItem(STORAGE_ACTIVE_PROJ_ID, newProj.id);
+      } catch {}
+      window.dispatchEvent(new CustomEvent(EVENT_ACTIVE_PROJ_CHANGED, { detail: newProj }));
+    }
+    setActiveStoredProjectId(newProj.id);
+    setCachedActiveProject(newProj);
     setProjects((prev) => {
       const exists = prev.some((p) => p.id === newProj.id);
-      return exists ? prev.map((p) => (p.id === newProj.id ? newProj : p)) : [...prev, newProj];
+      const next = exists ? prev.map((p) => (p.id === newProj.id ? newProj : p)) : [...prev, newProj];
+      try {
+        localStorage.setItem(STORAGE_CACHED_PROJS_LIST, JSON.stringify(next));
+      } catch {}
+      return next;
     });
     ProjectApiService.getProjects()
       .then((list) => {
-        if (list && list.length > 0) setProjects(list);
+        if (list && list.length > 0) {
+          setProjects(list);
+          try {
+            localStorage.setItem(STORAGE_CACHED_PROJS_LIST, JSON.stringify(list));
+          } catch {}
+        }
       })
       .catch(() => {});
     handleSelect(newProj);
@@ -196,6 +363,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
         {/* Switcher Trigger Button */}
         <button
           type="button"
+          suppressHydrationWarning
           onClick={() => setIsOpen((prev) => !prev)}
           className={`group flex items-center gap-2.5 px-3 py-1.5 rounded-xl border transition-all text-left cursor-pointer ${
             isOpen
@@ -205,31 +373,33 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
           title={activeProject ? `Active Project: ${activeProject.name}` : 'Select agile project'}
         >
           {/* Project Avatar or Neutral Agile Icon */}
-          {activeProject ? (
-            <UserAvatar
-              name={activeProject.name}
-              avatar={activeProject.key.slice(0, 3)}
-              size="sm"
-            />
-          ) : (
-            <div className="w-7 h-7 rounded-lg bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shrink-0">
-              <FolderKanban className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
-            </div>
-          )}
+          <div suppressHydrationWarning className="shrink-0">
+            {activeProject ? (
+              <UserAvatar
+                name={activeProject.name}
+                avatar={activeProject.key?.slice(0, 3)}
+                size="sm"
+              />
+            ) : (
+              <div className="w-7 h-7 rounded-lg bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shrink-0">
+                <FolderKanban className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
+              </div>
+            )}
+          </div>
 
           <div className="flex flex-col min-w-0 max-w-[160px] sm:max-w-[220px]">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+              <span suppressHydrationWarning className="text-xs font-bold text-slate-900 dark:text-white truncate">
                 {activeProject ? activeProject.name : 'Select Project'}
               </span>
               {activeProject && (
-                <span className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-slate-100 dark:bg-[#181b24] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]">
+                <span suppressHydrationWarning className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-slate-100 dark:bg-[#181b24] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]">
                   {activeProject.key}
                 </span>
               )}
             </div>
             {activeProject && activeManager && (
-              <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
+              <div suppressHydrationWarning className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
                 <span className="text-[#3d8318] dark:text-[#88c958] font-bold">{activeManager.role}:</span>
                 <span className="truncate text-slate-700 dark:text-slate-300 font-medium">{activeManager.name}</span>
               </div>
