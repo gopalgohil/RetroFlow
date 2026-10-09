@@ -118,11 +118,20 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const getLocalDateTimeString = (d = new Date()) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title);
       setDescription(initialData.description || '');
-      setScheduledDate(initialData.scheduledDate ? new Date(initialData.scheduledDate).toISOString().slice(0, 16) : '');
+      setScheduledDate(initialData.scheduledDate ? getLocalDateTimeString(new Date(initialData.scheduledDate)) : getLocalDateTimeString());
       setRevealMode(initialData.revealMode || false);
       setVotingLimit(initialData.votingLimit || 1);
       setApprovalRequired(initialData.approvalRequired || false);
@@ -134,8 +143,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       const sprintTag = projectContext.sprintName || 'Sprint 14';
       setTitle(`${projectContext.name} - ${sprintTag} Retrospective`);
       setDescription(`Agile feedback & sprint retrospective for ${projectContext.name} (${projectContext.key}).`);
-      const today = new Date();
-      setScheduledDate(today.toISOString().slice(0, 16));
+      setScheduledDate(getLocalDateTimeString());
       setRevealMode(false);
       setVotingLimit(1);
       setApprovalRequired(true); // Project privacy: restrict access to project members
@@ -169,13 +177,10 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
         },
       ]);
     } else {
-      // Default initial state
+      // Default initial state for new retrospective
       setTitle(`Sprint 42 Retrospective`);
       setDescription('Continuous alignment session for Engineering & Product team');
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(14, 0, 0, 0);
-      setScheduledDate(tomorrow.toISOString().slice(0, 16));
+      setScheduledDate(getLocalDateTimeString());
       setRevealMode(false);
       setVotingLimit(1);
       setApprovalRequired(false);
