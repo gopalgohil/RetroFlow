@@ -3,6 +3,7 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import projectService from '../services/project.service.js';
 import Project from '../models/Project.js';
 import { isSuperAdmin } from '../config/admin.config.js';
+import { isManagerUser } from '../utils/role.js';
 
 class ProjectController {
   /**
@@ -78,23 +79,12 @@ class ProjectController {
     }
 
     const userEmail = user.email?.toLowerCase().trim();
-    const userRole = (user.role || '').toLowerCase();
-    const isAdmin =
-      userRole === 'admin' ||
-      isSuperAdmin(userEmail);
-
-    const userProjectRole = (user.projectRole || '').toLowerCase();
-    const isManager =
-      userProjectRole === 'manager' ||
-      userRole === 'manager' ||
-      userRole.includes('manager');
-
-    let canCreate = isAdmin || isManager;
+    let canCreate = isManagerUser(user);
 
     if (!canCreate && userEmail) {
       // Check if user is assigned Manager in any existing project in the workspace
       const isExistingManager = await Project.findOne({
-        members: { $elemMatch: { email: userEmail, role: 'Manager' } },
+        members: { $elemMatch: { email: userEmail, role: { $regex: /^manager$/i } } },
       });
 
       if (isExistingManager) {

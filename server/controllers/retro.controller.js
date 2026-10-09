@@ -1,7 +1,7 @@
 import { asyncHandler } from '../middlewares/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import retroService from '../services/retro.service.js';
-import { isSuperAdmin } from '../config/admin.config.js';
+import { isLeadOrManagerUser } from '../utils/role.js';
 
 class RetroController {
   /**
@@ -9,22 +9,7 @@ class RetroController {
    * POST /api/retros
    */
   createRetro = asyncHandler(async (req, res) => {
-    const user = req.user;
-    const userRole = (user?.role || '').toLowerCase();
-    const userEmail = user?.email?.toLowerCase().trim();
-    const isAdmin =
-      userRole === 'admin' ||
-      isSuperAdmin(userEmail);
-    const isManager =
-      user?.projectRole === 'Manager' ||
-      userRole === 'manager' ||
-      userRole.includes('manager');
-    const isLead =
-      user?.projectRole === 'Project Lead' ||
-      userRole === 'project lead' ||
-      userRole.includes('lead');
-
-    if (!isAdmin && !isManager && !isLead) {
+    if (!isLeadOrManagerUser(req.user)) {
       return res.status(403).json({
         success: false,
         message: 'Permission denied: Developers, QA, and DevOps cannot create retrospective sessions.',
@@ -77,22 +62,7 @@ class RetroController {
    * POST /api/retros/:id/invite
    */
   inviteTeammate = asyncHandler(async (req, res) => {
-    const user = req.user;
-    const userRole = (user?.role || '').toLowerCase();
-    const userEmail = user?.email?.toLowerCase().trim();
-    const isAdmin =
-      userRole === 'admin' ||
-      isSuperAdmin(userEmail);
-    const isManager =
-      user?.projectRole === 'Manager' ||
-      userRole === 'manager' ||
-      userRole.includes('manager');
-    const isLead =
-      user?.projectRole === 'Project Lead' ||
-      userRole === 'project lead' ||
-      userRole.includes('lead');
-
-    if (!isAdmin && !isManager && !isLead) {
+    if (!isLeadOrManagerUser(req.user)) {
       return res.status(403).json({
         success: false,
         message: 'Permission denied: Developers, QA, and DevOps cannot share or invite users to retrospectives.',
