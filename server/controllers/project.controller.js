@@ -343,8 +343,17 @@ class ProjectController {
    * GET /api/projects/my/action-items
    */
   getMyActionItems = asyncHandler(async (req, res) => {
-    const items = await projectService.getMyActionItems(req.user, req.query);
-    return ApiResponse.ok(res, items, 'Assigned action items retrieved successfully');
+    const result = await projectService.getMyActionItems(req.user, req.query);
+    if (result && result.pagination) {
+      return res.status(200).json({
+        success: true,
+        statusCode: 200,
+        message: 'Assigned action items retrieved successfully',
+        data: result.items,
+        pagination: result.pagination,
+      });
+    }
+    return ApiResponse.ok(res, result, 'Assigned action items retrieved successfully');
   });
 
   /**

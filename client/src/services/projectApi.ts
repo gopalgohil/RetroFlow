@@ -520,7 +520,15 @@ export class ProjectApiService {
    * GET /api/projects/my/action-items
    */
   static async getMyActionItems(
-    options: { all?: boolean; projectId?: string; status?: string; priority?: string; search?: string } | boolean = false
+    options: {
+      all?: boolean;
+      projectId?: string;
+      status?: string;
+      priority?: string;
+      search?: string;
+      page?: number;
+      limit?: number;
+    } | boolean = false
   ): Promise<EnrichedActionItem[]> {
     const params: Record<string, string> = {};
     if (typeof options === 'boolean') {
@@ -531,6 +539,8 @@ export class ProjectApiService {
       if (options.status) params.status = options.status;
       if (options.priority) params.priority = options.priority;
       if (options.search) params.search = options.search;
+      if (options.page) params.page = String(options.page);
+      if (options.limit) params.limit = String(options.limit);
     }
 
     const res = await api.get<ApiResponseWrapper<EnrichedActionItem[]>>(

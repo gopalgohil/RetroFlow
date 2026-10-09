@@ -1562,6 +1562,28 @@ class ProjectService {
       (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
     );
 
+    // Optional server-side pagination
+    if (options.page || options.limit) {
+      const totalItems = filtered.length;
+      const pageNum = Math.max(1, parseInt(options.page, 10) || 1);
+      const limitNum = Math.max(1, parseInt(options.limit, 10) || 10);
+      const totalPages = Math.ceil(totalItems / limitNum) || 1;
+      const startIndex = (pageNum - 1) * limitNum;
+      const paginatedSlice = filtered.slice(startIndex, startIndex + limitNum);
+
+      return {
+        items: paginatedSlice,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          totalItems,
+          totalPages,
+          hasNextPage: pageNum < totalPages,
+          hasPrevPage: pageNum > 1,
+        },
+      };
+    }
+
     return filtered;
   }
 
