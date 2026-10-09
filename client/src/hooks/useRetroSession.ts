@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { api, ENDPOINTS } from '@/lib/api';
 import { getRetroSocket, updateRetroSocketAuth } from '@/lib/socket';
 import { RetroBoard, StickyCard } from '@/types/retro';
@@ -64,6 +64,12 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
   const [verifiedGuestEmail, setVerifiedGuestEmail] = useState<string | null>(null);
   const [isMagicInvite, setIsMagicInvite] = useState<boolean>(false);
+
+  // Synchronous stable references to avoid callback invalidation cycles
+  const cardsRef = useRef<StickyCard[]>([]);
+  cardsRef.current = cards;
+  const currentUserRef = useRef(currentUser);
+  currentUserRef.current = currentUser;
 
   // 1. Initial Load: Participant Identity & Board Fetching
   useEffect(() => {
@@ -929,18 +935,20 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     async (cardId: string) => {
       if (!shareToken) return;
 
-      const targetCard = cards.find((c) => c.id === cardId);
+      const currentCards = cardsRef.current;
+      const targetCard = currentCards.find((c) => c.id === cardId);
       if (!targetCard) return;
 
-      const voterIdentifier = currentAuthorName;
+      const user = currentUserRef.current;
+      const voterIdentifier = user?.name || participantName || 'Developer';
       const isCurrentlyVoted =
         Boolean(targetCard.hasVoted) ||
         (Array.isArray(targetCard.voters) &&
           targetCard.voters.some((v) => {
             const vLower = (v || '').toLowerCase().trim();
             return (
-              (currentUser?.email && vLower === currentUser.email.toLowerCase().trim()) ||
-              (currentUser?.email && vLower.includes(currentUser.email.toLowerCase().trim())) ||
+              (user?.email && vLower === user.email.toLowerCase().trim()) ||
+              (user?.email && vLower.includes(user.email.toLowerCase().trim())) ||
               (voterIdentifier && vLower === voterIdentifier.toLowerCase().trim())
             );
           }));
@@ -952,7 +960,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         prev.map((c) => {
           if (c.id === cardId) {
             let updatedVoters = Array.isArray(c.voters) ? [...c.voters] : [];
-            const voterToken = currentUser?.email || voterIdentifier;
+            const voterToken = user?.email || voterIdentifier;
             if (willBeVoted) {
               if (!updatedVoters.some((v) => (v || '').toLowerCase().trim() === voterToken.toLowerCase().trim())) {
                 updatedVoters.push(voterToken);
@@ -961,7 +969,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
               updatedVoters = updatedVoters.filter((v) => {
                 const vLower = (v || '').toLowerCase().trim();
                 return (
-                  (!currentUser?.email || (vLower !== currentUser.email.toLowerCase().trim() && !vLower.includes(currentUser.email.toLowerCase().trim()))) &&
+                  (!user?.email || (vLower !== user.email.toLowerCase().trim() && !vLower.includes(user.email.toLowerCase().trim()))) &&
                   (!voterIdentifier || vLower !== voterIdentifier.toLowerCase().trim())
                 );
               });
@@ -994,7 +1002,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
             shareToken,
             cardId,
             voter: voterIdentifier,
-            voterEmail: currentUser?.email || '',
+            voterEmail: user?.email || '',
             token,
           },
           (res: any) => {
@@ -1021,7 +1029,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         try {
           await api.post(`${ENDPOINTS.RETROS}/${shareToken}/cards/${cardId}/vote`, {
             voter: voterIdentifier,
-            voterEmail: currentUser?.email || '',
+            voterEmail: user?.email || '',
           });
         } catch (err) {
           console.error('[RetroSession] Failed to toggle vote on card:', err);
@@ -1042,7 +1050,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
         }
       }
     },
-    [cards, remainingVotes, shareToken, currentUser?.email, currentAuthorName]
+    [shareToken, participantName]
   );
 
 
