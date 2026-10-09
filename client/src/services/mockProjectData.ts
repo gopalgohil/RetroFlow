@@ -239,6 +239,31 @@ export class ProjectDataService {
     return project;
   }
 
+  public static deleteSprint(
+    projectId: string,
+    sprintId: string
+  ): Project | null {
+    const projects = this.getStoredProjects();
+    const projIndex = projects.findIndex((p) => p.id === projectId);
+    if (projIndex === -1) return null;
+
+    const project = projects[projIndex];
+    project.sprints = (project.sprints || []).filter((s) => s.id !== sprintId);
+
+    // If active sprint was deleted, promote next upcoming sprint to active
+    if (!project.sprints.some((s) => s.status === 'active')) {
+      const nextUpcoming = project.sprints.find((s) => s.status === 'upcoming');
+      if (nextUpcoming) {
+        nextUpcoming.status = 'active';
+      }
+    }
+
+    project.updatedAt = new Date().toISOString().split('T')[0];
+    projects[projIndex] = project;
+    this.saveProjects(projects);
+    return project;
+  }
+
   public static updateSprintDates(
     projectId: string,
     sprintId: string,

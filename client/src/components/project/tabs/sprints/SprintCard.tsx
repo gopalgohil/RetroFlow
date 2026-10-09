@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Calendar, Clock, Play, Check, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
+import { Calendar, Clock, Play, Check, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 import { Sprint } from '@/types/project';
 import { StatusPill, ProgressBar } from '@/components/ui';
 import { formatDateDMY } from '@/lib/dateUtils';
@@ -12,12 +12,14 @@ export interface SprintCardProps {
   sprint: Sprint;
   isExpanded: boolean;
   canManageProject: boolean;
+  canDeleteSprint?: boolean;
   updatingItemId: string | null;
   deletingItemId?: string | null;
   onToggleExpand: (sprintId: string) => void;
   onStartSprint: (sprint: Sprint) => void;
   onCompleteSprint: (sprint: Sprint) => void;
   onEditDates: (sprint: Sprint) => void;
+  onDeleteSprint?: (sprint: Sprint) => void;
   onUpdateItemStatus: (
     sprintId: string,
     itemId: string,
@@ -36,12 +38,14 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   sprint,
   isExpanded,
   canManageProject,
+  canDeleteSprint = false,
   updatingItemId,
   deletingItemId = null,
   onToggleExpand,
   onStartSprint,
   onCompleteSprint,
   onEditDates,
+  onDeleteSprint,
   onUpdateItemStatus,
   onDeleteItem,
 }) => {
@@ -58,7 +62,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
 
   return (
     <div
-      className={`rounded-2xl border transition-all duration-200 overflow-hidden shadow-xs bg-white dark:bg-[#0e1015] ${
+      className={`group relative rounded-2xl border transition-all duration-200 overflow-hidden shadow-xs bg-white dark:bg-[#0e1015] ${
         sprint.status === 'active'
           ? 'border-[#88c958] dark:border-[#88c958]/60 ring-2 ring-[#88c958]/10'
           : 'border-slate-200/90 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.15]'
@@ -170,6 +174,20 @@ export const SprintCard: React.FC<SprintCardProps> = ({
               >
                 <Play className="w-3 h-3 fill-current" />
                 <span>Reopen</span>
+              </button>
+            )}
+
+            {canDeleteSprint && onDeleteSprint && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteSprint(sprint);
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 border border-transparent hover:border-rose-200 dark:hover:border-rose-500/20 cursor-pointer"
+                title="Delete Sprint (Admin / Manager only)"
+              >
+                <Trash2 className="w-4 h-4" />
               </button>
             )}
 

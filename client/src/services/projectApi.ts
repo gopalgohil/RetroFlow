@@ -278,6 +278,17 @@ export class ProjectApiService {
   }
 
   /**
+   * Delete an entire sprint (Admin / Manager only)
+   * DELETE /api/projects/:id/sprints/:sprintId
+   */
+  static async deleteSprint(projectId: string, sprintId: string): Promise<Project> {
+    const res = await api.delete<ApiResponseWrapper<Project>>(
+      `${ENDPOINTS.PROJECTS}/${projectId}/sprints/${sprintId}`
+    );
+    return res.data;
+  }
+
+  /**
    * Fetch paginated sprint backlog items & action items
    * GET /api/projects/:id/sprints/:sprintId/items?page=X&limit=Y
    */

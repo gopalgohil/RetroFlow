@@ -891,6 +891,56 @@ class ProjectService {
   }
 
   /**
+   * Delete an entire sprint from the project
+   * Restricted strictly to Admins and Managers
+   */
+  async deleteSprint(idOrKey, sprintId, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+
+    const isAdmin =
+      currentUser?.role?.toLowerCase() === 'admin' ||
+      isSuperAdmin(currentUser?.email?.toLowerCase());
+
+    const email = currentUser?.email?.toLowerCase()?.trim();
+    const isManager =
+      isAdmin ||
+      currentUser?.role?.toLowerCase() === 'manager' ||
+      currentUser?.projectRole === 'Manager' ||
+      (email &&
+        Array.isArray(project.members) &&
+        project.members.some(
+          (m) =>
+            m.email?.toLowerCase()?.trim() === email &&
+            m.role?.toLowerCase()?.includes('manager')
+        ));
+
+    if (!isAdmin && !isManager) {
+      const error = new Error('Access Denied: Only Workspace Admins and Managers can delete Sprints.');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const sprintIndex = project.sprints.findIndex((s) => s.id === sprintId);
+    if (sprintIndex === -1) {
+      throw new Error(`Sprint with ID ${sprintId} not found in this project`);
+    }
+
+    const [deletedSprint] = project.sprints.splice(sprintIndex, 1);
+
+    // If deleted sprint was active, set next available upcoming sprint to active
+    if (deletedSprint.status === 'active') {
+      const nextSprint = project.sprints.find((s) => s.status === 'upcoming');
+      if (nextSprint) {
+        nextSprint.status = 'active';
+      }
+    }
+
+    await project.save();
+    return project;
+  }
+
+  /**
    * Get paginated backlog items & action items for an individual sprint
    * Industry-standard pagination metadata (page, limit=10, totalItems, totalPages, hasNextPage, hasPrevPage)
    */

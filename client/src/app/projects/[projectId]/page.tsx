@@ -555,6 +555,10 @@ function ProjectDetailContent() {
   // Workspace Admin and Manager ONLY; Project Lead STRICTLY CANNOT delete project
   const canDeleteProject = Boolean(isWorkspaceAdmin || isManager);
 
+  // 2.1 Sprint deletion
+  // Workspace Admin and Manager ONLY
+  const canDeleteSprint = Boolean(isWorkspaceAdmin || isManager);
+
   // 3. Retro creation
   // Admin, Manager, and Project Lead CAN create retro; Developer, QA, DevOps CANNOT
   const canCreateRetro = Boolean((isWorkspaceAdmin || isManager || isProjectLead) && !isDevOrQAOrDevOps);
@@ -944,6 +948,7 @@ function ProjectDetailContent() {
                       project={project}
                       onProjectUpdated={(up) => setProject({ ...up })}
                       canManageProject={canManageProject}
+                      canDeleteSprint={canDeleteSprint}
                     />
                   )}
 

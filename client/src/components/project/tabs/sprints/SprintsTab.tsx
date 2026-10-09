@@ -20,6 +20,7 @@ export interface SprintsTabProps {
   project: Project;
   onProjectUpdated: (updated: Project) => void;
   canManageProject?: boolean;
+  canDeleteSprint?: boolean;
 }
 
 /**
@@ -31,6 +32,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   project,
   onProjectUpdated,
   canManageProject = true,
+  canDeleteSprint = false,
 }) => {
   const [filter, setFilter] = useState<SprintFilterTab>('all');
   const [isFilterLoading, setIsFilterLoading] = useState(false);
@@ -46,6 +48,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [editingDatesSprint, setEditingDatesSprint] = useState<Sprint | null>(null);
+  const [sprintToDelete, setSprintToDelete] = useState<Sprint | null>(null);
 
   // Reusable confirmation dialog state for sprint start/complete
   const [confirmSprint, setConfirmSprint] = useState<{
@@ -366,6 +369,22 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     setConfirmSprint(null);
   };
 
+  const handleDeleteSprint = async (sprint: Sprint) => {
+    const updatedSprints = (project.sprints || []).filter((s) => s.id !== sprint.id);
+    const optimisticProject = { ...project, sprints: updatedSprints };
+    onProjectUpdated(optimisticProject);
+    setSprintToDelete(null);
+
+    try {
+      const updated = await ProjectApiService.deleteSprint(project.id, sprint.id);
+      if (updated) onProjectUpdated(updated);
+    } catch (err) {
+      console.warn('[SprintsTab] API delete sprint fallback to mock:', err);
+      const fallback = ProjectDataService.deleteSprint(project.id, sprint.id);
+      if (fallback) onProjectUpdated(fallback);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* 1. Top Filter Bar */}
@@ -410,12 +429,14 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               sprint={sprint}
               isExpanded={expandedSprintIds.includes(sprint.id)}
               canManageProject={canManageProject}
+              canDeleteSprint={canDeleteSprint}
               updatingItemId={updatingItemId}
               deletingItemId={deletingItemId}
               onToggleExpand={toggleExpand}
               onStartSprint={(sp) => setConfirmSprint({ sprint: sp, action: 'start' })}
               onCompleteSprint={(sp) => setConfirmSprint({ sprint: sp, action: 'complete' })}
               onEditDates={(sp) => setEditingDatesSprint(sp)}
+              onDeleteSprint={(sp) => setSprintToDelete(sp)}
               onUpdateItemStatus={handleUpdateItemStatus}
               onDeleteItem={(sprintId, itemId) => {
                 const sp = project.sprints.find((s) => s.id === sprintId);
@@ -466,7 +487,25 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         />
       )}
 
-      {/* 5. Backlog Item Deletion Confirmation Dialog */}
+      {/* 5. Sprint Deletion Confirmation Dialog (Admin & Manager Only) */}
+      {sprintToDelete && (
+        <ConfirmDialog
+          isOpen={Boolean(sprintToDelete)}
+          onClose={() => setSprintToDelete(null)}
+          onConfirm={() => {
+            if (sprintToDelete) {
+              handleDeleteSprint(sprintToDelete);
+            }
+          }}
+          title={`Delete ${sprintToDelete.name}?`}
+          message={`Are you sure you want to permanently delete "${sprintToDelete.name}"? This action cannot be undone.`}
+          confirmLabel="Delete Sprint"
+          cancelLabel="Cancel"
+          variant="danger"
+        />
+      )}
+
+      {/* 6. Backlog Item Deletion Confirmation Dialog */}
       {itemToDelete && (
         <ConfirmDialog
           isOpen={Boolean(itemToDelete)}
@@ -485,7 +524,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         />
       )}
 
-      {/* 5. Custom Sprint Dates & Cycle Modal */}
+      {/* 7. Custom Sprint Dates & Cycle Modal */}
       <EditSprintDatesModal
         isOpen={Boolean(editingDatesSprint)}
         onClose={() => setEditingDatesSprint(null)}

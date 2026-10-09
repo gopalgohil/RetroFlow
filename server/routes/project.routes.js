@@ -108,6 +108,16 @@ router.delete(
 );
 
 /**
+ * @route   DELETE /api/projects/:id/sprints/:sprintId
+ * @desc    Delete an entire sprint (Strictly Admin and Manager)
+ */
+router.delete(
+  '/:id/sprints/:sprintId',
+  optionalAuth,
+  projectController.deleteSprint
+);
+
+/**
  * @route   GET /api/projects/:id/sprints/:sprintId/items
  * @desc    Get paginated sprint backlog & action items (10 per page default)
  */
