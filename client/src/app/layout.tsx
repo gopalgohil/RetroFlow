@@ -13,15 +13,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RetroFlow | Full-Stack App",
-  description: "Next.js frontend with Node.js Express & MongoDB Atlas backend",
+  title: "Digiflux | Agile Retrospectives & Sprint Management",
+  description: "Collaborative Agile Retrospectives & Sprint Delivery Platform",
   icons: {
     icon: [
-      { url: '/favicon.ico' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico?v=digiflux', sizes: 'any' },
+      { url: '/icon.svg?v=digiflux', type: 'image/svg+xml' },
     ],
-    shortcut: '/favicon.ico',
-    apple: '/apple-icon.png',
+    shortcut: '/favicon.ico?v=digiflux',
+    apple: '/apple-icon.png?v=digiflux',
   },
   manifest: '/manifest.json',
 };
@@ -38,9 +38,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <link rel="icon" href="/favicon.ico?v=digiflux" sizes="any" />
+        <link rel="icon" href="/icon.svg?v=digiflux" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-icon.png?v=digiflux" />
+        <link rel="shortcut icon" href="/favicon.ico?v=digiflux" />
         <meta name="theme-color" content="#5cb028" />
         <script
           dangerouslySetInnerHTML={{
