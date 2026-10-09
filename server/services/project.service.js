@@ -740,9 +740,10 @@ class ProjectService {
   /**
    * Start an upcoming sprint (marks current active as completed)
    */
-  async startSprint(idOrKey, sprintId) {
-    const project = await this.getProjectByIdOrKey(idOrKey);
+  async startSprint(idOrKey, sprintId, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
 
     let found = false;
     project.sprints = project.sprints.map((s) => {
@@ -766,9 +767,10 @@ class ProjectService {
   /**
    * Complete an active sprint
    */
-  async completeSprint(idOrKey, sprintId) {
-    const project = await this.getProjectByIdOrKey(idOrKey);
+  async completeSprint(idOrKey, sprintId, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
 
     let found = false;
     project.sprints = project.sprints.map((s) => {

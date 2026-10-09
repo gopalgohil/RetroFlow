@@ -118,7 +118,7 @@ class ProjectController {
    * POST /api/projects/:id/sprints/:sprintId/start
    */
   startSprint = asyncHandler(async (req, res) => {
-    const project = await projectService.startSprint(req.params.id, req.params.sprintId);
+    const project = await projectService.startSprint(req.params.id, req.params.sprintId, req.user);
     return ApiResponse.ok(res, project, 'Sprint started successfully');
   });
 
@@ -127,7 +127,7 @@ class ProjectController {
    * POST /api/projects/:id/sprints/:sprintId/complete
    */
   completeSprint = asyncHandler(async (req, res) => {
-    const project = await projectService.completeSprint(req.params.id, req.params.sprintId);
+    const project = await projectService.completeSprint(req.params.id, req.params.sprintId, req.user);
     return ApiResponse.ok(res, project, 'Sprint completed successfully');
   });
 
