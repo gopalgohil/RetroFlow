@@ -9,7 +9,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(5000),
   CLIENT_URL: z.string().default('http://localhost:3000'),
   MONGODB_URI: z.string().min(1, 'MONGODB_URI must be defined in environment variables'),
-  JWT_SECRET: z.string().default('retroflow_super_secret_jwt_key_development_2026'),
+  JWT_SECRET: z.string().min(16, 'JWT_SECRET must be defined in environment variables (minimum 16 characters)'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   BREVO_API_KEY: z.string().optional(),
   BREVO_SENDER_EMAIL: z.string().email().optional().default('gopalgohel249@gmail.com'),
