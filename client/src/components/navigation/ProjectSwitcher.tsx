@@ -40,6 +40,19 @@ const getProjectManager = (proj: Project | null | undefined) => {
   return null;
 };
 
+const isUserMemberOfProject = (
+  proj: Project | null | undefined,
+  targetUser: { email?: string; role?: string } | null | undefined
+): boolean => {
+  if (!proj || !targetUser) return false;
+  const userRole = (targetUser.role || '').toLowerCase();
+  const userEmail = (targetUser.email || '').toLowerCase().trim();
+  if (userRole === 'admin') return true;
+  if (!userEmail) return false;
+  if (proj.lead?.email?.toLowerCase().trim() === userEmail) return true;
+  return (proj.members || []).some((m) => m.email?.toLowerCase().trim() === userEmail);
+};
+
 const STORAGE_ACTIVE_PROJ_ID = 'retroflow_active_project_id';
 const STORAGE_CACHED_ACTIVE_PROJ = 'retroflow_cached_active_project';
 const STORAGE_CACHED_PROJS_LIST = 'retroflow_cached_projects_list';
@@ -48,11 +61,16 @@ const EVENT_ACTIVE_PROJ_CHANGED = 'retroflow_active_project_changed';
 const getInitialActiveProject = (): Project | null => {
   if (typeof window === 'undefined') return null;
   try {
+    const userRaw = localStorage.getItem('retroflow_user');
+    const user = userRaw ? JSON.parse(userRaw) : null;
+
     // 1. Direct active project cache
     const saved = localStorage.getItem(STORAGE_CACHED_ACTIVE_PROJ);
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (parsed && (parsed.id || parsed.name)) return parsed;
+      if (parsed && (parsed.id || parsed.name) && isUserMemberOfProject(parsed, user)) {
+        return parsed;
+      }
     }
 
     // 2. Check active project ID and match session/local cache
@@ -63,7 +81,9 @@ const getInitialActiveProject = (): Project | null => {
         localStorage.getItem(`retroflow_cached_project_${storedId}`);
       if (byId) {
         const parsed = JSON.parse(byId);
-        if (parsed && (parsed.id || parsed.name)) return parsed;
+        if (parsed && (parsed.id || parsed.name) && isUserMemberOfProject(parsed, user)) {
+          return parsed;
+        }
       }
     }
 
@@ -72,13 +92,18 @@ const getInitialActiveProject = (): Project | null => {
     if (savedList) {
       const parsedList = JSON.parse(savedList);
       if (Array.isArray(parsedList) && parsedList.length > 0) {
-        if (storedId) {
-          const match = parsedList.find(
-            (p: Project) => p.id === storedId || p.key?.toLowerCase() === storedId.toLowerCase()
-          );
-          if (match) return match;
+        const accessible = (!user || user.role === 'admin')
+          ? parsedList
+          : parsedList.filter((p: Project) => isUserMemberOfProject(p, user));
+        if (accessible.length > 0) {
+          if (storedId) {
+            const match = accessible.find(
+              (p: Project) => p.id === storedId || p.key?.toLowerCase() === storedId.toLowerCase()
+            );
+            if (match) return match;
+          }
+          return accessible[0];
         }
-        return parsedList[0];
       }
     }
   } catch {}
@@ -88,10 +113,15 @@ const getInitialActiveProject = (): Project | null => {
 const getInitialProjects = (): Project[] => {
   if (typeof window === 'undefined') return [];
   try {
+    const userRaw = localStorage.getItem('retroflow_user');
+    const user = userRaw ? JSON.parse(userRaw) : null;
     const savedList = localStorage.getItem(STORAGE_CACHED_PROJS_LIST);
     if (savedList) {
       const parsedList = JSON.parse(savedList);
-      if (Array.isArray(parsedList) && parsedList.length > 0) return parsedList;
+      if (Array.isArray(parsedList) && parsedList.length > 0) {
+        if (!user || user.role === 'admin') return parsedList;
+        return parsedList.filter((p: Project) => isUserMemberOfProject(p, user));
+      }
     }
   } catch {}
   return [];
@@ -181,10 +211,35 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     activeStoredProjectId ||
     '';
 
+  // Admin + Managers permission check
+  const effectiveUser = user || currentUser;
+  const userEmail = effectiveUser?.email?.toLowerCase().trim();
+  const userRole = (effectiveUser?.role || '').toLowerCase();
+  const userProjectRole = (effectiveUser?.projectRole || '').toLowerCase();
+  const isAdmin = userRole === 'admin';
+  const isManager =
+    isAdmin ||
+    userProjectRole === 'manager' ||
+    userRole === 'manager' ||
+    userRole.includes('manager');
+  const canCreateProject = isManager;
+
+  // Strict membership filter: developers only see projects they are assigned to
+  const accessibleProjects = React.useMemo(() => {
+    if (isAdmin) return projects;
+    return projects.filter((p) => isUserMemberOfProject(p, effectiveUser));
+  }, [projects, isAdmin, effectiveUser]);
+
+  const validatedCachedProject = React.useMemo(() => {
+    if (!cachedActiveProject) return null;
+    return isUserMemberOfProject(cachedActiveProject, effectiveUser) ? cachedActiveProject : null;
+  }, [cachedActiveProject, effectiveUser]);
+
   const allProjects = React.useMemo(() => {
-    let list = [...projects];
+    let list = [...accessibleProjects];
     if (
       currentProject &&
+      isUserMemberOfProject(currentProject, effectiveUser) &&
       !list.some(
         (p) =>
           p.id === currentProject.id ||
@@ -194,20 +249,22 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
       list = [currentProject, ...list];
     }
     if (
-      cachedActiveProject &&
+      validatedCachedProject &&
+      list.length > 0 &&
       !list.some(
         (p) =>
-          p.id === cachedActiveProject.id ||
-          p.key?.toLowerCase() === cachedActiveProject.key?.toLowerCase()
+          p.id === validatedCachedProject.id ||
+          p.key?.toLowerCase() === validatedCachedProject.key?.toLowerCase()
       )
     ) {
-      list = [...list, cachedActiveProject];
+      list = [...list, validatedCachedProject];
     }
     return list;
-  }, [projects, currentProject, cachedActiveProject]);
+  }, [accessibleProjects, currentProject, validatedCachedProject, effectiveUser]);
 
   const activeProject =
     (currentProject &&
+      isUserMemberOfProject(currentProject, effectiveUser) &&
       (currentProject.id === resolvedProjectId ||
         currentProject.key?.toLowerCase() === resolvedProjectId.toLowerCase())
       ? currentProject
@@ -216,45 +273,50 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
       (p) =>
         p.id === resolvedProjectId || p.key?.toLowerCase() === resolvedProjectId.toLowerCase()
     ) ||
-    currentProject ||
-    (cachedActiveProject &&
-      (!resolvedProjectId ||
-        cachedActiveProject.id === resolvedProjectId ||
-        cachedActiveProject.key?.toLowerCase() === resolvedProjectId.toLowerCase())
-      ? cachedActiveProject
-      : null) ||
-    allProjects[0] ||
-    cachedActiveProject ||
+    (currentProject && isUserMemberOfProject(currentProject, effectiveUser) ? currentProject : null) ||
+    (allProjects.length > 0 ? allProjects[0] : null) ||
     null;
+
+  const activeManager = getProjectManager(activeProject);
 
   // Background sync with live REST API
   useEffect(() => {
     let isMounted = true;
     ProjectApiService.getProjects(true)
       .then((list) => {
-        if (isMounted && Array.isArray(list)) {
-          setProjects(list);
+        if (!isMounted) return;
+        const validList = Array.isArray(list) ? list : [];
+        setProjects(validList);
+
+        if (validList.length === 0) {
+          // User has NO assigned projects!
+          setCachedActiveProject(null);
+          setActiveStoredProjectId(null);
           try {
-            localStorage.setItem(STORAGE_CACHED_PROJS_LIST, JSON.stringify(list));
+            localStorage.removeItem(STORAGE_CACHED_ACTIVE_PROJ);
+            localStorage.removeItem(STORAGE_ACTIVE_PROJ_ID);
+            localStorage.removeItem(STORAGE_CACHED_PROJS_LIST);
           } catch {}
+          return;
+        }
 
-          const targetId = resolvedProjectId || activeStoredProjectId || '';
-          const matched =
-            (targetId ? list.find((p) => p.id === targetId || p.key?.toLowerCase() === targetId.toLowerCase()) : null) ||
-            (activeProject?.id ? list.find((p) => p.id === activeProject.id) : null) ||
-            list[0] ||
-            null;
+        try {
+          localStorage.setItem(STORAGE_CACHED_PROJS_LIST, JSON.stringify(validList));
+        } catch {}
 
-          if (matched) {
-            setCachedActiveProject(matched);
-            try {
-              localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, JSON.stringify(matched));
-              if (!targetId && matched.id) {
-                localStorage.setItem(STORAGE_ACTIVE_PROJ_ID, matched.id);
-                setActiveStoredProjectId(matched.id);
-              }
-            } catch {}
-          }
+        const targetId = resolvedProjectId || activeStoredProjectId || '';
+        const matched =
+          (targetId ? validList.find((p) => p.id === targetId || p.key?.toLowerCase() === targetId.toLowerCase()) : null) ||
+          validList[0] ||
+          null;
+
+        if (matched) {
+          setCachedActiveProject(matched);
+          setActiveStoredProjectId(matched.id);
+          try {
+            localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, JSON.stringify(matched));
+            localStorage.setItem(STORAGE_ACTIVE_PROJ_ID, matched.id);
+          } catch {}
         }
       })
       .catch(() => {});
@@ -266,7 +328,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
   // Cache whenever activeProject updates
   useEffect(() => {
-    if (activeProject && typeof window !== 'undefined') {
+    if (activeProject && typeof window !== 'undefined' && isUserMemberOfProject(activeProject, effectiveUser)) {
       try {
         localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, JSON.stringify(activeProject));
         if (activeProject.id) {
@@ -275,7 +337,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
         }
       } catch {}
     }
-  }, [activeProject]);
+  }, [activeProject, effectiveUser]);
 
   // Click outside listener
   useEffect(() => {
@@ -295,20 +357,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.key.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Admin + Managers have permission to initialize new projects
-  const effectiveUser = user || currentUser;
-  const userEmail = effectiveUser?.email?.toLowerCase().trim();
-  const userRole = (effectiveUser?.role || '').toLowerCase();
-  const userProjectRole = (effectiveUser?.projectRole || '').toLowerCase();
-  const isAdmin = userRole === 'admin';
-  const isManager =
-    isAdmin ||
-    userProjectRole === 'manager' ||
-    userRole === 'manager' ||
-    userRole.includes('manager');
-  const canCreateProject = isManager;
-  const activeManager = getProjectManager(activeProject);
 
   const handleSelect = (project: Project) => {
     if (typeof window !== 'undefined') {

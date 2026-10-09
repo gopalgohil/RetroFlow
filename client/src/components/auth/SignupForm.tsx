@@ -113,6 +113,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
         googleId: user.uid,
       });
 
+      // Clear any previous user's cached project info
+      try {
+        localStorage.removeItem('retroflow_cached_active_project');
+        localStorage.removeItem('retroflow_active_project_id');
+        localStorage.removeItem('retroflow_cached_projects_list');
+      } catch {}
+
       if (response.data?.token) {
         localStorage.setItem('retroflow_token', response.data.token);
         localStorage.removeItem('retroflow_rejected');

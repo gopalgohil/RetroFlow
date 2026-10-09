@@ -174,6 +174,10 @@ function DashboardContent() {
       localStorage.removeItem('retroflow_token');
       localStorage.removeItem('retroflow_user');
       localStorage.removeItem('retroflow_rejected');
+      localStorage.removeItem('retroflow_cached_active_project');
+      localStorage.removeItem('retroflow_active_project_id');
+      localStorage.removeItem('retroflow_cached_projects_list');
+      sessionStorage.clear();
     } catch {}
     router.push('/login');
   };
@@ -183,6 +187,10 @@ function DashboardContent() {
       localStorage.removeItem('retroflow_token');
       localStorage.removeItem('retroflow_user');
       localStorage.removeItem('retroflow_rejected');
+      localStorage.removeItem('retroflow_cached_active_project');
+      localStorage.removeItem('retroflow_active_project_id');
+      localStorage.removeItem('retroflow_cached_projects_list');
+      sessionStorage.clear();
     } catch {}
     router.push(targetPath);
   };

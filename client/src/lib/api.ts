@@ -153,6 +153,9 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
           console.warn('[API] 401 Unauthorized detected. Clearing session.');
           localStorage.removeItem('retroflow_token');
           localStorage.removeItem('retroflow_user');
+          localStorage.removeItem('retroflow_cached_active_project');
+          localStorage.removeItem('retroflow_active_project_id');
+          localStorage.removeItem('retroflow_cached_projects_list');
           if (
             window.location.pathname !== '/login' &&
             window.location.pathname !== '/signup' &&

@@ -387,12 +387,6 @@ class MembersService {
     }
     await user.save();
 
-    // Whitelist in all retrospective boards
-    await RetroBoard.updateMany(
-      {},
-      { $addToSet: { approvedMembers: cleanEmail } }
-    );
-
     return {
       email: cleanEmail,
       name: user.name,

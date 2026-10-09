@@ -101,6 +101,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         const data = await api.post(ENDPOINTS.AUTH.LOGIN, validationResult.data);
 
         // Store JWT token and user profile for instant access
+        // Clear any previous user's cached project info
+        try {
+          localStorage.removeItem('retroflow_cached_active_project');
+          localStorage.removeItem('retroflow_active_project_id');
+          localStorage.removeItem('retroflow_cached_projects_list');
+        } catch {}
+
         if (data.data?.token) {
           localStorage.setItem('retroflow_token', data.data.token);
           localStorage.removeItem('retroflow_rejected');
@@ -152,6 +159,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         avatar: user.photoURL,
         googleId: user.uid,
       });
+
+      // Clear any previous user's cached project info
+      try {
+        localStorage.removeItem('retroflow_cached_active_project');
+        localStorage.removeItem('retroflow_active_project_id');
+        localStorage.removeItem('retroflow_cached_projects_list');
+      } catch {}
 
       if (response.data?.token) {
         localStorage.setItem('retroflow_token', response.data.token);

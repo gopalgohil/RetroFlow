@@ -160,13 +160,27 @@ class RetroService {
         } catch {}
       }
 
-      conditions.push({
-        $or: [
-          { createdBy: userId },
-          ...(userEmail ? [{ approvedMembers: userEmail }] : []),
-          ...(memberProjectIds.length > 0 ? [{ projectId: { $in: memberProjectIds } }] : []),
-        ],
-      });
+      const orConditions = [{ createdBy: userId }];
+
+      // User belongs to the project linked to the retrospective
+      if (memberProjectIds.length > 0) {
+        orConditions.push({ projectId: { $in: memberProjectIds } });
+      }
+
+      // Standalone retros or project retros where user is an approved member of that project
+      if (userEmail) {
+        const emailRegex = new RegExp(`^${userEmail}$`, 'i');
+        orConditions.push({
+          approvedMembers: { $in: [userEmail, emailRegex] },
+          $or: [
+            { projectId: null },
+            { projectId: { $exists: false } },
+            ...(memberProjectIds.length > 0 ? [{ projectId: { $in: memberProjectIds } }] : []),
+          ],
+        });
+      }
+
+      conditions.push({ $or: orConditions });
     }
 
     if (filters.status && filters.status !== 'all') {
