@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import Project from '../models/Project.js';
@@ -47,8 +48,8 @@ class AuthService {
       throw ApiError.conflict('An account with this email address already exists. Please sign in.');
     }
 
-    // Generate secure 6-digit verification OTP and bcrypt hash for MongoDB Atlas
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate secure 6-digit verification OTP using cryptographically strong random integers
+    const otp = crypto.randomInt(100000, 1000000).toString();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     const hashedOtp = await hashOtp(otp);
 
@@ -81,7 +82,7 @@ class AuthService {
       });
     }
 
-    console.log(`\n📬 [Signup Verification OTP for ${user.email}]: ${otp} (Hashed in DB, Valid 10m)\n`);
+    console.log(`\n📬 [Signup Verification]: Verification OTP email dispatched to ${user.email} (Valid 10m)\n`);
 
     // Dispatch verification email via Brevo API
     const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
@@ -155,12 +156,12 @@ class AuthService {
       throw ApiError.badRequest('This account is already verified. Please sign in directly.');
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = crypto.randomInt(100000, 1000000).toString();
     user.verificationOtp = await hashOtp(otp);
     user.verificationOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    console.log(`\n📬 [Resent Verification OTP for ${user.email}]: ${otp} (Hashed in DB, Valid 10m)\n`);
+    console.log(`\n📬 [Resent Verification OTP]: Fresh verification OTP dispatched to ${user.email}\n`);
 
     const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
     await emailService.sendEmail({
@@ -222,12 +223,12 @@ class AuthService {
     // Block login if email is not verified yet
     if (!user.isVerified) {
       // Auto-dispatch a fresh OTP so the user can easily verify right away
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otp = crypto.randomInt(100000, 1000000).toString();
       user.verificationOtp = await hashOtp(otp);
       user.verificationOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
       await user.save();
 
-      console.log(`\n📬 [Login Verification OTP for ${user.email}]: ${otp} (Hashed in DB, Valid 10m)\n`);
+      console.log(`\n📬 [Login Verification]: OTP dispatched to unverified user ${user.email}\n`);
 
       const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
       await emailService.sendEmail({
@@ -290,13 +291,13 @@ class AuthService {
       throw ApiError.badRequest('This account has not been registered or verified yet. Please create and verify your account first.');
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = crypto.randomInt(100000, 1000000).toString();
 
     user.resetPasswordOtp = await hashOtp(otp);
     user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    console.log(`\n🔑 [Password Reset OTP for ${user.email}]: ${otp} (Hashed in DB, 10m lifespan)\n`);
+    console.log(`\n🔑 [Password Reset]: Password reset OTP dispatched to ${user.email} (10m lifespan)\n`);
 
     const emailHtml = emailService.getOtpTemplate(otp, user.name);
     await emailService.sendEmail({

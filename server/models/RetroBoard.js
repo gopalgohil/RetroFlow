@@ -283,6 +283,9 @@ retroBoardSchema.index({ createdBy: 1, createdAt: -1 });
 retroBoardSchema.index({ approvedMembers: 1 });
 retroBoardSchema.index({ projectKey: 1 });
 retroBoardSchema.index({ 'attendees.email': 1 });
+retroBoardSchema.index({ _id: 1, 'cards.cardId': 1 });
+retroBoardSchema.index({ 'cards.cardId': 1 });
+retroBoardSchema.index({ projectId: 1, status: 1 });
 
 const RetroBoard = mongoose.model('RetroBoard', retroBoardSchema);
 

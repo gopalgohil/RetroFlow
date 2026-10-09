@@ -34,24 +34,7 @@ export const protect = asyncHandler(async (req, res, next) => {
     }
 
     if (!user) {
-      // Resolve strictly from verified decoded JWT payload
-      const email = (decoded.email || '').toLowerCase().trim();
-      const isAdmin =
-        isSuperAdmin(email) ||
-        decoded.role === 'admin';
-      user = {
-        _id:
-          decoded.id && mongoose.Types.ObjectId.isValid(decoded.id)
-            ? new mongoose.Types.ObjectId(decoded.id)
-            : isAdmin
-            ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
-            : new mongoose.Types.ObjectId(),
-        id: decoded.id || (isAdmin ? 'user-admin' : (email ? `guest-${email.split('@')[0]}` : 'guest-user')),
-        email,
-        name: decoded.name || (email ? email.split('@')[0] : 'Guest User'),
-        role: isAdmin ? 'admin' : (decoded.role || 'member'),
-        isGuest: Boolean(decoded.isGuest),
-      };
+      throw ApiError.unauthorized('User account not found or session has expired. Please log in again.');
     }
 
     req.user = user;
@@ -89,22 +72,14 @@ export const optionalAuth = asyncHandler(async (req, res, next) => {
       }
       if (user) {
         req.user = user;
-      } else if (decoded && (decoded.email || decoded.id)) {
-        const email = (decoded.email || '').toLowerCase().trim();
-        const isAdmin =
-          isSuperAdmin(email) || decoded.role === 'admin';
+      } else if (decoded && decoded.email) {
+        const email = decoded.email.toLowerCase().trim();
         req.user = {
-          _id:
-            decoded.id && mongoose.Types.ObjectId.isValid(decoded.id)
-              ? new mongoose.Types.ObjectId(decoded.id)
-              : isAdmin
-              ? new mongoose.Types.ObjectId('65f1a2b3c4d5e6f7a8b9c0d1')
-              : new mongoose.Types.ObjectId(),
           id: decoded.id || `guest-${email.split('@')[0]}`,
           email,
-          name: decoded.name || email.split('@')[0] || 'Developer',
-          role: isAdmin ? 'admin' : (decoded.role || 'member'),
-          isGuest: Boolean(decoded.isGuest),
+          name: decoded.name || email.split('@')[0] || 'Guest Participant',
+          role: decoded.role || 'member',
+          isGuest: true,
         };
       }
     } catch {
