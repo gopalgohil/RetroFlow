@@ -397,6 +397,11 @@ export class ProjectDataService {
       0
     );
 
+    if (sprint.status === 'upcoming') {
+      sprint.status = 'active';
+      sprint.daysLeft = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
+    }
+
     if (items[0]?.sourceRetroId) {
       project.retrospectives = project.retrospectives.map((r) =>
         r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId

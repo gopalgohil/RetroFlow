@@ -16,7 +16,6 @@ export interface SprintCardProps {
   updatingItemId: string | null;
   deletingItemId?: string | null;
   onToggleExpand: (sprintId: string) => void;
-  onStartSprint: (sprint: Sprint) => void;
   onCompleteSprint: (sprint: Sprint) => void;
   onEditDates: (sprint: Sprint) => void;
   onDeleteSprint?: (sprint: Sprint) => void;
@@ -42,7 +41,6 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   updatingItemId,
   deletingItemId = null,
   onToggleExpand,
-  onStartSprint,
   onCompleteSprint,
   onEditDates,
   onDeleteSprint,
@@ -141,9 +139,9 @@ export const SprintCard: React.FC<SprintCardProps> = ({
             />
           </div>
 
-          {/* Actions: Start / Complete & Expand Drawer Toggle */}
+          {/* Actions: Complete & Expand Drawer Toggle */}
           <div className="flex items-center gap-2">
-            {canManageProject && sprint.status === 'active' && (
+            {canManageProject && sprint.status !== 'completed' && (
               <button
                 type="button"
                 onClick={() => onCompleteSprint(sprint)}
@@ -154,27 +152,11 @@ export const SprintCard: React.FC<SprintCardProps> = ({
               </button>
             )}
 
-            {canManageProject && sprint.status === 'upcoming' && (
-              <button
-                type="button"
-                onClick={() => onStartSprint(sprint)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#88c958] hover:bg-[#76b349] text-[#08090a] text-xs font-bold shadow-xs transition-colors cursor-pointer"
-              >
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Start Sprint</span>
-              </button>
-            )}
-
             {sprint.status === 'completed' && (
-              <button
-                type="button"
-                onClick={() => onStartSprint(sprint)}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:border-[#88c958]/60 hover:bg-[#88c958]/15 dark:hover:bg-[#88c958]/20 text-slate-600 dark:text-slate-300 hover:text-[#88c958] text-xs font-semibold transition-colors cursor-pointer"
-                title="Resume or reactivate this sprint"
-              >
-                <Play className="w-3 h-3 fill-current" />
-                <span>Reopen</span>
-              </button>
+              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
+                <Check className="w-3 h-3" />
+                <span>Finished</span>
+              </span>
             )}
 
             {canDeleteSprint && onDeleteSprint && (

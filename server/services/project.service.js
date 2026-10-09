@@ -1263,12 +1263,12 @@ class ProjectService {
         );
 
         if (!sprint) {
-          // Auto-provision the individual sprint for this retro
+          // Auto-provision the individual sprint for this retro with active status
           sprint = {
             id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
             name: `Sprint ${sprintNum} - Execution & Backlog`,
             number: sprintNum,
-            status: 'upcoming',
+            status: 'active',
             startDate: new Date().toISOString().split('T')[0],
             endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
             goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
@@ -1284,9 +1284,14 @@ class ProjectService {
     }
 
     if (!sprint) {
-      sprint = project.sprints.find((s) => s.status === 'upcoming') ||
-               project.sprints.find((s) => s.status === 'active') ||
+      sprint = project.sprints.find((s) => s.status === 'active') ||
+               project.sprints.find((s) => s.status === 'upcoming') ||
                project.sprints[0];
+    }
+
+    if (sprint && sprint.status === 'upcoming') {
+      sprint.status = 'active';
+      sprint.daysLeft = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
     }
 
     if (!sprint) throw new Error('No target sprint found to receive action items');

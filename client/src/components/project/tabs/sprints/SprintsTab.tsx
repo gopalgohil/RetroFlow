@@ -49,12 +49,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [editingDatesSprint, setEditingDatesSprint] = useState<Sprint | null>(null);
   const [sprintToDelete, setSprintToDelete] = useState<Sprint | null>(null);
-
-  // Reusable confirmation dialog state for sprint start/complete
-  const [confirmSprint, setConfirmSprint] = useState<{
-    sprint: Sprint;
-    action: 'start' | 'complete';
-  } | null>(null);
+  const [sprintToComplete, setSprintToComplete] = useState<Sprint | null>(null);
 
   // Confirmation dialog state for backlog item deletion
   const [itemToDelete, setItemToDelete] = useState<{
@@ -347,17 +342,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     }
   };
 
-  const handleStartSprint = async (sprint: Sprint) => {
-    try {
-      const updated = await ProjectApiService.startSprint(project.id, sprint.id);
-      if (updated) onProjectUpdated(updated);
-    } catch {
-      const updated = ProjectDataService.startSprint(project.id, sprint.id);
-      if (updated) onProjectUpdated(updated);
-    }
-    setConfirmSprint(null);
-  };
-
   const handleCompleteSprint = async (sprint: Sprint) => {
     try {
       const updated = await ProjectApiService.completeSprint(project.id, sprint.id);
@@ -366,7 +350,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
       const updated = ProjectDataService.completeSprint(project.id, sprint.id);
       if (updated) onProjectUpdated(updated);
     }
-    setConfirmSprint(null);
+    setSprintToComplete(null);
   };
 
   const handleDeleteSprint = async (sprint: Sprint) => {
@@ -433,8 +417,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               updatingItemId={updatingItemId}
               deletingItemId={deletingItemId}
               onToggleExpand={toggleExpand}
-              onStartSprint={(sp) => setConfirmSprint({ sprint: sp, action: 'start' })}
-              onCompleteSprint={(sp) => setConfirmSprint({ sprint: sp, action: 'complete' })}
+              onCompleteSprint={(sp) => setSprintToComplete(sp)}
               onEditDates={(sp) => setEditingDatesSprint(sp)}
               onDeleteSprint={(sp) => setSprintToDelete(sp)}
               onUpdateItemStatus={handleUpdateItemStatus}
@@ -462,28 +445,20 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         />
       )}
 
-      {/* 4. Reusable Confirmation Dialog for Start / Complete */}
-      {confirmSprint && (
+      {/* 4. Complete Sprint Confirmation Dialog */}
+      {sprintToComplete && (
         <ConfirmDialog
-          isOpen={Boolean(confirmSprint)}
-          onClose={() => setConfirmSprint(null)}
-          onConfirm={() =>
-            confirmSprint.action === 'start'
-              ? handleStartSprint(confirmSprint.sprint)
-              : handleCompleteSprint(confirmSprint.sprint)
-          }
-          title={
-            confirmSprint.action === 'start'
-              ? `Start ${confirmSprint.sprint.name}?`
-              : `Complete ${confirmSprint.sprint.name}?`
-          }
-          message={
-            confirmSprint.action === 'start'
-              ? 'Starting this sprint will initiate active tracking, burndown counters, and mark any currently active sprint as completed.'
-              : 'Completing this sprint will complete current tickets and prepare open items to roll over into the next sprint.'
-          }
-          confirmLabel={confirmSprint.action === 'start' ? 'Start Sprint' : 'Complete Sprint'}
-          variant={confirmSprint.action === 'start' ? 'primary' : 'success'}
+          isOpen={Boolean(sprintToComplete)}
+          onClose={() => setSprintToComplete(null)}
+          onConfirm={() => {
+            if (sprintToComplete) {
+              handleCompleteSprint(sprintToComplete);
+            }
+          }}
+          title={`Complete ${sprintToComplete.name}?`}
+          message="Completing this sprint will finish active tracking and mark all current tickets as completed for this sprint cycle."
+          confirmLabel="Complete Sprint"
+          variant="success"
         />
       )}
 
