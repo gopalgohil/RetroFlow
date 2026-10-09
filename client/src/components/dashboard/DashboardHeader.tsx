@@ -1,11 +1,30 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, LogOut, ChevronDown, User as UserIcon } from 'lucide-react';
-import { ProjectSwitcher } from '@/components/navigation/ProjectSwitcher';
+import dynamic from 'next/dynamic';
+import { Menu, LogOut, ChevronDown, User as UserIcon, FolderKanban } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui';
 import { LogoutConfirmModal } from './LogoutConfirmModal';
 import { MyProfileModal } from './MyProfileModal';
+
+const ProjectSwitcher = dynamic(
+  () => import('@/components/navigation/ProjectSwitcher').then((m) => m.ProjectSwitcher),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-200/90 dark:border-white/[0.08] bg-white/80 dark:bg-[#12151c]/80 shadow-2xs select-none">
+        <div className="w-7 h-7 rounded-lg bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 flex items-center justify-center shrink-0">
+          <FolderKanban className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] opacity-60 animate-pulse" />
+        </div>
+        <div className="flex flex-col gap-1 min-w-[100px] sm:min-w-[130px]">
+          <div className="h-3 w-20 bg-slate-200/80 dark:bg-white/[0.1] rounded animate-pulse" />
+          <div className="h-2 w-14 bg-slate-200/50 dark:bg-white/[0.05] rounded animate-pulse" />
+        </div>
+        <ChevronDown className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 shrink-0 opacity-40" />
+      </div>
+    ),
+  }
+);
 
 interface DashboardHeaderProps {
   searchQuery?: string;
