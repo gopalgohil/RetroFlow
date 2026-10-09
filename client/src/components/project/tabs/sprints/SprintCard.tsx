@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Calendar, Clock, Play, Check, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
+import { Calendar, Clock, Check, ChevronDown, ChevronUp, Pencil, Trash2, RotateCcw } from 'lucide-react';
 import { Sprint } from '@/types/project';
 import { StatusPill, ProgressBar } from '@/components/ui';
 import { formatDateDMY } from '@/lib/dateUtils';
@@ -17,6 +17,7 @@ export interface SprintCardProps {
   deletingItemId?: string | null;
   onToggleExpand: (sprintId: string) => void;
   onCompleteSprint: (sprint: Sprint) => void;
+  onReopenSprint?: (sprint: Sprint) => void;
   onEditDates: (sprint: Sprint) => void;
   onDeleteSprint?: (sprint: Sprint) => void;
   onUpdateItemStatus: (
@@ -42,6 +43,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   deletingItemId = null,
   onToggleExpand,
   onCompleteSprint,
+  onReopenSprint,
   onEditDates,
   onDeleteSprint,
   onUpdateItemStatus,
@@ -153,10 +155,23 @@ export const SprintCard: React.FC<SprintCardProps> = ({
             )}
 
             {sprint.status === 'completed' && (
-              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
-                <Check className="w-3 h-3" />
-                <span>Finished</span>
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
+                  <Check className="w-3 h-3" />
+                  <span>Finished</span>
+                </span>
+                {canManageProject && onReopenSprint && (
+                  <button
+                    type="button"
+                    onClick={() => onReopenSprint(sprint)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:border-[#88c958]/60 hover:bg-[#88c958]/15 dark:hover:bg-[#88c958]/20 text-slate-600 dark:text-slate-300 hover:text-[#88c958] text-xs font-semibold transition-colors cursor-pointer"
+                    title="Reopen or reactivate this sprint"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Reopen</span>
+                  </button>
+                )}
+              </div>
             )}
 
             {canDeleteSprint && onDeleteSprint && (

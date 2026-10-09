@@ -50,6 +50,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   const [editingDatesSprint, setEditingDatesSprint] = useState<Sprint | null>(null);
   const [sprintToDelete, setSprintToDelete] = useState<Sprint | null>(null);
   const [sprintToComplete, setSprintToComplete] = useState<Sprint | null>(null);
+  const [sprintToReopen, setSprintToReopen] = useState<Sprint | null>(null);
 
   // Confirmation dialog state for backlog item deletion
   const [itemToDelete, setItemToDelete] = useState<{
@@ -353,6 +354,31 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     setSprintToComplete(null);
   };
 
+  const handleReopenSprint = async (sprint: Sprint) => {
+    const updatedSprints = (project.sprints || []).map((s) => {
+      if (s.id === sprint.id) {
+        return {
+          ...s,
+          status: 'active' as const,
+          daysLeft: project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14,
+        };
+      }
+      return s;
+    });
+    const optimisticProject = { ...project, sprints: updatedSprints };
+    onProjectUpdated(optimisticProject);
+    setSprintToReopen(null);
+
+    try {
+      const updated = await ProjectApiService.startSprint(project.id, sprint.id);
+      if (updated) onProjectUpdated(updated);
+    } catch (err) {
+      console.warn('[SprintsTab] API reopen sprint fallback to mock:', err);
+      const fallback = ProjectDataService.startSprint(project.id, sprint.id);
+      if (fallback) onProjectUpdated(fallback);
+    }
+  };
+
   const handleDeleteSprint = async (sprint: Sprint) => {
     const updatedSprints = (project.sprints || []).filter((s) => s.id !== sprint.id);
     const optimisticProject = { ...project, sprints: updatedSprints };
@@ -418,6 +444,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               deletingItemId={deletingItemId}
               onToggleExpand={toggleExpand}
               onCompleteSprint={(sp) => setSprintToComplete(sp)}
+              onReopenSprint={(sp) => setSprintToReopen(sp)}
               onEditDates={(sp) => setEditingDatesSprint(sp)}
               onDeleteSprint={(sp) => setSprintToDelete(sp)}
               onUpdateItemStatus={handleUpdateItemStatus}
@@ -459,6 +486,24 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
           message="Completing this sprint will finish active tracking and mark all current tickets as completed for this sprint cycle."
           confirmLabel="Complete Sprint"
           variant="success"
+        />
+      )}
+
+      {/* 4.1 Reopen Sprint Confirmation Dialog */}
+      {sprintToReopen && (
+        <ConfirmDialog
+          isOpen={Boolean(sprintToReopen)}
+          onClose={() => setSprintToReopen(null)}
+          onConfirm={() => {
+            if (sprintToReopen) {
+              handleReopenSprint(sprintToReopen);
+            }
+          }}
+          title={`Reopen ${sprintToReopen.name}?`}
+          message={`Are you sure you want to reopen "${sprintToReopen.name}"? This will reactivate the sprint, restore live countdown tracking, and allow team members to continue updating items.`}
+          confirmLabel="Reopen Sprint"
+          cancelLabel="Cancel"
+          variant="primary"
         />
       )}
 
