@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import {
   Calendar,
   ExternalLink,
@@ -269,7 +270,7 @@ export const SessionList: React.FC<SessionListProps> = ({
               {localSearch
                 ? 'Try searching by a different sprint title, project key (e.g. DEM), description, or topic name.'
                 : isAdmin
-                ? 'Create your first custom agile retrospective session with customized topics, voting limits, and live sync.'
+                ? 'To create a sprint retrospective session, open your Project and navigate to the Retrospectives tab.'
                 : 'You will see live sprint retrospectives here as soon as your Scrum Master or Admin invites you.'}
             </p>
           </div>
@@ -282,12 +283,12 @@ export const SessionList: React.FC<SessionListProps> = ({
               Clear Search Query
             </button>
           ) : isAdmin ? (
-            <button
-              onClick={onCreateNew}
-              className="px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-sm transition-all cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
+            <Link
+              href="/projects"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-sm transition-all cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
             >
-              + Create New Retrospective
-            </button>
+              <span>View Projects</span>
+            </Link>
           ) : null}
         </div>
       )}

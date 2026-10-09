@@ -3,7 +3,7 @@
 import React from 'react';
 import { RetroBoard } from '@/types/retro';
 import { SessionList } from '../SessionList';
-import { Layers, Activity, CheckSquare, Award, Sparkles, Plus } from 'lucide-react';
+import { Layers, Activity, CheckSquare, Award, Sparkles } from 'lucide-react';
 
 interface SessionsTabProps {
   sessions: RetroBoard[];
@@ -66,20 +66,6 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
               : 'Collaborate live with your agile team, submit honest feedback on sprint questions, and vote on team action items in real-time.'}
           </p>
         </div>
-
-        {/* Quick Action Button in Banner */}
-        {isAdmin && (
-          <div className="relative z-10 shrink-0">
-            <button
-              onClick={onCreateNew}
-              type="button"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#3d8318] text-xs font-extrabold shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_16px_rgba(136,201,88,0.25)] dark:hover:shadow-[0_0_24px_rgba(136,201,88,0.4)]"
-            >
-              <Plus className="w-4 h-4 text-[#5cb028] dark:text-[#08090a]" />
-              <span>Create Retrospective</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Sessions Grid List */}
