@@ -34,20 +34,19 @@ const allowedOrigins = new Set([
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow server-to-server, curl, or mobile requests with no origin
+      // Allow server-to-server, curl, mobile, or same-origin requests with no origin header
       if (!origin) return callback(null, true);
 
-      // Allow configured domains, localhost, or any vercel.app deployment preview
+      // Check if origin matches whitelist or verified vercel app domain
       if (
         allowedOrigins.has(origin) ||
-        origin.endsWith('.vercel.app') ||
-        process.env.NODE_ENV !== 'production'
+        (origin.endsWith('.vercel.app') && origin.includes('retro-flow'))
       ) {
         return callback(null, true);
       }
 
-      // Default allow with origin reflection for seamless team access
-      return callback(null, origin);
+      // Strict rejection for unauthorized origins
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -106,12 +105,11 @@ const io = new SocketIOServer(httpServer, {
       if (!origin) return callback(null, true);
       if (
         allowedOrigins.has(origin) ||
-        origin.endsWith('.vercel.app') ||
-        process.env.NODE_ENV !== 'production'
+        (origin.endsWith('.vercel.app') && origin.includes('retro-flow'))
       ) {
         return callback(null, true);
       }
-      return callback(null, origin);
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
