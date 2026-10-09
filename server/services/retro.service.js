@@ -1495,56 +1495,70 @@ class RetroService {
       ? { _id: identifier }
       : { shareToken: identifier };
 
-    const retro = await RetroBoard.findOne(query);
-    if (!retro) {
-      throw ApiError.notFound('Retrospective session not found');
-    }
+    const voterName = (voter || 'Developer').trim();
+    const normalizedEmail = (voterEmail || '').toLowerCase().trim();
+    const voterIdentifier = normalizedEmail || voterName;
 
-    const card = retro.cards.find((c) => c.cardId === cardId);
-    if (!card) {
+    // Retrieve targeted card subdocument
+    const cardDoc = await RetroBoard.findOne(
+      { ...query, 'cards.cardId': cardId },
+      { 'cards.$': 1 }
+    ).lean();
+
+    if (!cardDoc || !cardDoc.cards || cardDoc.cards.length === 0) {
       throw ApiError.notFound('Card not found');
     }
 
-    const voterName = (voter || 'Developer').trim();
-    const normalizedEmail = (voterEmail || '').toLowerCase().trim();
-    const normalizedName = voterName.toLowerCase().trim();
-
-    // Safe matcher to identify this specific user's votes uniquely (Fixes Bug 6 voter conflict)
-    const isThisVoter = (v) => {
+    const currentCard = cardDoc.cards[0];
+    const existingVoters = Array.isArray(currentCard.voters) ? currentCard.voters : [];
+    const isAlreadyVoted = existingVoters.some((v) => {
       const vLower = (v || '').toLowerCase().trim();
-      if (normalizedEmail && vLower === normalizedEmail) return true;
-      if (normalizedEmail && vLower.includes(normalizedEmail)) return true;
-      if (normalizedName && vLower === normalizedName) return true;
-      return false;
-    };
+      return (
+        (normalizedEmail && (vLower === normalizedEmail || vLower.includes(normalizedEmail))) ||
+        (voterName && vLower === voterName.toLowerCase().trim())
+      );
+    });
 
-    if (!Array.isArray(card.voters)) {
-      card.voters = [];
-    }
-
-    const existingIndex = card.voters.findIndex(isThisVoter);
-
+    let updatedBoard;
     let hasVoted = false;
 
-    if (existingIndex !== -1) {
-      // UNLIKE: Remove vote & voter
-      card.voters.splice(existingIndex, 1);
-      card.votes = Math.max(0, (card.votes || 1) - 1);
+    if (isAlreadyVoted) {
+      // Atomic UNLIKE: Pull voter from voters array and decrement votes count
+      const pullCandidates = [voterIdentifier, normalizedEmail, voterName].filter(Boolean);
+      updatedBoard = await RetroBoard.findOneAndUpdate(
+        { ...query, 'cards.cardId': cardId },
+        {
+          $pull: { 'cards.$.voters': { $in: pullCandidates } },
+          $inc: { 'cards.$.votes': -1 },
+        },
+        { new: true }
+      );
       hasVoted = false;
     } else {
-      // LIKE: Strictly 1 vote per card per participant (cannot vote multiple times on the same card, but can vote on other cards)
-      const voterIdentifier = normalizedEmail || voterName;
-      card.voters.push(voterIdentifier);
-      card.votes = (card.votes || 0) + 1;
+      // Atomic LIKE: Add voter uniquely and increment votes count
+      updatedBoard = await RetroBoard.findOneAndUpdate(
+        { ...query, 'cards.cardId': cardId },
+        {
+          $addToSet: { 'cards.$.voters': voterIdentifier },
+          $inc: { 'cards.$.votes': 1 },
+        },
+        { new: true }
+      );
       hasVoted = true;
     }
 
-    await retro.save();
+    if (!updatedBoard) {
+      throw ApiError.badRequest('Failed to update vote state');
+    }
+
+    const updatedCard = updatedBoard.cards.find((c) => c.cardId === cardId);
+    const latestVotes = Math.max(0, updatedCard?.votes || 0);
+    const latestVoters = updatedCard?.voters || [];
 
     return {
       cardId,
-      votes: card.votes,
-      voters: card.voters,
+      votes: latestVotes,
+      voters: latestVoters,
       hasVoted,
       action: hasVoted ? 'liked' : 'unliked',
     };

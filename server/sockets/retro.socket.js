@@ -63,6 +63,17 @@ const cardVoteSchema = z.object({
   token: z.string().optional(),
 });
 
+// Sliding-window rate limiter per socket connection (Protects against DoS / event spam)
+function checkSocketRateLimit(socket, maxEvents = 30, windowMs = 1000) {
+  const now = Date.now();
+  if (!socket._rateLimitState || now > socket._rateLimitState.resetAt) {
+    socket._rateLimitState = { count: 1, resetAt: now + windowMs };
+    return true;
+  }
+  socket._rateLimitState.count++;
+  return socket._rateLimitState.count <= maxEvents;
+}
+
 /**
  * Socket.io Real-Time Retrospective Collaboration Controller
  * Handles instant synchronized card operations across distributed team sessions
@@ -107,6 +118,15 @@ export function initRetroSocket(io) {
   retroNamespace.on('connection', (socket) => {
     let currentShareToken = null;
     let currentUser = null;
+
+    // Per-connection packet rate limiter
+    socket.use(([event, ...args], next) => {
+      if (!checkSocketRateLimit(socket, 30, 1000)) {
+        console.warn(`[Socket Security] Rate limit exceeded on socket ${socket.id} for event: ${event}`);
+        return next(new Error('Rate limit exceeded. Please slow down event requests.'));
+      }
+      next();
+    });
 
     // Cryptographically verified identity helper (Bug 7 Fix: Prevents client payload spoofing)
     function getAuthenticatedUser(payload) {
@@ -177,29 +197,36 @@ export function initRetroSocket(io) {
           timestamp: new Date(),
         });
 
-        // Non-blocking auto-record attendee in RetroBoard document
+        // Atomic non-blocking attendee recording (prevents race condition document overwrites)
         const participantEmail = currentUser?.email?.toLowerCase()?.trim();
         if (participantEmail) {
-          RetroBoard.findOne({ shareToken }).then((board) => {
-            if (!board) return;
-            if (!Array.isArray(board.attendees)) board.attendees = [];
-            const existingIdx = board.attendees.findIndex(
-              (a) => a.email?.toLowerCase().trim() === participantEmail
-            );
-            if (existingIdx >= 0) {
-              board.attendees[existingIdx].lastActiveAt = new Date();
-              if (currentUser.name) board.attendees[existingIdx].name = currentUser.name;
-            } else {
-              board.attendees.push({
-                userId: currentUser.id || null,
-                name: currentUser.name || participantEmail.split('@')[0],
-                email: participantEmail,
-                role: currentUser.role || 'Developer',
-                joinedAt: new Date(),
-                lastActiveAt: new Date(),
-              });
+          RetroBoard.updateOne(
+            { shareToken, 'attendees.email': participantEmail },
+            {
+              $set: {
+                'attendees.$.lastActiveAt': new Date(),
+                ...(currentUser.name ? { 'attendees.$.name': currentUser.name } : {}),
+                ...(currentUser.id ? { 'attendees.$.userId': currentUser.id } : {}),
+              },
             }
-            board.save().catch(() => {});
+          ).then(async (res) => {
+            if (res.matchedCount === 0) {
+              await RetroBoard.updateOne(
+                { shareToken },
+                {
+                  $push: {
+                    attendees: {
+                      userId: currentUser.id || null,
+                      name: currentUser.name || participantEmail.split('@')[0],
+                      email: participantEmail,
+                      role: currentUser.role || 'Developer',
+                      joinedAt: new Date(),
+                      lastActiveAt: new Date(),
+                    },
+                  },
+                }
+              );
+            }
           }).catch(() => {});
         }
       } catch (err) {
@@ -609,7 +636,7 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 5. Toggle Like / Unlike Sticky Card (Dynamic real-time toggle)
+    // 5. Toggle Like / Unlike Sticky Card (Atomic real-time toggle)
     socket.on('card:vote', async (payload, callback) => {
       try {
         const parsed = cardVoteSchema.safeParse(payload);
@@ -620,66 +647,81 @@ export function initRetroSocket(io) {
 
         const { shareToken, cardId, voter, voterEmail } = parsed.data;
 
-        const board = await RetroBoard.findOne({ shareToken });
-        if (!board) {
-          if (callback) callback({ error: 'Retrospective session not found' });
-          return;
-        }
-
-        const targetCard = board.cards.find((c) => c.cardId === cardId);
-        if (!targetCard) {
-          if (callback) callback({ error: 'Card not found' });
-          return;
-        }
-
         const authUser = getAuthenticatedUser(payload);
         const voterName = (authUser?.name || voter || 'Developer').trim();
         const normalizedEmail = (authUser?.email || voterEmail || '').toLowerCase().trim();
-        const normalizedName = voterName.toLowerCase().trim();
+        const voterIdentifier = normalizedEmail || voterName;
 
-        // Safe matcher to identify this specific user's votes uniquely (Fixes Bug 6 voter conflict)
-        const isThisVoter = (v) => {
-          const vLower = (v || '').toLowerCase().trim();
-          if (normalizedEmail && vLower === normalizedEmail) return true;
-          if (normalizedEmail && vLower.includes(normalizedEmail)) return true;
-          if (normalizedName && vLower === normalizedName) return true;
-          return false;
-        };
+        // Retrieve current card voters atomically
+        const cardDoc = await RetroBoard.findOne(
+          { shareToken, 'cards.cardId': cardId },
+          { 'cards.$': 1 }
+        ).lean();
 
-        if (!Array.isArray(targetCard.voters)) {
-          targetCard.voters = [];
+        if (!cardDoc || !cardDoc.cards || cardDoc.cards.length === 0) {
+          if (callback) callback({ error: 'Card or session not found' });
+          return;
         }
 
-        const existingIndex = targetCard.voters.findIndex(isThisVoter);
+        const currentCard = cardDoc.cards[0];
+        const existingVoters = Array.isArray(currentCard.voters) ? currentCard.voters : [];
+        const isAlreadyVoted = existingVoters.some((v) => {
+          const vLower = (v || '').toLowerCase().trim();
+          return (
+            (normalizedEmail && (vLower === normalizedEmail || vLower.includes(normalizedEmail))) ||
+            (voterName && vLower === voterName.toLowerCase().trim())
+          );
+        });
 
+        let updatedBoard;
         let hasVoted = false;
-        if (existingIndex !== -1) {
-          // UNLIKE / UNVOTE
-          targetCard.voters.splice(existingIndex, 1);
-          targetCard.votes = Math.max(0, (targetCard.votes || 1) - 1);
+
+        if (isAlreadyVoted) {
+          // Atomic UNLIKE: Pull voter and decrement vote count
+          const pullCandidates = [voterIdentifier, normalizedEmail, voterName].filter(Boolean);
+          updatedBoard = await RetroBoard.findOneAndUpdate(
+            { shareToken, 'cards.cardId': cardId },
+            {
+              $pull: { 'cards.$.voters': { $in: pullCandidates } },
+              $inc: { 'cards.$.votes': -1 },
+            },
+            { new: true }
+          );
           hasVoted = false;
         } else {
-          // LIKE / VOTE: Strictly 1 vote per card per participant (cannot vote multiple times on the same card, but can vote on other cards)
-          const voterIdentifier = normalizedEmail || voterName;
-          targetCard.voters.push(voterIdentifier);
-          targetCard.votes = (targetCard.votes || 0) + 1;
+          // Atomic LIKE: Add voter uniquely and increment vote count
+          updatedBoard = await RetroBoard.findOneAndUpdate(
+            { shareToken, 'cards.cardId': cardId },
+            {
+              $addToSet: { 'cards.$.voters': voterIdentifier },
+              $inc: { 'cards.$.votes': 1 },
+            },
+            { new: true }
+          );
           hasVoted = true;
         }
 
-        await board.save();
+        if (!updatedBoard) {
+          if (callback) callback({ error: 'Failed to update vote' });
+          return;
+        }
+
+        const updatedCard = updatedBoard.cards.find((c) => c.cardId === cardId);
+        const latestVotes = Math.max(0, updatedCard?.votes || 0);
+        const latestVoters = updatedCard?.voters || [];
 
         const roomName = `retro:${shareToken}`;
         retroNamespace.to(roomName).emit('card:voted', {
           cardId,
-          votes: targetCard.votes,
-          voters: targetCard.voters,
+          votes: latestVotes,
+          voters: latestVoters,
         });
 
         if (callback) {
           callback({
             success: true,
-            votes: targetCard.votes,
-            voters: targetCard.voters,
+            votes: latestVotes,
+            voters: latestVoters,
             hasVoted,
             action: hasVoted ? 'liked' : 'unliked',
           });
