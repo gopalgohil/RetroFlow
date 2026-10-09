@@ -9,7 +9,6 @@ import {
   CheckSquare,
   Users,
   BarChart3,
-  Trophy,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -128,17 +127,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             label: 'Retro Analytics',
             icon: BarChart3,
             sublabel: 'Attendance & Insights',
-          },
-        ]
-      : []),
-    ...(isAdmin && isMounted
-      ? [
-          {
-            id: 'team_scoreboard',
-            label: 'Team Scoreboard',
-            icon: Trophy,
-            sublabel: 'Performance Ratings',
-            badge: 'Admin',
           },
         ]
       : []),

@@ -21,7 +21,6 @@ import {
   WelcomeToast,
   LogoutConfirmModal,
 } from '@/components/dashboard';
-import { TeamScoreboardTab } from '@/components/dashboard/tabs/TeamScoreboardTab';
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
 import { useDashboardTabs } from '@/hooks/useDashboardTabs';
 import { useDashboardData } from '@/hooks/useDashboardData';
@@ -725,31 +724,6 @@ function DashboardContent() {
                       <h3 className="text-base font-bold text-slate-900">Access Restricted</h3>
                       <p className="text-xs text-slate-500 leading-relaxed">
                         Retrospective Attendance Analytics & Insights are reserved strictly for Workspace Administrators and Managers.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => switchTab('sessions')}
-                      className="py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
-                    >
-                      Back to Sessions
-                    </button>
-                  </div>
-                )
-              )}
-
-              {activeTab === 'team_scoreboard' && (
-                isAdmin ? (
-                  <TeamScoreboardTab isAdmin={isAdmin} />
-                ) : (
-                  <div className="p-12 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] text-center space-y-4 max-w-md mx-auto shadow-xs">
-                    <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-2xl mx-auto shadow-2xs">
-                      🛡️
-                    </div>
-                    <div className="space-y-1.5">
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">Access Restricted</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                        The Team Performance Scoreboard is reserved strictly for Workspace Administrators.
                       </p>
                     </div>
                     <button
