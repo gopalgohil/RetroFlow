@@ -498,7 +498,11 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
             }
           }}
           title={`Delete ${sprintToDelete.name}?`}
-          message={`Are you sure you want to permanently delete "${sprintToDelete.name}"? This action cannot be undone.`}
+          message={`Are you sure you want to permanently delete "${sprintToDelete.name}"? ${
+            sprintToDelete.items && sprintToDelete.items.length > 0
+              ? `This sprint contains ${sprintToDelete.items.length} backlog item(s). `
+              : ''
+          }This action is irreversible and will remove this sprint from the project.`}
           confirmLabel="Delete Sprint"
           cancelLabel="Cancel"
           variant="danger"
