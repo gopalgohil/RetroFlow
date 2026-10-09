@@ -627,10 +627,12 @@ class ProjectService {
       (m) => m.email?.toLowerCase().trim() !== leadEmail
     );
 
-    const leadMemberInPayload = (payload.members || []).find(
-      (m) => m.email?.toLowerCase().trim() === leadEmail
-    );
-    const leadRole = leadMemberInPayload?.role || payload.lead?.role || 'Manager';
+    let creatorUser = null;
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      creatorUser = await User.findById(userId).lean();
+    }
+
+    const creatorEmail = creatorUser?.email?.toLowerCase().trim();
 
     const members = [
       {
@@ -655,6 +657,22 @@ class ProjectService {
         joinedAt: new Date(),
       })),
     ];
+
+    // Ensure creating manager is always recorded as a member if not already lead/member
+    if (
+      creatorEmail &&
+      creatorEmail !== leadEmail &&
+      !members.some((m) => m.email?.toLowerCase().trim() === creatorEmail)
+    ) {
+      members.push({
+        id: `m-creator-${Date.now()}`,
+        name: creatorUser.name || 'Project Manager',
+        email: creatorEmail,
+        role: creatorUser.projectRole || 'Manager',
+        avatar: (creatorUser.name || 'PM').slice(0, 2).toUpperCase(),
+        joinedAt: new Date(),
+      });
+    }
 
     const project = await Project.create({
       name: payload.name.trim(),

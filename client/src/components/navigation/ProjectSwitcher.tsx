@@ -42,15 +42,26 @@ const getProjectManager = (proj: Project | null | undefined) => {
 
 const isUserMemberOfProject = (
   proj: Project | null | undefined,
-  targetUser: { email?: string; role?: string } | null | undefined
+  targetUser: { id?: string; _id?: string; email?: string; role?: string } | null | undefined
 ): boolean => {
   if (!proj || !targetUser) return false;
   const userRole = (targetUser.role || '').toLowerCase();
   const userEmail = (targetUser.email || '').toLowerCase().trim();
+  const userId = targetUser.id || targetUser._id;
   if (userRole === 'admin') return true;
-  if (!userEmail) return false;
-  if (proj.lead?.email?.toLowerCase().trim() === userEmail) return true;
-  return (proj.members || []).some((m) => m.email?.toLowerCase().trim() === userEmail);
+  if (!userEmail && !userId) return false;
+
+  // 1. Check if user is the assigned Project Lead
+  if (userEmail && proj.lead?.email?.toLowerCase().trim() === userEmail) return true;
+
+  // 2. Check if user is the Project Creator
+  const creatorId = typeof proj.createdBy === 'object' ? (proj.createdBy as any)?._id || (proj.createdBy as any)?.id : proj.createdBy;
+  const creatorEmail = typeof proj.createdBy === 'object' ? (proj.createdBy as any)?.email?.toLowerCase().trim() : null;
+  if (userId && creatorId && String(creatorId) === String(userId)) return true;
+  if (userEmail && creatorEmail && creatorEmail === userEmail) return true;
+
+  // 3. Check if user is an assigned team member
+  return (proj.members || []).some((m) => (m.email || '').toLowerCase().trim() === userEmail);
 };
 
 const STORAGE_ACTIVE_PROJ_ID = 'retroflow_active_project_id';
@@ -189,6 +200,15 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
         const savedUser = localStorage.getItem('retroflow_user');
         if (savedUser) setCurrentUser(JSON.parse(savedUser));
+
+        // Re-sync projects list so newly created projects appear in the dropdown immediately
+        ProjectApiService.getProjects(true)
+          .then((list) => {
+            if (Array.isArray(list)) {
+              setProjects(list);
+            }
+          })
+          .catch(() => {});
       } catch {}
     };
 

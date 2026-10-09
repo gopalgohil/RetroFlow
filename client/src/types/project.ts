@@ -104,6 +104,7 @@ export interface Project {
   sprints: Sprint[];
   retrospectives: ProjectRetroLink[];
   velocityHistory: VelocityMetric[];
+  createdBy?: any;
   createdAt: string;
   updatedAt: string;
 }

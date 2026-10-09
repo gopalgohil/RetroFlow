@@ -427,20 +427,46 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     }
 
     setIsSubmitting(true);
-    setErrors((prev) => ({ ...prev, general: undefined }));
+    let currentUserProfile: any = null;
+    try {
+      const savedUser = localStorage.getItem('retroflow_user');
+      if (savedUser) currentUserProfile = JSON.parse(savedUser);
+    } catch {}
 
-    // Determine lead: check if any member was assigned Project Lead or Manager, else default to Gopal
+    // Determine lead: check if any member was assigned Project Lead or Manager, else default to the creating manager
     const designatedLead =
       currentMembers.find((m) => m.role === 'Project Lead') ||
       currentMembers.find((m) => m.role === 'Manager') ||
-      availableLeads[0] || {
-        id: 'lead-primary',
-        name: 'Project Lead',
-        email: '',
-        avatar: 'PL',
-      };
+      (currentUserProfile?.email
+        ? {
+            id: currentUserProfile.id || currentUserProfile._id || 'creator-lead',
+            name: currentUserProfile.name || 'Project Manager',
+            email: currentUserProfile.email,
+            role: 'Manager',
+            avatar: (currentUserProfile.name || 'PM').slice(0, 2).toUpperCase(),
+          }
+        : availableLeads[0] || {
+            id: 'lead-primary',
+            name: 'Project Lead',
+            email: '',
+            avatar: 'PL',
+          });
 
     const cleanLeadName = designatedLead.name.replace(/\s*\(You\)\s*/i, '').trim();
+
+    // Ensure creating manager is always included in project membership
+    const finalMembers = [...currentMembers];
+    if (
+      currentUserProfile?.email &&
+      !finalMembers.some((m) => m.email.toLowerCase().trim() === currentUserProfile.email.toLowerCase().trim()) &&
+      designatedLead.email.toLowerCase().trim() !== currentUserProfile.email.toLowerCase().trim()
+    ) {
+      finalMembers.unshift({
+        name: currentUserProfile.name || 'Project Manager',
+        email: currentUserProfile.email,
+        role: 'Manager',
+      });
+    }
 
     const payload: CreateProjectPayload = {
       name: name.trim(),
@@ -454,7 +480,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         email: designatedLead.email,
         avatar: (designatedLead as any).avatar || cleanLeadName.slice(0, 2).toUpperCase(),
       },
-      members: currentMembers,
+      members: finalMembers,
       cadence: '2_weeks',
       customCadenceDays: 14,
     };
