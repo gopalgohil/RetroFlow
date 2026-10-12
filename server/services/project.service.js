@@ -654,8 +654,19 @@ class ProjectService {
       throw new Error(`Project key "${key}" already exists. Please choose a distinct key.`);
     }
 
-    const leadName = payload.lead?.name?.trim() || currentUser?.name || 'Project Lead';
-    const leadEmail = payload.lead?.email?.toLowerCase().trim() || currentUser?.email || getSuperAdminEmail();
+    let creatorUser = null;
+    let validUserId = null;
+    if (userId && typeof userId === 'object' && userId._id) {
+      creatorUser = userId;
+      validUserId = userId._id;
+    } else if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      validUserId = userId;
+      creatorUser = await User.findById(userId).lean();
+    }
+
+    const leadName = payload.lead?.name?.trim() || creatorUser?.name || 'Project Lead';
+    const leadEmail = payload.lead?.email?.toLowerCase().trim() || creatorUser?.email || getSuperAdminEmail();
+    const leadRole = payload.lead?.role || 'Project Lead';
     const leadAvatar =
       payload.lead?.avatar ||
       leadName
@@ -664,18 +675,13 @@ class ProjectService {
         .join('')
         .toUpperCase()
         .slice(0, 2) ||
-      'GG';
+      'PL';
     const leadId = payload.lead?.id || `lead-${Date.now()}`;
 
     // Filter out if lead email is already in payload.members to avoid duplicate entries
     const otherMembers = (payload.members || []).filter(
       (m) => m.email?.toLowerCase().trim() !== leadEmail
     );
-
-    let creatorUser = null;
-    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
-      creatorUser = await User.findById(userId).lean();
-    }
 
     const creatorEmail = creatorUser?.email?.toLowerCase().trim();
 
@@ -737,7 +743,7 @@ class ProjectService {
       sprints: [],
       retrospectives: [],
       velocityHistory: [],
-      createdBy: mongoose.Types.ObjectId.isValid(userId) ? userId : null,
+      createdBy: validUserId || (mongoose.Types.ObjectId.isValid(userId) ? userId : null),
     });
 
     // Synchronize global projectRole in User collection for any assigned Managers/Leads

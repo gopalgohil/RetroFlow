@@ -443,9 +443,9 @@ function DashboardContent() {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
 
         {/* Top Header */}
-        <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="flex items-center">
+        <header className="px-6 sm:px-10 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
+          <div className="flex items-center pl-3 sm:pl-6">
+            <Link href="/dashboard" className="flex items-center cursor-pointer select-none">
               <Image
                 src="/logo.svg"
                 alt="Logo"
@@ -456,9 +456,6 @@ function DashboardContent() {
                 unoptimized
               />
             </Link>
-            <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wider px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
-              Access Review
-            </span>
           </div>
 
           <div className="flex items-center gap-3">
