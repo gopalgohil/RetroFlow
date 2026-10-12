@@ -147,18 +147,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     [selectedPriority, setSelectedPriority]
   );
 
-  const handleSortFilterChange = useCallback(
-    (newSort: 'dueDate' | 'priority' | 'newest') => {
-      if (newSort === sortBy) return;
-      setIsFilterLoading(true);
-      setSortBy(newSort);
-      setTimeout(() => {
-        setIsFilterLoading(false);
-      }, 320);
-    },
-    [sortBy, setSortBy]
-  );
-
   const handleResetFiltersWithLoader = useCallback(() => {
     setIsFilterLoading(true);
     clearAllFilters();
