@@ -119,6 +119,7 @@ export interface CreateProjectPayload {
     id?: string;
     name: string;
     email: string;
+    role?: ProjectMemberRole;
     avatar?: string;
   };
   members: Array<{

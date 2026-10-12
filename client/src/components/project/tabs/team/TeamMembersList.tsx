@@ -164,16 +164,16 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
                   />
                   <div>
                     <p className="font-bold text-slate-900 dark:text-white">{member.name}</p>
-                    {project.lead.email === member.email && (
+                    {project.lead.email.toLowerCase() === member.email.toLowerCase() && (
                       <span className="text-[10px] text-[#88c958] font-semibold">
-                        Manager
+                        {member.role === 'Project Lead' ? 'Project Lead' : 'Manager'}
                       </span>
                     )}
                   </div>
                 </td>
                 <td className="px-6 py-4 font-medium text-slate-500 dark:text-slate-400">{member.email}</td>
                 <td className="px-6 py-4">
-                  {canManageProject && project.lead.email.toLowerCase() !== member.email.toLowerCase() ? (
+                  {canManageProject ? (
                     <div className="relative inline-block">
                       <select
                         value={member.role}
@@ -192,11 +192,20 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
                         } ${updatingMemberId === member.id ? 'opacity-50 cursor-wait' : ''}`}
                         title="Change project member role dynamically"
                       >
-                        <option value="Developer" className="dark:bg-[#12151c]">Developer</option>
-                        <option value="QA" className="dark:bg-[#12151c]">QA</option>
-                        <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
-                        <option value="DevOps" className="dark:bg-[#12151c]">DevOps</option>
-                        <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
+                        {project.lead.email.toLowerCase() === member.email.toLowerCase() ? (
+                          <>
+                            <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
+                            <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="Developer" className="dark:bg-[#12151c]">Developer</option>
+                            <option value="QA" className="dark:bg-[#12151c]">QA</option>
+                            <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
+                            <option value="DevOps" className="dark:bg-[#12151c]">DevOps</option>
+                            <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
+                          </>
+                        )}
                       </select>
                       <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 text-slate-400 text-[10px]">
                         ▾
@@ -220,9 +229,9 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
                     {project.lead.email.toLowerCase() === member.email.toLowerCase() ? (
                       <span
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 select-none"
-                        title="Designated Project Manager cannot be removed"
+                        title="Designated Project Manager / Lead cannot be removed"
                       >
-                        Manager
+                        {member.role === 'Project Lead' ? 'Lead' : 'Manager'}
                       </span>
                     ) : (
                       <button

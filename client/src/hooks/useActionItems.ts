@@ -45,7 +45,7 @@ export function useActionItems({
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'newest'>('dueDate');
+  const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'newest'>('newest');
 
   // Smart Default: Admin / Manager defaults to true (All Team Items), regular dev defaults to false (My Action Items)
   const [viewAllTeam, setViewAllTeam] = useState<boolean>(() => isElevatedRole);
@@ -225,7 +225,7 @@ export function useActionItems({
     setSelectedProject('all');
     setSelectedStatus('all');
     setSelectedPriority('all');
-    setSortBy('dueDate');
+    setSortBy('newest');
   }, []);
 
   return {

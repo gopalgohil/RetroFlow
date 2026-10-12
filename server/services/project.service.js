@@ -666,7 +666,7 @@ class ProjectService {
 
     const leadName = payload.lead?.name?.trim() || creatorUser?.name || 'Project Lead';
     const leadEmail = payload.lead?.email?.toLowerCase().trim() || creatorUser?.email || getSuperAdminEmail();
-    const leadRole = payload.lead?.role || 'Project Lead';
+    const leadRole = payload.lead?.role || 'Manager';
     const leadAvatar =
       payload.lead?.avatar ||
       leadName

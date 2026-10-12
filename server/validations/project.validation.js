@@ -39,6 +39,7 @@ export const createProjectSchema = z.object({
       id: z.string().optional(),
       name: z.string().min(2, 'Lead name is required'),
       email: z.string().email('Valid lead email is required'),
+      role: z.enum(['Manager', 'Developer', 'QA', 'QA / Tester', 'DevOps', 'Project Lead', 'Viewer']).optional().default('Manager'),
       avatar: z.string().optional(),
     })
     .optional(),

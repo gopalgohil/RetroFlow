@@ -11,8 +11,6 @@ interface ActionItemsFiltersProps {
   projectOptions: Array<{ id: string; key: string; name: string }>;
   selectedPriority: string;
   onPriorityChange: (val: string) => void;
-  sortBy: 'dueDate' | 'priority' | 'newest';
-  onSortChange: (val: 'dueDate' | 'priority' | 'newest') => void;
   selectedStatus: string;
   onStatusChange: (val: string) => void;
   metrics: {
@@ -33,8 +31,6 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
   projectOptions,
   selectedPriority,
   onPriorityChange,
-  sortBy,
-  onSortChange,
   selectedStatus,
   onStatusChange,
   metrics,
@@ -95,20 +91,6 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
               <option value="high">High</option>
               <option value="medium">Medium</option>
               <option value="low">Low</option>
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-
-          {/* Sort Dropdown */}
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={(e) => onSortChange(e.target.value as any)}
-              className="appearance-none pl-3 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/[0.16] focus:outline-hidden cursor-pointer"
-            >
-              <option value="dueDate">Sort: Due Date</option>
-              <option value="priority">Sort: Priority</option>
-              <option value="newest">Sort: Newest First</option>
             </select>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>

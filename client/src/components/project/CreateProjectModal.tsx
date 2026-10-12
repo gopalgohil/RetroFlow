@@ -442,17 +442,19 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             id: currentUserProfile.id || currentUserProfile._id || 'creator-lead',
             name: currentUserProfile.name || 'Project Manager',
             email: currentUserProfile.email,
-            role: 'Manager',
+            role: 'Manager' as ProjectMemberRole,
             avatar: (currentUserProfile.name || 'PM').slice(0, 2).toUpperCase(),
           }
         : availableLeads[0] || {
             id: 'lead-primary',
-            name: 'Project Lead',
+            name: 'Project Manager',
             email: '',
-            avatar: 'PL',
+            role: 'Manager' as ProjectMemberRole,
+            avatar: 'PM',
           });
 
     const cleanLeadName = designatedLead.name.replace(/\s*\(You\)\s*/i, '').trim();
+    const cleanLeadRole = ((designatedLead as any).role || 'Manager') as ProjectMemberRole;
 
     // Ensure creating manager is always included in project membership
     const finalMembers = [...currentMembers];
@@ -478,6 +480,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         id: (designatedLead as any).id || 'lead-primary',
         name: cleanLeadName,
         email: designatedLead.email,
+        role: cleanLeadRole,
         avatar: (designatedLead as any).avatar || cleanLeadName.slice(0, 2).toUpperCase(),
       },
       members: finalMembers,
