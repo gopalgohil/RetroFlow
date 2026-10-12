@@ -185,6 +185,51 @@ const CANONICAL_PGI_PROJECT = {
 
 let hasCheckedSeed = false;
 
+/**
+ * Senior Developer Grade Assignee Matching
+ * Prevents loose substring false-positives (e.g. 'Raj' matching 'Rajesh').
+ * Prioritizes exact email match, exact name match, word token match, and @handle match.
+ */
+function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, contextText = '') {
+  const tEmail = (targetEmail || '').toLowerCase().trim();
+  const tName = (targetName || '').toLowerCase().trim();
+  if (!tEmail && !tName) return false;
+
+  const aEmail = (assigneeEmail || '').toLowerCase().trim();
+  const aName = (assigneeName || '').toLowerCase().trim();
+
+  // 1. Exact Email Match (Gold Standard)
+  if (aEmail && tEmail && aEmail === tEmail) return true;
+
+  // 2. Exact Full Name Match
+  if (aName && tName) {
+    if (aName === tName) return true;
+
+    // Word tokens check: "Gopal Gohel" matches "Gopal", but "Raj" does NOT match "Rajesh"
+    const aWords = aName.split(/\s+/).filter(Boolean);
+    const tWords = tName.split(/\s+/).filter(Boolean);
+    if (aWords.some((w) => w === tName) || tWords.some((w) => w === aName)) {
+      return true;
+    }
+  }
+
+  // 3. Explicit @handle mention in text (e.g. "@Gopal" or "@drashti")
+  if (contextText) {
+    const textLower = contextText.toLowerCase();
+    if (tName && (textLower.includes(`@${tName}`) || textLower.includes(`@ ${tName}`))) {
+      return true;
+    }
+    if (tEmail) {
+      const emailPrefix = tEmail.split('@')[0];
+      if (emailPrefix && (textLower.includes(`@${emailPrefix}`) || textLower.includes(`@ ${emailPrefix}`))) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 class ProjectService {
   /**
    * Automatically seed project check - disabled to prevent dummy project re-creation
@@ -1298,38 +1343,48 @@ class ProjectService {
 
     if (!sprint) throw new Error('No target sprint found to receive action items');
 
-    const newItems = items.map((item) => ({
-      id: `act-${crypto.randomUUID().slice(0, 8)}`,
-      title: item.title.trim(),
-      description:
-        item.description?.trim() ||
-        `Originated from Retrospective: "${item.sourceRetroTitle || 'Retro Session'}"`,
-      type: 'action_item',
-      priority: item.priority || 'high',
-      status: 'todo',
-      storyPoints: typeof item.storyPoints === 'number' ? item.storyPoints : 3,
-      assignee: item.assignee?.name
-        ? {
-            name: item.assignee.name.trim(),
-            email: item.assignee.email ? item.assignee.email.toLowerCase().trim() : undefined,
-            avatar:
-              item.assignee.avatar ||
-              item.assignee.name
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2),
-          }
-        : undefined,
-      sourceRetroId: item.sourceRetroId,
-      sourceRetroTitle: item.sourceRetroTitle,
-      createdAt: new Date(),
-    }));
+    const newItems = items.map((item) => {
+      const itemStatus = ['todo', 'in_progress', 'done'].includes(item.status) ? item.status : 'todo';
+      const storyPointsNum = typeof item.storyPoints === 'number'
+        ? item.storyPoints
+        : (Number(item.storyPoints) || 3);
+
+      return {
+        id: `act-${crypto.randomUUID().slice(0, 8)}`,
+        title: item.title.trim(),
+        description:
+          item.description?.trim() ||
+          `Originated from Retrospective: "${item.sourceRetroTitle || 'Retro Session'}"`,
+        type: 'action_item',
+        priority: item.priority || 'high',
+        status: itemStatus,
+        completedAt: itemStatus === 'done' ? new Date() : null,
+        storyPoints: storyPointsNum,
+        assignee: item.assignee?.name
+          ? {
+              name: item.assignee.name.trim(),
+              email: item.assignee.email ? item.assignee.email.toLowerCase().trim() : undefined,
+              avatar:
+                item.assignee.avatar ||
+                item.assignee.name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .toUpperCase()
+                  .slice(0, 2),
+            }
+          : undefined,
+        sourceRetroId: item.sourceRetroId,
+        sourceRetroTitle: item.sourceRetroTitle,
+        createdAt: new Date(),
+      };
+    });
 
     sprint.items.push(...newItems);
-    const addedPoints = newItems.reduce((acc, it) => acc + (it.storyPoints || 0), 0);
-    sprint.totalStoryPoints += addedPoints;
+    sprint.totalStoryPoints = sprint.items.reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
+    sprint.completedStoryPoints = sprint.items
+      .filter((it) => it.status === 'done')
+      .reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
 
     // Mark retro link as exported if retro link exists
     if (items[0]?.sourceRetroId) {
@@ -1373,7 +1428,9 @@ class ProjectService {
       isAdmin ||
       userRole === 'manager' ||
       userRole?.includes('manager') ||
-      userProjectRole === 'manager';
+      userProjectRole === 'manager' ||
+      userRole?.includes('lead') ||
+      userProjectRole?.toLowerCase().includes('lead');
 
     const fetchAll = (options.all === true || options.all === 'true') && isManager;
 
@@ -1392,6 +1449,7 @@ class ProjectService {
     const projects = await Project.find(projectQuery).lean();
     const actionItems = [];
     const seenCardIds = new Set();
+    const normalizeKey = (str) => (str ? str.toString().toLowerCase().trim() : '');
 
     // Collect action items from project sprints
     for (const proj of projects) {
@@ -1403,19 +1461,20 @@ class ProjectService {
           if (!fetchAll) {
             if (!userEmail && !userName) continue;
 
-            const assigneeEmail = item.assignee?.email?.toLowerCase().trim();
-            const assigneeName = item.assignee?.name?.toLowerCase().trim();
-
-            const isAssigned =
-              (assigneeEmail && userEmail && assigneeEmail === userEmail) ||
-              (assigneeName && userName && (assigneeName === userName || assigneeName.includes(userName) || userName.includes(assigneeName)));
+            const isAssigned = matchesAssignee(
+              item.assignee?.email,
+              item.assignee?.name,
+              userEmail,
+              userName,
+              item.title
+            );
 
             if (!isAssigned) continue;
           }
 
           if (item.sourceRetroId) {
-            seenCardIds.add(item.id);
-            seenCardIds.add(`${item.sourceRetroId}-${item.title}`);
+            seenCardIds.add(normalizeKey(item.id));
+            seenCardIds.add(`${normalizeKey(item.sourceRetroId)}-${normalizeKey(item.title)}`);
           }
 
           actionItems.push({
@@ -1467,24 +1526,18 @@ class ProjectService {
           continue;
         }
 
-        // Prevent duplicate if already exported to a sprint backlog
-        if (seenCardIds.has(card.cardId) || seenCardIds.has(`${retro._id.toString()}-${card.text}`)) {
+        const cardIdNorm = normalizeKey(card.cardId);
+        const cardTextNorm = normalizeKey(card.text);
+        const retroIdNorm = normalizeKey(retro._id.toString());
+        const retroShareNorm = normalizeKey(retro.shareToken);
+
+        // Prevent duplicate if already exported to a sprint backlog (case-insensitive & robust)
+        if (
+          seenCardIds.has(cardIdNorm) ||
+          seenCardIds.has(`${retroIdNorm}-${cardTextNorm}`) ||
+          (retroShareNorm && seenCardIds.has(`${retroShareNorm}-${cardTextNorm}`))
+        ) {
           continue;
-        }
-
-        if (!fetchAll) {
-          if (!userEmail && !userName) continue;
-
-          const authorEmail = card.authorEmail?.toLowerCase().trim();
-          const authorName = card.author?.toLowerCase().trim();
-          const cardText = (card.text || '').toLowerCase();
-
-          const isAssigned =
-            (authorEmail && userEmail && authorEmail === userEmail) ||
-            (authorName && userName && (authorName === userName || authorName.includes(userName) || userName.includes(authorName))) ||
-            (userName && cardText.includes(`@${userName}`));
-
-          if (!isAssigned) continue;
         }
 
         const matchingProject = projects.find(
@@ -1492,6 +1545,40 @@ class ProjectService {
             (retro.projectId && (p._id.toString() === retro.projectId.toString() || p.id === retro.projectId.toString())) ||
             (retro.projectKey && p.key?.toUpperCase() === retro.projectKey.toUpperCase())
         );
+
+        // Intelligent Assignee Resolution: Check @mention in card.text vs card.author
+        let directAssigneeName = card.author || 'Assigned Member';
+        let directAssigneeEmail = card.authorEmail || undefined;
+
+        const mentionMatch = (card.text || '').match(/@([a-zA-Z0-9._-]+)/);
+        if (mentionMatch) {
+          const mentionedHandle = mentionMatch[1].toLowerCase().trim();
+          const matchedMember = (matchingProject?.members || []).find(
+            (m) =>
+              (m.email && m.email.toLowerCase().includes(mentionedHandle)) ||
+              (m.name && m.name.toLowerCase().includes(mentionedHandle))
+          );
+          if (matchedMember) {
+            directAssigneeName = matchedMember.name;
+            directAssigneeEmail = matchedMember.email;
+          } else {
+            directAssigneeName = mentionMatch[1].trim();
+          }
+        }
+
+        if (!fetchAll) {
+          if (!userEmail && !userName) continue;
+
+          const isAssigned = matchesAssignee(
+            directAssigneeEmail,
+            directAssigneeName,
+            userEmail,
+            userName,
+            card.text
+          );
+
+          if (!isAssigned) continue;
+        }
 
         actionItems.push({
           id: card.cardId,
@@ -1503,9 +1590,9 @@ class ProjectService {
           dueDate: card.dueDate || (retro.scheduledDate ? new Date(new Date(retro.scheduledDate).getTime() + 7 * 86400000).toISOString().split('T')[0] : null),
           storyPoints: 3,
           assignee: {
-            name: card.author || 'Assigned Member',
-            email: card.authorEmail || undefined,
-            avatar: (card.author || 'U').slice(0, 2).toUpperCase(),
+            name: directAssigneeName,
+            email: directAssigneeEmail,
+            avatar: directAssigneeName.slice(0, 2).toUpperCase(),
           },
           sourceRetroId: retro._id.toString(),
           sourceRetroTitle: retro.title,
@@ -1589,11 +1676,14 @@ class ProjectService {
 
   /**
    * Update the status of an action item (whether in sprint backlog or direct retro card)
+   * Engineered with Full Bi-directional synchronization between Sprints and Retro Boards.
    */
   async updateActionItemStatus(itemId, status, currentUser = null) {
     if (!['todo', 'in_progress', 'done'].includes(status)) {
       throw new Error(`Invalid status "${status}". Allowed: todo, in_progress, done`);
     }
+
+    const normStatus = status;
 
     // 1. Search in Project Sprints
     const project = await Project.findOne({ 'sprints.items.id': itemId });
@@ -1601,15 +1691,40 @@ class ProjectService {
       for (const sprint of project.sprints) {
         const item = sprint.items.find((i) => i.id === itemId);
         if (item) {
-          item.status = status;
-          if (status === 'done') {
-            item.completedAt = new Date();
-          }
-          // Recalculate completedStoryPoints
+          item.status = normStatus;
+          item.completedAt = normStatus === 'done' ? new Date() : null;
+
+          // Safe numeric story points recalculation
           sprint.completedStoryPoints = sprint.items
             .filter((i) => i.status === 'done')
-            .reduce((acc, i) => acc + (i.storyPoints || 0), 0);
+            .reduce((acc, i) => acc + (Number(i.storyPoints) || 0), 0);
           await project.save();
+
+          // Bi-directional Sync: Synchronize matching card in RetroBoard if linked
+          if (item.sourceRetroId) {
+            try {
+              const retroQuery = mongoose.isValidObjectId(item.sourceRetroId)
+                ? { _id: item.sourceRetroId }
+                : { shareToken: item.sourceRetroId };
+              const retro = await RetroBoard.findOne(retroQuery);
+              if (retro) {
+                const normTitle = (item.title || '').toLowerCase().trim();
+                const matchedCard = retro.cards.find(
+                  (c) =>
+                    c.cardId === itemId ||
+                    (c.text && c.text.toLowerCase().trim() === normTitle)
+                );
+                if (matchedCard) {
+                  matchedCard.status = normStatus;
+                  matchedCard.updatedAt = new Date();
+                  await retro.save();
+                }
+              }
+            } catch (syncErr) {
+              console.warn('[updateActionItemStatus] Retro sync note:', syncErr.message);
+            }
+          }
+
           return { item, type: 'sprint_item', projectKey: project.key };
         }
       }
@@ -1620,9 +1735,45 @@ class ProjectService {
     if (retro) {
       const card = retro.cards.find((c) => c.cardId === itemId);
       if (card) {
-        card.status = status;
+        card.status = normStatus;
         card.updatedAt = new Date();
         await retro.save();
+
+        // Bi-directional Sync: Synchronize matching item in Project sprint backlog
+        try {
+          const normText = (card.text || '').toLowerCase().trim();
+          const linkedProject = await Project.findOne({
+            $or: [
+              { 'sprints.items.id': itemId },
+              { 'sprints.items.sourceRetroId': retro._id.toString() },
+              { 'sprints.items.sourceRetroId': retro.shareToken },
+            ],
+          });
+          if (linkedProject) {
+            let itemUpdated = false;
+            for (const sp of linkedProject.sprints) {
+              const spItem = sp.items.find(
+                (it) =>
+                  it.id === itemId ||
+                  (it.title && it.title.toLowerCase().trim() === normText)
+              );
+              if (spItem) {
+                spItem.status = normStatus;
+                spItem.completedAt = normStatus === 'done' ? new Date() : null;
+                sp.completedStoryPoints = sp.items
+                  .filter((i) => i.status === 'done')
+                  .reduce((acc, i) => acc + (Number(i.storyPoints) || 0), 0);
+                itemUpdated = true;
+              }
+            }
+            if (itemUpdated) {
+              await linkedProject.save();
+            }
+          }
+        } catch (syncErr) {
+          console.warn('[updateActionItemStatus] Project sprint sync note:', syncErr.message);
+        }
+
         return { item: card, type: 'retro_card', retroTitle: retro.title };
       }
     }

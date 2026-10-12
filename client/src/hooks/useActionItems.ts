@@ -13,8 +13,21 @@ export interface UseActionItemsOptions {
 }
 
 export function useActionItems({
+  user,
+  isAdmin = false,
+  isManager = false,
   onActionItemsCountChange,
 }: UseActionItemsOptions = {}) {
+  const isElevatedRole = Boolean(
+    isAdmin ||
+    isManager ||
+    user?.role === 'admin' ||
+    user?.role?.includes('manager') ||
+    user?.projectRole?.toLowerCase().includes('manager') ||
+    user?.role?.includes('lead') ||
+    user?.projectRole?.toLowerCase().includes('lead')
+  );
+
   const [items, setItems] = useState<EnrichedActionItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
@@ -33,7 +46,18 @@ export function useActionItems({
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'newest'>('dueDate');
-  const [viewAllTeam, setViewAllTeam] = useState<boolean>(false);
+
+  // Smart Default: Admin / Manager defaults to true (All Team Items), regular dev defaults to false (My Action Items)
+  const [viewAllTeam, setViewAllTeam] = useState<boolean>(() => isElevatedRole);
+
+  // Auto-sync if user role hydrates asynchronously
+  const hasHydratedRoleRef = useRef(false);
+  useEffect(() => {
+    if (!hasHydratedRoleRef.current && isElevatedRole) {
+      setViewAllTeam(true);
+      hasHydratedRoleRef.current = true;
+    }
+  }, [isElevatedRole]);
 
   const notify = useCallback((msg: string) => {
     setToastFeedback(msg);
