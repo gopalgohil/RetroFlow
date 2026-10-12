@@ -112,11 +112,11 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
       }`}
     >
       {/* Left: Task Action Index & Content */}
-      <div className="flex items-start gap-3.5 flex-1 min-w-0">
+      <div className="flex items-start gap-4 flex-1 min-w-0">
         {/* Item Number (Plain dark number) */}
         {typeof displayIndex === 'number' && (
           <span
-            className={`text-sm sm:text-base font-extrabold select-none shrink-0 tabular-nums min-w-[20px] pt-0.5 ${
+            className={`text-base sm:text-lg font-black select-none shrink-0 tabular-nums min-w-[24px] pt-0.5 ${
               isDone
                 ? 'text-slate-400 dark:text-slate-500'
                 : 'text-slate-900 dark:text-slate-100'
@@ -129,12 +129,12 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
         {/* Task Title, Priority & Clean Sub-row */}
         <div className="space-y-2 flex-1 min-w-0">
           {/* Main Task Row */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <h4
-              className={`text-sm font-bold tracking-tight select-text ${
+              className={`text-base sm:text-[17px] font-bold tracking-tight select-text leading-snug ${
                 isDone
                   ? 'line-through text-slate-400 dark:text-slate-500 font-medium'
-                  : 'text-slate-900 dark:text-slate-100'
+                  : 'text-slate-900 dark:text-white'
               }`}
             >
               {item.title}
@@ -142,26 +142,26 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
 
             {/* Clean Priority Pill with colored dot */}
             <span
-              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border leading-none shrink-0 ${priorityMeta.pill}`}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border leading-none shrink-0 ${priorityMeta.pill}`}
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${priorityMeta.dot}`} />
+              <span className={`w-2 h-2 rounded-full ${priorityMeta.dot}`} />
               <span>{priorityMeta.label}</span>
             </span>
           </div>
 
           {/* Optional Custom Description */}
           {item.description && !item.description.startsWith('Action item originated from Retrospective') && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
               {item.description}
             </p>
           )}
 
           {/* Clean Sub-Metadata Row */}
-          <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex flex-wrap items-center gap-2.5 pt-0.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             {/* Project Pill */}
             {item.projectKey && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.06]">
-                <FolderKanban className="w-3 h-3 text-slate-400" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]">
+                <FolderKanban className="w-3.5 h-3.5 text-slate-500" />
                 <span>{item.projectKey}</span>
               </span>
             )}
@@ -171,16 +171,16 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               item.sourceRetroShareToken ? (
                 <Link
                   href={`/retro/${item.sourceRetroShareToken}`}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#3d8318] dark:text-[#88c958] hover:underline transition-colors max-w-[240px] truncate"
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#3d8318] dark:text-[#88c958] hover:underline transition-colors max-w-[280px] truncate"
                   title="Go to retrospective board"
                 >
-                  <Sparkles className="w-3 h-3 text-[#5cb028] dark:text-[#88c958] shrink-0" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] shrink-0" />
                   <span className="truncate">{item.sourceRetroTitle}</span>
-                  <ExternalLink className="w-2.5 h-2.5 opacity-60 shrink-0" />
+                  <ExternalLink className="w-3 h-3 opacity-60 shrink-0" />
                 </Link>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#3d8318] dark:text-[#88c958] max-w-[240px] truncate">
-                  <Sparkles className="w-3 h-3 text-[#5cb028] dark:text-[#88c958] shrink-0" />
+                <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#3d8318] dark:text-[#88c958] max-w-[280px] truncate">
+                  <Sparkles className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] shrink-0" />
                   <span className="truncate">{item.sourceRetroTitle}</span>
                 </span>
               )
@@ -191,9 +191,9 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               <>
                 <span className="text-slate-300 dark:text-white/20">•</span>
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] border font-medium ${urgency.className}`}
+                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs border font-semibold ${urgency.className}`}
                 >
-                  <Calendar className="w-3 h-3" />
+                  <Calendar className="w-3.5 h-3.5" />
                   <span>{urgency.label}</span>
                 </span>
               </>
@@ -203,7 +203,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
       </div>
 
       {/* Right: Status Dropdown & Assignee */}
-      <div className="flex items-center justify-between md:justify-end gap-3 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-white/[0.08] shrink-0">
+      <div className="flex items-center justify-between md:justify-end gap-3.5 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-white/[0.08] shrink-0">
         <div className="relative">
           <select
             value={item.status}
@@ -214,7 +214,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
                 e.target.value as 'todo' | 'in_progress' | 'done'
               )
             }
-            className={`appearance-none pl-3 pr-7 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+            className={`appearance-none pl-3.5 pr-8 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-colors cursor-pointer ${
               isDone
                 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
                 : isInProgress
@@ -222,23 +222,23 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
                 : 'bg-slate-50 dark:bg-[#12151c] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/[0.08] hover:bg-slate-100 dark:hover:bg-[#181b24]'
             }`}
           >
-            <option value="todo" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">To Do</option>
-            <option value="in_progress" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">In Progress</option>
-            <option value="done" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Done</option>
+            <option value="todo" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">To Do</option>
+            <option value="in_progress" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">In Progress</option>
+            <option value="done" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">Done</option>
           </select>
-          <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
 
         {item.assignee?.name && (
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100/80 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] text-xs text-slate-700 dark:text-slate-300"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] text-xs sm:text-sm text-slate-800 dark:text-slate-200 shadow-2xs"
             title={`Assigned to ${item.assignee.name}`}
           >
-            <div className="w-5 h-5 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-[10px] font-bold flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-bold flex items-center justify-center shrink-0">
               {item.assignee.avatar ||
                 item.assignee.name.slice(0, 1).toUpperCase()}
             </div>
-            <span className="font-semibold text-[11px] truncate max-w-[90px]">
+            <span className="font-bold text-xs sm:text-sm truncate max-w-[120px]">
               {item.assignee.name}
             </span>
           </div>
