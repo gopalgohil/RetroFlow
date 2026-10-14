@@ -4,8 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import {
   Calendar,
-  CheckCircle2,
-  Sparkles,
   ArrowUpRight,
   Share2,
   Check,
@@ -13,7 +11,6 @@ import {
   Trash2,
 } from 'lucide-react';
 import { ProjectRetroLink } from '@/types/project';
-import { StatusPill } from '@/components/ui';
 import { formatDateDMY } from '@/lib/dateUtils';
 
 export interface RetroCardProps {
@@ -39,24 +36,21 @@ export const RetroCard: React.FC<RetroCardProps> = ({
 }) => {
   const isActive = retro.status === 'active';
 
+  const start = retro.startDate || retro.scheduledDate;
+  const end = retro.endDate;
+  const dateDisplay =
+    start && end
+      ? `${formatDateDMY(start)} – ${formatDateDMY(end)}`
+      : formatDateDMY(start || retro.scheduledDate);
+
   return (
     <div className="group p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
       <div className="space-y-3">
-        {/* Status & Sprint Badge & Date */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <StatusPill status={retro.status} pulse={isActive} />
-
-            {retro.sprintName && (
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#88c958]/15 text-[#88c958] border border-[#88c958]/30">
-                {retro.sprintName}
-              </span>
-            )}
-          </div>
-
+        {/* Date on Right Side */}
+        <div className="flex items-center justify-end">
           <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1">
             <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
-            {formatDateDMY(retro.scheduledDate)}
+            {dateDisplay}
           </span>
         </div>
 
@@ -85,21 +79,6 @@ export const RetroCard: React.FC<RetroCardProps> = ({
               {retro.actionItemsCount || 0} Items
             </span>
           </div>
-        </div>
-
-        {/* Export Link Status */}
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
-          {retro.actionItemsExported ? (
-            <span className="text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              Action items exported into sprint backlog
-            </span>
-          ) : (
-            <span className="text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
-              Pending export to next sprint backlog
-            </span>
-          )}
         </div>
       </div>
 

@@ -43,17 +43,8 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
           </div>
         </div>
 
-        {/* Right: Story points, Assignee, Status Select Dropdown, Delete Action */}
+        {/* Right: Assignee, Status Select Dropdown, Delete Action */}
         <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-          {item.storyPoints !== undefined && (
-            <span
-              className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#141720] text-slate-600 dark:text-slate-300 font-mono text-[10px] font-bold border border-slate-200 dark:border-white/[0.08]"
-              title="Story Points"
-            >
-              {item.storyPoints} pts
-            </span>
-          )}
-
           {item.assignee && (
             <div className="flex items-center gap-1.5">
               <UserAvatar name={item.assignee.name} avatar={item.assignee.avatar} size="xs" />

@@ -3,13 +3,15 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Project, ProjectRetroLink } from '@/types/project';
+import { RetroBoard, CreateRetroPayload } from '@/types/retro';
 import { StatusPill, UserAvatar } from '@/components/ui';
 import { ShareInviteModal, ShareInviteSession } from '@/components/dashboard/ShareInviteModal';
+import { CustomizeRetroModal } from '@/components/dashboard/CustomizeRetroModal';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
+import { api } from '@/lib/api';
 import { RetroCard } from './RetroCard';
 import { RetrosPagination } from './RetrosPagination';
-import { EditRetroModal } from './EditRetroModal';
 import { DeleteRetroModal } from './DeleteRetroModal';
 
 export interface RetrosTabProps {
@@ -33,12 +35,9 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
   const [invitingSession, setInvitingSession] = useState<ShareInviteSession | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
 
-  // Edit Modal State
-  const [editingRetro, setEditingRetro] = useState<ProjectRetroLink | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editSprintName, setEditSprintName] = useState('');
-  const [editScheduledDate, setEditScheduledDate] = useState('');
-  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  // Edit Retrospective via CustomizeRetroModal (Full Builder/Customizer)
+  const [editingBoard, setEditingBoard] = useState<RetroBoard | null>(null);
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
 
   // Delete Modal State
   const [deletingRetro, setDeletingRetro] = useState<ProjectRetroLink | null>(null);
@@ -57,58 +56,88 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
   const paginatedRetros = retrosList.slice(startIndex, endIndex);
 
-  // Open Edit Modal
-  const handleOpenEdit = (retro: ProjectRetroLink) => {
-    setEditingRetro(retro);
-    setEditTitle(retro.title);
-    setEditSprintName(retro.sprintName || '');
-    setEditScheduledDate(
-      retro.scheduledDate
-        ? new Date(retro.scheduledDate).toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0]
-    );
+  // Open Edit Modal with full RetroBoard data
+  const handleOpenEdit = async (retro: ProjectRetroLink) => {
+    const identifier = retro.id || retro.shareToken;
+    try {
+      const res = await api.get(`/api/retros/${identifier}`);
+      const board = res.data?.data || res.data;
+      if (board && (board._id || board.title)) {
+        setEditingBoard(board);
+      } else {
+        throw new Error('Invalid board response');
+      }
+    } catch (err) {
+      console.warn('[RetrosTab] Could not fetch live retro board, using fallback:', err);
+      const fallbackBoard: RetroBoard = {
+        _id: retro.id,
+        title: retro.title,
+        scheduledDate: retro.scheduledDate,
+        startDate: retro.startDate || retro.scheduledDate,
+        endDate: retro.endDate || null,
+        status: retro.status,
+        shareToken: retro.shareToken,
+        approvalRequired: false,
+        revealMode: false,
+        votingLimit: 1,
+        backgroundTheme: 'standard',
+        topics: [
+          { topicId: 'topic-1', title: 'What went well?', description: 'Things we are happy or proud of', icon: 'smile', color: '#10B981', order: 0 },
+          { topicId: 'topic-2', title: 'What could be improved?', description: 'Blockers, frictions, or slowdowns', icon: 'frown', color: '#F43F5E', order: 1 },
+          { topicId: 'topic-3', title: 'Action Items', description: 'Concrete tasks for the next sprint', icon: 'target', color: '#0EA5E9', order: 2 },
+        ],
+        approvedMembers: (project.members || []).map((m) => m.email),
+        projectId: project.id,
+        projectKey: project.key,
+        sprintName: retro.sprintName,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setEditingBoard(fallbackBoard);
+    }
+    setIsCustomizeOpen(true);
   };
 
-  // Submit Edit
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingRetro || !editTitle.trim()) return;
+  // Submit Edit via PUT /api/retros/:id and project sync
+  const handleSaveCustomize = async (payload: CreateRetroPayload) => {
+    if (!editingBoard) return;
+    const identifier = editingBoard._id || editingBoard.shareToken;
 
-    setIsSavingEdit(true);
     try {
-      const payload = {
-        title: editTitle.trim(),
-        sprintName: editSprintName.trim(),
-        scheduledDate: editScheduledDate,
-      };
-
-      const updated = await ProjectApiService.updateProjectRetro(
-        project.id,
-        editingRetro.id || editingRetro.shareToken,
-        payload
-      );
-
-      if (onProjectUpdated && updated) {
-        onProjectUpdated(updated);
+      await api.put(`/api/retros/${identifier}`, payload);
+      // Synchronize full project model
+      const updatedProject = await ProjectApiService.getProjectById(project.id, true);
+      if (updatedProject && onProjectUpdated) {
+        onProjectUpdated(updatedProject);
       }
-      setEditingRetro(null);
     } catch (err) {
-      console.warn('[RetrosTab] Update via API fallback:', err);
-      const fallback = ProjectDataService.updateProjectRetro(
-        project.id,
-        editingRetro.id || editingRetro.shareToken,
-        {
-          title: editTitle.trim(),
-          sprintName: editSprintName.trim(),
-          scheduledDate: editScheduledDate,
+      console.warn('[RetrosTab] PUT retro failed, falling back to project API & local cache:', err);
+      try {
+        const updated = await ProjectApiService.updateProjectRetro(project.id, identifier, {
+          title: payload.title,
+          scheduledDate: payload.scheduledDate,
+          startDate: payload.startDate,
+          endDate: payload.endDate,
+          sprintName: payload.sprintName,
+        });
+        if (updated && onProjectUpdated) {
+          onProjectUpdated(updated);
         }
-      );
-      if (fallback && onProjectUpdated) {
-        onProjectUpdated(fallback);
+      } catch {
+        const fallback = ProjectDataService.updateProjectRetro(project.id, identifier, {
+          title: payload.title,
+          scheduledDate: payload.scheduledDate,
+          startDate: payload.startDate,
+          endDate: payload.endDate,
+          sprintName: payload.sprintName,
+        });
+        if (fallback && onProjectUpdated) {
+          onProjectUpdated(fallback);
+        }
       }
-      setEditingRetro(null);
     } finally {
-      setIsSavingEdit(false);
+      setIsCustomizeOpen(false);
+      setEditingBoard(null);
     }
   };
 
@@ -243,18 +272,22 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         />
       )}
 
-      {/* 5. Edit Retrospective Modal */}
-      <EditRetroModal
-        retro={editingRetro}
-        editTitle={editTitle}
-        editSprintName={editSprintName}
-        editScheduledDate={editScheduledDate}
-        isSaving={isSavingEdit}
-        onTitleChange={setEditTitle}
-        onSprintNameChange={setEditSprintName}
-        onDateChange={setEditScheduledDate}
-        onClose={() => setEditingRetro(null)}
-        onSave={handleSaveEdit}
+      {/* 5. Customize & Edit Retrospective Modal (TeamRetro Builder) */}
+      <CustomizeRetroModal
+        isOpen={isCustomizeOpen}
+        onClose={() => {
+          setIsCustomizeOpen(false);
+          setEditingBoard(null);
+        }}
+        onSave={handleSaveCustomize}
+        initialData={editingBoard}
+        projectContext={{
+          id: project.id,
+          name: project.name,
+          key: project.key,
+          sprintName: editingBoard?.sprintName || `Sprint ${project.retrospectives?.length || 0}`,
+          members: project.members || [],
+        }}
       />
 
       {/* 6. Delete Retrospective Confirmation Modal */}

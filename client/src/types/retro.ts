@@ -34,6 +34,8 @@ export interface RetroBoard {
   title: string;
   description?: string;
   scheduledDate: string;
+  startDate?: string | null;
+  endDate?: string | null;
   status: 'draft' | 'active' | 'completed';
   shareToken: string;
   approvalRequired: boolean;
@@ -67,6 +69,8 @@ export interface CreateRetroPayload {
   title: string;
   description?: string;
   scheduledDate?: string;
+  startDate?: string | null;
+  endDate?: string | null;
   status?: 'draft' | 'active' | 'completed';
   approvalRequired?: boolean;
   revealMode?: boolean;

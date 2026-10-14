@@ -50,6 +50,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     projectRole?: string;
     isApproved?: boolean;
   }>(DEFAULT_WORKSPACE_USER);
+  const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -71,7 +72,10 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        if (parsed && (parsed.email || parsed.name)) setUser(parsed);
+        if (parsed && (parsed.email || parsed.name)) {
+          setUser(parsed);
+          setIsAuthReady(true);
+        }
       } catch {}
     }
 
@@ -102,11 +106,16 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
               localStorage.setItem('retroflow_rejected', 'true');
             } catch {}
           }
+        })
+        .finally(() => {
+          setIsAuthReady(true);
         });
     };
 
     if (!isRejectedFlag) {
       syncProfile();
+    } else {
+      setIsAuthReady(true);
     }
   }, [router]);
 
@@ -609,6 +618,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
 
   return {
     user,
+    isAuthReady,
     toastMessage,
     showToast,
     // Sessions

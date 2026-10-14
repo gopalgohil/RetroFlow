@@ -169,6 +169,8 @@ const projectRetroLinkSchema = new mongoose.Schema(
     shareToken: { type: String, required: true },
     title: { type: String, required: true, trim: true },
     scheduledDate: { type: String, default: () => new Date().toISOString().split('T')[0] },
+    startDate: { type: String, default: null },
+    endDate: { type: String, default: null },
     status: {
       type: String,
       enum: ['active', 'completed', 'draft'],

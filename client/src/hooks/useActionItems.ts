@@ -9,6 +9,7 @@ export interface UseActionItemsOptions {
   user?: { name: string; email: string; role?: string; projectRole?: string } | null;
   isAdmin?: boolean;
   isManager?: boolean;
+  canMarkDone?: boolean;
   onActionItemsCountChange?: (count: number) => void;
 }
 
@@ -16,6 +17,7 @@ export function useActionItems({
   user,
   isAdmin = false,
   isManager = false,
+  canMarkDone = false,
   onActionItemsCountChange,
 }: UseActionItemsOptions = {}) {
   const isElevatedRole = Boolean(
@@ -29,7 +31,9 @@ export function useActionItems({
   );
 
   const [items, setItems] = useState<EnrichedActionItem[]>([]);
+  const [baseItems, setBaseItems] = useState<EnrichedActionItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [toastFeedback, setToastFeedback] = useState<string | null>(null);
 
@@ -39,9 +43,11 @@ export function useActionItems({
     onActionItemsCountChangeRef.current = onActionItemsCountChange;
   }, [onActionItemsCountChange]);
 
-  // Filter & Search states
+  // Filter & Search states (Enterprise backend search with 300ms debounce)
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 350);
+  const debouncedSearch = useDebounce(searchQuery, 300);
+  const isSearching = searchQuery.trim() !== debouncedSearch.trim();
+
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
@@ -64,25 +70,30 @@ export function useActionItems({
     setTimeout(() => setToastFeedback(null), 3000);
   }, []);
 
-
-  // 2. Fetch action items with backend search & team toggle
+  // 2. Fetch action items directly via backend search API & team toggle
   const loadActionItems = useCallback(async () => {
     setIsLoading(true);
     const startTime = Date.now();
     try {
+      const trimmedSearch = debouncedSearch.trim();
       const data = await ProjectApiService.getMyActionItems({
         all: viewAllTeam,
-        search: debouncedSearch.trim() ? debouncedSearch.trim() : undefined,
+        search: trimmedSearch ? trimmedSearch : undefined,
       });
       setItems(data || []);
+      // If no search filter is active, update base items for persistent overall KPI metrics
+      if (!trimmedSearch) {
+        setBaseItems(data || []);
+      }
     } catch (err) {
       console.error('[useActionItems] Load action items error:', err);
     } finally {
       const elapsed = Date.now() - startTime;
-      if (elapsed < 350) {
-        await new Promise((resolve) => setTimeout(resolve, 350 - elapsed));
+      if (elapsed < 300) {
+        await new Promise((resolve) => setTimeout(resolve, 300 - elapsed));
       }
       setIsLoading(false);
+      setIsInitialLoading(false);
     }
   }, [viewAllTeam, debouncedSearch]);
 
@@ -104,11 +115,20 @@ export function useActionItems({
     ) => {
       if (item.status === newStatus || updatingItemId === item.id) return;
 
+      // Strict Role Check: Developer, QA, Project Leader, DevOps cannot mark items as Done
+      if (newStatus === 'done' && !canMarkDone) {
+        notify('Only Workspace Admin or Manager can mark action items as Done.');
+        return;
+      }
+
       const prevStatus = item.status;
       setUpdatingItemId(item.id);
 
       // Optimistic update
       setItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, status: newStatus } : i))
+      );
+      setBaseItems((prev) =>
         prev.map((i) => (i.id === item.id ? { ...i, status: newStatus } : i))
       );
 
@@ -131,40 +151,83 @@ export function useActionItems({
         setItems((prev) =>
           prev.map((i) => (i.id === item.id ? { ...i, status: prevStatus } : i))
         );
+        setBaseItems((prev) =>
+          prev.map((i) => (i.id === item.id ? { ...i, status: prevStatus } : i))
+        );
         notify('Failed to update status. Please try again.');
       } finally {
         setUpdatingItemId(null);
       }
     },
-    [updatingItemId, notify]
+    [updatingItemId, notify, canMarkDone]
   );
 
   const handleCycleStatus = useCallback(
     (item: EnrichedActionItem) => {
-      const nextStatus: Record<string, 'todo' | 'in_progress' | 'done'> = {
-        todo: 'in_progress',
-        in_progress: 'done',
-        done: 'todo',
-      };
+      const nextStatus: Record<string, 'todo' | 'in_progress' | 'done'> = canMarkDone
+        ? {
+            todo: 'in_progress',
+            in_progress: 'done',
+            done: 'todo',
+          }
+        : {
+            todo: 'in_progress',
+            in_progress: 'todo',
+            done: 'todo',
+          };
       handleStatusChange(item, nextStatus[item.status] || 'todo');
     },
-    [handleStatusChange]
+    [handleStatusChange, canMarkDone]
   );
 
-  // Derived KPI Metrics
+  // 1. Scoped source items for KPI Metrics (Scoped to the selected project, or all projects if 'all')
+  const projectScopedBaseItems = useMemo(() => {
+    const source = baseItems.length > 0 ? baseItems : items;
+    if (selectedProject === 'all') return source;
+    const pKey = selectedProject.toLowerCase();
+    return source.filter(
+      (i) =>
+        i.projectKey?.toLowerCase() === pKey ||
+        i.projectId?.toLowerCase() === pKey
+    );
+  }, [baseItems, items, selectedProject]);
+
+  // Derived KPI Metrics (Maintains accurate project/global health)
   const metrics = useMemo(() => {
-    const total = items.length;
-    const todo = items.filter((i) => i.status === 'todo').length;
-    const inProgress = items.filter((i) => i.status === 'in_progress').length;
-    const done = items.filter((i) => i.status === 'done').length;
+    const total = projectScopedBaseItems.length;
+    const todo = projectScopedBaseItems.filter((i) => i.status === 'todo').length;
+    const inProgress = projectScopedBaseItems.filter((i) => i.status === 'in_progress').length;
+    const done = projectScopedBaseItems.filter((i) => i.status === 'done').length;
     const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
     return { total, todo, inProgress, done, completionRate };
-  }, [items]);
+  }, [projectScopedBaseItems]);
 
-  // Project selector options derived directly from active action items
+  // Status Filter tabs counts (Scoped to selected project, priority, and search results)
+  const statusCounts = useMemo(() => {
+    let source = debouncedSearch.trim() ? items : projectScopedBaseItems;
+    if (debouncedSearch.trim() && selectedProject !== 'all') {
+      const pKey = selectedProject.toLowerCase();
+      source = source.filter(
+        (i) =>
+          i.projectKey?.toLowerCase() === pKey ||
+          i.projectId?.toLowerCase() === pKey
+      );
+    }
+    if (selectedPriority !== 'all') {
+      source = source.filter((i) => i.priority === selectedPriority);
+    }
+    const total = source.length;
+    const todo = source.filter((i) => i.status === 'todo').length;
+    const inProgress = source.filter((i) => i.status === 'in_progress').length;
+    const done = source.filter((i) => i.status === 'done').length;
+    return { total, todo, inProgress, done };
+  }, [debouncedSearch, items, projectScopedBaseItems, selectedProject, selectedPriority]);
+
+  // Project selector options derived from active base items so options don't vanish during search
   const projectOptions = useMemo(() => {
+    const source = baseItems.length > 0 ? baseItems : items;
     const map = new Map<string, { id: string; key: string; name: string }>();
-    items.forEach((it) => {
+    source.forEach((it) => {
       if (it.projectKey && !map.has(it.projectKey.toUpperCase())) {
         map.set(it.projectKey.toUpperCase(), {
           id: it.projectId || it.projectKey,
@@ -174,9 +237,9 @@ export function useActionItems({
       }
     });
     return Array.from(map.values());
-  }, [items]);
+  }, [baseItems, items]);
 
-  // Filtered & Sorted items (text search is handled directly by backend API)
+  // Filtered & Sorted items (search query is executed directly by the backend API)
   const filteredItems = useMemo(() => {
     let result = [...items];
 
@@ -211,7 +274,7 @@ export function useActionItems({
     });
 
     return result;
-  }, [items, searchQuery, selectedProject, selectedStatus, selectedPriority, sortBy]);
+  }, [items, selectedProject, selectedStatus, selectedPriority, sortBy]);
 
   const hasActiveFilters = Boolean(
     searchQuery ||
@@ -228,13 +291,19 @@ export function useActionItems({
     setSortBy('newest');
   }, []);
 
+  const baseTotalCount = baseItems.length || items.length;
+
   return {
     items,
+    baseTotalCount,
     filteredItems,
     isLoading,
+    isInitialLoading,
+    isSearching,
     updatingItemId,
     toastFeedback,
     metrics,
+    statusCounts,
     projectOptions,
     searchQuery,
     setSearchQuery,

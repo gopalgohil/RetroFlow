@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import {
   Calendar,
+  Clock,
   Sparkles,
   FolderKanban,
   ChevronDown,
@@ -16,6 +17,7 @@ interface ActionItemCardProps {
   displayIndex?: number;
   isUpdating: boolean;
   onStatusChange: (item: EnrichedActionItem, status: 'todo' | 'in_progress' | 'done') => void;
+  canMarkDone?: boolean;
 }
 
 const PRIORITY_CONFIG: Record<
@@ -49,6 +51,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
   displayIndex,
   isUpdating,
   onStatusChange,
+  canMarkDone = false,
 }) => {
   const isDone = item.status === 'done';
   const isInProgress = item.status === 'in_progress';
@@ -91,13 +94,45 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
       };
     }
     return {
-      label: new Date(item.dueDate).toLocaleDateString('en-US', {
+      label: `Due: ${new Date(item.dueDate).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
-      }),
+      })}`,
       className: 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.04] border-slate-200/70 dark:border-white/[0.06]',
     };
   }, [item.dueDate, isDone]);
+
+  // Calculate Assigned Date
+  const assignedDateFormatted = React.useMemo(() => {
+    const rawDate = item.assignedAt || item.createdAt;
+    if (!rawDate) return null;
+    try {
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return null;
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch {
+      return null;
+    }
+  }, [item.assignedAt, item.createdAt]);
+
+  const assignedDateFull = React.useMemo(() => {
+    const rawDate = item.assignedAt || item.createdAt;
+    if (!rawDate) return '';
+    try {
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return '';
+    }
+  }, [item.assignedAt, item.createdAt]);
 
   const priorityMeta = PRIORITY_CONFIG[item.priority] || PRIORITY_CONFIG.medium;
 
@@ -186,14 +221,29 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               )
             )}
 
+            {/* Assigned Date Badge */}
+            {assignedDateFormatted && (
+              <>
+                <span className="text-slate-300 dark:text-white/20">•</span>
+                <span
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]"
+                  title={assignedDateFull ? `Assigned on ${assignedDateFull}` : undefined}
+                >
+                  <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-400 shrink-0" />
+                  <span>Assigned: {assignedDateFormatted}</span>
+                </span>
+              </>
+            )}
+
             {/* Due Date Badge */}
             {urgency && (
               <>
                 <span className="text-slate-300 dark:text-white/20">•</span>
                 <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs border font-semibold ${urgency.className}`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs border font-semibold ${urgency.className}`}
+                  title={item.dueDate ? `Due date: ${item.dueDate}` : undefined}
                 >
-                  <Calendar className="w-3.5 h-3.5" />
+                  <Calendar className="w-3.5 h-3.5 shrink-0" />
                   <span>{urgency.label}</span>
                 </span>
               </>
@@ -207,24 +257,36 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
         <div className="relative">
           <select
             value={item.status}
-            disabled={isUpdating}
+            disabled={isUpdating || (!canMarkDone && isDone)}
             onChange={(e) =>
               onStatusChange(
                 item,
                 e.target.value as 'todo' | 'in_progress' | 'done'
               )
             }
-            className={`appearance-none pl-3.5 pr-8 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-colors cursor-pointer ${
+            className={`appearance-none pl-3.5 pr-8 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-colors ${
+              !canMarkDone && isDone ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'
+            } ${
               isDone
                 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
                 : isInProgress
                 ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-500/30 hover:bg-sky-100 dark:hover:bg-sky-950/60'
                 : 'bg-slate-50 dark:bg-[#12151c] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/[0.08] hover:bg-slate-100 dark:hover:bg-[#181b24]'
             }`}
+            title={
+              !canMarkDone && isDone
+                ? 'Only Admin or Manager can modify completed action items'
+                : undefined
+            }
           >
             <option value="todo" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">To Do</option>
             <option value="in_progress" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">In Progress</option>
-            <option value="done" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">Done</option>
+            {canMarkDone && (
+              <option value="done" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">Done</option>
+            )}
+            {!canMarkDone && isDone && (
+              <option value="done" disabled className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">Done</option>
+            )}
           </select>
           <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>

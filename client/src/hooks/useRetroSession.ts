@@ -106,7 +106,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
                   setIsNamePromptOpen(false);
                   return;
                 }
-              } catch {}
+              } catch { }
             }
 
             const storedUser = localStorage.getItem('retroflow_user');
@@ -119,7 +119,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
                   setIsNamePromptOpen(false);
                   return;
                 }
-              } catch {}
+              } catch { }
             }
 
             setIsNamePromptOpen(true);
@@ -136,7 +136,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
           const u = JSON.parse(storedUser);
           setCurrentUser(u);
           setParticipantName(u.name);
-        } catch {}
+        } catch { }
       } else if (storedGuest) {
         try {
           const parsed = JSON.parse(storedGuest);
@@ -177,7 +177,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
               localStorage.setItem('retroflow_user', JSON.stringify(profile));
             }
           })
-          .catch(() => {});
+          .catch(() => { });
       }
     }
 

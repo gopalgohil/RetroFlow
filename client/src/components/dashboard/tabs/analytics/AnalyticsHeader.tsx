@@ -1,13 +1,16 @@
 'use client';
 
 import React from 'react';
-import { BarChart3, FolderKanban, ChevronDown, RefreshCw } from 'lucide-react';
+import { BarChart3, FolderKanban, ChevronDown, RefreshCw, CalendarDays } from 'lucide-react';
 import { ProjectOption } from './types';
 
 interface AnalyticsHeaderProps {
   projects: ProjectOption[];
   selectedProjectId: string;
   onProjectChange: (projectId: string) => void;
+  availableYears?: number[];
+  selectedYear?: number;
+  onYearChange?: (year: number) => void;
   onRefresh: () => void;
   isLoading: boolean;
   isRefreshing: boolean;
@@ -17,12 +20,15 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
   projects,
   selectedProjectId,
   onProjectChange,
+  availableYears = [new Date().getFullYear()],
+  selectedYear = new Date().getFullYear(),
+  onYearChange,
   onRefresh,
   isLoading,
   isRefreshing,
 }) => {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
+    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
       {/* Title & Badge */}
       <div className="space-y-1">
         <div className="flex items-center gap-2.5">
@@ -41,10 +47,10 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
         </p>
       </div>
 
-      {/* Project Selector & Refresh Controls */}
+      {/* Project Selector, Year Selector & Refresh Controls */}
       <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
         {/* Multi-Project Filter Dropdown */}
-        <div className="relative min-w-[200px] sm:min-w-[240px]">
+        <div className="relative min-w-[200px] sm:min-w-[230px]">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
             <FolderKanban className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
           </div>
@@ -59,6 +65,27 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
             {projects?.map((proj) => (
               <option key={proj.id} value={proj.id} className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">
                 {proj.name} ({proj.key}) • {proj.memberCount} members
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        </div>
+
+        {/* Year Filter Dropdown */}
+        <div className="relative min-w-[110px] sm:min-w-[125px]">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+            <CalendarDays className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
+          </div>
+          <select
+            value={selectedYear}
+            onChange={(e) => onYearChange?.(Number(e.target.value))}
+            disabled={isLoading}
+            title="Filter analytics by year"
+            className="w-full appearance-none pl-9 pr-8 py-2.5 rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18] text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all cursor-pointer shadow-2xs disabled:opacity-50"
+          >
+            {availableYears?.map((yr) => (
+              <option key={yr} value={yr} className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">
+                Year {yr}
               </option>
             ))}
           </select>

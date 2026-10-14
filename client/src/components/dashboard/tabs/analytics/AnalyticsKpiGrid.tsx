@@ -70,7 +70,7 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
       <div className="p-5 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3 relative overflow-hidden group hover:border-[#88c958]/40 transition-colors">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Total Retros
+            Total Retros {summary.selectedYear ? `(${summary.selectedYear})` : ''}
           </span>
           <div className="w-8 h-8 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center">
             <Calendar className="w-4 h-4" />
@@ -82,6 +82,9 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
           </span>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
             Active in <span className="font-semibold text-slate-700 dark:text-slate-300">{selectedProjectName}</span>
+            {summary.allTimeRetros !== undefined && summary.allTimeRetros !== summary.totalRetros && (
+              <span className="block text-[10px] text-slate-400 mt-0.5">({summary.allTimeRetros} all-time sessions)</span>
+            )}
           </p>
         </div>
         <p className="text-[11px] text-slate-400 dark:text-slate-500">

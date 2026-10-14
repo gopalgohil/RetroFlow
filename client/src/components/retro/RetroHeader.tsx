@@ -4,7 +4,7 @@ import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Eye, EyeOff, Share2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Share2, Sparkles, Lock } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export interface RetroHeaderProps {
@@ -22,6 +22,7 @@ export interface RetroHeaderProps {
   projectKey?: string;
   sprintName?: string;
   userRole?: string;
+  isClosed?: boolean;
   onToggleReveal: () => void;
   onOpenInvite: () => void;
   onEndSession?: () => void;
@@ -46,6 +47,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
   projectKey,
   sprintName,
   userRole,
+  isClosed = false,
   onToggleReveal,
   onOpenInvite,
   onEndSession,
@@ -120,6 +122,12 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
             <h1 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               {title}
             </h1>
+            {isClosed && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 shrink-0">
+                <Lock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                Closed
+              </span>
+            )}
           </div>
           {description && (
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-md truncate">{description}</p>

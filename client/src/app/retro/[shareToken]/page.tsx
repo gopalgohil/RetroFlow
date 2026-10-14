@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, use } from 'react';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, Lock } from 'lucide-react';
 import { useRetroSession } from '@/hooks/useRetroSession';
 import {
   RetroHeader,
@@ -49,6 +49,11 @@ export default function LiveRetroBoardPage({
     return <RetroNotFound error={session.error} isFacilitator={session.isFacilitator} />;
   }
 
+  const isClosed = Boolean(
+    session.retro?.status === 'completed' ||
+    (session.retro?.endDate && new Date(session.retro.endDate).setHours(23, 59, 59, 999) < Date.now())
+  );
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex flex-col font-sans selection:bg-[#88c958] selection:text-[#08090a]">
       {/* 1. Modular Session Navigation Header */}
@@ -67,6 +72,7 @@ export default function LiveRetroBoardPage({
         projectKey={session.retro.projectKey}
         sprintName={session.retro.sprintName}
         userRole={session.effectiveUserRole}
+        isClosed={isClosed}
         onToggleReveal={() => session.setIsRevealed((prev) => !prev)}
         onOpenInvite={() => setIsInviteModalOpen(true)}
         onEndSession={
@@ -78,6 +84,22 @@ export default function LiveRetroBoardPage({
             : undefined
         }
       />
+
+      {/* Closed Session Banner */}
+      {isClosed && (
+        <div className="bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800/40 px-4 py-2 sm:px-6 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span className="font-bold">Retrospective Session Closed (Read-Only)</span>
+            <span className="hidden sm:inline text-amber-700/80 dark:text-amber-300/80">
+              — This retrospective reached its ending date. New feedback is locked.
+            </span>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-200/80 dark:bg-amber-900/60 text-amber-950 dark:text-amber-100 border border-amber-300 dark:border-amber-700">
+            Closed
+          </span>
+        </div>
+      )}
 
       {/* 2. Responsive Retrospective Columns Board Canvas */}
       <main className="flex-1 p-3 sm:p-4 md:p-5 overflow-x-auto w-full">
@@ -102,6 +124,7 @@ export default function LiveRetroBoardPage({
                   canManageActionItems={session.canExportToSprint}
                   canMoveCrossColumn={session.canMoveCrossColumn}
                   activeDragTopicId={activeDragTopicId}
+                  isClosed={isClosed}
                   onDragCardStart={(_cardId, topicId) => setActiveDragTopicId(topicId)}
                   onDragCardEnd={() => setActiveDragTopicId(null)}
                   onCrossColumnRejected={handleCrossColumnRejected}

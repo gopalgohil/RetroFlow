@@ -59,34 +59,14 @@ function ProjectDetailContent() {
   const projectId = (params?.projectId as string) || 'proj-pgi';
   const tabParam = searchParams.get('tab') || 'overview';
 
-  const [project, setProject] = useState<Project | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed?.id === projectId || parsed?.key?.toLowerCase() === projectId.toLowerCase()) {
-            return parsed;
-          }
-        }
-      } catch {}
-    }
-    return ProjectDataService.getProjectById(projectId) || null;
-  });
+  const [project, setProject] = useState<Project | null>(null);
   const [currentUser, setCurrentUser] = useState<{
     name: string;
     email: string;
     role?: string;
     projectRole?: string;
-  } | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('retroflow_user');
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return null;
-  });
+  } | null>(null);
+  const [isClientMounted, setIsClientMounted] = useState(false);
   const [accessDeniedError, setAccessDeniedError] = useState<string | null>(null);
   const [projectNotFoundError, setProjectNotFoundError] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'sprints' | 'retros' | 'team'>(
@@ -99,6 +79,10 @@ function ProjectDetailContent() {
   const [isTabTransitioning, setIsTabTransitioning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSessionsCount, setActiveSessionsCount] = useState<number>(0);
+
+  useEffect(() => {
+    setIsClientMounted(true);
+  }, []);
 
   // Dynamically sync live active retrospective sessions count for sidebar
   useEffect(() => {
@@ -457,6 +441,12 @@ function ProjectDetailContent() {
           scheduledDate: createdRetro.scheduledDate
             ? new Date(createdRetro.scheduledDate).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],
+          startDate: createdRetro.startDate
+            ? new Date(createdRetro.startDate).toISOString().split('T')[0]
+            : (payload.startDate ? new Date(payload.startDate).toISOString().split('T')[0] : null),
+          endDate: createdRetro.endDate
+            ? new Date(createdRetro.endDate).toISOString().split('T')[0]
+            : (payload.endDate ? new Date(payload.endDate).toISOString().split('T')[0] : null),
           status: (createdRetro.status || 'active') as 'active' | 'completed' | 'draft',
           sprintName: createdRetro.sprintName || detectedSprintName,
           topicsCount: createdRetro.topics?.length || payload.topics.length,
@@ -549,15 +539,11 @@ function ProjectDetailContent() {
 
   // 1. Link sharing (Project link & Retro links)
   // Admin, Manager, and Project Lead CAN share; Developer, QA, DevOps STRICTLY CANNOT share
-  const canShare = Boolean((isWorkspaceAdmin || isManager || isProjectLead) && !isDevOrQAOrDevOps);
+  const canShare = Boolean(isClientMounted && (isWorkspaceAdmin || isManager || isProjectLead) && !isDevOrQAOrDevOps);
 
   // 2. Project deletion (Danger Zone)
   // Workspace Admin and Manager ONLY; Project Lead STRICTLY CANNOT delete project
   const canDeleteProject = Boolean(isWorkspaceAdmin || isManager);
-
-  // 2.1 Sprint deletion
-  // Workspace Admin and Manager ONLY
-  const canDeleteSprint = Boolean(isWorkspaceAdmin || isManager);
 
   // 3. Retro creation
   // Admin, Manager, and Project Lead CAN create retro; Developer, QA, DevOps CANNOT
@@ -948,7 +934,6 @@ function ProjectDetailContent() {
                       project={project}
                       onProjectUpdated={(up) => setProject({ ...up })}
                       canManageProject={canManageProject}
-                      canDeleteSprint={canDeleteSprint}
                     />
                   )}
 

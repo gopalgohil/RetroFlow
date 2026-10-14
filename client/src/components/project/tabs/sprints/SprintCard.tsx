@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Calendar, Clock, Check, ChevronDown, ChevronUp, Pencil, Trash2, RotateCcw } from 'lucide-react';
+import { Calendar, Clock, Check, ChevronDown, ChevronUp, Pencil, RotateCcw } from 'lucide-react';
 import { Sprint } from '@/types/project';
 import { StatusPill, ProgressBar } from '@/components/ui';
 import { formatDateDMY } from '@/lib/dateUtils';
@@ -89,7 +89,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
               <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                 {sprint.name}
               </h4>
-              <StatusPill status={sprint.status} />
+              {sprint.status !== 'active' && <StatusPill status={sprint.status} />}
             </div>
 
             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl line-clamp-1">
@@ -172,20 +172,6 @@ export const SprintCard: React.FC<SprintCardProps> = ({
                   </button>
                 )}
               </div>
-            )}
-
-            {canDeleteSprint && onDeleteSprint && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteSprint(sprint);
-                }}
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 border border-transparent hover:border-rose-200 dark:hover:border-rose-500/20 cursor-pointer"
-                title="Delete Sprint (Admin / Manager only)"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
             )}
 
             <button

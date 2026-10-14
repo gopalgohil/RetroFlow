@@ -433,7 +433,7 @@ export class ProjectDataService {
   public static updateProjectRetro(
     projectId: string,
     retroId: string,
-    payload: { title?: string; scheduledDate?: string; sprintName?: string }
+    payload: { title?: string; scheduledDate?: string; startDate?: string | null; endDate?: string | null; sprintName?: string }
   ): Project | null {
     const projects = this.getStoredProjects();
     const projIndex = projects.findIndex((p) => p.id === projectId);
@@ -446,6 +446,8 @@ export class ProjectDataService {
           ...r,
           ...(payload.title ? { title: payload.title } : {}),
           ...(payload.scheduledDate ? { scheduledDate: payload.scheduledDate } : {}),
+          ...(payload.startDate !== undefined ? { startDate: payload.startDate } : {}),
+          ...(payload.endDate !== undefined ? { endDate: payload.endDate } : {}),
           ...(payload.sprintName ? { sprintName: payload.sprintName } : {}),
         };
       }

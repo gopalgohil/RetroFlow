@@ -4,3 +4,4 @@ export * from './ActionItemsTab';
 export * from './MembersTab';
 export * from './SettingsTab';
 export * from './AnalyticsTab';
+export * from './analytics/AnalyticsSkeleton';

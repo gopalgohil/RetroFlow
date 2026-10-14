@@ -168,6 +168,14 @@ const retroBoardSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    startDate: {
+      type: Date,
+      default: null,
+    },
+    endDate: {
+      type: Date,
+      default: null,
+    },
     status: {
       type: String,
       enum: ['draft', 'active', 'completed'],

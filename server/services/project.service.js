@@ -442,6 +442,15 @@ class ProjectService {
 
           const topicsCount = (liveBoard.topics || []).length;
 
+          if (liveBoard.startDate && (!retroItem.startDate || retroItem.startDate !== new Date(liveBoard.startDate).toISOString().split('T')[0])) {
+            retroItem.startDate = new Date(liveBoard.startDate).toISOString().split('T')[0];
+            hasChanges = true;
+          }
+          if (liveBoard.endDate && (!retroItem.endDate || retroItem.endDate !== new Date(liveBoard.endDate).toISOString().split('T')[0])) {
+            retroItem.endDate = new Date(liveBoard.endDate).toISOString().split('T')[0];
+            hasChanges = true;
+          }
+
           if (
             retroItem.cardsCount !== totalCards ||
             retroItem.actionItemsCount !== actionItemsCount ||
@@ -1496,6 +1505,7 @@ class ProjectService {
             sprintName: sprint.name,
             sprintStatus: sprint.status,
             isDirectRetroCard: false,
+            createdAt: item.createdAt || proj.createdAt || new Date().toISOString(),
           });
         }
       }
@@ -1689,6 +1699,26 @@ class ProjectService {
       throw new Error(`Invalid status "${status}". Allowed: todo, in_progress, done`);
     }
 
+    if (status === 'done' && currentUser) {
+      const userRole = (currentUser.role || '').toLowerCase().trim();
+      const userProjectRole = (currentUser.projectRole || '').toLowerCase().trim();
+      const userEmail = (currentUser.email || '').toLowerCase().trim();
+
+      const isAdmin = userRole === 'admin' || isSuperAdmin(userEmail);
+      const isManager =
+        isAdmin ||
+        userRole === 'manager' ||
+        userRole.includes('manager') ||
+        userProjectRole === 'manager' ||
+        userProjectRole.includes('manager');
+
+      if (!isManager) {
+        const error = new Error('Only Admin or Project Manager can mark action items as Completed.');
+        error.statusCode = 403;
+        throw error;
+      }
+    }
+
     const normStatus = status;
 
     // 1. Search in Project Sprints
@@ -1737,9 +1767,21 @@ class ProjectService {
     }
 
     // 2. Search in RetroBoard cards
-    const retro = await RetroBoard.findOne({ 'cards.cardId': itemId });
+    const retroQueryConditions = [
+      { 'cards.cardId': itemId },
+      { 'cards.id': itemId },
+    ];
+    if (mongoose.isValidObjectId(itemId)) {
+      retroQueryConditions.push({ 'cards._id': itemId });
+    }
+    const retro = await RetroBoard.findOne({ $or: retroQueryConditions });
     if (retro) {
-      const card = retro.cards.find((c) => c.cardId === itemId);
+      const card = retro.cards.find(
+        (c) =>
+          c.cardId === itemId ||
+          c.id === itemId ||
+          (c._id && c._id.toString() === itemId)
+      );
       if (card) {
         card.status = normStatus;
         card.updatedAt = new Date();
@@ -1905,6 +1947,8 @@ class ProjectService {
 
     if (payload.title) retro.title = payload.title.trim();
     if (payload.scheduledDate) retro.scheduledDate = payload.scheduledDate;
+    if (payload.startDate !== undefined) retro.startDate = payload.startDate;
+    if (payload.endDate !== undefined) retro.endDate = payload.endDate;
     if (payload.sprintName) retro.sprintName = payload.sprintName.trim();
     if (payload.status) retro.status = payload.status;
 
@@ -1912,16 +1956,18 @@ class ProjectService {
 
     // Also update RetroBoard document if present
     try {
+      const updateFields = {
+        title: retro.title,
+        scheduledDate: retro.scheduledDate,
+        sprintName: retro.sprintName,
+        status: retro.status,
+      };
+      if (payload.startDate !== undefined) updateFields.startDate = payload.startDate;
+      if (payload.endDate !== undefined) updateFields.endDate = payload.endDate;
+
       await RetroBoard.updateOne(
         { $or: [{ _id: retroIdOrToken }, { shareToken: retroIdOrToken }] },
-        {
-          $set: {
-            title: retro.title,
-            scheduledDate: retro.scheduledDate,
-            sprintName: retro.sprintName,
-            status: retro.status,
-          },
-        }
+        { $set: updateFields }
       );
     } catch {}
 

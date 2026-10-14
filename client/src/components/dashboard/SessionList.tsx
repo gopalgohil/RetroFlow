@@ -324,7 +324,11 @@ export const SessionList: React.FC<SessionListProps> = ({
 
                 <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 dark:text-slate-500">
                   <Calendar className="w-3.5 h-3.5" />
-                  <span>{formatDate(session.scheduledDate || session.createdAt)}</span>
+                  <span>
+                    {session.startDate && session.endDate
+                      ? `${formatDate(session.startDate)} – ${formatDate(session.endDate)}`
+                      : formatDate(session.scheduledDate || session.createdAt)}
+                  </span>
                 </div>
               </div>
 

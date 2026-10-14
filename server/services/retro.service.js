@@ -116,6 +116,12 @@ class RetroService {
           scheduledDate: retro.scheduledDate
             ? new Date(retro.scheduledDate).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],
+          startDate: retro.startDate
+            ? new Date(retro.startDate).toISOString().split('T')[0]
+            : null,
+          endDate: retro.endDate
+            ? new Date(retro.endDate).toISOString().split('T')[0]
+            : null,
           status: retro.status || 'active',
           sprintName: sprintLabel || 'Sprint Active',
           topicsCount: retro.topics.length,
@@ -680,6 +686,12 @@ class RetroService {
             $set: {
               'retrospectives.$.title': retro.title,
               'retrospectives.$.scheduledDate': retro.scheduledDate,
+              'retrospectives.$.startDate': retro.startDate
+                ? new Date(retro.startDate).toISOString().split('T')[0]
+                : null,
+              'retrospectives.$.endDate': retro.endDate
+                ? new Date(retro.endDate).toISOString().split('T')[0]
+                : null,
               'retrospectives.$.status': retro.status,
             },
           }
@@ -1568,7 +1580,7 @@ class RetroService {
    * Dedicated Retrospective Attendance & Participation Analytics for Managers & Admins
    * Multi-Project filtering, sprint attendance trends, and member-by-member engagement metrics
    */
-  async getRetroAnalytics(user, { projectId = 'all' } = {}) {
+  async getRetroAnalytics(user, { projectId = 'all', year = null } = {}) {
     const userEmail = (user.email || '').toLowerCase().trim();
     const isAdmin = user.role === 'admin' || isSuperAdmin(userEmail);
 
@@ -1583,13 +1595,13 @@ class RetroService {
               { members: { $elemMatch: { email: userEmail, role: { $regex: /manager|lead/i } } } },
             ],
           },
-      'name key members lead retrospectives'
+      'name key members lead retrospectives sprints'
     ).lean();
 
     // If manager has no directly assigned project, allow viewing all workspace projects for high-level oversight
     const projectsList = allProjects.length > 0
       ? allProjects
-      : await Project.find({}, 'name key members lead retrospectives').lean();
+      : await Project.find({}, 'name key members lead retrospectives sprints').lean();
 
     // Helper to calculate deduplicated members count for a project
     const getProjectUniqueMemberCount = (p) => {
@@ -1821,17 +1833,209 @@ class RetroService {
         });
       }
 
+      // Action cards detection matching strictly the Action Items column on retro board
+      const actionTopicIds = new Set();
+      (r.topics || []).forEach((t) => {
+        const titleLower = (t.title || '').toLowerCase();
+        if (
+          titleLower.includes('action') ||
+          titleLower.includes('deliverable') ||
+          t.icon === 'target' ||
+          (t.topicId && t.topicId.toLowerCase().includes('action')) ||
+          t.topicId === 'topic-3'
+        ) {
+          actionTopicIds.add(t.topicId);
+        }
+      });
+
+      const actionCards = (r.cards || []).filter((c) => {
+        // 1. Must belong to the Action Items topic column
+        if (c.topicId && actionTopicIds.has(c.topicId)) {
+          return true;
+        }
+        // 2. Explicit action item type
+        if (c.type === 'action_item') {
+          return true;
+        }
+        // 3. Explicit action tag prefix
+        const textLower = (c.text || '').toLowerCase().trim();
+        return (
+          textLower.startsWith('action:') ||
+          textLower.startsWith('[action]') ||
+          textLower.startsWith('todo:')
+        );
+      });
+
+      const completedCount = actionCards.filter((c) => c.status === 'done').length;
+      const inProgressCount = actionCards.filter((c) => c.status === 'in_progress').length;
+      const todoCount = actionCards.filter((c) => c.status === 'todo' || (!c.status && c.status !== 'done')).length;
+      const pendingCount = actionCards.length - completedCount;
+      const completionRate = actionCards.length > 0 ? Math.round((completedCount / actionCards.length) * 100) : 0;
+
+      const linkedProject = projectsList.find(
+        (p) =>
+          (r.projectId && p._id.toString() === r.projectId.toString()) ||
+          (r.projectKey && p.key.toUpperCase() === r.projectKey.toUpperCase())
+      );
+
+      // Dynamically resolve Manager / Project Lead for this project
+      const projectManager =
+        linkedProject?.members?.find(
+          (m) => m.role === 'Manager' || m.role === 'Project Lead'
+        ) || linkedProject?.lead;
+
+      const dynamicManagerName =
+        projectManager?.name ||
+        linkedProject?.lead?.name ||
+        r.ownerName ||
+        'Project Manager';
+
+      const dynamicManagerEmail =
+        projectManager?.email ||
+        linkedProject?.lead?.email ||
+        null;
+
+      const sprintItems = (linkedProject?.sprints || []).flatMap((s) => s.items || []);
+
+      // Extract unique assignees for this retro's action items
+      const assigneesMap = new Map();
+      actionCards.forEach((c) => {
+        const matchedSprintItem = sprintItems.find(
+          (si) =>
+            si.id === c.cardId ||
+            (si.sourceRetroId === r._id.toString() && si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()) ||
+            si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()
+        );
+
+        let email = (
+          c.assignedToEmail ||
+          matchedSprintItem?.assignee?.email ||
+          (c.assignedTo && c.assignedTo.includes('@') ? c.assignedTo : '') ||
+          ''
+        ).toLowerCase().trim();
+
+        let name =
+          c.assignedToName ||
+          c.assignee ||
+          matchedSprintItem?.assignee?.name ||
+          (c.assignedTo && !c.assignedTo.includes('@') ? c.assignedTo : null) ||
+          (email ? email.split('@')[0] : null);
+
+        // Intelligent fallback: check if card text mentions any project member
+        if (!name && linkedProject?.members) {
+          const textLower = (c.text || '').toLowerCase();
+          const matchedMember = linkedProject.members.find((m) => {
+            const mName = (m.name || '').toLowerCase().trim();
+            const mHandle = (m.email || '').split('@')[0].toLowerCase().trim();
+            return (mName && textLower.includes(mName)) || (mHandle && textLower.includes(mHandle));
+          });
+          if (matchedMember) {
+            name = matchedMember.name;
+            email = (matchedMember.email || '').toLowerCase().trim();
+          }
+        }
+
+        if (name && name !== 'Unassigned') {
+          const key = email || name.toLowerCase();
+          if (!assigneesMap.has(key)) {
+            assigneesMap.set(key, {
+              name,
+              email: email || null,
+              avatar: name.slice(0, 2).toUpperCase(),
+            });
+          }
+        }
+      });
+
+      // Formatted list of action items with Given By (Manager) and Assigned To (Member)
+      const itemsList = actionCards.map((c) => {
+        const matchedSprintItem = sprintItems.find(
+          (si) =>
+            si.id === c.cardId ||
+            (si.sourceRetroId === r._id.toString() && si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()) ||
+            si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()
+        );
+
+        let assignedName =
+          c.assignedToName ||
+          c.assignee ||
+          matchedSprintItem?.assignee?.name ||
+          (c.assignedTo && !c.assignedTo.includes('@') ? c.assignedTo : null);
+
+        let assignedEmail =
+          c.assignedToEmail ||
+          matchedSprintItem?.assignee?.email ||
+          (c.assignedTo && c.assignedTo.includes('@') ? c.assignedTo : null);
+
+        // Intelligent fallback: check if card text mentions any project member
+        if (!assignedName && linkedProject?.members) {
+          const textLower = (c.text || '').toLowerCase();
+          const matchedMember = linkedProject.members.find((m) => {
+            const mName = (m.name || '').toLowerCase().trim();
+            const mHandle = (m.email || '').split('@')[0].toLowerCase().trim();
+            return (mName && textLower.includes(mName)) || (mHandle && textLower.includes(mHandle));
+          });
+          if (matchedMember) {
+            assignedName = matchedMember.name;
+            assignedEmail = matchedMember.email;
+          }
+        }
+
+        return {
+          id: c.cardId || (c._id ? c._id.toString() : Math.random().toString()),
+          text: c.text || 'Action Item',
+          status: matchedSprintItem?.status || c.status || 'todo',
+          assignedToName: assignedName && assignedName !== 'Unassigned' ? assignedName : null,
+          assignedToEmail: assignedEmail || null,
+          assignedDate: c.assignedDate || c.assignedAt || c.createdAt || null,
+          dueDate: c.dueDate || matchedSprintItem?.dueDate || null,
+          author: c.author || null,
+          givenBy: dynamicManagerName,
+          managerName: dynamicManagerName,
+        };
+      });
+
+      const rDate = r.scheduledDate || r.startDate || r.createdAt;
+      const rDateObj = rDate ? new Date(rDate) : new Date();
+      const retroYear = !isNaN(rDateObj.getTime()) ? rDateObj.getFullYear() : new Date().getFullYear();
+
+      const pRetro = (linkedProject?.retrospectives || []).find(
+        (pr) => pr.id === r._id.toString() || pr.shareToken === r.shareToken
+      );
+      const effectiveEndDate = r.endDate || pRetro?.endDate || null;
+      const effectiveStartDate = r.startDate || pRetro?.startDate || rDate;
+
       return {
         id: r._id.toString(),
         shareToken: r.shareToken,
         title: r.title,
         sprintName: r.sprintName || 'Sprint Cycle',
-        date: r.scheduledDate || r.createdAt,
+        projectKey: r.projectKey || (linkedProject ? linkedProject.key : ''),
+        projectName: linkedProject ? linkedProject.name : (targetProject ? targetProject.name : 'RetroFlow Project'),
+        date: rDate,
+        startDate: effectiveStartDate ? new Date(effectiveStartDate).toISOString() : null,
+        endDate: effectiveEndDate ? new Date(effectiveEndDate).toISOString() : null,
+        year: retroYear,
+        status: r.status || 'completed',
         attendeesCount,
         expectedCount,
         attendanceRate,
         cardsCount,
-        actionItemsCount,
+        actionItemsCount: actionCards.length,
+        totalTasks: actionCards.length,
+        completedTasks: completedCount,
+        inProgressTasks: inProgressCount,
+        todoTasks: todoCount,
+        pendingTasks: pendingCount,
+        completionRate,
+        assignees: Array.from(assigneesMap.values()),
+        managerName: dynamicManagerName,
+        manager: {
+          name: dynamicManagerName,
+          email: dynamicManagerEmail,
+          avatar: dynamicManagerName.slice(0, 2).toUpperCase(),
+        },
+        actionItems: itemsList,
       };
     });
 
@@ -1867,7 +2071,127 @@ class RetroService {
       })
       .sort((a, b) => b.attendanceRate - a.attendanceRate || b.cardsShared - a.cardsShared);
 
-    // 7. Top KPI Summary
+    // 7. Extract Available Years and Compute Monthly Trends for Selected Year
+    const getRetroDate = (r) => {
+      const dStr = r.scheduledDate || r.startDate || r.createdAt;
+      const parsed = dStr ? new Date(dStr) : null;
+      return parsed && !isNaN(parsed.getTime()) ? parsed : new Date();
+    };
+
+    const currentCalendarYear = new Date().getFullYear();
+    const yearSet = new Set([currentCalendarYear]);
+    retros.forEach((r) => {
+      const d = getRetroDate(r);
+      const yr = d.getFullYear();
+      if (!isNaN(yr)) yearSet.add(yr);
+    });
+    const availableYears = Array.from(yearSet).sort((a, b) => b - a);
+
+    const parsedYear = year ? parseInt(year, 10) : null;
+    const selectedYear =
+      parsedYear && !isNaN(parsedYear) && yearSet.has(parsedYear)
+        ? parsedYear
+        : availableYears[0];
+
+    const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const MONTH_FULL_NAMES = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const monthlyTrends = Array.from({ length: 12 }, (_, idx) => ({
+      month: MONTH_NAMES[idx],
+      monthFull: MONTH_FULL_NAMES[idx],
+      monthIndex: idx,
+      retrosCount: 0,
+      totalTasks: 0,
+      completedTasks: 0,
+      pendingTasks: 0,
+      completionRate: 0,
+      sessions: [],
+    }));
+
+    // Populate monthly trends for the selected year
+    retros.forEach((r) => {
+      const rDate = getRetroDate(r);
+      if (rDate.getFullYear() === selectedYear) {
+        const mIdx = rDate.getMonth();
+        if (mIdx >= 0 && mIdx < 12) {
+          const targetMonth = monthlyTrends[mIdx];
+          targetMonth.retrosCount += 1;
+
+          const actionTopicIds = new Set();
+          (r.topics || []).forEach((t) => {
+            const titleLower = (t.title || '').toLowerCase();
+            if (
+              titleLower.includes('action') ||
+              titleLower.includes('deliverable') ||
+              t.icon === 'target' ||
+              (t.topicId && t.topicId.toLowerCase().includes('action')) ||
+              t.topicId === 'topic-3'
+            ) {
+              actionTopicIds.add(t.topicId);
+            }
+          });
+
+          const actionCards = (r.cards || []).filter((c) => {
+            if (c.topicId && actionTopicIds.has(c.topicId)) {
+              return true;
+            }
+            if (c.type === 'action_item') {
+              return true;
+            }
+            const textLower = (c.text || '').toLowerCase().trim();
+            return (
+              textLower.startsWith('action:') ||
+              textLower.startsWith('[action]') ||
+              textLower.startsWith('todo:')
+            );
+          });
+
+          const completedCount = actionCards.filter((c) => c.status === 'done').length;
+          const pendingCount = actionCards.filter((c) => c.status !== 'done').length;
+          const totalTasksCount = actionCards.length;
+
+          targetMonth.totalTasks += totalTasksCount;
+          targetMonth.completedTasks += completedCount;
+          targetMonth.pendingTasks += pendingCount;
+
+          targetMonth.sessions.push({
+            id: r._id.toString(),
+            title: r.title,
+            date: r.scheduledDate || r.startDate || r.createdAt,
+            tasksCount: totalTasksCount,
+            completedCount,
+            pendingCount,
+          });
+        }
+      }
+    });
+
+    let yearTotalRetros = 0;
+    let yearTotalTasks = 0;
+    let yearCompletedTasks = 0;
+    let yearPendingTasks = 0;
+
+    monthlyTrends.forEach((m) => {
+      m.completionRate = m.totalTasks > 0 ? Math.round((m.completedTasks / m.totalTasks) * 100) : 0;
+      yearTotalRetros += m.retrosCount;
+      yearTotalTasks += m.totalTasks;
+      yearCompletedTasks += m.completedTasks;
+      yearPendingTasks += m.pendingTasks;
+    });
+
+    const yearSummary = {
+      year: selectedYear,
+      totalRetros: yearTotalRetros,
+      totalTasks: yearTotalTasks,
+      completedTasks: yearCompletedTasks,
+      pendingTasks: yearPendingTasks,
+      completionRate: yearTotalTasks > 0 ? Math.round((yearCompletedTasks / yearTotalTasks) * 100) : 0,
+    };
+
+    // 8. Top KPI Summary
     const averageAttendanceRate =
       retroTrends.length > 0
         ? Math.round(
@@ -1890,11 +2214,18 @@ class RetroService {
 
     return {
       projects: formattedProjects,
+      availableYears,
+      selectedYear,
       selectedProjectId: projectId,
       selectedProjectName: targetProject ? targetProject.name : 'All Projects',
       summary: {
         averageAttendanceRate,
-        totalRetros: totalRetrosCount,
+        totalRetros: yearTotalRetros,
+        allTimeRetros: totalRetrosCount,
+        totalTasks: yearTotalTasks,
+        completedTasks: yearCompletedTasks,
+        pendingTasks: yearPendingTasks,
+        completionRate: yearSummary.completionRate,
         totalMembers: memberAnalytics.length,
         lowAttendanceCount,
         topContributor: topContributor
@@ -1910,6 +2241,9 @@ class RetroService {
           : null,
       },
       retroTrends,
+      retroActionAnalytics: retroTrends,
+      monthlyTrends,
+      yearSummary,
       memberAnalytics,
     };
   }

@@ -100,6 +100,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [revealMode, setRevealMode] = useState(false);
   const [votingLimit, setVotingLimit] = useState(1);
   const [approvalRequired, setApprovalRequired] = useState(false);
@@ -127,11 +129,32 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
+  const getLocalDateString = (d?: string | Date | null) => {
+    if (!d) return '';
+    try {
+      const dateObj = new Date(d);
+      if (isNaN(dateObj.getTime())) return '';
+      return dateObj.toISOString().split('T')[0];
+    } catch {
+      return '';
+    }
+  };
+
   useEffect(() => {
     if (initialData) {
       setTitle(initialData.title);
       setDescription(initialData.description || '');
       setScheduledDate(initialData.scheduledDate ? getLocalDateTimeString(new Date(initialData.scheduledDate)) : getLocalDateTimeString());
+      setStartDate(
+        initialData.startDate
+          ? getLocalDateString(initialData.startDate)
+          : getLocalDateString(initialData.scheduledDate) || new Date().toISOString().split('T')[0]
+      );
+      setEndDate(
+        initialData.endDate
+          ? getLocalDateString(initialData.endDate)
+          : new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]
+      );
       setRevealMode(initialData.revealMode || false);
       setVotingLimit(initialData.votingLimit || 1);
       setApprovalRequired(initialData.approvalRequired || false);
@@ -144,6 +167,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setTitle(`${projectContext.name} - ${sprintTag} Retrospective`);
       setDescription(`Agile feedback & sprint retrospective for ${projectContext.name} (${projectContext.key}).`);
       setScheduledDate(getLocalDateTimeString());
+      setStartDate(new Date().toISOString().split('T')[0]);
+      setEndDate(new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]);
       setRevealMode(false);
       setVotingLimit(1);
       setApprovalRequired(true); // Project privacy: restrict access to project members
@@ -181,6 +206,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setTitle(`Sprint 42 Retrospective`);
       setDescription('Continuous alignment session for Engineering & Product team');
       setScheduledDate(getLocalDateTimeString());
+      setStartDate(new Date().toISOString().split('T')[0]);
+      setEndDate(new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]);
       setRevealMode(false);
       setVotingLimit(1);
       setApprovalRequired(false);
@@ -214,8 +241,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       ]);
     }
   }, [initialData, projectContext, isOpen]);
-
-  if (!isOpen || !mounted) return null;
 
   // Topic manipulation methods
   const handleUpdateTopic = (index: number, field: keyof RetroTopic, value: any) => {
@@ -301,15 +326,84 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     );
   };
 
+  // Date validation & live sprint duration metrics (Jira / TeamRetro industry standard)
+  const todayStr = React.useMemo(() => new Date().toISOString().split('T')[0], []);
+
+  // Date validation: present/future date required on creation, and endDate >= startDate
+  const dateValidation = React.useMemo(() => {
+    if (!startDate && !endDate) {
+      return {
+        isValid: false,
+        error: 'Both Starting Date and Ending Date are required.',
+        field: 'both' as const,
+      };
+    }
+    if (!startDate) {
+      return {
+        isValid: false,
+        error: 'Starting Date is required.',
+        field: 'startDate' as const,
+      };
+    }
+    if (!endDate) {
+      return {
+        isValid: false,
+        error: 'Ending Date is required.',
+        field: 'endDate' as const,
+      };
+    }
+
+    // Past date prevention for newly created retros
+    if (!initialData && startDate < todayStr) {
+      return {
+        isValid: false,
+        error: 'Starting date cannot be in the past. Please select today or a future date.',
+        field: 'startDate' as const,
+      };
+    }
+
+    if (endDate < startDate) {
+      return {
+        isValid: false,
+        error: 'Ending date cannot be earlier than starting date.',
+        field: 'endDate' as const,
+      };
+    }
+
+    return {
+      isValid: true,
+      error: null,
+      field: null,
+    };
+  }, [startDate, endDate, initialData, todayStr]);
+
+  const handleStartDateChange = (newStart: string) => {
+    setStartDate(newStart);
+    setErrorMessage(null);
+    if (newStart && endDate && endDate < newStart) {
+      setEndDate(newStart);
+    }
+  };
+
   // Real-time validity checks
   const hasOverLimitTopic = topics.some((t) => t.title.length > MAX_TOPIC_TITLE_LENGTH);
   const hasEmptyTopic = topics.some((t) => !t.title.trim());
   const isTopicsCountValid = topics.length >= MIN_RETRO_TOPICS && topics.length <= MAX_RETRO_TOPICS;
-  const isFormValid = title.trim().length > 0 && isTopicsCountValid && !hasOverLimitTopic && !hasEmptyTopic;
+  const isFormValid =
+    title.trim().length > 0 &&
+    dateValidation.isValid &&
+    isTopicsCountValid &&
+    !hasOverLimitTopic &&
+    !hasEmptyTopic;
 
   const handleSave = async () => {
     if (!title.trim()) {
       setErrorMessage('Please provide a retrospective session title.');
+      setActiveTab('general');
+      return;
+    }
+    if (!dateValidation.isValid) {
+      setErrorMessage(dateValidation.error || 'Please provide valid starting and ending dates.');
       setActiveTab('general');
       return;
     }
@@ -341,11 +435,18 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     }
 
     let validDate: string | undefined = undefined;
-    if (scheduledDate) {
+    if (startDate) {
+      const d = new Date(startDate);
+      if (!isNaN(d.getTime())) {
+        validDate = d.toISOString();
+      }
+    } else if (scheduledDate) {
       const d = new Date(scheduledDate);
       if (!isNaN(d.getTime())) {
         validDate = d.toISOString();
       }
+    } else {
+      validDate = new Date().toISOString();
     }
 
     setErrorMessage(null);
@@ -355,6 +456,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
         title: title.trim(),
         description: description.trim(),
         scheduledDate: validDate,
+        startDate: startDate ? new Date(startDate).toISOString() : undefined,
+        endDate: endDate ? new Date(endDate).toISOString() : undefined,
         status: initialData?.status || 'active',
         approvalRequired,
         revealMode,
@@ -374,6 +477,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  if (!isOpen || !mounted) return null;
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
@@ -492,18 +597,63 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                  Scheduled Date & Time
-                </label>
-                <div className="relative">
-                  <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="datetime-local"
-                    value={scheduledDate}
-                    onChange={(e) => setScheduledDate(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#88c958]/30 focus:border-[#88c958] shadow-xs"
-                  />
+              {/* Starting Date & Ending Date */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
+                    <span>Starting Date <span className="text-rose-500">*</span></span>
+                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(Present date)</span>
+                  </label>
+                  <div className="relative">
+                    <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="date"
+                      value={startDate}
+                      min={!initialData ? todayStr : undefined}
+                      onChange={(e) => handleStartDateChange(e.target.value)}
+                      className={`w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#12151c] border rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 shadow-xs cursor-pointer transition-colors ${
+                        dateValidation.field === 'startDate' || dateValidation.field === 'both'
+                          ? 'border-rose-500 focus:ring-rose-500/30 focus:border-rose-500'
+                          : 'border-slate-200 dark:border-white/[0.08] focus:ring-[#88c958]/30 focus:border-[#88c958]'
+                      }`}
+                      required
+                    />
+                  </div>
+                  {(dateValidation.field === 'startDate' || (dateValidation.field === 'both' && !startDate)) && (
+                    <p className="text-[11px] text-rose-500 font-medium mt-1 flex items-center gap-1 animate-in fade-in">
+                      <span>⚠️ {dateValidation.error}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
+                    <span>Ending Date <span className="text-rose-500">*</span></span>
+                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(When to end retro)</span>
+                  </label>
+                  <div className="relative">
+                    <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="date"
+                      value={endDate}
+                      min={startDate || todayStr}
+                      onChange={(e) => {
+                        setEndDate(e.target.value);
+                        setErrorMessage(null);
+                      }}
+                      className={`w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#12151c] border rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 shadow-xs cursor-pointer transition-colors ${
+                        dateValidation.field === 'endDate' || dateValidation.field === 'both'
+                          ? 'border-rose-500 focus:ring-rose-500/30 focus:border-rose-500'
+                          : 'border-slate-200 dark:border-white/[0.08] focus:ring-[#88c958]/30 focus:border-[#88c958]'
+                      }`}
+                      required
+                    />
+                  </div>
+                  {(dateValidation.field === 'endDate' || (dateValidation.field === 'both' && !endDate)) && (
+                    <p className="text-[11px] text-rose-500 font-medium mt-1 flex items-center gap-1 animate-in fade-in">
+                      <span>⚠️ {dateValidation.error}</span>
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -768,7 +918,11 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
             disabled={isSubmitting || !isFormValid}
             title={
               !isFormValid
-                ? `Please provide a session title and ensure 1 to 6 topic columns with titles up to ${MAX_TOPIC_TITLE_LENGTH} characters`
+                ? !title.trim()
+                  ? 'Please provide a session title'
+                  : !dateValidation.isValid
+                  ? dateValidation.error || 'Please provide valid starting and ending dates'
+                  : `Please ensure 1 to 6 topic columns with titles up to ${MAX_TOPIC_TITLE_LENGTH} characters`
                 : initialData ? 'Save Changes' : 'Create & Open Board'
             }
             className="px-6 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all hover:scale-[1.02] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a]"

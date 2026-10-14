@@ -50,6 +50,7 @@ export interface RetroColumnProps {
   onMoveCard?: (cardId: string, targetTopicId: string) => void;
   onReorderCards?: (topicId: string, cardIds: string[]) => void;
   onExportTopic?: () => void;
+  isClosed?: boolean;
 }
 
 /**
@@ -65,6 +66,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   canManageActionItems = false,
   canMoveCrossColumn = true,
   activeDragTopicId = null,
+  isClosed = false,
   onDragCardStart,
   onDragCardEnd,
   onCrossColumnRejected,
@@ -100,7 +102,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   );
 
   const handleSubmitCard = () => {
-    if (!canAddCard) return;
+    if (isClosed || !canAddCard) return;
     const trimmed = cardText.trim();
     if (!trimmed) return;
     onAddCard(topic.topicId, trimmed);
@@ -428,26 +430,28 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
       </div>
 
       {/* Bottom Column "+ Add Card" Trigger or Locked State */}
-      <div className="p-2 border-t border-slate-100 dark:border-white/[0.08] bg-white dark:bg-[#0e1015]">
-        {canAddCard ? (
-          <button
-            type="button"
-            onClick={() => setIsInputOpen(true)}
-            className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 dark:border-white/10 hover:border-[#88c958]/60 hover:bg-[#eaf5e3]/50 dark:hover:bg-[#88c958]/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-[#3d8318] dark:hover:text-[#88c958] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Card</span>
-          </button>
-        ) : (
-          <div
-            title="Action Items can only be added by Managers or Admins"
-            className="w-full py-2 px-2 rounded-xl border border-dashed border-slate-200 dark:border-white/[0.08] bg-slate-50/80 dark:bg-[#12151c]/60 text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
-          >
-            <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-            <span className="truncate">Only Managers & Admins can add Action Items</span>
-          </div>
-        )}
-      </div>
+      {!isClosed && (
+        <div className="p-2 border-t border-slate-100 dark:border-white/[0.08] bg-white dark:bg-[#0e1015]">
+          {canAddCard ? (
+            <button
+              type="button"
+              onClick={() => setIsInputOpen(true)}
+              className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 dark:border-white/10 hover:border-[#88c958]/60 hover:bg-[#eaf5e3]/50 dark:hover:bg-[#88c958]/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-[#3d8318] dark:hover:text-[#88c958] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Card</span>
+            </button>
+          ) : (
+            <div
+              title="Action Items can only be added by Managers or Admins"
+              className="w-full py-2 px-2 rounded-xl border border-dashed border-slate-200 dark:border-white/[0.08] bg-slate-50/80 dark:bg-[#12151c]/60 text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
+            >
+              <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+              <span className="truncate">Only Managers & Admins can add Action Items</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 });

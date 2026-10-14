@@ -12,9 +12,8 @@ import {
 } from 'lucide-react';
 import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
-import { ProjectDataService } from '@/services/mockProjectData';
 import { CreateProjectModal } from '@/components/project/CreateProjectModal';
-import { UserAvatar, StatusPill } from '@/components/ui';
+import { UserAvatar } from '@/components/ui';
 
 interface ProjectSwitcherProps {
   currentProjectId?: string;
@@ -576,18 +575,10 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                         <UserAvatar name={proj.name} avatar={proj.key.slice(0, 3)} size="md" />
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="text-xs font-bold truncate max-w-[130px]">{proj.name}</p>
-                            <StatusPill status={proj.healthStatus} pulse />
-                            {projManager && (
-                              <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30">
-                                {projManager.role}: {projManager.name.split(' ')[0]}
-                              </span>
-                            )}
+                            <p className="text-xs font-bold truncate max-w-[180px]">{proj.name}</p>
                           </div>
                           <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex-wrap">
                             <span className="font-mono font-semibold uppercase text-slate-700 dark:text-slate-300">{proj.key}</span>
-                            <span>•</span>
-                            <span className="capitalize">{proj.type}</span>
                             <span>•</span>
                             <span>{proj.members.length} members</span>
                             {projManager && (

@@ -19,6 +19,12 @@ interface ActionItemsFiltersProps {
     inProgress: number;
     done: number;
   };
+  statusCounts?: {
+    total: number;
+    todo: number;
+    inProgress: number;
+    done: number;
+  };
   hasActiveFilters: boolean;
   onResetFilters: () => void;
 }
@@ -34,9 +40,11 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
   selectedStatus,
   onStatusChange,
   metrics,
+  statusCounts,
   hasActiveFilters,
   onResetFilters,
 }) => {
+  const counts = statusCounts || metrics;
   return (
     <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3.5">
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
@@ -110,10 +118,10 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
       {/* Status Filter Tabs Strip */}
       <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/[0.08] overflow-x-auto">
         {[
-          { id: 'all', label: 'All Items', count: metrics.total },
-          { id: 'todo', label: 'To Do', count: metrics.todo },
-          { id: 'in_progress', label: 'In Progress', count: metrics.inProgress },
-          { id: 'done', label: 'Done', count: metrics.done },
+          { id: 'all', label: 'All Items', count: counts.total },
+          { id: 'todo', label: 'To Do', count: counts.todo },
+          { id: 'in_progress', label: 'In Progress', count: counts.inProgress },
+          { id: 'done', label: 'Done', count: counts.done },
         ].map((tab) => {
           const isActive = selectedStatus === tab.id;
           return (

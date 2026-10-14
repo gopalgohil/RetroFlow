@@ -26,13 +26,39 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
   isManager = false,
   onActionItemsCountChange,
 }) => {
+  // STRICT RULE: Only Admin and Manager have 3 options (To Do, In Progress, Done).
+  // Developer, QA, Project Leader (Project Lead), and DevOps only have 2 options (To Do, In Progress).
+  const rawRole = (user?.role || '').toLowerCase().trim();
+  const rawProjectRole = (user?.projectRole || '').toLowerCase().trim();
+
+  const isSuperOrWorkspaceAdmin = Boolean(
+    isAdmin ||
+    rawRole === 'admin'
+  );
+
+  const isProjectOrWorkspaceManager = Boolean(
+    !isSuperOrWorkspaceAdmin &&
+    (isManager || rawRole === 'manager' || rawProjectRole === 'manager') &&
+    !rawProjectRole.includes('lead') &&
+    !rawRole.includes('lead') &&
+    !rawProjectRole.includes('dev') &&
+    !rawProjectRole.includes('qa') &&
+    !rawProjectRole.includes('tester')
+  );
+
+  const canMarkDone = isSuperOrWorkspaceAdmin || isProjectOrWorkspaceManager;
+
   const {
     items,
+    baseTotalCount,
     filteredItems,
     isLoading,
+    isInitialLoading,
+    isSearching,
     updatingItemId,
     toastFeedback,
     metrics,
+    statusCounts,
     projectOptions,
     searchQuery,
     setSearchQuery,
@@ -50,7 +76,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     clearAllFilters,
     handleStatusChange,
     handleCycleStatus,
-  } = useActionItems({ user, isAdmin, isManager, onActionItemsCountChange });
+  } = useActionItems({ user, isAdmin, isManager, onActionItemsCountChange, canMarkDone });
 
   // Pagination states (8 items per page)
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -167,10 +193,11 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     [viewAllTeam, setViewAllTeam]
   );
 
-  // Initial tab loading skeleton on reload or mount
-  if (isLoading && items.length === 0) {
+  // Initial tab loading skeleton only on the very first mount
+  if (isInitialLoading) {
     return <ActionItemsSkeleton />;
   }
+
 
   return (
     <div className="space-y-6">
@@ -227,17 +254,18 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
         selectedStatus={selectedStatus}
         onStatusChange={handleStatusFilterChange}
         metrics={metrics}
+        statusCounts={statusCounts}
         hasActiveFilters={hasActiveFilters}
         onResetFilters={handleResetFiltersWithLoader}
       />
 
       {/* 4. Action Items List with Smooth UI Skeleton Loader */}
       <div className="space-y-3">
-        {isLoading || isFilterLoading || isPageLoading ? (
+        {isLoading || isSearching || isFilterLoading || isPageLoading ? (
           <ActionItemsCardsSkeleton count={Math.min(currentLimit, 8)} />
         ) : filteredItems.length === 0 ? (
           <ActionItemsEmptyState
-            totalCount={items.length}
+            totalCount={baseTotalCount}
             hasActiveFilters={hasActiveFilters}
             onResetFilters={handleResetFiltersWithLoader}
           />
@@ -249,6 +277,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
               displayIndex={(activePage - 1) * currentLimit + idx + 1}
               isUpdating={updatingItemId === item.id}
               onStatusChange={handleStatusChange}
+              canMarkDone={canMarkDone}
             />
           ))
         )}

@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import {
   Plus,
   ArrowRight,
-  FolderKanban,
   Lock,
   Trash2,
   AlertTriangle,
@@ -56,7 +55,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     role?: string;
     projectRole?: string;
   } | null>(user || null);
-  const [filterMode, setFilterMode] = useState<'all' | 'managed'>('all');
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [openingProjectId, setOpeningProjectId] = useState<string | null>(null);
 
@@ -89,7 +87,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     currentUser?.role?.toLowerCase().includes('manager')
   );
 
-  const fetchProjects = useCallback(async (page: number, mode: 'all' | 'managed') => {
+  const fetchProjects = useCallback(async (page: number) => {
     if (!inMemoryProjectsCache) {
       setIsLoading(true);
     } else {
@@ -99,7 +97,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       const res = await ProjectApiService.getPaginatedProjects({
         page,
         limit: 6,
-        filter: mode,
+        filter: 'all',
       });
       setProjects(res.projects);
       setPagination(res.pagination);
@@ -114,8 +112,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   }, []);
 
   useEffect(() => {
-    fetchProjects(currentPage, filterMode);
-  }, [fetchProjects, currentPage, filterMode]);
+    fetchProjects(currentPage);
+  }, [fetchProjects, currentPage]);
 
   const handleDeleteProject = async () => {
     if (!projectToDelete) return;
@@ -130,19 +128,13 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       if (targetPage !== currentPage) {
         setCurrentPage(targetPage);
       } else {
-        fetchProjects(targetPage, filterMode);
+        fetchProjects(targetPage);
       }
     } catch (err: any) {
       setDeleteProjectError(err.message || 'Failed to delete project.');
     } finally {
       setIsDeletingProject(false);
     }
-  };
-
-  const handleFilterChange = (mode: 'all' | 'managed') => {
-    if (mode === filterMode) return;
-    setFilterMode(mode);
-    setCurrentPage(1);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -250,37 +242,9 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       {/* View Filter Switcher Bar */}
       <div ref={projectsGridRef} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
         <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] rounded-xl w-fit">
-          <button
-            type="button"
-            onClick={() => handleFilterChange('all')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              filterMode === 'all'
-                ? 'bg-white dark:bg-[#141720] text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            All Projects ({tabCounts.all})
-          </button>
-          <button
-            type="button"
-            onClick={() => handleFilterChange('managed')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              filterMode === 'managed'
-                ? 'bg-white dark:bg-[#141720] text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <span>Managed by Me</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                tabCounts.managed > 0
-                  ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60'
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-              }`}
-            >
-              {tabCounts.managed}
-            </span>
-          </button>
+          <span className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-[#141720] text-slate-900 dark:text-white shadow-xs">
+            All Projects ({tabCounts.all || pagination.totalItems})
+          </span>
         </div>
 
         {isFilterLoading ? (
@@ -301,31 +265,23 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
           {displayedProjects.length === 0 ? (
             <div className="col-span-full p-12 text-center rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 space-y-3">
               <div className="w-14 h-14 rounded-2xl bg-[#eaf5e3] dark:bg-[#5cb028]/15 text-[#3d8318] dark:text-[#5cb028] flex items-center justify-center font-bold mx-auto shadow-2xs">
-                {filterMode === 'managed' ? (
-                  <FolderKanban className="w-6 h-6 text-[#5cb028]" />
-                ) : (
-                  <Lock className="w-6 h-6 text-[#5cb028]" />
-                )}
+                <Lock className="w-6 h-6 text-[#5cb028]" />
               </div>
               <div className="space-y-1">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  {filterMode === 'managed'
-                    ? 'No Projects Managed by You'
-                    : canCreateProject
+                  {canCreateProject
                     ? 'No Projects in Workspace'
                     : 'No Assigned Projects'}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                  {filterMode === 'managed'
-                    ? 'You are not assigned as Manager for any project yet.'
-                    : canCreateProject
+                  {canCreateProject
                     ? 'Initialize your first Scrum or Kanban agile delivery project above.'
                     : `You haven't been assigned to any project yet. Only projects where your email (${
                         currentUser?.email || 'your account'
                       }) is added will appear here.`}
                 </p>
               </div>
-              {!canCreateProject && filterMode !== 'managed' && (
+              {!canCreateProject && (
                 <p className="text-[11px] text-slate-400 dark:text-slate-500">
                   Contact your workspace Administrator or Manager to get invited to active projects.
                 </p>
@@ -588,7 +544,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         onClose={() => setIsCreateModalOpen(false)}
         onProjectCreated={(newProj) => {
           ProjectApiService.clearProjectsCache();
-          fetchProjects(1, filterMode);
+          fetchProjects(1);
           if (typeof window !== 'undefined' && newProj) {
             localStorage.setItem('retroflow_active_project_id', newProj.id);
             localStorage.setItem('retroflow_cached_active_project', JSON.stringify(newProj));

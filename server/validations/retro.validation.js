@@ -14,7 +14,7 @@ const topicValidationSchema = z.object({
   order: z.number().default(0),
 });
 
-export const createRetroSchema = z.object({
+const baseRetroSchema = z.object({
   title: z
     .string({ required_error: 'Session title is required' })
     .trim()
@@ -22,6 +22,8 @@ export const createRetroSchema = z.object({
     .max(120, 'Session title must be under 120 characters'),
   description: z.string().trim().max(500).optional().default(''),
   scheduledDate: z.coerce.date().optional(),
+  startDate: z.coerce.date().optional().nullable(),
+  endDate: z.coerce.date().optional().nullable(),
   status: z.enum(['draft', 'active', 'completed']).optional().default('active'),
   approvalRequired: z.boolean().optional().default(false),
   revealMode: z.boolean().optional().default(false),
@@ -39,7 +41,40 @@ export const createRetroSchema = z.object({
   isProjectScoped: z.boolean().optional().default(true),
 });
 
-export const updateRetroSchema = createRetroSchema.partial();
+export const createRetroSchema = baseRetroSchema.refine(
+  (data) => {
+    if (data.startDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = new Date(data.startDate);
+      start.setHours(0, 0, 0, 0);
+      if (start < today) {
+        return false;
+      }
+    }
+    if (data.startDate && data.endDate) {
+      return new Date(data.endDate).getTime() >= new Date(data.startDate).getTime();
+    }
+    return true;
+  },
+  {
+    message: 'Starting date cannot be in the past, and ending date cannot be earlier than starting date.',
+    path: ['endDate'],
+  }
+);
+
+export const updateRetroSchema = baseRetroSchema.partial().refine(
+  (data) => {
+    if (data.startDate && data.endDate) {
+      return new Date(data.endDate).getTime() >= new Date(data.startDate).getTime();
+    }
+    return true;
+  },
+  {
+    message: 'Ending date cannot be earlier than starting date.',
+    path: ['endDate'],
+  }
+);
 
 export const inviteTeammateSchema = z.object({
   email: emailValidation,

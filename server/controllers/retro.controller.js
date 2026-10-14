@@ -200,8 +200,8 @@ class RetroController {
    * GET /api/retros/analytics?projectId=...
    */
   getRetroAnalytics = asyncHandler(async (req, res) => {
-    const { projectId = 'all' } = req.query;
-    const analytics = await retroService.getRetroAnalytics(req.user, { projectId });
+    const { projectId = 'all', year } = req.query;
+    const analytics = await retroService.getRetroAnalytics(req.user, { projectId, year });
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     return ApiResponse.ok(res, analytics, 'Retrospective analytics loaded successfully');
   });

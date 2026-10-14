@@ -463,7 +463,7 @@ export class ProjectApiService {
   static async updateProjectRetro(
     projectId: string,
     retroId: string,
-    payload: { title?: string; scheduledDate?: string; sprintName?: string }
+    payload: { title?: string; scheduledDate?: string; startDate?: string | null; endDate?: string | null; sprintName?: string }
   ): Promise<Project> {
     const res = await api.patch<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/retros/${retroId}`,

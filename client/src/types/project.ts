@@ -36,6 +36,7 @@ export interface BacklogItem {
   sourceRetroId?: string;
   sourceRetroTitle?: string;
   createdAt: string;
+  assignedAt?: string;
 }
 
 export interface EnrichedActionItem extends BacklogItem {
@@ -69,6 +70,8 @@ export interface ProjectRetroLink {
   shareToken: string;
   title: string;
   scheduledDate: string;
+  startDate?: string | null;
+  endDate?: string | null;
   status: 'active' | 'completed' | 'draft';
   sprintName?: string;
   topicsCount: number;
