@@ -6,7 +6,6 @@ import { api, ENDPOINTS } from '@/lib/api';
 import {
   AnalyticsData,
   AnalyticsHeader,
-  AnalyticsKpiGrid,
   AnalyticsMonthlyBarChart,
   AnalyticsMemberTable,
   AnalyticsRetroActionTable,
@@ -105,14 +104,6 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = () => {
       {/* Loaded Content */}
       {!isLoading && data && (
         <>
-          {/* Top-Level High-Impact KPI Metric Cards */}
-          {data.summary && (
-            <AnalyticsKpiGrid
-              summary={data.summary}
-              selectedProjectName={data.selectedProjectName}
-            />
-          )}
-
           {/* Annual Retrospective & Commitments 12-Month Bar Chart */}
           <AnalyticsMonthlyBarChart
             monthlyTrends={data.monthlyTrends}
