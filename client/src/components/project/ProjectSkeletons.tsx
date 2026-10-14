@@ -228,9 +228,9 @@ export const RetrosTabSkeleton: React.FC = () => {
         <div className="h-10 w-40 rounded-xl bg-[#cdeac0] dark:bg-[#88c958]/30" />
       </div>
 
-      {/* Retros Grid (4 cards) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[1, 2, 3, 4].map((i) => (
+      {/* Retros Grid (3 cards matching 3-column layout) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 lg:gap-4.5 2xl:gap-5">
+        {[1, 2, 3].map((i) => (
           <div
             key={i}
             className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs space-y-4"

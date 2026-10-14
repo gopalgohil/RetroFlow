@@ -44,11 +44,11 @@ export const RetroCard: React.FC<RetroCardProps> = ({
       : formatDateDMY(start || retro.scheduledDate);
 
   return (
-    <div className="group p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+    <div className="group p-3.5 sm:p-4.5 2xl:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
       <div className="space-y-3">
         {/* Title & Date in the same line */}
         <div className="flex items-start justify-between gap-3">
-          <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug min-w-0 flex-1">
+          <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug min-w-0 flex-1 line-clamp-1">
             {retro.title}
           </h4>
           <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 shrink-0 pt-0.5 whitespace-nowrap">
@@ -81,12 +81,12 @@ export const RetroCard: React.FC<RetroCardProps> = ({
       </div>
 
       {/* Action Footer */}
-      <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-2">
+      <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between gap-2">
         {/* Left: Launch Board + Share / Invite */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <Link
             href={`/retro/${retro.shareToken}`}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
               isActive
                 ? 'bg-[#5cb028] hover:bg-[#4e9921] text-white shadow-xs dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/20'
                 : 'bg-slate-900 dark:bg-[#141720] hover:bg-slate-800 dark:hover:bg-white/[0.08] text-white'
@@ -101,7 +101,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
               type="button"
               onClick={() => onShare(retro)}
               title="Share or Invite Teammates"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#88c958]/10 dark:bg-[#88c958]/15 hover:bg-[#88c958]/20 dark:hover:bg-[#88c958]/25 text-[#88c958] border-[#88c958]/30 dark:border-[#88c958]/40 hover:border-[#88c958]/60 shadow-2xs"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#88c958]/10 dark:bg-[#88c958]/15 hover:bg-[#88c958]/20 dark:hover:bg-[#88c958]/25 text-[#88c958] border-[#88c958]/30 dark:border-[#88c958]/40 hover:border-[#88c958]/60 shadow-2xs whitespace-nowrap"
             >
               {isCopied ? (
                 <>

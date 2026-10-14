@@ -9,7 +9,7 @@ import React from 'react';
  */
 export const RetroCardSkeleton: React.FC = () => {
   return (
-    <div className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col justify-between space-y-4 animate-pulse">
+    <div className="p-3.5 sm:p-4.5 2xl:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col justify-between space-y-4 animate-pulse">
       <div className="space-y-3">
         {/* Title & Date in the same line */}
         <div className="flex items-start justify-between gap-3">
