@@ -178,7 +178,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
               <button
                 type="button"
                 onClick={() => onDeleteSprint(sprint)}
-                className="p-2 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:border-rose-300 dark:hover:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-2 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:border-rose-300 dark:hover:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-all duration-150 cursor-pointer"
                 title="Delete this upcoming sprint"
               >
                 <Trash2 className="w-4 h-4" />
