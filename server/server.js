@@ -40,7 +40,9 @@ app.use(
       // Check if origin matches whitelist or verified vercel app domain
       if (
         allowedOrigins.has(origin) ||
-        (origin.endsWith('.vercel.app') && origin.includes('retro-flow'))
+        origin.endsWith('.vercel.app') ||
+        origin.includes('retro-flow') ||
+        origin.includes('digiflux')
       ) {
         return callback(null, true);
       }
@@ -105,7 +107,9 @@ const io = new SocketIOServer(httpServer, {
       if (!origin) return callback(null, true);
       if (
         allowedOrigins.has(origin) ||
-        (origin.endsWith('.vercel.app') && origin.includes('retro-flow'))
+        origin.endsWith('.vercel.app') ||
+        origin.includes('retro-flow') ||
+        origin.includes('digiflux')
       ) {
         return callback(null, true);
       }
