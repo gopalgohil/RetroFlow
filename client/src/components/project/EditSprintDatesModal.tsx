@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, Clock, Sparkles, Check, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, Check, AlertCircle } from 'lucide-react';
 import { Modal } from '@/components/ui';
 import { Sprint, Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
@@ -25,7 +25,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
 }) => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [goal, setGoal] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +36,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
         sprint.endDate ||
           new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]
       );
-      setGoal(sprint.goal || '');
       setName(sprint.name || '');
       setError(null);
     }
@@ -59,54 +57,41 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
     }
   };
 
-  // Comprehensive validation and live metrics
-  const { metrics, validation } = useMemo(() => {
+  // Comprehensive validation
+  const validation = useMemo(() => {
     if (!startDate || !endDate) {
       return {
-        metrics: null,
-        validation: {
-          isValid: false,
-          errorMsg: 'Both Starting Date and Ending Date are required.',
-          field: !startDate ? 'startDate' : 'endDate',
-        },
+        isValid: false,
+        errorMsg: 'Both Starting Date and Ending Date are required.',
+        field: !startDate ? 'startDate' : 'endDate',
       };
     }
 
     const startMs = new Date(startDate).getTime();
     const endMs = new Date(endDate).getTime();
-    const todayMs = new Date().setHours(0, 0, 0, 0);
 
     if (isNaN(startMs)) {
       return {
-        metrics: null,
-        validation: {
-          isValid: false,
-          errorMsg: 'Invalid Starting Date format.',
-          field: 'startDate',
-        },
+        isValid: false,
+        errorMsg: 'Invalid Starting Date format.',
+        field: 'startDate',
       };
     }
 
     if (isNaN(endMs)) {
       return {
-        metrics: null,
-        validation: {
-          isValid: false,
-          errorMsg: 'Invalid Ending Date format.',
-          field: 'endDate',
-        },
+        isValid: false,
+        errorMsg: 'Invalid Ending Date format.',
+        field: 'endDate',
       };
     }
 
     // Validation rule 1: End Date must be on or after Start Date
     if (endMs < startMs) {
       return {
-        metrics: null,
-        validation: {
-          isValid: false,
-          errorMsg: 'Ending Date cannot be earlier than Starting Date.',
-          field: 'endDate',
-        },
+        isValid: false,
+        errorMsg: 'Ending Date cannot be earlier than Starting Date.',
+        field: 'endDate',
       };
     }
 
@@ -115,29 +100,16 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
     // Validation rule 2: Max sprint duration (90 days)
     if (durationDays > 90) {
       return {
-        metrics: null,
-        validation: {
-          isValid: false,
-          errorMsg: 'Sprint duration cannot exceed 90 days (~12 weeks). Standard agile sprints are 1 to 4 weeks.',
-          field: 'endDate',
-        },
+        isValid: false,
+        errorMsg: 'Sprint duration cannot exceed 90 days (~12 weeks). Standard agile sprints are 1 to 4 weeks.',
+        field: 'endDate',
       };
     }
 
-    const daysRemaining = Math.max(0, Math.ceil((endMs - todayMs) / 86400000));
-    const isPast = endMs < todayMs;
-
     return {
-      metrics: {
-        durationDays,
-        daysRemaining,
-        isPast,
-      },
-      validation: {
-        isValid: true,
-        errorMsg: null,
-        field: null,
-      },
+      isValid: true,
+      errorMsg: null,
+      field: null,
     };
   }, [startDate, endDate]);
 
@@ -156,7 +128,7 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
     const payload = {
       startDate,
       endDate,
-      goal: goal.trim(),
+      goal: sprint.goal || '',
       name: name.trim() || sprint.name,
     };
 
@@ -201,13 +173,13 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
       onClose={onClose}
       title={
         <div className="flex items-center gap-2">
-          <span>Edit Sprint Dates & Cycle</span>
+          <span>Edit Sprint Dates</span>
           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#88c958]/15 text-[#88c958] border border-[#88c958]/30 uppercase">
             Sprint {sprint.number}
           </span>
         </div>
       }
-      description="Select custom start and end dates with real-time validation. Countdown and timeline will automatically recalculate."
+      description="Update sprint name and custom starting and ending dates."
       icon={<Calendar className="w-5 h-5 text-[#88c958]" />}
       maxWidth="md"
       footer={
@@ -330,51 +302,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
           </div>
         )}
 
-        {/* Live Calculation Preview Card */}
-        {metrics && validation.isValid && (
-          <div className="p-3.5 rounded-2xl border bg-[#88c958]/10 border-[#88c958]/20 text-[#88c958]">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#88c958] shrink-0" />
-                <span className="font-semibold text-slate-700 dark:text-slate-300">
-                  Cycle Duration:
-                </span>
-                <span className="font-bold text-[#88c958] font-mono">
-                  {metrics.durationDays} Days ({formatDateDMY(startDate)} → {formatDateDMY(endDate)})
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Countdown:</span>
-                <span
-                  className={`px-2 py-0.5 rounded-lg text-[11px] font-extrabold ${
-                    metrics.isPast
-                      ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300'
-                      : 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
-                  }`}
-                >
-                  {metrics.isPast
-                    ? 'End Date Passed'
-                    : `${metrics.daysRemaining} Days Remaining`}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Sprint Goal */}
-        <div className="space-y-1">
-          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-            Sprint Goal & Deliverables (Optional)
-          </label>
-          <textarea
-            rows={2}
-            value={goal}
-            onChange={(e) => setGoal(e.target.value)}
-            placeholder="Key deliverables, commitments, or focus areas for this sprint cycle..."
-            className="w-full px-3 py-2 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] resize-none"
-          />
-        </div>
       </form>
     </Modal>
   );

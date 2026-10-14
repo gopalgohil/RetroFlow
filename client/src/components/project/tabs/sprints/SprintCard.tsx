@@ -108,7 +108,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
                     type="button"
                     onClick={() => onEditDates(sprint)}
                     className="ml-1 p-0.5 text-slate-400 hover:text-[#88c958] dark:hover:text-[#88c958] rounded transition-colors cursor-pointer"
-                    title="Edit sprint dates & goal"
+                    title="Edit sprint dates"
                   >
                     <Pencil className="w-3 h-3" />
                   </button>
