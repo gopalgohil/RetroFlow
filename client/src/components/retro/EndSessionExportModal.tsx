@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
   CheckCircle2,
@@ -13,6 +13,7 @@ import {
   CheckSquare,
   Square,
   ShieldAlert,
+  ChevronDown,
 } from 'lucide-react';
 import { RetroTopic, StickyCard } from '@/types/retro';
 import { useRetroProjectIntegration } from '@/hooks/useRetroProjectIntegration';
@@ -195,6 +196,34 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     return selectedProject ? getSuggestedSprint(selectedProject.id) : null;
   }, [selectedProject, getSuggestedSprint]);
 
+  const currentSprint = useMemo(() => {
+    if (!selectedProject?.sprints || selectedProject.sprints.length === 0) return null;
+    const targetId = selectedSprintId || suggestedSprint?.id;
+    return (
+      selectedProject.sprints.find((s) => s.id === targetId) ||
+      selectedProject.sprints.find((s) => s.status === 'active') ||
+      selectedProject.sprints[0] ||
+      null
+    );
+  }, [selectedProject, selectedSprintId, suggestedSprint]);
+
+  const [isSprintDropdownOpen, setIsSprintDropdownOpen] = useState(false);
+  const sprintDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (sprintDropdownRef.current && !sprintDropdownRef.current.contains(e.target as Node)) {
+        setIsSprintDropdownOpen(false);
+      }
+    };
+    if (isSprintDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSprintDropdownOpen]);
+
   // Toggle single card selection
   const handleToggleCard = (cardId: string) => {
     setSelectedCardIds((prev) =>
@@ -270,6 +299,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   };
 
   const handleClose = () => {
+    setIsSprintDropdownOpen(false);
     resetExportState();
     onClose();
   };
@@ -382,29 +412,33 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                   Target Project
                 </label>
-                <select
-                  value={selectedProjectId}
-                  onChange={(e) => {
-                    const newProjId = e.target.value;
-                    setSelectedProjectId(newProjId);
-                    const p = projects.find((proj) => proj.id === newProjId);
-                    if (p) {
-                      const sugg = getSuggestedSprint(p.id);
-                      setSelectedSprintId(sugg?.id || p.sprints[0]?.id || '');
-                    }
-                  }}
-                  className="w-full px-3 py-2 bg-white dark:bg-[#141720] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#88c958]/30 focus:border-[#88c958] cursor-pointer"
-                >
-                  {projects.map((proj) => (
-                    <option key={proj.id} value={proj.id} className="dark:bg-[#141720]">
-                      {proj.name} ({proj.key})
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedProjectId}
+                    onChange={(e) => {
+                      const newProjId = e.target.value;
+                      setSelectedProjectId(newProjId);
+                      const p = projects.find((proj) => proj.id === newProjId);
+                      if (p) {
+                        const sugg = getSuggestedSprint(p.id);
+                        setSelectedSprintId(sugg?.id || p.sprints[0]?.id || '');
+                      }
+                      setIsSprintDropdownOpen(false);
+                    }}
+                    className="w-full px-3 py-2 bg-white dark:bg-[#141720] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#88c958]/30 focus:border-[#88c958] cursor-pointer appearance-none pr-8"
+                  >
+                    {projects.map((proj) => (
+                      <option key={proj.id} value={proj.id} className="dark:bg-[#141720]">
+                        {proj.name} ({proj.key})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
               </div>
 
               {/* Destination Sprint Selector */}
-              <div className="space-y-1">
+              <div className="space-y-1 relative" ref={sprintDropdownRef}>
                 <div className="flex items-center justify-between">
                   <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     Target Sprint
@@ -414,17 +448,129 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                     Dedicated Retro Sprint
                   </span>
                 </div>
-                <select
-                  value={selectedSprintId || suggestedSprint?.id || ''}
-                  onChange={(e) => setSelectedSprintId(e.target.value)}
-                  className="w-full px-3 py-2 bg-white dark:bg-[#141720] border border-slate-200 dark:border-white/[0.08] rounded-xl text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#88c958]/30 focus:border-[#88c958] cursor-pointer"
+
+                {/* Custom Sprint Dropdown Trigger */}
+                <button
+                  type="button"
+                  onClick={() => setIsSprintDropdownOpen((prev) => !prev)}
+                  className={`w-full px-3 py-2 bg-white dark:bg-[#141720] border rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-between gap-2 transition-all ${
+                    isSprintDropdownOpen
+                      ? 'border-[#88c958] ring-2 ring-[#88c958]/25 shadow-xs'
+                      : 'border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.15]'
+                  }`}
+                  aria-expanded={isSprintDropdownOpen}
                 >
-                  {selectedProject?.sprints.map((sp) => (
-                    <option key={sp.id} value={sp.id} className="dark:bg-[#141720]">
-                      {sp.name} [{sp.status.toUpperCase()}]
-                    </option>
-                  ))}
-                </select>
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    {currentSprint ? (
+                      <>
+                        <span
+                          className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 ${
+                            currentSprint.status === 'active'
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25'
+                              : currentSprint.status === 'upcoming'
+                              ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/25'
+                              : 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/25'
+                          }`}
+                        >
+                          {currentSprint.status === 'active' && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          )}
+                          {currentSprint.status.toUpperCase()}
+                        </span>
+                        <span className="truncate text-slate-900 dark:text-white font-bold" title={currentSprint.name}>
+                          {currentSprint.name}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-slate-400 dark:text-slate-500">No sprint available</span>
+                    )}
+                  </div>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
+                      isSprintDropdownOpen ? 'rotate-180 text-[#88c958]' : ''
+                    }`}
+                  />
+                </button>
+
+                {/* Custom Sprint Dropdown Popover */}
+                {isSprintDropdownOpen && (
+                  <div className="absolute z-50 top-full left-0 right-0 sm:right-0 sm:left-auto sm:min-w-[340px] w-full mt-1.5 bg-white dark:bg-[#161a23] border border-slate-200 dark:border-white/[0.1] rounded-xl shadow-2xl p-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                    <div className="max-h-[220px] overflow-y-auto space-y-1 pr-0.5 overscroll-contain">
+                      {(!selectedProject?.sprints || selectedProject.sprints.length === 0) ? (
+                        <div className="px-3 py-3 text-center text-xs text-slate-400">
+                          No sprints found in this project
+                        </div>
+                      ) : (
+                        selectedProject.sprints.map((sp) => {
+                          const isSelected = sp.id === currentSprint?.id;
+                          const isSuggested = sp.id === suggestedSprint?.id;
+                          return (
+                            <button
+                              key={sp.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedSprintId(sp.id);
+                                setIsSprintDropdownOpen(false);
+                              }}
+                              className={`w-full text-left p-2.5 rounded-lg transition-all flex items-center justify-between gap-2.5 cursor-pointer border ${
+                                isSelected
+                                  ? 'bg-[#88c958]/10 border-[#88c958]/30 dark:bg-[#88c958]/15 text-slate-900 dark:text-white'
+                                  : 'border-transparent hover:bg-slate-100 dark:hover:bg-white/[0.05] text-slate-700 dark:text-slate-300'
+                              }`}
+                            >
+                              <div className="min-w-0 flex-1 space-y-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                    {sp.name}
+                                  </span>
+                                  <span
+                                    className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider ${
+                                      sp.status === 'active'
+                                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                                        : sp.status === 'upcoming'
+                                        ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30'
+                                        : 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30'
+                                    }`}
+                                  >
+                                    {sp.status}
+                                  </span>
+                                  {isSuggested && (
+                                    <span className="text-[9px] font-semibold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/20 px-1.5 py-0.5 rounded border border-[#cdeac0] dark:border-[#88c958]/30">
+                                      Suggested
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Full Sprint Details ("sabhi bat dikhao") */}
+                                <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                                  {sp.startDate && sp.endDate ? (
+                                    <span>
+                                      {sp.startDate} → {sp.endDate}
+                                    </span>
+                                  ) : (
+                                    <span>Sprint #{sp.number || 1}</span>
+                                  )}
+                                  {sp.daysLeft !== undefined && (
+                                    <span>• {sp.daysLeft}d left</span>
+                                  )}
+                                  {Array.isArray(sp.items) && (
+                                    <span>• {sp.items.length} items</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {isSelected && (
+                                <div className="w-5 h-5 rounded-full bg-[#88c958] text-white flex items-center justify-center shrink-0">
+                                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

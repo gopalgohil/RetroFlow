@@ -65,29 +65,14 @@ class RetroService {
 
       sprintLabel = `Sprint ${sprintNum}`;
 
-      // Check if this sprint exists in linkedProject.sprints
-      targetSprint = linkedProject.sprints?.find(
-        (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
-      );
-
-      if (!targetSprint) {
-        // Automatically create individual sprint in the project
-        targetSprint = {
-          id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
-          name: `Sprint ${sprintNum} - Execution & Backlog`,
-          number: sprintNum,
-          status: linkedProject.sprints.length === 0 ? 'active' : 'upcoming',
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
-          goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
-          daysLeft: linkedProject.cadence === '1_week' ? 7 : linkedProject.cadence === '3_weeks' ? 21 : 14,
-          totalStoryPoints: 0,
-          completedStoryPoints: 0,
-          openBlockers: 0,
-          items: [],
-        };
-        linkedProject.sprints.push(targetSprint);
-      }
+      // Check if this sprint exists in linkedProject.sprints, or fallback to active sprint, or first sprint
+      targetSprint =
+        linkedProject.sprints?.find(
+          (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
+        ) ||
+        linkedProject.sprints?.find((s) => s.status === 'active') ||
+        linkedProject.sprints?.[0] ||
+        null;
     }
 
     const retro = await RetroBoard.create({

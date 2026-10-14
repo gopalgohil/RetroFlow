@@ -1373,25 +1373,6 @@ class ProjectService {
         sprint = project.sprints.find(
           (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
         );
-
-        if (!sprint) {
-          // Auto-provision the individual sprint for this retro with active status
-          sprint = {
-            id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
-            name: `Sprint ${sprintNum} - Execution & Backlog`,
-            number: sprintNum,
-            status: 'active',
-            startDate: new Date().toISOString().split('T')[0],
-            endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
-            goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
-            daysLeft: project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14,
-            totalStoryPoints: 0,
-            completedStoryPoints: 0,
-            openBlockers: 0,
-            items: [],
-          };
-          project.sprints.push(sprint);
-        }
       }
     }
 
