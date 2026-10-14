@@ -1405,6 +1405,7 @@ class ProjectService {
         priority: item.priority || 'high',
         status: itemStatus,
         completedAt: itemStatus === 'done' ? new Date() : null,
+        dueDate: item.dueDate || sprint.endDate || null,
         storyPoints: storyPointsNum,
         assignee: item.assignee?.name
           ? {

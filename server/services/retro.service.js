@@ -1932,6 +1932,16 @@ class RetroService {
         }
       });
 
+      const rDate = r.scheduledDate || r.startDate || r.createdAt;
+      const rDateObj = rDate ? new Date(rDate) : new Date();
+      const retroYear = !isNaN(rDateObj.getTime()) ? rDateObj.getFullYear() : new Date().getFullYear();
+
+      const pRetro = (linkedProject?.retrospectives || []).find(
+        (pr) => pr.id === r._id.toString() || pr.shareToken === r.shareToken
+      );
+      const effectiveEndDate = r.endDate || pRetro?.endDate || null;
+      const effectiveStartDate = r.startDate || pRetro?.startDate || rDate;
+
       // Formatted list of action items with Given By (Manager) and Assigned To (Member)
       const itemsList = actionCards.map((c) => {
         const matchedSprintItem = sprintItems.find(
@@ -1966,29 +1976,36 @@ class RetroService {
           }
         }
 
+        // Find sprint containing this item to deduce sprint deadline/end date
+        const matchedSprint = (linkedProject?.sprints || []).find((s) =>
+          (s.items || []).some(
+            (si) =>
+              si.id === c.cardId ||
+              (si.sourceRetroId === r._id.toString() && si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()) ||
+              si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()
+          )
+        );
+
+        const effectiveDueDate =
+          matchedSprintItem?.dueDate ||
+          c.dueDate ||
+          matchedSprint?.endDate ||
+          effectiveEndDate ||
+          (rDate ? new Date(new Date(rDate).getTime() + 14 * 86400000).toISOString().split('T')[0] : null);
+
         return {
           id: c.cardId || (c._id ? c._id.toString() : Math.random().toString()),
           text: c.text || 'Action Item',
           status: matchedSprintItem?.status || c.status || 'todo',
           assignedToName: assignedName && assignedName !== 'Unassigned' ? assignedName : null,
           assignedToEmail: assignedEmail || null,
-          assignedDate: c.assignedDate || c.assignedAt || c.createdAt || null,
-          dueDate: c.dueDate || matchedSprintItem?.dueDate || null,
+          assignedDate: matchedSprintItem?.createdAt || c.assignedDate || c.assignedAt || c.createdAt || null,
+          dueDate: effectiveDueDate,
           author: c.author || null,
           givenBy: dynamicManagerName,
           managerName: dynamicManagerName,
         };
       });
-
-      const rDate = r.scheduledDate || r.startDate || r.createdAt;
-      const rDateObj = rDate ? new Date(rDate) : new Date();
-      const retroYear = !isNaN(rDateObj.getTime()) ? rDateObj.getFullYear() : new Date().getFullYear();
-
-      const pRetro = (linkedProject?.retrospectives || []).find(
-        (pr) => pr.id === r._id.toString() || pr.shareToken === r.shareToken
-      );
-      const effectiveEndDate = r.endDate || pRetro?.endDate || null;
-      const effectiveStartDate = r.startDate || pRetro?.startDate || rDate;
 
       return {
         id: r._id.toString(),

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, ChevronDown, Trash2 } from 'lucide-react';
+import { Sparkles, ChevronDown, Trash2, Calendar } from 'lucide-react';
 import { BacklogItem } from '@/types/project';
 import { StatusPill, UserAvatar } from '@/components/ui';
 
@@ -34,12 +34,20 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
             <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
               {item.title}
             </p>
-            {item.sourceRetroTitle && (
-              <p className="text-[10px] text-[#88c958] mt-0.5 flex items-center gap-1 font-medium">
-                <Sparkles className="w-2.5 h-2.5" />
-                From Retro: {item.sourceRetroTitle}
-              </p>
-            )}
+            <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[10px]">
+              {item.sourceRetroTitle && (
+                <span className="text-[#88c958] flex items-center gap-1 font-medium">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  From Retro: {item.sourceRetroTitle}
+                </span>
+              )}
+              {item.dueDate && (
+                <span className="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                  <Calendar className="w-2.5 h-2.5" />
+                  Due: {new Date(item.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

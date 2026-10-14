@@ -457,6 +457,29 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                                               Assigned: {formatDate(item.assignedDate)}
                                             </span>
                                           )}
+
+                                          {item.dueDate && (
+                                            <>
+                                              <span className="text-slate-300 dark:text-white/20">•</span>
+                                              <span
+                                                className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md border text-[10px] ${
+                                                  isDone
+                                                    ? 'bg-slate-100 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 border-slate-200/60 dark:border-white/[0.06]'
+                                                    : new Date(item.dueDate).getTime() < new Date().setHours(0, 0, 0, 0)
+                                                    ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50'
+                                                    : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40'
+                                                }`}
+                                              >
+                                                <Calendar className="w-3 h-3 shrink-0" />
+                                                <span>
+                                                  Due: {formatDate(item.dueDate)}
+                                                  {!isDone && new Date(item.dueDate).getTime() < new Date().setHours(0, 0, 0, 0)
+                                                    ? ' (Overdue)'
+                                                    : ''}
+                                                </span>
+                                              </span>
+                                            </>
+                                          )}
                                         </div>
                                       </div>
 
