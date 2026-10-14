@@ -201,9 +201,11 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           order: 2,
         },
       ]);
-    } else {
       // Default initial state for new retrospective
-      setTitle(`Sprint 42 Retrospective`);
+      const defaultTitle = projectContext?.sprintName
+        ? `${projectContext.sprintName} Retrospective`
+        : 'Sprint 1 Retrospective';
+      setTitle(defaultTitle);
       setDescription('Continuous alignment session for Engineering & Product team');
       setScheduledDate(getLocalDateTimeString());
       setStartDate(new Date().toISOString().split('T')[0]);
@@ -578,7 +580,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Sprint 42 Retrospective"
+                  placeholder="e.g. Sprint 1 Retrospective"
                   className="w-full px-4 py-2.5 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/30 focus:border-[#88c958] shadow-xs"
                   required
                 />

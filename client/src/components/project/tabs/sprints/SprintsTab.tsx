@@ -50,6 +50,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   const [editingDatesSprint, setEditingDatesSprint] = useState<Sprint | null>(null);
   const [sprintToComplete, setSprintToComplete] = useState<Sprint | null>(null);
   const [sprintToReopen, setSprintToReopen] = useState<Sprint | null>(null);
+  const [sprintToDelete, setSprintToDelete] = useState<Sprint | null>(null);
 
   // Confirmation dialog state for backlog item deletion
   const [itemToDelete, setItemToDelete] = useState<{
@@ -378,6 +379,18 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     }
   };
 
+  const handleDeleteSprint = async (sprint: Sprint) => {
+    try {
+      const updated = await ProjectApiService.deleteSprint(project.id, sprint.id);
+      if (updated) onProjectUpdated(updated);
+    } catch (err) {
+      console.warn('[SprintsTab] API delete sprint fallback to mock:', err);
+      const fallback = ProjectDataService.deleteSprint(project.id, sprint.id);
+      if (fallback) onProjectUpdated(fallback);
+    }
+    setSprintToDelete(null);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* 1. Top Filter Bar */}
@@ -428,6 +441,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               onCompleteSprint={(sp) => setSprintToComplete(sp)}
               onReopenSprint={(sp) => setSprintToReopen(sp)}
               onEditDates={(sp) => setEditingDatesSprint(sp)}
+              onDeleteSprint={(sp) => setSprintToDelete(sp)}
               onUpdateItemStatus={handleUpdateItemStatus}
               onDeleteItem={(sprintId, itemId) => {
                 const sp = project.sprints.find((s) => s.id === sprintId);
@@ -485,6 +499,24 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
           confirmLabel="Reopen Sprint"
           cancelLabel="Cancel"
           variant="primary"
+        />
+      )}
+
+      {/* 4.2 Delete Upcoming Sprint Confirmation Dialog */}
+      {sprintToDelete && (
+        <ConfirmDialog
+          isOpen={Boolean(sprintToDelete)}
+          onClose={() => setSprintToDelete(null)}
+          onConfirm={() => {
+            if (sprintToDelete) {
+              handleDeleteSprint(sprintToDelete);
+            }
+          }}
+          title={`Delete ${sprintToDelete.name}?`}
+          message={`Are you sure you want to delete "${sprintToDelete.name}"? This upcoming sprint will be permanently deleted from this project.`}
+          confirmLabel="Delete Sprint"
+          cancelLabel="Cancel"
+          variant="danger"
         />
       )}
 
