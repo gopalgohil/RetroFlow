@@ -44,8 +44,8 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
   const [deletingRetro, setDeletingRetro] = useState<ProjectRetroLink | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Backend-Driven Pagination State (3 retros per page matching 3-column grid)
-  const ITEMS_PER_PAGE = 3;
+  // Backend-Driven Pagination State (9 retros per page - 3 rows of 3)
+  const ITEMS_PER_PAGE = 9;
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedRetros, setPaginatedRetros] = useState<ProjectRetroLink[]>(
     (project.retrospectives || []).slice(0, ITEMS_PER_PAGE)
@@ -291,7 +291,12 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 lg:gap-4.5 2xl:gap-5 min-h-[190px]">
             {isLoadingRetros ? (
-              Array.from({ length: ITEMS_PER_PAGE }).map((_, idx) => (
+              Array.from({
+                length: Math.min(
+                  ITEMS_PER_PAGE,
+                  Math.max(paginationMeta.totalItems || 3, 3)
+                ),
+              }).map((_, idx) => (
                 <RetroCardSkeleton key={`skeleton-${idx}`} />
               ))
             ) : (

@@ -1119,11 +1119,11 @@ class ProjectService {
 
   /**
    * Industry-Standard Project Retrospectives Pagination & Retrieval
-   * Supports page, limit (default 6), search, and synchronization of latest retro metrics
+   * Supports page, limit (default 9), search, and synchronization of latest retro metrics
    */
   async getProjectRetros(
     idOrKey,
-    { page = 1, limit = 6, search = '' } = {},
+    { page = 1, limit = 9, search = '' } = {},
     currentUser = null
   ) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
@@ -1148,7 +1148,7 @@ class ProjectService {
 
     const totalItems = filtered.length;
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.max(1, parseInt(limit, 10) || 6);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 9);
     const totalPages = Math.ceil(totalItems / limitNum) || 1;
 
     const startIndex = (pageNum - 1) * limitNum;

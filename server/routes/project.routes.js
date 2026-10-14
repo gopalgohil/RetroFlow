@@ -214,7 +214,7 @@ router.delete('/:id', optionalAuth, projectController.deleteProject);
 
 /**
  * @route   GET /api/projects/:id/retros
- * @desc    Get paginated retrospectives for a project (6 per page default)
+ * @desc    Get paginated retrospectives for a project (9 per page default)
  */
 router.get('/:id/retros', optionalAuth, projectController.getProjectRetros);
 
