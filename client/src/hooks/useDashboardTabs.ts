@@ -3,13 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { DASHBOARD_TABS, DashboardTab, isValidDashboardTab } from '@/types/dashboard';
-export { DASHBOARD_TABS, isValidDashboardTab };
-export type { DashboardTab };
+export const DASHBOARD_TABS = ['sessions', 'projects', 'action_items', 'members', 'analytics'] as const;
+export type DashboardTab = (typeof DASHBOARD_TABS)[number];
 
 interface UseDashboardTabsOptions {
   defaultTab?: DashboardTab;
-  initialTab?: DashboardTab;
   transitionDuration?: number;
 }
 
@@ -20,40 +18,18 @@ interface UseDashboardTabsOptions {
  */
 export function useDashboardTabs({
   defaultTab = 'sessions',
-  initialTab: propInitialTab,
   transitionDuration = 380,
 }: UseDashboardTabsOptions = {}) {
   const searchParams = useSearchParams();
 
-  // 1. Derive initial tab from prop, URL searchParams, or browser window search
+  // 1. Derive initial tab from URL query param (?tab=...)
   const initialTabFromUrl = searchParams.get('tab') as DashboardTab | null;
+  const initialTab =
+    initialTabFromUrl && DASHBOARD_TABS.includes(initialTabFromUrl)
+      ? initialTabFromUrl
+      : defaultTab;
 
-  const resolvedInitialTab: DashboardTab = (() => {
-    if (propInitialTab && DASHBOARD_TABS.includes(propInitialTab)) {
-      return propInitialTab;
-    }
-    if (initialTabFromUrl && DASHBOARD_TABS.includes(initialTabFromUrl)) {
-      return initialTabFromUrl;
-    }
-    if (typeof window !== 'undefined') {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const t = params.get('tab') as DashboardTab;
-        if (t && DASHBOARD_TABS.includes(t)) {
-          return t;
-        }
-      } catch {}
-      try {
-        const saved = sessionStorage.getItem('retroflow_active_dashboard_tab') as DashboardTab;
-        if (saved && DASHBOARD_TABS.includes(saved)) {
-          return saved;
-        }
-      } catch {}
-    }
-    return defaultTab;
-  })();
-
-  const [activeTab, setActiveTab] = useState<DashboardTab>(resolvedInitialTab);
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // 2. Synchronize tab state with browser popstate (back/forward history)
@@ -66,9 +42,6 @@ export function useDashboardTabs({
       if (targetTab !== activeTab) {
         setIsTransitioning(true);
         setActiveTab(targetTab);
-        try {
-          sessionStorage.setItem('retroflow_active_dashboard_tab', targetTab);
-        } catch {}
         setTimeout(() => setIsTransitioning(false), transitionDuration);
       }
     };
@@ -87,10 +60,6 @@ export function useDashboardTabs({
       const validTab = targetTab as DashboardTab;
       setIsTransitioning(true);
       setActiveTab(validTab);
-
-      try {
-        sessionStorage.setItem('retroflow_active_dashboard_tab', validTab);
-      } catch {}
 
       const targetUrl = `/dashboard?tab=${validTab}`;
       window.history.pushState(null, '', targetUrl);
