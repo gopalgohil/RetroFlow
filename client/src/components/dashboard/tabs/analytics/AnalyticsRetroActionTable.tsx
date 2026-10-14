@@ -254,7 +254,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
               <th className="py-3.5 px-4 text-center">Total Action Items</th>
               <th className="py-3.5 px-4 text-center">Completed (Done)</th>
               <th className="py-3.5 px-4 text-center">Pending Items</th>
-              <th className="py-3.5 px-4">Resolution Health</th>
               <th className="py-3.5 px-4">Assignees</th>
               <th className="py-3.5 pl-4 pr-6 text-right">Drill-Down</th>
             </tr>
@@ -265,7 +264,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                 const total = retro.totalTasks ?? retro.actionItemsCount ?? 0;
                 const completed = retro.completedTasks ?? 0;
                 const pending = retro.pendingTasks ?? total - completed;
-                const rate = retro.completionRate ?? (total > 0 ? Math.round((completed / total) * 100) : 0);
                 const isExpanded = expandedRetroIds.has(retro.id);
                 const assignees = retro.assignees || [];
                 const actionItems = retro.actionItems || [];
@@ -335,38 +333,7 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                         </span>
                       </td>
 
-                      {/* Column 5: Resolution Health (% Progress Bar) */}
-                      <td className="py-4 px-4 min-w-[150px]">
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between text-[11px] font-black">
-                            <span
-                              className={
-                                rate === 100
-                                  ? 'text-emerald-600 dark:text-emerald-400'
-                                  : rate >= 50
-                                    ? 'text-[#3d8318] dark:text-[#88c958]'
-                                    : 'text-amber-600 dark:text-amber-400'
-                              }
-                            >
-                              {rate}% Resolved
-                            </span>
-                            <span className="text-[10px] text-slate-400">
-                              {completed}/{total}
-                            </span>
-                          </div>
-                          <div className="w-full bg-slate-100 dark:bg-white/[0.08] h-1.5 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-300 ${rate === 100
-                                ? 'bg-emerald-500'
-                                : 'bg-[#5cb028] dark:bg-[#88c958]'
-                                }`}
-                              style={{ width: `${rate}%` }}
-                            />
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Column 6: Assignees Stack */}
+                      {/* Column 5: Assignees Stack */}
                       <td className="py-4 px-4">
                         {assignees.length > 0 ? (
                           <div className="flex items-center -space-x-2">
@@ -416,7 +383,7 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                     {/* Expandable Accordion: Detailed Action Items List for this Retro */}
                     {isExpanded && (
                       <tr className="bg-slate-50/50 dark:bg-white/[0.02]">
-                        <td colSpan={7} className="px-6 py-4">
+                        <td colSpan={6} className="px-6 py-4">
                           <div className="p-4 rounded-2xl bg-white dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] shadow-2xs space-y-3">
                             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.06] pb-2.5">
                               <div className="flex items-center gap-2">
@@ -522,7 +489,7 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
               })
             ) : (
               <tr>
-                <td colSpan={7} className="py-12 text-center">
+                <td colSpan={6} className="py-12 text-center">
                   <div className="flex flex-col items-center justify-center space-y-2">
                     <AlertCircle className="w-8 h-8 text-slate-300 dark:text-slate-600" />
                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
