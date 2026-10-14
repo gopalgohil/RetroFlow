@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { Project, ProjectRetroLink } from '@/types/project';
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
@@ -11,6 +11,7 @@ import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
 import { api } from '@/lib/api';
 import { RetroCard } from './RetroCard';
+import { RetroCardSkeleton } from './RetroCardSkeleton';
 import { RetrosPagination } from './RetrosPagination';
 import { DeleteRetroModal } from './DeleteRetroModal';
 
@@ -43,18 +44,64 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
   const [deletingRetro, setDeletingRetro] = useState<ProjectRetroLink | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 6-item Pagination state
-  const ITEMS_PER_PAGE = 6;
+  // Backend-Driven Pagination State (2 retros per page)
+  const ITEMS_PER_PAGE = 2;
   const [currentPage, setCurrentPage] = useState(1);
+  const [paginatedRetros, setPaginatedRetros] = useState<ProjectRetroLink[]>(
+    (project.retrospectives || []).slice(0, ITEMS_PER_PAGE)
+  );
+  const [paginationMeta, setPaginationMeta] = useState<{
+    totalItems: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  }>({
+    totalItems: project.retrospectives?.length || 0,
+    totalPages: Math.ceil((project.retrospectives?.length || 0) / ITEMS_PER_PAGE) || 1,
+    hasNextPage: (project.retrospectives?.length || 0) > ITEMS_PER_PAGE,
+    hasPrevPage: false,
+  });
+  const [isLoadingRetros, setIsLoadingRetros] = useState(false);
 
-  const retrosList = project.retrospectives || [];
-  const totalItems = retrosList.length;
-  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
-  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  // Fetch paginated retros from backend
+  const fetchRetrosPage = useCallback(
+    async (page: number) => {
+      setIsLoadingRetros(true);
+      try {
+        const res = await ProjectApiService.getProjectRetros(project.id, {
+          page,
+          limit: ITEMS_PER_PAGE,
+        });
+        if (res && res.retrospectives) {
+          setPaginatedRetros(res.retrospectives);
+          setPaginationMeta({
+            totalItems: res.pagination.totalItems,
+            totalPages: res.pagination.totalPages,
+            hasNextPage: res.pagination.hasNextPage,
+            hasPrevPage: res.pagination.hasPrevPage,
+          });
+        }
+      } catch (err) {
+        console.warn('[RetrosTab] API fetch fallback to local slice:', err);
+        const all = project.retrospectives || [];
+        const start = (page - 1) * ITEMS_PER_PAGE;
+        setPaginatedRetros(all.slice(start, start + ITEMS_PER_PAGE));
+        setPaginationMeta({
+          totalItems: all.length,
+          totalPages: Math.ceil(all.length / ITEMS_PER_PAGE) || 1,
+          hasNextPage: page * ITEMS_PER_PAGE < all.length,
+          hasPrevPage: page > 1,
+        });
+      } finally {
+        setIsLoadingRetros(false);
+      }
+    },
+    [project.id, project.retrospectives]
+  );
 
-  const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
-  const paginatedRetros = retrosList.slice(startIndex, endIndex);
+  useEffect(() => {
+    fetchRetrosPage(currentPage);
+  }, [currentPage, fetchRetrosPage]);
 
   // Open Edit Modal with full RetroBoard data
   const handleOpenEdit = async (retro: ProjectRetroLink) => {
@@ -110,6 +157,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
       if (updatedProject && onProjectUpdated) {
         onProjectUpdated(updatedProject);
       }
+      await fetchRetrosPage(currentPage);
     } catch (err) {
       console.warn('[RetrosTab] PUT retro failed, falling back to project API & local cache:', err);
       try {
@@ -123,6 +171,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         if (updated && onProjectUpdated) {
           onProjectUpdated(updated);
         }
+        await fetchRetrosPage(currentPage);
       } catch {
         const fallback = ProjectDataService.updateProjectRetro(project.id, identifier, {
           title: payload.title,
@@ -134,6 +183,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         if (fallback && onProjectUpdated) {
           onProjectUpdated(fallback);
         }
+        await fetchRetrosPage(currentPage);
       }
     } finally {
       setIsCustomizeOpen(false);
@@ -156,6 +206,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         onProjectUpdated(updated);
       }
       setDeletingRetro(null);
+      await fetchRetrosPage(currentPage);
     } catch (err) {
       console.warn('[RetrosTab] Delete via API fallback:', err);
       const fallback = ProjectDataService.deleteProjectRetro(
@@ -166,6 +217,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         onProjectUpdated(fallback);
       }
       setDeletingRetro(null);
+      await fetchRetrosPage(currentPage);
     } finally {
       setIsDeleting(false);
     }
@@ -197,14 +249,14 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         <div>
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             Project Retrospectives
-            <StatusPill status="upcoming" label={`${project.retrospectives?.length || 0} Sessions`} />
+            <StatusPill status="upcoming" label={`${paginationMeta.totalItems} Sessions`} />
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Collaborative agile feedback boards attached to <strong>{project.name}</strong> ({project.key}).
           </p>
         </div>
 
-        {canManageProject && (project.retrospectives?.length || 0) > 0 && (
+        {canManageProject && (paginationMeta.totalItems > 0 || (project.retrospectives?.length || 0) > 0) && (
           <button
             type="button"
             onClick={onCreateRetroClick}
@@ -217,7 +269,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
       </div>
 
       {/* 2. Retrospectives Grid or Empty State */}
-      {!project.retrospectives || project.retrospectives.length === 0 ? (
+      {!isLoadingRetros && paginationMeta.totalItems === 0 && (!project.retrospectives || project.retrospectives.length === 0) ? (
         <div className="p-12 text-center bg-white dark:bg-[#0e1015] rounded-2xl border border-dashed border-slate-200 dark:border-white/[0.08] space-y-3">
           <UserAvatar name="RetroFlow" avatar="RF" size="lg" className="mx-auto" />
           <h4 className="text-sm font-bold text-slate-900 dark:text-white">No Retrospectives Linked Yet</h4>
@@ -237,28 +289,35 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {paginatedRetros.map((retro) => (
-              <RetroCard
-                key={retro.id || retro.shareToken}
-                retro={retro}
-                canManageProject={canManageProject}
-                isCopied={copiedToken === retro.shareToken}
-                onShare={handleShareClick}
-                onEdit={handleOpenEdit}
-                onDelete={(r) => setDeletingRetro(r)}
-              />
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-h-[190px]">
+            {isLoadingRetros ? (
+              Array.from({ length: ITEMS_PER_PAGE }).map((_, idx) => (
+                <RetroCardSkeleton key={`skeleton-${idx}`} />
+              ))
+            ) : (
+              paginatedRetros.map((retro) => (
+                <RetroCard
+                  key={retro.id || retro.shareToken}
+                  retro={retro}
+                  canManageProject={canManageProject}
+                  isCopied={copiedToken === retro.shareToken}
+                  onShare={handleShareClick}
+                  onEdit={handleOpenEdit}
+                  onDelete={(r) => setDeletingRetro(r)}
+                />
+              ))
+            )}
           </div>
 
-          {/* 3. Pagination Controls Footer (Active when > 6 retros) */}
+          {/* 3. Pagination Controls Footer */}
           <RetrosPagination
-            currentPage={safeCurrentPage}
-            totalPages={totalPages}
-            startIndex={startIndex}
-            endIndex={endIndex}
-            totalItems={totalItems}
+            currentPage={currentPage}
+            totalPages={paginationMeta.totalPages}
+            startIndex={(currentPage - 1) * ITEMS_PER_PAGE}
+            endIndex={Math.min(currentPage * ITEMS_PER_PAGE, paginationMeta.totalItems)}
+            totalItems={paginationMeta.totalItems}
             onPageChange={(p) => setCurrentPage(p)}
+            isLoading={isLoadingRetros}
           />
         </div>
       )}

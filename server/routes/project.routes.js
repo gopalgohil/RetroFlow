@@ -213,6 +213,12 @@ router.patch('/:id/archive', optionalAuth, projectController.archiveProject);
 router.delete('/:id', optionalAuth, projectController.deleteProject);
 
 /**
+ * @route   GET /api/projects/:id/retros
+ * @desc    Get paginated retrospectives for a project (6 per page default)
+ */
+router.get('/:id/retros', optionalAuth, projectController.getProjectRetros);
+
+/**
  * @route   DELETE /api/projects/:id/retros/:retroId
  * @desc    Delete retrospective session linked to project
  */

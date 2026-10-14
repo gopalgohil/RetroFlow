@@ -5,7 +5,7 @@
  */
 
 import { api, ENDPOINTS } from '@/lib/api';
-import { Project, Sprint, CreateProjectPayload, ProjectMemberRole, EnrichedActionItem, BacklogItem } from '@/types/project';
+import { Project, Sprint, CreateProjectPayload, ProjectMemberRole, EnrichedActionItem, BacklogItem, ProjectRetroLink } from '@/types/project';
 import { PaginationMeta } from '@/types/retro';
 
 export interface ApiResponseWrapper<T> {
@@ -323,6 +323,40 @@ export class ProjectApiService {
         statusCounts?: { all: number; active: number; upcoming: number; completed: number };
       }>
     >(`${ENDPOINTS.PROJECTS}/${projectId}/sprints`, { params: options });
+    return res.data;
+  }
+
+  /**
+   * Fetch paginated project retrospectives
+   * GET /api/projects/:id/retros?page=X&limit=Y&search=Z
+   */
+  static async getProjectRetros(
+    projectId: string,
+    options?: { page?: number; limit?: number; search?: string }
+  ): Promise<{
+    retrospectives: ProjectRetroLink[];
+    pagination: {
+      page: number;
+      limit: number;
+      totalItems: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
+  }> {
+    const res = await api.get<
+      ApiResponseWrapper<{
+        retrospectives: ProjectRetroLink[];
+        pagination: {
+          page: number;
+          limit: number;
+          totalItems: number;
+          totalPages: number;
+          hasNextPage: boolean;
+          hasPrevPage: boolean;
+        };
+      }>
+    >(`${ENDPOINTS.PROJECTS}/${projectId}/retros`, { params: options });
     return res.data;
   }
 

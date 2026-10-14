@@ -10,11 +10,12 @@ export interface RetrosPaginationProps {
   endIndex: number;
   totalItems: number;
   onPageChange: (newPage: number) => void;
+  isLoading?: boolean;
 }
 
 /**
  * RetrosPagination:
- * 6-item pagination footer for project retrospectives.
+ * Pagination footer for project retrospectives.
  */
 export const RetrosPagination: React.FC<RetrosPaginationProps> = ({
   currentPage,
@@ -23,6 +24,7 @@ export const RetrosPagination: React.FC<RetrosPaginationProps> = ({
   endIndex,
   totalItems,
   onPageChange,
+  isLoading = false,
 }) => {
   if (totalPages <= 1) return null;
 
@@ -38,7 +40,7 @@ export const RetrosPagination: React.FC<RetrosPaginationProps> = ({
         <button
           type="button"
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-          disabled={currentPage <= 1}
+          disabled={currentPage <= 1 || isLoading}
           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#12151c] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
@@ -50,6 +52,7 @@ export const RetrosPagination: React.FC<RetrosPaginationProps> = ({
             key={p}
             type="button"
             onClick={() => onPageChange(p)}
+            disabled={isLoading}
             className={`min-w-[32px] h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               p === currentPage
                 ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a]'
@@ -63,7 +66,7 @@ export const RetrosPagination: React.FC<RetrosPaginationProps> = ({
         <button
           type="button"
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage >= totalPages}
+          disabled={currentPage >= totalPages || isLoading}
           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#12151c] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
         >
           <span>Next</span>

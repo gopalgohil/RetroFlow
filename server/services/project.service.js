@@ -1118,6 +1118,56 @@ class ProjectService {
   }
 
   /**
+   * Industry-Standard Project Retrospectives Pagination & Retrieval
+   * Supports page, limit (default 6), search, and synchronization of latest retro metrics
+   */
+  async getProjectRetros(
+    idOrKey,
+    { page = 1, limit = 6, search = '' } = {},
+    currentUser = null
+  ) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+
+    // Ensure latest cards/actionItems counters are synchronized
+    await this.syncProjectRetrospectives(project);
+
+    const allRetros = Array.isArray(project.retrospectives) ? [...project.retrospectives] : [];
+
+    let filtered = allRetros;
+
+    // Filter by search query if provided
+    if (search && search.trim()) {
+      const q = search.toLowerCase().trim();
+      filtered = filtered.filter(
+        (r) =>
+          r.title?.toLowerCase().includes(q) ||
+          r.sprintName?.toLowerCase().includes(q)
+      );
+    }
+
+    const totalItems = filtered.length;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 6);
+    const totalPages = Math.ceil(totalItems / limitNum) || 1;
+
+    const startIndex = (pageNum - 1) * limitNum;
+    const paginatedRetros = filtered.slice(startIndex, startIndex + limitNum);
+
+    return {
+      retrospectives: paginatedRetros,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        totalItems,
+        totalPages,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1,
+      },
+    };
+  }
+
+  /**
    * Update custom start/end dates and goal of an individual sprint
    */
   async updateSprintDates(idOrKey, sprintId, { startDate, endDate, goal, name }, currentUser = null) {

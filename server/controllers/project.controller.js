@@ -204,6 +204,20 @@ class ProjectController {
   });
 
   /**
+   * Get paginated retrospectives for a project
+   * GET /api/projects/:id/retros
+   */
+  getProjectRetros = asyncHandler(async (req, res) => {
+    const { page, limit, search } = req.query;
+    const result = await projectService.getProjectRetros(
+      req.params.id,
+      { page, limit, search },
+      req.user
+    );
+    return ApiResponse.ok(res, result, 'Project retrospectives retrieved successfully');
+  });
+
+  /**
    * Update custom dates and goal of an individual sprint
    * PATCH /api/projects/:id/sprints/:sprintId/dates
    */
