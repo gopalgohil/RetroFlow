@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -43,7 +44,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-icon.png?v=digiflux" />
         <link rel="shortcut icon" href="/favicon.ico?v=digiflux" />
         <meta name="theme-color" content="#5cb028" />
-        <script
+        <Script
+          id="retroflow-theme-script"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

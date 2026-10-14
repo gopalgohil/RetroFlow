@@ -23,7 +23,8 @@ import {
   LogoutConfirmModal,
 } from '@/components/dashboard';
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
-import { useDashboardTabs, DASHBOARD_TABS, DashboardTab } from '@/hooks/useDashboardTabs';
+import { useDashboardTabs } from '@/hooks/useDashboardTabs';
+import { DASHBOARD_TABS, DashboardTab } from '@/types/dashboard';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { api, ENDPOINTS } from '@/lib/api';
 import { CheckCircle2, Clock, RefreshCw, LogOut, XCircle, AlertTriangle, UserPlus } from 'lucide-react';

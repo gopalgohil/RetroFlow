@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import DashboardClient, { DashboardFallback } from './DashboardClient';
-import { DASHBOARD_TABS, DashboardTab } from '@/hooks/useDashboardTabs';
+import { DASHBOARD_TABS, DashboardTab, isValidDashboardTab } from '@/types/dashboard';
 
 interface DashboardPageProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }> | { [key: string]: string | string[] | undefined };
@@ -18,10 +18,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     : props.searchParams;
 
   const tabParam = searchParams?.tab;
-  const initialTab: DashboardTab =
-    typeof tabParam === 'string' && DASHBOARD_TABS.includes(tabParam as DashboardTab)
-      ? (tabParam as DashboardTab)
-      : 'sessions';
+  const initialTab: DashboardTab = isValidDashboardTab(tabParam) ? tabParam : 'sessions';
 
   return (
     <Suspense fallback={<DashboardFallback initialTab={initialTab} />}>
