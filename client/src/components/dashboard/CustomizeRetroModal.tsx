@@ -525,7 +525,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
             </div>
             <span className="text-[11px] font-bold text-emerald-700 dark:text-[#88c958] bg-emerald-50 dark:bg-[#88c958]/15 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-[#88c958]/30 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#88c958] animate-pulse" />
-              🔒 {projectContext.members.length} Team Members Auto-Whitelisted (Strict Privacy)
+              {projectContext.members.length} Team Members
             </span>
           </div>
         )}

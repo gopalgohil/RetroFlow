@@ -46,18 +46,16 @@ export const RetroCard: React.FC<RetroCardProps> = ({
   return (
     <div className="group p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
       <div className="space-y-3">
-        {/* Date on Right Side */}
-        <div className="flex items-center justify-end">
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1">
+        {/* Title & Date in the same line */}
+        <div className="flex items-start justify-between gap-3">
+          <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug min-w-0 flex-1">
+            {retro.title}
+          </h4>
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 shrink-0 pt-0.5 whitespace-nowrap">
             <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
             {dateDisplay}
           </span>
         </div>
-
-        {/* Title */}
-        <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug">
-          {retro.title}
-        </h4>
 
         {/* Stats Pills */}
         <div className="grid grid-cols-3 gap-2 pt-1">
