@@ -187,7 +187,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
         {isFacilitator && (
           <button
             onClick={onOpenInvite}
-            className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-white dark:bg-[#0e1015] hover:bg-slate-50 dark:hover:bg-[#12151c] border border-slate-200/90 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
+            className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-white dark:bg-[#0e1015] hover:bg-slate-50 dark:hover:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] dark:hover:border-white/[0.16] text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
           >
             <Share2 className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
             <span className="hidden sm:inline">Invite Teammates</span>

@@ -38,7 +38,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '' }) => {
       title="Toggle light / dark mode"
       className={`w-9 h-9 rounded-xl border flex items-center justify-center cursor-pointer transition-colors duration-150 shrink-0 select-none
         bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 shadow-2xs
-        dark:bg-slate-900/90 dark:border-slate-800 dark:text-amber-400 dark:hover:bg-slate-800 dark:hover:border-slate-700 dark:shadow-2xs
+        dark:bg-[#0e1015] dark:border-white/[0.08] dark:text-amber-400 dark:hover:bg-[#0e1015] dark:hover:border-white/[0.16] dark:shadow-2xs
         ${className}`}
     >
       {/* Light mode: Moon icon (click to switch to dark mode) */}

@@ -136,7 +136,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               onClick={() => setIsDropdownOpen((prev) => !prev)}
               aria-expanded={isDropdownOpen}
               aria-haspopup="true"
-              className="flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-2.5 pr-2.5 sm:pr-3 py-1.5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] hover:dark:border-white/[0.16] hover:bg-slate-50/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer select-none"
+              className="flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-2.5 pr-2.5 sm:pr-3 py-1.5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] dark:hover:border-white/[0.16] hover:bg-slate-50/90 dark:hover:bg-[#0e1015] shadow-2xs hover:shadow-xs transition-all cursor-pointer select-none"
             >
               {/* User Initials Avatar */}
               <div
