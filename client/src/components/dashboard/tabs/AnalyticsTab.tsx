@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { AlertTriangle, Layers, Users } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { api, ENDPOINTS } from '@/lib/api';
 import {
   AnalyticsData,
   AnalyticsHeader,
   AnalyticsMonthlyBarChart,
-  AnalyticsMemberTable,
   AnalyticsRetroActionTable,
   AnalyticsSkeleton,
 } from './analytics';
@@ -26,7 +25,6 @@ export interface AnalyticsTabProps {
 export const AnalyticsTab: React.FC<AnalyticsTabProps> = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<number>(() => new Date().getFullYear());
-  const [tableMode, setTableMode] = useState<'retros' | 'members'>('retros');
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -112,46 +110,11 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = () => {
             yearSummary={data.yearSummary}
           />
 
-          {/* 4. Table Section with View Mode Switcher */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-4 flex-wrap pb-1">
-              <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/60 dark:border-white/[0.06]">
-                <button
-                  type="button"
-                  onClick={() => setTableMode('retros')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                    tableMode === 'retros'
-                      ? 'bg-white dark:bg-[#181c24] text-[#3d8318] dark:text-[#88c958] shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>Retros & Action Items ({data.retroTrends?.length || 0})</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTableMode('members')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                    tableMode === 'members'
-                      ? 'bg-white dark:bg-[#181c24] text-[#3d8318] dark:text-[#88c958] shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>Team Member Attendance ({data.memberAnalytics?.length || 0})</span>
-                </button>
-              </div>
-            </div>
-
-            {tableMode === 'retros' ? (
-              <AnalyticsRetroActionTable
-                retros={data.retroActionAnalytics || data.retroTrends || []}
-                selectedYear={data.selectedYear || selectedYear}
-              />
-            ) : (
-              <AnalyticsMemberTable members={data.memberAnalytics} />
-            )}
-          </div>
+          {/* 4. Retros & Action Items Deliverables Table */}
+          <AnalyticsRetroActionTable
+            retros={data.retroActionAnalytics || data.retroTrends || []}
+            selectedYear={data.selectedYear || selectedYear}
+          />
         </>
       )}
     </div>

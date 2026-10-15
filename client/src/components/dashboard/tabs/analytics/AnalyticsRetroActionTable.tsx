@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Layers,
   Search,
@@ -20,6 +21,7 @@ import {
   Tag,
   CircleDot,
   ShieldCheck,
+  ExternalLink,
 } from 'lucide-react';
 import { RetroTrendItem } from './types';
 
@@ -52,12 +54,21 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
     });
   };
 
-  // Expand / Collapse all
+  // Expand / Collapse all (only for retros with items)
   const toggleExpandAll = () => {
-    if (expandedRetroIds.size === filteredRetros.length) {
+    const expandableRetros = filteredRetros.filter((r) => {
+      const items = r.actionItems || [];
+      const total = r.totalTasks ?? r.actionItemsCount ?? items.length;
+      return total > 0;
+    });
+
+    if (expandableRetros.length === 0) return;
+
+    const allExpanded = expandableRetros.every((r) => expandedRetroIds.has(r.id));
+    if (allExpanded) {
       setExpandedRetroIds(new Set());
     } else {
-      setExpandedRetroIds(new Set(filteredRetros.map((r) => r.id)));
+      setExpandedRetroIds(new Set(expandableRetros.map((r) => r.id)));
     }
   };
 
@@ -135,6 +146,14 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
     const startIdx = (activePage - 1) * currentLimit;
     return filteredRetros.slice(startIdx, startIdx + currentLimit);
   }, [filteredRetros, activePage, currentLimit]);
+
+  const expandableCount = useMemo(() => {
+    return filteredRetros.filter((r) => {
+      const items = r.actionItems || [];
+      const total = r.totalTasks ?? r.actionItemsCount ?? items.length;
+      return total > 0;
+    }).length;
+  }, [filteredRetros]);
 
   // Status counts for filter pills
   const counts = useMemo(() => {
@@ -232,13 +251,13 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
               )}
             </div>
 
-            {filteredRetros.length > 0 && (
+            {expandableCount > 0 && (
               <button
                 type="button"
                 onClick={toggleExpandAll}
                 className="px-3 py-2 rounded-xl border border-slate-200/80 dark:border-white/[0.08] bg-slate-50 dark:bg-white/[0.04] text-xs font-bold text-[#3d8318] dark:text-[#88c958] hover:bg-[#eaf5e3]/50 dark:hover:bg-[#88c958]/10 transition-colors cursor-pointer"
               >
-                {expandedRetroIds.size === filteredRetros.length ? 'Collapse All' : 'Expand All'}
+                {expandedRetroIds.size >= expandableCount ? 'Collapse All' : 'Expand All'}
               </button>
             )}
           </div>
@@ -267,27 +286,49 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                 const inProgress = retro.inProgressTasks ?? actionItems.filter((i) => i.status === 'in_progress').length;
                 const todo = retro.todoTasks ?? actionItems.filter((i) => i.status !== 'done' && i.status !== 'in_progress').length;
                 const total = retro.totalTasks ?? retro.actionItemsCount ?? (completed + inProgress + todo);
-                const isExpanded = expandedRetroIds.has(retro.id);
+                const hasItems = total > 0;
+                const isExpanded = hasItems && expandedRetroIds.has(retro.id);
                 const assignees = retro.assignees || [];
 
                 return (
                   <React.Fragment key={retro.id}>
                     <tr
-                      onClick={() => toggleRowExpansion(retro.id)}
-                      className={`group hover:bg-[#eaf5e3]/30 dark:hover:bg-[#88c958]/5 transition-colors cursor-pointer ${isExpanded ? 'bg-slate-50/70 dark:bg-white/[0.03]' : ''
-                        }`}
+                      onClick={() => {
+                        if (hasItems) toggleRowExpansion(retro.id);
+                      }}
+                      className={`group transition-colors ${
+                        hasItems
+                          ? 'hover:bg-[#eaf5e3]/30 dark:hover:bg-[#88c958]/5 cursor-pointer'
+                          : 'cursor-default'
+                      } ${isExpanded ? 'bg-slate-50/70 dark:bg-white/[0.03]' : ''}`}
                     >
                       {/* Column 1: Retro Title & Meta ("side retro ka name ayaga") */}
                       <td className="py-4 pl-6 pr-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-extrabold text-sm text-slate-900 dark:text-white group-hover:text-[#3d8318] dark:group-hover:text-[#88c958] transition-colors">
+                            <span
+                              className={`font-extrabold text-sm text-slate-900 dark:text-white transition-colors ${
+                                hasItems ? 'group-hover:text-[#3d8318] dark:group-hover:text-[#88c958]' : ''
+                              }`}
+                            >
                               {retro.title}
                             </span>
                             {retro.projectKey && (
                               <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.08]">
                                 {retro.projectKey}
                               </span>
+                            )}
+                            {retro.shareToken && (
+                              <Link
+                                href={`/retro/${retro.shareToken}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="p-1 rounded-lg text-slate-400 hover:text-[#3d8318] dark:hover:text-[#88c958] hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
+                                title="Open retro board in new tab"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </Link>
                             )}
                           </div>
                           <div className="flex items-center gap-2 text-[11px] text-slate-400">
@@ -301,96 +342,129 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                         </div>
                       </td>
 
-                      {/* Column 2: Total Action Items (Clean number badge, icon removed) */}
+                      {/* Column 2: Total Action Items */}
                       <td className="py-4 px-4 text-center">
-                        <span className="inline-flex items-center justify-center min-w-[32px] px-2.5 py-1 rounded-xl text-xs font-black bg-slate-100 dark:bg-white/[0.06] text-slate-800 dark:text-slate-200">
-                          {total}
-                        </span>
+                        {hasItems ? (
+                          <span className="inline-flex items-center justify-center min-w-[32px] px-2.5 py-1 rounded-xl text-xs font-black bg-slate-100 dark:bg-white/[0.06] text-slate-800 dark:text-slate-200">
+                            {total}
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 dark:text-white/20 font-bold select-none">—</span>
+                        )}
                       </td>
 
                       {/* Column 3: Completed (Done) Items */}
                       <td className="py-4 px-4 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black ${completed > 0
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40'
-                            : 'bg-slate-100 dark:bg-white/[0.04] text-slate-400'
+                        {hasItems ? (
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black ${
+                              completed > 0
+                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40'
+                                : 'bg-slate-100 dark:bg-white/[0.04] text-slate-400'
                             }`}
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>{completed} Done</span>
-                        </span>
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>{completed} Done</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 dark:text-white/20 font-bold select-none">—</span>
+                        )}
                       </td>
 
                       {/* Column 4: In Progress Items */}
                       <td className="py-4 px-4 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black ${inProgress > 0
-                            ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40'
-                            : 'bg-slate-100 dark:bg-white/[0.04] text-slate-400'
+                        {hasItems ? (
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black ${
+                              inProgress > 0
+                                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40'
+                                : 'bg-slate-100 dark:bg-white/[0.04] text-slate-400'
                             }`}
-                        >
-                          <CircleDot className="w-3.5 h-3.5 text-blue-500" />
-                          <span>{inProgress} In Progress</span>
-                        </span>
+                          >
+                            <CircleDot className="w-3.5 h-3.5 text-blue-500" />
+                            <span>{inProgress} In Progress</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 dark:text-white/20 font-bold select-none">—</span>
+                        )}
                       </td>
 
                       {/* Column 5: Pending (To Do) Items */}
                       <td className="py-4 px-4 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black ${todo > 0
-                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40'
-                            : 'bg-slate-100 dark:bg-white/[0.04] text-slate-400'
+                        {hasItems ? (
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black ${
+                              todo > 0
+                                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40'
+                                : 'bg-slate-100 dark:bg-white/[0.04] text-slate-400'
                             }`}
-                        >
-                          <Clock className="w-3.5 h-3.5 text-amber-500" />
-                          <span>{todo} Pending</span>
-                        </span>
+                          >
+                            <Clock className="w-3.5 h-3.5 text-amber-500" />
+                            <span>{todo} Pending</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 dark:text-white/20 font-bold select-none">—</span>
+                        )}
                       </td>
 
-                      {/* Column 5: Assignees Stack */}
+                      {/* Column 6: Assignees Stack */}
                       <td className="py-4 px-4">
-                        {assignees.length > 0 ? (
-                          <div className="flex items-center -space-x-2">
-                            {assignees.slice(0, 4).map((user, uIdx) => (
-                              <div
-                                key={uIdx}
-                                title={user.name}
-                                className="w-6 h-6 rounded-full bg-[#5cb028] text-white text-[9px] font-bold flex items-center justify-center border-2 border-white dark:border-[#0e1015] shadow-xs cursor-default"
-                              >
-                                {user.avatar || user.name.slice(0, 2).toUpperCase()}
-                              </div>
-                            ))}
-                            {assignees.length > 4 && (
-                              <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-white/[0.1] text-slate-700 dark:text-slate-300 text-[9px] font-black flex items-center justify-center border-2 border-white dark:border-[#0e1015]">
-                                +{assignees.length - 4}
-                              </div>
-                            )}
-                          </div>
+                        {hasItems ? (
+                          assignees.length > 0 ? (
+                            <div className="flex items-center -space-x-2">
+                              {assignees.slice(0, 4).map((user, uIdx) => (
+                                <div
+                                  key={uIdx}
+                                  title={user.name}
+                                  className="w-6 h-6 rounded-full bg-[#5cb028] text-white text-[9px] font-bold flex items-center justify-center border-2 border-white dark:border-[#0e1015] shadow-xs cursor-default"
+                                >
+                                  {user.avatar || user.name.slice(0, 2).toUpperCase()}
+                                </div>
+                              ))}
+                              {assignees.length > 4 && (
+                                <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-white/[0.1] text-slate-700 dark:text-slate-300 text-[9px] font-black flex items-center justify-center border-2 border-white dark:border-[#0e1015]">
+                                  +{assignees.length - 4}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">Unassigned</span>
+                          )
                         ) : (
-                          <span className="text-[11px] text-slate-400 italic">Unassigned</span>
+                          <span className="text-slate-300 dark:text-white/20 font-bold select-none">—</span>
                         )}
                       </td>
 
                       {/* Column 7: Expand Drill-down Button */}
                       <td className="py-4 pl-4 pr-6 text-right">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleRowExpansion(retro.id);
-                          }}
-                          className={`p-1.5 rounded-xl border transition-all cursor-pointer ${isExpanded
-                            ? 'bg-[#eaf5e3] dark:bg-[#88c958]/20 border-[#cdeac0] dark:border-[#88c958]/40 text-[#3d8318] dark:text-[#88c958]'
-                            : 'bg-slate-50 dark:bg-white/[0.04] border-slate-200/80 dark:border-white/[0.08] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                        {hasItems ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRowExpansion(retro.id);
+                            }}
+                            className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+                              isExpanded
+                                ? 'bg-[#eaf5e3] dark:bg-[#88c958]/20 border-[#cdeac0] dark:border-[#88c958]/40 text-[#3d8318] dark:text-[#88c958]'
+                                : 'bg-slate-50 dark:bg-white/[0.04] border-slate-200/80 dark:border-white/[0.08] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}
-                          title={isExpanded ? 'Collapse action items' : 'Expand action items'}
-                        >
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
+                            title={isExpanded ? 'Collapse action items' : 'Expand action items'}
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
+                          </button>
+                        ) : (
+                          <span
+                            className="inline-flex p-1.5 rounded-xl border border-slate-100 dark:border-white/[0.04] text-slate-300 dark:text-white/10 cursor-not-allowed select-none opacity-40"
+                            title="No action items created in this session"
+                          >
                             <ChevronDown className="w-4 h-4" />
-                          )}
-                        </button>
+                          </span>
+                        )}
                       </td>
                     </tr>
 
@@ -399,8 +473,8 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                       <tr className="bg-slate-50/50 dark:bg-white/[0.02]">
                         <td colSpan={7} className="px-6 py-4">
                           <div className="p-4 rounded-2xl bg-white dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] shadow-2xs space-y-3">
-                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.06] pb-2.5">
-                              <div className="flex items-center gap-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-white/[0.06] pb-3">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <Sparkles className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
                                 <h4 className="text-xs font-black text-slate-900 dark:text-white">
                                   Action Items Committed in {retro.title}
@@ -409,114 +483,159 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                                   ({actionItems.length} total)
                                 </span>
                               </div>
-                              <span className="text-[11px] font-bold text-slate-500">
-                                {completed} Completed • {inProgress} In Progress • {todo} Pending
-                              </span>
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <span className="text-[11px] font-bold text-slate-500">
+                                  {completed} Completed • {inProgress} In Progress • {todo} Pending
+                                </span>
+                                {retro.shareToken && (
+                                  <Link
+                                    href={`/retro/${retro.shareToken}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] hover:bg-[#d8eed0] dark:hover:bg-[#88c958]/25 transition-all cursor-pointer shadow-2xs"
+                                  >
+                                    <span>Open Retro Board</span>
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </Link>
+                                )}
+                              </div>
                             </div>
 
                             {actionItems.length > 0 ? (
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
-                                {actionItems.map((item) => {
-                                  const isDone = item.status === 'done';
-                                  const isInProgress = item.status === 'in_progress';
+                                {[...actionItems]
+                                  .sort((a, b) => {
+                                    const isDoneA = a.status === 'done';
+                                    const isDoneB = b.status === 'done';
+                                    if (isDoneA !== isDoneB) return isDoneA ? 1 : -1;
 
-                                  return (
-                                    <div
-                                      key={item.id}
-                                      className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] flex items-start justify-between gap-3 hover:border-slate-300 dark:hover:border-white/[0.12] transition-colors"
-                                    >
-                                      <div className="space-y-2 min-w-0 flex-1">
-                                        <div className="flex items-start gap-2">
-                                          {isDone ? (
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                                          ) : isInProgress ? (
-                                            <CircleDot className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                                          ) : (
-                                            <Clock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                                          )}
-                                          <p
-                                            className={`text-xs font-semibold leading-relaxed ${isDone
-                                              ? 'text-slate-500 dark:text-slate-400 line-through'
-                                              : 'text-slate-800 dark:text-slate-200'
+                                    const now = new Date().setHours(0, 0, 0, 0);
+                                    const isOverdueA = !isDoneA && a.dueDate && new Date(a.dueDate).getTime() < now;
+                                    const isOverdueB = !isDoneB && b.dueDate && new Date(b.dueDate).getTime() < now;
+                                    if (isOverdueA !== isOverdueB) return isOverdueA ? -1 : 1;
+
+                                    const isInProgA = a.status === 'in_progress';
+                                    const isInProgB = b.status === 'in_progress';
+                                    if (isInProgA !== isInProgB) return isInProgA ? -1 : 1;
+
+                                    return 0;
+                                  })
+                                  .map((item) => {
+                                    const isDone = item.status === 'done';
+                                    const isInProgress = item.status === 'in_progress';
+                                    const isOverdue =
+                                      !isDone &&
+                                      item.dueDate &&
+                                      new Date(item.dueDate).getTime() < new Date().setHours(0, 0, 0, 0);
+
+                                    return (
+                                      <div
+                                        key={item.id}
+                                        className={`p-3.5 rounded-2xl border transition-all flex items-start justify-between gap-3 ${
+                                          isOverdue
+                                            ? 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200/80 dark:border-rose-900/40'
+                                            : isDone
+                                            ? 'bg-slate-50/60 dark:bg-white/[0.02] border-slate-200/50 dark:border-white/[0.04] opacity-80'
+                                            : isInProgress
+                                            ? 'bg-blue-50/40 dark:bg-blue-950/20 border-blue-200/60 dark:border-blue-800/40'
+                                            : 'bg-white dark:bg-[#151923] border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.12]'
+                                        }`}
+                                      >
+                                        <div className="space-y-2 min-w-0 flex-1">
+                                          <div className="flex items-start gap-2">
+                                            {isDone ? (
+                                              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                                            ) : isOverdue ? (
+                                              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                                            ) : isInProgress ? (
+                                              <CircleDot className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                                            ) : (
+                                              <Clock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                            )}
+                                            <p
+                                              className={`text-xs font-semibold leading-relaxed ${
+                                                isDone
+                                                  ? 'text-slate-400 dark:text-slate-500 line-through'
+                                                  : 'text-slate-900 dark:text-slate-100 font-bold'
                                               }`}
-                                          >
-                                            {item.text}
-                                          </p>
+                                            >
+                                              {item.text}
+                                            </p>
+                                          </div>
+
+                                          {/* Attribution: Given by -> Assigned to */}
+                                          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 pl-6 text-[10px]">
+                                            {/* Given by */}
+                                            <span className="inline-flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/[0.06] px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-white/[0.08]">
+                                              <ShieldCheck className="w-3 h-3 text-[#3d8318] dark:text-[#88c958]" />
+                                              <span className="text-slate-400 font-normal">Given by:</span>
+                                              <span>{item.managerName || retro.managerName || 'Project Manager'}</span>
+                                            </span>
+
+                                            <span className="text-slate-300 dark:text-white/20">→</span>
+
+                                            {/* Assigned to */}
+                                            <span className="inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-white/[0.08] bg-slate-100 dark:bg-white/[0.06]">
+                                              <User className="w-3 h-3 text-blue-500" />
+                                              <span className="text-slate-400 font-normal">Assigned to:</span>
+                                              {item.assignedToName ? (
+                                                <span className="text-slate-800 dark:text-slate-200">{item.assignedToName}</span>
+                                              ) : (
+                                                <span className="text-slate-400 italic font-normal">Unassigned</span>
+                                              )}
+                                            </span>
+
+                                            {item.assignedDate && (
+                                              <span className="text-slate-400">
+                                                Assigned: {formatDate(item.assignedDate)}
+                                              </span>
+                                            )}
+
+                                            {item.dueDate && (
+                                              <>
+                                                <span className="text-slate-300 dark:text-white/20">•</span>
+                                                <span
+                                                  className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md border text-[10px] ${
+                                                    isDone
+                                                      ? 'bg-slate-100 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 border-slate-200/60 dark:border-white/[0.06]'
+                                                      : isOverdue
+                                                      ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/60 font-black'
+                                                      : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40'
+                                                  }`}
+                                                >
+                                                  <Calendar className="w-3 h-3 shrink-0" />
+                                                  <span>
+                                                    Due: {formatDate(item.dueDate)}
+                                                    {isOverdue ? ' (Overdue)' : ''}
+                                                  </span>
+                                                </span>
+                                              </>
+                                            )}
+                                          </div>
                                         </div>
 
-                                        {/* Dynamic Task Attribution: Given by (Manager) -> Assigned to (Member) */}
-                                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 pl-6 text-[10px]">
-                                          {/* Given by (Dynamic Project Manager) */}
-                                          <span className="inline-flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/[0.06] px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-white/[0.08]">
-                                            <ShieldCheck className="w-3 h-3 text-[#3d8318] dark:text-[#88c958]" />
-                                            <span className="text-slate-400 font-normal">Given by:</span>
-                                            <span>{item.managerName || retro.managerName || 'Project Manager'}</span>
+                                        {/* Status Badge */}
+                                        <div className="flex flex-col items-end gap-1 shrink-0">
+                                          <span
+                                            className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
+                                              isDone
+                                                ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                                                : isInProgress
+                                                ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
+                                                : isOverdue
+                                                ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-bold'
+                                                : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+                                            }`}
+                                          >
+                                            {isDone ? 'Done' : isInProgress ? 'In Progress' : isOverdue ? 'Overdue' : 'To Do'}
                                           </span>
-
-                                          <span className="text-slate-300 dark:text-white/20">→</span>
-
-                                          {/* Assigned to (Team Member) */}
-                                          <span className="inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-white/[0.08] bg-slate-100 dark:bg-white/[0.06]">
-                                            <User className="w-3 h-3 text-blue-500" />
-                                            <span className="text-slate-400 font-normal">Assigned to:</span>
-                                            {item.assignedToName ? (
-                                              <span className="text-slate-800 dark:text-slate-200">{item.assignedToName}</span>
-                                            ) : (
-                                              <span className="text-slate-400 italic font-normal">Unassigned</span>
-                                            )}
-                                          </span>
-
-                                          {item.assignedDate && (
-                                            <span className="text-slate-400">
-                                              Assigned: {formatDate(item.assignedDate)}
-                                            </span>
-                                          )}
-
-                                          {item.dueDate && (
-                                            <>
-                                              <span className="text-slate-300 dark:text-white/20">•</span>
-                                              <span
-                                                className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md border text-[10px] ${
-                                                  isDone
-                                                    ? 'bg-slate-100 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 border-slate-200/60 dark:border-white/[0.06]'
-                                                    : new Date(item.dueDate).getTime() < new Date().setHours(0, 0, 0, 0)
-                                                    ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50'
-                                                    : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40'
-                                                }`}
-                                              >
-                                                <Calendar className="w-3 h-3 shrink-0" />
-                                                <span>
-                                                  Due: {formatDate(item.dueDate)}
-                                                  {!isDone && new Date(item.dueDate).getTime() < new Date().setHours(0, 0, 0, 0)
-                                                    ? ' (Overdue)'
-                                                    : ''}
-                                                </span>
-                                              </span>
-                                            </>
-                                          )}
                                         </div>
                                       </div>
-
-                                      {/* Status Badge */}
-                                      <span
-                                        className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${isDone
-                                          ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                                          : isInProgress
-                                            ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
-                                            : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                                          }`}
-                                      >
-                                        {isDone ? 'Done' : isInProgress ? 'In Progress' : 'To Do'}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  })}
                               </div>
-                            ) : (
-                              <div className="py-4 text-center text-xs text-slate-400 italic">
-                                No action items were created during this retrospective session.
-                              </div>
-                            )}
+                            ) : null}
                           </div>
                         </td>
                       </tr>

@@ -19,7 +19,7 @@ const envSchema = z.object({
 const parsedEnv = envSchema.safeParse(process.env);
 
 if (!parsedEnv.success) {
-  console.error('\n❌ [Config Error] Invalid Environment Variables Configuration:');
+  console.error('\n [Config Error] Invalid Environment Variables Configuration:');
   parsedEnv.error.issues.forEach((issue) => {
     console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
   });
