@@ -191,6 +191,31 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [showToast]
   );
 
+  const toggleSessionStatus = useCallback(
+    async (session: RetroBoard) => {
+      const nextStatus: 'active' | 'completed' = session.status === 'completed' ? 'active' : 'completed';
+      try {
+        await api.put(`${ENDPOINTS.RETROS}/${session._id}`, { status: nextStatus });
+        setSessions((prev) => {
+          const updated = prev.map((s) => (s._id === session._id ? { ...s, status: nextStatus } : s));
+          try {
+            const count = updated.filter((s: any) => s.status === 'active').length;
+            sessionStorage.setItem('retroflow_active_sessions_count', String(count));
+          } catch {}
+          return updated;
+        });
+        showToast(
+          nextStatus === 'completed'
+            ? 'Retrospective session marked as completed.'
+            : 'Retrospective session reopened as active.'
+        );
+      } catch (err: any) {
+        showToast(err.message || 'Failed to update session status');
+      }
+    },
+    [showToast]
+  );
+
   const saveSession = useCallback(
     async (payload: CreateRetroPayload, editingSessionId?: string) => {
       if (editingSessionId) {
@@ -626,6 +651,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     isSessionsLoading,
     fetchSessions,
     deleteSession,
+    toggleSessionStatus,
     saveSession,
     activeSessionsCount: sessions.filter((s) => s.status === 'active').length,
     // Members

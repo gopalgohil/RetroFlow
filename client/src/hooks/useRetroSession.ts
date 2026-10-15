@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { api, ENDPOINTS } from '@/lib/api';
-import { updateRetroSocketAuth } from '@/lib/socket';
+import { updateRetroSocketAuth, getRetroSocket } from '@/lib/socket';
 import { RetroBoard, StickyCard } from '@/types/retro';
 import { useRetroPermissions } from './retro/useRetroPermissions';
 import { useRetroSocketSync } from './retro/useRetroSocketSync';
@@ -28,6 +28,9 @@ export interface UseRetroSessionReturn {
   isGuest: boolean;
   setGuestName: (name: string, email?: string) => Promise<void> | void;
   setIsRevealed: React.Dispatch<React.SetStateAction<boolean>>;
+  setRetro: React.Dispatch<React.SetStateAction<RetroBoard | null>>;
+  endSession: () => Promise<void>;
+  reopenSession: () => Promise<void>;
   addCard: (topicId: string, text: string) => Promise<void>;
   updateCard: (cardId: string, text: string) => Promise<void>;
   deleteCard: (cardId: string) => Promise<void>;
@@ -271,6 +274,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     votingLimit: retro?.votingLimit || 1,
     setCards,
     setRemainingVotes,
+    setRetro,
   });
 
   // 4. Instant Participant Identity Activation
@@ -347,6 +351,43 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     setRemainingVotes,
   });
 
+  // 6. Session Lifecycle Controls (Manager & Admin Dynamic Closure)
+  const endSession = useCallback(async () => {
+    if (!retro) return;
+    try {
+      const retroIdentifier = retro._id || shareToken;
+      await api.put(`${ENDPOINTS.RETROS}/${retroIdentifier}`, {
+        status: 'completed',
+      });
+      setRetro((prev) => (prev ? { ...prev, status: 'completed' } : prev));
+      const socket = getRetroSocket();
+      if (socket.connected) {
+        socket.emit('session:end', { shareToken, retroId: retro._id });
+      }
+    } catch (err: any) {
+      console.error('[RetroSession] Failed to end session:', err);
+      throw err;
+    }
+  }, [retro, shareToken]);
+
+  const reopenSession = useCallback(async () => {
+    if (!retro) return;
+    try {
+      const retroIdentifier = retro._id || shareToken;
+      await api.put(`${ENDPOINTS.RETROS}/${retroIdentifier}`, {
+        status: 'active',
+      });
+      setRetro((prev) => (prev ? { ...prev, status: 'active' } : prev));
+      const socket = getRetroSocket();
+      if (socket.connected) {
+        socket.emit('session:reopen', { shareToken, retroId: retro._id });
+      }
+    } catch (err: any) {
+      console.error('[RetroSession] Failed to reopen session:', err);
+      throw err;
+    }
+  }, [retro, shareToken]);
+
   return {
     retro,
     cards,
@@ -367,6 +408,9 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     isGuest,
     setGuestName,
     setIsRevealed,
+    setRetro,
+    endSession,
+    reopenSession,
     addCard,
     updateCard,
     deleteCard,

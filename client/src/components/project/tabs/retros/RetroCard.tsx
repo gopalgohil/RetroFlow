@@ -45,17 +45,36 @@ export const RetroCard: React.FC<RetroCardProps> = ({
 
   return (
     <div className="group p-3.5 sm:p-4.5 2xl:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
-      <div className="space-y-3">
-        {/* Title & Date in the same line */}
-        <div className="flex items-start justify-between gap-3">
-          <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug min-w-0 flex-1 line-clamp-1">
-            {retro.title}
-          </h4>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 shrink-0 pt-0.5 whitespace-nowrap">
-            <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+      <div className="space-y-2.5">
+        {/* Card Top Row: Status badge on top-left & Date on top-right (matching Retrospective Sessions) */}
+        <div className="flex items-center justify-between gap-2">
+          <span
+            className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+              retro.status === 'active'
+                ? 'bg-[#88c958]/10 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30'
+                : 'bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]'
+            }`}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                retro.status === 'active'
+                  ? 'bg-[#88c958] animate-pulse shadow-[0_0_6px_rgba(136,201,88,0.8)]'
+                  : 'bg-slate-400'
+              }`}
+            />
+            {retro.status || 'active'}
+          </span>
+
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1.5 whitespace-nowrap">
+            <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
             {dateDisplay}
           </span>
         </div>
+
+        {/* Title */}
+        <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug truncate group-hover:text-[#88c958] transition-colors">
+          {retro.title}
+        </h4>
 
         {/* Stats Pills */}
         <div className="grid grid-cols-3 gap-2 pt-1">

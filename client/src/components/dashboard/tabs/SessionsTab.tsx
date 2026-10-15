@@ -12,6 +12,7 @@ interface SessionsTabProps {
   onLaunch: (session: RetroBoard) => void;
   onEdit: (session: RetroBoard) => void;
   onDelete: (sessionId: string) => Promise<void>;
+  onToggleStatus?: (session: RetroBoard) => Promise<void>;
   onCreateNew: () => void;
   isAdmin?: boolean;
   user?: { name?: string; email?: string; role?: string; projectRole?: string } | null;
@@ -31,6 +32,7 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
   onLaunch,
   onEdit,
   onDelete,
+  onToggleStatus,
   onCreateNew,
   isAdmin = true,
   user,
@@ -74,6 +76,7 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
         onLaunch={onLaunch}
         onEdit={onEdit}
         onDelete={onDelete}
+        onToggleStatus={onToggleStatus}
         onCreateNew={onCreateNew}
         isLoading={isLoading}
         isAdmin={isAdmin}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getRetroSocket } from '@/lib/socket';
-import { StickyCard } from '@/types/retro';
+import { StickyCard, RetroBoard } from '@/types/retro';
 
 export interface UseRetroSocketSyncParams {
   shareToken: string;
@@ -12,6 +12,7 @@ export interface UseRetroSocketSyncParams {
   votingLimit: number;
   setCards: React.Dispatch<React.SetStateAction<StickyCard[]>>;
   setRemainingVotes: React.Dispatch<React.SetStateAction<number>>;
+  setRetro?: React.Dispatch<React.SetStateAction<RetroBoard | null>>;
 }
 
 /**
@@ -26,6 +27,7 @@ export function useRetroSocketSync({
   votingLimit,
   setCards,
   setRemainingVotes,
+  setRetro,
 }: UseRetroSocketSyncParams) {
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
 
@@ -194,12 +196,26 @@ export function useRetroSocketSync({
       });
     };
 
+    const onSessionEnded = (payload?: { status?: string }) => {
+      if (setRetro) {
+        setRetro((prev) => (prev ? { ...prev, status: (payload?.status as any) || 'completed' } : prev));
+      }
+    };
+
+    const onSessionReopened = (payload?: { status?: string }) => {
+      if (setRetro) {
+        setRetro((prev) => (prev ? { ...prev, status: (payload?.status as any) || 'active' } : prev));
+      }
+    };
+
     socket.on('card:created', onCardCreated);
     socket.on('card:updated', onCardUpdated);
     socket.on('card:deleted', onCardDeleted);
     socket.on('card:moved', onCardMoved);
     socket.on('cards:reordered', onCardsReordered);
     socket.on('card:voted', onCardVoted);
+    socket.on('session:ended', onSessionEnded);
+    socket.on('session:reopened', onSessionReopened);
 
     return () => {
       socket.off('connect', handleConnect);
@@ -210,8 +226,10 @@ export function useRetroSocketSync({
       socket.off('card:moved', onCardMoved);
       socket.off('cards:reordered', onCardsReordered);
       socket.off('card:voted', onCardVoted);
+      socket.off('session:ended', onSessionEnded);
+      socket.off('session:reopened', onSessionReopened);
     };
-  }, [shareToken, currentAuthorName, currentUser?.email, votingLimit, setCards, setRemainingVotes]);
+  }, [shareToken, currentAuthorName, currentUser?.email, votingLimit, setCards, setRemainingVotes, setRetro]);
 
   return {
     socketConnected,

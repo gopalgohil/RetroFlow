@@ -49,6 +49,7 @@ function DashboardContent() {
     sessions,
     isSessionsLoading,
     deleteSession,
+    toggleSessionStatus,
     saveSession,
     activeSessionsCount,
     members,
@@ -640,6 +641,7 @@ function DashboardContent() {
                   onLaunch={handleLaunchRetro}
                   onEdit={handleEditRetro}
                   onDelete={deleteSession}
+                  onToggleStatus={toggleSessionStatus}
                   onCreateNew={handleCreateRetro}
                   isAdmin={canManageSessions}
                   user={activeUser}

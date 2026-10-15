@@ -9,7 +9,6 @@ import {
   Edit3,
   Trash2,
   Users,
-  CheckCircle2,
   Clock,
   Check,
   AlertTriangle,
@@ -29,6 +28,7 @@ interface SessionListProps {
   onLaunch: (session: RetroBoard) => void;
   onEdit: (session: RetroBoard) => void;
   onDelete: (sessionId: string) => Promise<void>;
+  onToggleStatus?: (session: RetroBoard) => Promise<void>;
   onCreateNew: () => void;
   isLoading: boolean;
   isAdmin?: boolean;
@@ -43,6 +43,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   onLaunch,
   onEdit,
   onDelete,
+  onToggleStatus,
   onCreateNew,
   isLoading,
   isAdmin = true,
@@ -467,6 +468,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                 {/* Right: Quick Action Buttons (Admin Only) */}
                 {isAdmin && (
                   <div className="flex items-center gap-1">
+
                     <button
                       onClick={() => onEdit(session)}
                       title="Edit Topics & Rules"

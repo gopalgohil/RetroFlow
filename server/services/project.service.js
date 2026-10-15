@@ -1433,14 +1433,27 @@ class ProjectService {
       .filter((it) => it.status === 'done')
       .reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
 
-    // Mark retro link as exported if retro link exists
+    // Mark retro link as exported and session as completed if retro link exists
     if (items[0]?.sourceRetroId) {
       project.retrospectives = project.retrospectives.map((r) => {
         if (r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId) {
           r.actionItemsExported = true;
+          r.status = 'completed';
         }
         return r;
       });
+
+      // Also sync RetroBoard document status to 'completed'
+      try {
+        const retroIdentifier = items[0].sourceRetroId;
+        const retroQuery = mongoose.Types.ObjectId.isValid(retroIdentifier)
+          ? { $or: [{ _id: retroIdentifier }, { shareToken: retroIdentifier }] }
+          : { shareToken: retroIdentifier };
+
+        await RetroBoard.updateOne(retroQuery, { $set: { status: 'completed' } });
+      } catch (err) {
+        console.warn('[exportActionItems] Failed to update RetroBoard status:', err);
+      }
     }
 
     await project.save();

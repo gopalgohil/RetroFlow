@@ -14,9 +14,14 @@ import {
   Square,
   ShieldAlert,
   ChevronDown,
+  AlertTriangle,
+  AlertCircle,
+  Plus,
+  X,
 } from 'lucide-react';
 import { RetroTopic, StickyCard } from '@/types/retro';
 import { useRetroProjectIntegration } from '@/hooks/useRetroProjectIntegration';
+import { api, ENDPOINTS } from '@/lib/api';
 import { Modal } from '@/components/ui';
 
 export interface EndSessionExportModalProps {
@@ -254,11 +259,51 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     }));
   };
 
+  const [isEndingOnly, setIsEndingOnly] = useState(false);
+  const [sessionEndedSuccess, setSessionEndedSuccess] = useState(false);
+  const [showNoActionConfirm, setShowNoActionConfirm] = useState(false);
+
+  const isEmptyBoard = (cards || []).length === 0;
+
+  const executeCompleteWithoutItems = async () => {
+    setIsEndingOnly(true);
+    try {
+      if (onSessionEnded) {
+        await onSessionEnded();
+      } else {
+        await api.put(`${ENDPOINTS.RETROS}/${retroId}`, { status: 'completed' });
+      }
+      setSessionEndedSuccess(true);
+      setShowNoActionConfirm(false);
+    } catch (err: any) {
+      alert('Failed to complete session: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsEndingOnly(false);
+    }
+  };
+
   const handleExportAndCommit = async () => {
     if (!canExport) {
-      alert('Access Denied: Only Project Lead, Managers, or Workspace Admins can export action items to the sprint backlog.');
+      alert('Access Denied: Only Project Lead, Managers, or Workspace Admins can export action items or end this session.');
       return;
     }
+
+    // Tier 1 Guard: Cannot complete empty board
+    if (mode === 'end_and_export' && isEmptyBoard) {
+      alert('Cannot complete an empty retrospective session. No feedback cards have been submitted yet.');
+      return;
+    }
+
+    // Tier 2 Guard: In end_and_export mode with 0 items selected (or no action cards exist)
+    if (mode === 'end_and_export' && selectedCardIds.length === 0) {
+      if (!showNoActionConfirm) {
+        setShowNoActionConfirm(true);
+        return;
+      }
+      await executeCompleteWithoutItems();
+      return;
+    }
+
     if (!selectedProject || selectedCardIds.length === 0) return;
     const sprintIdToUse =
       selectedSprintId || suggestedSprint?.id || selectedProject.sprints[0]?.id;
@@ -294,12 +339,17 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     });
 
     if (onSessionEnded && mode === 'end_and_export') {
-      onSessionEnded();
+      try {
+        await onSessionEnded();
+      } catch {}
     }
   };
 
   const handleClose = () => {
     setIsSprintDropdownOpen(false);
+    setIsEndingOnly(false);
+    setShowNoActionConfirm(false);
+    setSessionEndedSuccess(false);
     resetExportState();
     onClose();
   };
@@ -307,104 +357,228 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   const isAllSelected =
     actionCards.length > 0 && selectedCardIds.length === actionCards.length;
 
+  const isAnySuccess = exportSuccess || sessionEndedSuccess;
+
+  const isCompactMode =
+    (isEmptyBoard && mode === 'end_and_export') ||
+    (showNoActionConfirm && mode === 'end_and_export') ||
+    isAnySuccess;
+
+  const renderFooter = () => {
+    if (isEmptyBoard && mode === 'end_and_export') {
+      return (
+        <button
+          type="button"
+          onClick={handleClose}
+          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold transition-all cursor-pointer shadow-xs"
+        >
+          Return to Board
+        </button>
+      );
+    }
+
+    if (showNoActionConfirm && mode === 'end_and_export') {
+      return (
+        <>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={executeCompleteWithoutItems}
+            disabled={isEndingOnly}
+            className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs disabled:opacity-50"
+          >
+            {isEndingOnly ? 'Ending...' : 'End Anyway'}
+          </button>
+        </>
+      );
+    }
+
+    if (isAnySuccess) {
+      return (
+        <>
+          {exportedCount > 0 && selectedProject && (
+            <Link
+              href={`/projects/${selectedProject.id}?tab=sprints`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-xs dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Sprint Backlog</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
+          >
+            Close
+          </button>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <button
+          type="button"
+          onClick={handleClose}
+          className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={handleExportAndCommit}
+          disabled={
+            isExporting ||
+            isEndingOnly ||
+            !canExport ||
+            (mode === 'export_only' && selectedCardIds.length === 0)
+          }
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
+        >
+          <Sparkles className="w-4 h-4 text-white dark:text-[#08090a]" />
+          <span>
+            {isExporting || isEndingOnly
+              ? 'Processing...'
+              : !canExport
+              ? 'Export Restricted'
+              : mode === 'end_and_export'
+              ? selectedCardIds.length > 0
+                ? `End Session & Export (${selectedCardIds.length}) Items`
+                : 'End Session & Complete'
+              : `Export (${selectedCardIds.length}) Items to Sprint`}
+          </span>
+        </button>
+      </>
+    );
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
+      maxWidth={isCompactMode ? 'sm' : 'xl'}
+      showCloseButton={!isCompactMode}
       title={
-        exportSuccess
-          ? 'Action Items Exported!'
-          : mode === 'export_only'
-          ? 'Select & Export Action Items'
-          : 'End Session & Export to Sprint'
+        !isCompactMode
+          ? mode === 'export_only'
+            ? 'Select & Export Action Items'
+            : 'End Session & Export to Sprint'
+          : undefined
       }
       description={
-        exportSuccess
-          ? 'Successfully transferred into project sprint backlog'
-          : 'Select which action items to commit into the sprint backlog and assign developers.'
+        !isCompactMode
+          ? mode === 'export_only'
+            ? 'Select action items to commit into the sprint backlog.'
+            : 'Select which action items to commit into the sprint backlog and assign developers.'
+          : undefined
       }
-      icon={<Sparkles className="w-5 h-5 text-[#88c958]" />}
-      maxWidth="xl"
-      footer={
-        !exportSuccess ? (
-          <>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleExportAndCommit}
-              disabled={isExporting || selectedCardIds.length === 0 || !canExport}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
-            >
-              <Sparkles className="w-4 h-4 text-white dark:text-[#08090a]" />
-              <span>
-                {isExporting
-                  ? 'Adding to Backlog...'
-                  : !canExport
-                  ? 'Export Restricted'
-                  : mode === 'end_and_export'
-                  ? `End Session & Export (${selectedCardIds.length}) Items`
-                  : `Export (${selectedCardIds.length}) Items to Sprint`}
-              </span>
-            </button>
-          </>
-        ) : undefined
-      }
+      icon={!isCompactMode ? <Sparkles className="w-5 h-5 text-white dark:text-[#08090a]" /> : undefined}
+      footer={renderFooter()}
     >
-      <div className="space-y-5">
-        {!exportSuccess && !canExport && (
-          <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 text-xs flex items-start gap-2.5">
-            <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold">Export Restricted (Manager / Lead Only)</p>
-              <p className="text-amber-700 dark:text-amber-300/80 text-[11px] mt-0.5">
-                Only Workspace Admins, Project Managers, and Team Leads can export retrospective action items to the sprint backlog.
-              </p>
+      {isEmptyBoard && mode === 'end_and_export' ? (
+        /* Clean & Minimal Empty Board Alert */
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-5 h-5 stroke-[2]" />
             </div>
-          </div>
-        )}
-        {exportSuccess ? (
-          /* Success State */
-          <div className="text-center py-4 space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center mx-auto shadow-xs animate-in zoom-in-95 duration-200">
-              <Check className="w-8 h-8 stroke-[2.5]" />
-            </div>
-
             <div className="space-y-1">
-              <h4 className="text-base font-bold text-slate-900 dark:text-white">
-                {exportedCount} Action Items Successfully Exported!
+              <h4 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                Board is Empty
               </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                Transferred to <strong>{selectedProject?.name}</strong> under{' '}
-                <span className="text-[#88c958] font-semibold">{lastExportedSprint?.name}</span>.
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Please add feedback cards before ending this session.
               </p>
             </div>
-
-            <div className="pt-3 flex flex-col sm:flex-row gap-2.5 justify-center">
-              <Link
-                href={`/projects/${selectedProject?.id}?tab=sprints`}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] text-white text-xs font-bold hover:bg-[#4e9921] transition-all shadow-xs hover:scale-[1.02] dark:bg-[#88c958] dark:text-[#08090a] dark:hover:bg-[#76b846]"
-              >
-                <Layers className="w-4 h-4" />
-                <span>Open Sprint Backlog</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-              <button
-                onClick={handleClose}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
-              >
-                Done
-              </button>
+          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer shrink-0"
+            title="Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ) : showNoActionConfirm && mode === 'end_and_export' ? (
+        /* Clean & Minimal No Action Items Confirmation */
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5 stroke-[2]" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                No Action Items
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                No action items were selected. End this session anyway?
+              </p>
             </div>
           </div>
-        ) : (
-          /* Export & Configuration State */
-          <>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer shrink-0"
+            title="Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ) : isAnySuccess ? (
+        /* Clean & Minimal Success State */
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
+              <Check className="w-5 h-5 stroke-[2.5]" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                Session Completed
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                {exportedCount > 0 ? (
+                  <>
+                    {exportedCount} action item{exportedCount > 1 ? 's' : ''} exported to{' '}
+                    <strong className="text-slate-800 dark:text-slate-200">{selectedProject?.name}</strong>.
+                  </>
+                ) : (
+                  'The retrospective session has ended successfully.'
+                )}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer shrink-0"
+            title="Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        /* Normal Export & Configuration State */
+        <div className="space-y-5">
+          {!canExport && (
+            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 text-xs flex items-start gap-2.5">
+              <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">Export Restricted (Manager / Lead Only)</p>
+                <p className="text-amber-700 dark:text-amber-300/80 text-[11px] mt-0.5">
+                  Only Workspace Admins, Project Managers, and Team Leads can export retrospective action items to the sprint backlog.
+                </p>
+              </div>
+            </div>
+          )}
             {/* Target Project & Sprint Selectors */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/90 dark:border-white/[0.08]">
               {/* Destination Project Selector */}
@@ -612,6 +786,11 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                   <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500 space-y-1">
                     <p className="font-semibold text-slate-600 dark:text-slate-300">No action items found on board.</p>
                     <p>Only cards created under the &quot;Action Items&quot; column can be exported to the sprint backlog.</p>
+                    {mode === 'end_and_export' && (
+                      <p className="text-[#3d8318] dark:text-[#88c958] font-bold pt-1.5">
+                        You can still end this retrospective session by clicking &quot;End Session &amp; Complete&quot; below.
+                      </p>
+                    )}
                   </div>
                 ) : (
                   actionCards.map((card) => {
@@ -702,9 +881,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                 )}
               </div>
             </div>
-          </>
+          </div>
         )}
-      </div>
     </Modal>
   );
 };

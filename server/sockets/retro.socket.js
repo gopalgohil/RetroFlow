@@ -734,7 +734,94 @@ export function initRetroSocket(io) {
 
 
 
-    // 6. Disconnect
+    // 6. Session Lifecycle (Facilitator / Manager / Admin End Session)
+    socket.on('session:end', async ({ shareToken, retroId }, callback) => {
+      try {
+        const query = shareToken ? { shareToken } : { _id: retroId };
+        const board = await RetroBoard.findOneAndUpdate(
+          query,
+          { $set: { status: 'completed' } },
+          { new: true }
+        );
+
+        if (board) {
+          if (board.projectId || board.projectKey) {
+            const projectQuery = board.projectId
+              ? { _id: board.projectId }
+              : { key: board.projectKey };
+
+            const updateSet = { 'retrospectives.$.status': 'completed' };
+            const m = await Project.updateOne(
+              { ...projectQuery, 'retrospectives.shareToken': board.shareToken },
+              { $set: updateSet }
+            );
+            if (!m || m.matchedCount === 0) {
+              await Project.updateOne(
+                { ...projectQuery, 'retrospectives.id': board._id.toString() },
+                { $set: updateSet }
+              );
+            }
+          }
+
+          const roomName = `retro:${board.shareToken}`;
+          retroNamespace.to(roomName).emit('session:ended', {
+            status: 'completed',
+            retroId: board._id,
+            shareToken: board.shareToken,
+          });
+        }
+
+        if (callback) callback({ success: true, status: 'completed' });
+      } catch (err) {
+        console.error('[Socket] session:end error:', err);
+        if (callback) callback({ error: 'Failed to end session' });
+      }
+    });
+
+    socket.on('session:reopen', async ({ shareToken, retroId }, callback) => {
+      try {
+        const query = shareToken ? { shareToken } : { _id: retroId };
+        const board = await RetroBoard.findOneAndUpdate(
+          query,
+          { $set: { status: 'active' } },
+          { new: true }
+        );
+
+        if (board) {
+          if (board.projectId || board.projectKey) {
+            const projectQuery = board.projectId
+              ? { _id: board.projectId }
+              : { key: board.projectKey };
+
+            const updateSet = { 'retrospectives.$.status': 'active' };
+            const m = await Project.updateOne(
+              { ...projectQuery, 'retrospectives.shareToken': board.shareToken },
+              { $set: updateSet }
+            );
+            if (!m || m.matchedCount === 0) {
+              await Project.updateOne(
+                { ...projectQuery, 'retrospectives.id': board._id.toString() },
+                { $set: updateSet }
+              );
+            }
+          }
+
+          const roomName = `retro:${board.shareToken}`;
+          retroNamespace.to(roomName).emit('session:reopened', {
+            status: 'active',
+            retroId: board._id,
+            shareToken: board.shareToken,
+          });
+        }
+
+        if (callback) callback({ success: true, status: 'active' });
+      } catch (err) {
+        console.error('[Socket] session:reopen error:', err);
+        if (callback) callback({ error: 'Failed to reopen session' });
+      }
+    });
+
+    // 7. Disconnect
     socket.on('disconnect', () => {
       if (currentShareToken) {
         const roomName = `retro:${currentShareToken}`;

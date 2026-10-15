@@ -663,25 +663,38 @@ class RetroService {
     // Sync project retrospectives array if this session is project-linked
     if (retro.projectId || retro.projectKey) {
       try {
-        await Project.updateOne(
-          retro.projectId
-            ? { _id: retro.projectId, 'retrospectives.id': retro._id.toString() }
-            : { key: retro.projectKey, 'retrospectives.id': retro._id.toString() },
-          {
-            $set: {
-              'retrospectives.$.title': retro.title,
-              'retrospectives.$.scheduledDate': retro.scheduledDate,
-              'retrospectives.$.startDate': retro.startDate
-                ? new Date(retro.startDate).toISOString().split('T')[0]
-                : null,
-              'retrospectives.$.endDate': retro.endDate
-                ? new Date(retro.endDate).toISOString().split('T')[0]
-                : null,
-              'retrospectives.$.status': retro.status,
-            },
-          }
+        const projectQuery = retro.projectId
+          ? { _id: retro.projectId }
+          : { key: retro.projectKey };
+
+        const updateSet = {
+          'retrospectives.$.title': retro.title,
+          'retrospectives.$.scheduledDate': retro.scheduledDate,
+          'retrospectives.$.startDate': retro.startDate
+            ? new Date(retro.startDate).toISOString().split('T')[0]
+            : null,
+          'retrospectives.$.endDate': retro.endDate
+            ? new Date(retro.endDate).toISOString().split('T')[0]
+            : null,
+          'retrospectives.$.status': retro.status,
+        };
+
+        // Try matching by shareToken first
+        const tokenMatch = await Project.updateOne(
+          { ...projectQuery, 'retrospectives.shareToken': retro.shareToken },
+          { $set: updateSet }
         );
-      } catch {}
+
+        // Fallback matching by id if not matched by shareToken
+        if (!tokenMatch || tokenMatch.matchedCount === 0) {
+          await Project.updateOne(
+            { ...projectQuery, 'retrospectives.id': retro._id.toString() },
+            { $set: updateSet }
+          );
+        }
+      } catch (err) {
+        console.warn('[updateRetro] Project sync warning:', err);
+      }
     }
 
     return retro;
