@@ -6,7 +6,6 @@ import {
   Calendar,
   Clock,
   Sparkles,
-  FolderKanban,
   ChevronDown,
   ExternalLink,
 } from 'lucide-react';
@@ -193,13 +192,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
 
           {/* Clean Sub-Metadata Row */}
           <div className="flex flex-wrap items-center gap-2.5 pt-0.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            {/* Project Pill */}
-            {item.projectKey && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]">
-                <FolderKanban className="w-3.5 h-3.5 text-slate-500" />
-                <span>{item.projectKey}</span>
-              </span>
-            )}
 
             {/* Origin Retro Link */}
             {item.sourceRetroTitle && (
