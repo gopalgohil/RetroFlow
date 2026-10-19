@@ -21,6 +21,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { UserAvatar, StatusPill } from '@/components/ui';
 import { Modal } from '@/components/ui/Modal';
 import { MemberDetailModal } from '@/components/dashboard/MemberDetailModal';
+import { MembersSkeleton } from '@/components/dashboard/DashboardSkeletons';
 
 interface MembersTabProps {
   members: TeamMember[];
@@ -159,6 +160,11 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   // Generate page numbers for navigation (e.g. 1, 2, 3...)
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
+  // Unified Full-Tab Skeleton Loader: If actively loading and not searching/debouncing
+  if (isLoading && !searchQuery && !localSearch.trim() && currentPage === 1) {
+    return <MembersSkeleton isAdmin={isAdmin} />;
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header Bar */}
@@ -183,13 +189,16 @@ export const MembersTab: React.FC<MembersTabProps> = ({
           <div className="flex items-center gap-2.5">
             <UserCheck className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Team Directory & Collaborators</h3>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30">
-              {totalItems} Total Contributor{totalItems !== 1 ? 's' : ''}
-            </span>
           </div>
 
-          {/* Live Search Bar */}
-          <div className="relative w-full sm:w-64">
+          {/* Right Section: Simple Counter Text & Live Search Bar */}
+          <div className="flex items-center justify-between sm:justify-end gap-3.5 w-full sm:w-auto">
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
+              {totalItems} Total Contributor{totalItems !== 1 ? 's' : ''}
+            </span>
+
+            {/* Live Search Bar */}
+            <div className="relative w-full sm:w-64">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
               {showTableSkeleton ? (
                 <Loader2 className="w-3.5 h-3.5 text-[#88c958] animate-spin" />
@@ -215,6 +224,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
+            </div>
           </div>
         </div>
 
