@@ -183,12 +183,16 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
             </span>
           </div>
 
-          {/* Optional Custom Description */}
-          {item.description && !item.description.startsWith('Action item originated from Retrospective') && (
-            <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
-              {item.description}
-            </p>
-          )}
+          {/* Optional Custom Description (Only display authentic user-written descriptions, filter boilerplate origin text) */}
+          {item.description &&
+            !item.description.startsWith('Action item originated from Retrospective') &&
+            !item.description.startsWith('Originated from Retrospective') &&
+            !item.description.startsWith('Retrospective item from session') &&
+            !item.description.startsWith('Generated from Retrospective') && (
+              <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                {item.description}
+              </p>
+            )}
 
           {/* Clean Sub-Metadata Row */}
           <div className="flex flex-wrap items-center gap-2.5 pt-0.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">

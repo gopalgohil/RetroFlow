@@ -1398,9 +1398,7 @@ class ProjectService {
       return {
         id: `act-${crypto.randomUUID().slice(0, 8)}`,
         title: item.title.trim(),
-        description:
-          item.description?.trim() ||
-          `Originated from Retrospective: "${item.sourceRetroTitle || 'Retro Session'}"`,
+        description: item.description?.trim() || '',
         type: 'action_item',
         priority: item.priority || 'high',
         status: itemStatus,
@@ -1663,7 +1661,7 @@ class ProjectService {
         actionItems.push({
           id: card.cardId,
           title: card.text,
-          description: `Retrospective item from session "${retro.title}"`,
+          description: card.description?.trim() || '',
           type: 'action_item',
           status: card.status || 'todo',
           priority: card.priority || 'medium',
