@@ -68,6 +68,34 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
     fetchAnalytics(selectedProjectId, selectedYear);
   }, [selectedProjectId, selectedYear, fetchAnalytics]);
 
+  // 1. Initial loading state before data is fetched - render full skeleton matching layout
+  if (isLoading && !data) {
+    return <AnalyticsSkeleton showHeader={true} />;
+  }
+
+  // 2. Initial error state if initial fetch fails without any data
+  if (errorMessage && !data) {
+    return (
+      <div className="space-y-8 animate-in fade-in duration-300">
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
+          <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-900 dark:text-rose-200 text-xs font-medium flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => fetchAnalytics(selectedProjectId, selectedYear)}
+              className="text-xs font-bold underline hover:no-underline text-rose-700 dark:text-rose-400 cursor-pointer"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* 1. Header Toolbar with Dynamic Multi-Project & Year Selector & Refresh */}
@@ -101,8 +129,8 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
         </div>
       )}
 
-      {/* Loading Skeleton */}
-      {isLoading && <AnalyticsSkeleton />}
+      {/* Loading Skeleton when re-filtering project or year */}
+      {isLoading && <AnalyticsSkeleton showHeader={false} />}
 
       {/* Loaded Content */}
       {!isLoading && data && !isAdmin && (data.noProjectsAssigned || data.projects?.length === 0) ? (

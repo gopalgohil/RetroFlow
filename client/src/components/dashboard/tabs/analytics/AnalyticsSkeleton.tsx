@@ -10,27 +10,33 @@ import React from 'react';
  * 3. 12-Month Bar Chart Workspace (Grid, Bars, Y-Axis, X-Axis, Insight Cards)
  * 4. Retrospectives & Action Items Deliverables Table
  */
-export const AnalyticsSkeleton: React.FC = () => {
+export interface AnalyticsSkeletonProps {
+  showHeader?: boolean;
+}
+
+export const AnalyticsSkeleton: React.FC<AnalyticsSkeletonProps> = ({ showHeader = true }) => {
   return (
     <div className="space-y-8 animate-pulse">
       {/* 1. Header Component Skeleton */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-100 dark:border-white/[0.06]">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-white/[0.08]" />
-            <div className="h-6 w-52 sm:w-64 bg-slate-200 dark:bg-white/[0.1] rounded-lg" />
-            <div className="h-5 w-24 bg-[#eaf5e3] dark:bg-[#88c958]/15 rounded-full" />
+      {showHeader && (
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-white/[0.08]" />
+              <div className="h-6 w-52 sm:w-64 bg-slate-200 dark:bg-white/[0.1] rounded-lg" />
+              <div className="h-5 w-24 bg-[#eaf5e3] dark:bg-[#88c958]/15 rounded-full" />
+            </div>
+            <div className="h-3.5 w-72 sm:w-96 bg-slate-100 dark:bg-white/[0.05] rounded-md" />
           </div>
-          <div className="h-3.5 w-72 sm:w-96 bg-slate-100 dark:bg-white/[0.05] rounded-md" />
-        </div>
 
-        {/* Right Toolbar Controls Skeleton */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="h-9 w-44 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/60 dark:border-white/[0.06]" />
-          <div className="h-9 w-28 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/60 dark:border-white/[0.06]" />
-          <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/60 dark:border-white/[0.06]" />
+          {/* Right Toolbar Controls Skeleton */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="h-9 w-44 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/60 dark:border-white/[0.06]" />
+            <div className="h-9 w-28 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/60 dark:border-white/[0.06]" />
+            <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/60 dark:border-white/[0.06]" />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Annual Retrospective 12-Month Bar Chart Skeleton */}
       <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-6">
