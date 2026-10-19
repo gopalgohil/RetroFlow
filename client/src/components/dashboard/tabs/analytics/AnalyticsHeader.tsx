@@ -14,6 +14,7 @@ interface AnalyticsHeaderProps {
   onRefresh: () => void;
   isLoading: boolean;
   isRefreshing: boolean;
+  isAdmin?: boolean;
 }
 
 export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
@@ -26,7 +27,10 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
   onRefresh,
   isLoading,
   isRefreshing,
+  isAdmin = false,
 }) => {
+  const hasNoProjects = !isAdmin && (!projects || projects.length === 0);
+
   return (
     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
       {/* Title & Badge */}
@@ -55,18 +59,28 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
             <FolderKanban className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
           </div>
           <select
-            value={selectedProjectId}
+            value={hasNoProjects ? 'none' : selectedProjectId}
             onChange={(e) => onProjectChange(e.target.value)}
-            disabled={isLoading}
-            title="Filter analytics by project"
-            className="w-full appearance-none pl-9 pr-8 py-2.5 rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18] text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all cursor-pointer shadow-2xs disabled:opacity-50"
+            disabled={isLoading || hasNoProjects}
+            title={hasNoProjects ? 'No projects assigned' : 'Filter analytics by project'}
+            className="w-full appearance-none pl-9 pr-8 py-2.5 rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18] text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all cursor-pointer shadow-2xs disabled:opacity-60"
           >
-            <option value="all" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">All Projects (Combined)</option>
-            {projects?.map((proj) => (
-              <option key={proj.id} value={proj.id} className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">
-                {proj.name} ({proj.key}) • {proj.memberCount} members
+            {hasNoProjects ? (
+              <option value="none" className="bg-white dark:bg-[#12151c] text-slate-500">
+                No Assigned Projects
               </option>
-            ))}
+            ) : (
+              <>
+                <option value="all" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">
+                  All Projects (Combined)
+                </option>
+                {projects?.map((proj) => (
+                  <option key={proj.id} value={proj.id} className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">
+                    {proj.name} ({proj.key}) • {proj.memberCount} members
+                  </option>
+                ))}
+              </>
+            )}
           </select>
           <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>

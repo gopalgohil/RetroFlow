@@ -131,10 +131,6 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full mt-auto border-t border-slate-200 dark:border-white/[0.08] text-center text-xs sm:text-sm text-slate-400 dark:text-slate-600 py-6 px-6 shrink-0">
-        © {new Date().getFullYear()} Digiflux Inc. All rights reserved.
-      </footer>
     </div>
   );
 }

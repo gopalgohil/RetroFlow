@@ -18,7 +18,7 @@ const httpServer = createServer(app);
 const PORT = env.PORT || 5000;
 
 // 1. Security & Protection Headers
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
 // 2. Cross-Origin Resource Sharing (CORS) Configuration (Vercel & Production Ready)
 const clientOrigins = (env.CLIENT_URL || 'http://localhost:3000')
@@ -31,24 +31,37 @@ const allowedOrigins = new Set([
   ...clientOrigins,
 ]);
 
+const isOriginAllowed = (origin) => {
+  // Allow server-to-server, curl, mobile, or same-origin requests with no origin header
+  if (!origin) return true;
+
+  // Allow any localhost or 127.0.0.1 port in development (e.g. 3000, 3001, 3002, 5173, etc.)
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    return true;
+  }
+
+  // Check if origin matches whitelist or verified domain
+  if (
+    allowedOrigins.has(origin) ||
+    origin.endsWith('.vercel.app') ||
+    origin.includes('retro-flow') ||
+    origin.includes('digiflux')
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow server-to-server, curl, mobile, or same-origin requests with no origin header
-      if (!origin) return callback(null, true);
-
-      // Check if origin matches whitelist or verified vercel app domain
-      if (
-        allowedOrigins.has(origin) ||
-        origin.endsWith('.vercel.app') ||
-        origin.includes('retro-flow') ||
-        origin.includes('digiflux')
-      ) {
+      if (isOriginAllowed(origin)) {
         return callback(null, true);
       }
 
-      // Strict rejection for unauthorized origins
-      return callback(new Error('Not allowed by CORS'));
+      console.warn(`[CORS] Request rejected from unauthorized origin: ${origin}`);
+      return callback(null, false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -104,16 +117,10 @@ app.use(errorHandler);
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (
-        allowedOrigins.has(origin) ||
-        origin.endsWith('.vercel.app') ||
-        origin.includes('retro-flow') ||
-        origin.includes('digiflux')
-      ) {
+      if (isOriginAllowed(origin)) {
         return callback(null, true);
       }
-      return callback(new Error('Not allowed by CORS'));
+      return callback(null, false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],

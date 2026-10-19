@@ -186,7 +186,7 @@ export function initRetroSocket(io) {
         if (callback) {
           callback({
             success: true,
-            cards: session?.cards || [],
+            cards: session?.cards || [],    
             room: roomName,
           });
         }

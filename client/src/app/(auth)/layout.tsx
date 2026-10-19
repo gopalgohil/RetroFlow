@@ -47,10 +47,6 @@ export default function AuthLayout({
         </div>
       </main>
 
-      {/* Clean Footer */}
-      <footer className="relative z-10 py-6 text-center text-xs text-slate-400 dark:text-slate-600">
-        © {new Date().getFullYear()} Digiflux. All rights reserved.
-      </footer>
     </div>
   );
 }

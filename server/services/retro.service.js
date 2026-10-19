@@ -208,6 +208,7 @@ class RetroService {
         RetroBoard.countDocuments(finalQuery),
         RetroBoard.find(finalQuery)
           .populate('createdBy', 'name email')
+          .populate('projectId', 'name key')
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limitNum)
@@ -231,6 +232,7 @@ class RetroService {
 
     const retros = await RetroBoard.find(finalQuery)
       .populate('createdBy', 'name email')
+      .populate('projectId', 'name key')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -1585,21 +1587,69 @@ class RetroService {
     // 1. Fetch available projects for dropdown filter
     const allProjects = await Project.find(
       isAdmin
-        ? {}
+        ? { isArchived: { $ne: true } }
         : {
+            isArchived: { $ne: true },
             $or: [
               { createdBy: user._id },
-              { 'lead.email': userEmail },
-              { members: { $elemMatch: { email: userEmail, role: { $regex: /manager|lead/i } } } },
+              { 'lead.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+              { 'members.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
             ],
           },
       'name key members lead retrospectives sprints'
     ).lean();
 
-    // If manager has no directly assigned project, allow viewing all workspace projects for high-level oversight
-    const projectsList = allProjects.length > 0
-      ? allProjects
-      : await Project.find({}, 'name key members lead retrospectives sprints').lean();
+    const projectsList = allProjects;
+
+    // If non-admin manager has no assigned projects, safely return empty analytics scope
+    if (!isAdmin && projectsList.length === 0) {
+      const selectedYearNum = Number(year) || new Date().getFullYear();
+      return {
+        projects: [],
+        availableYears: [selectedYearNum],
+        selectedYear: selectedYearNum,
+        selectedProjectId: 'none',
+        selectedProjectName: 'No Assigned Projects',
+        summary: {
+          averageAttendanceRate: 0,
+          totalRetros: 0,
+          allTimeRetros: 0,
+          totalTasks: 0,
+          completedTasks: 0,
+          pendingTasks: 0,
+          completionRate: 0,
+          totalMembers: 0,
+          lowAttendanceCount: 0,
+          topContributor: null,
+        },
+        retroTrends: [],
+        retroActionAnalytics: [],
+        monthlyTrends: Array.from({ length: 12 }, (_, i) => ({
+          month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i],
+          monthFull: [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+          ][i],
+          monthIndex: i,
+          retrosCount: 0,
+          totalTasks: 0,
+          completedTasks: 0,
+          pendingTasks: 0,
+          completionRate: 0,
+          sessions: [],
+        })),
+        yearSummary: {
+          year: selectedYearNum,
+          totalRetros: 0,
+          totalTasks: 0,
+          completedTasks: 0,
+          pendingTasks: 0,
+          completionRate: 0,
+        },
+        memberAnalytics: [],
+        noProjectsAssigned: true,
+      };
+    }
 
     // Helper to calculate deduplicated members count for a project
     const getProjectUniqueMemberCount = (p) => {
@@ -1639,15 +1689,23 @@ class RetroService {
         { projectKey: targetProject.key },
       ];
     } else {
-      // All Projects scope: fetch all project-linked retros or retros created by admin/workspace
+      // Scope: fetch retros linked to accessible projects
       const projectIds = projectsList.map((p) => p._id);
       const projectKeys = projectsList.map((p) => p.key);
-      retroQuery.$or = [
-        { projectId: { $in: projectIds } },
-        { projectKey: { $in: projectKeys } },
-        { isProjectScoped: true },
-        ...(isAdmin ? [{}] : [{ createdBy: user._id }]),
-      ];
+      if (isAdmin) {
+        retroQuery.$or = [
+          { projectId: { $in: projectIds } },
+          { projectKey: { $in: projectKeys } },
+          { isProjectScoped: true },
+          {},
+        ];
+      } else {
+        retroQuery.$or = [
+          { projectId: { $in: projectIds } },
+          { projectKey: { $in: projectKeys } },
+          { createdBy: user._id },
+        ];
+      }
     }
 
     const retros = await RetroBoard.find(retroQuery)

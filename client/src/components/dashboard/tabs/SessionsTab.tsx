@@ -3,7 +3,6 @@
 import React from 'react';
 import { RetroBoard } from '@/types/retro';
 import { SessionList } from '../SessionList';
-import { Layers, Activity, CheckSquare, Award, Sparkles } from 'lucide-react';
 
 interface SessionsTabProps {
   sessions: RetroBoard[];
@@ -46,18 +45,12 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Digiflux Signature Welcome Banner */}
-      <div className="relative p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-[#5cb028] via-[#54a324] to-[#458b1b] text-white shadow-sm overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#0e1015] dark:border dark:border-white/[0.08] dark:shadow-2xl group">
+      <div className="relative py-5 px-6 sm:py-6 sm:px-8 rounded-2xl bg-gradient-to-r from-[#5cb028] via-[#54a324] to-[#458b1b] text-white shadow-sm overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#0e1015] dark:border dark:border-white/[0.08] dark:shadow-2xl group">
         {/* Ambient background decoration */}
         <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 dark:bg-[#88c958]/10 rounded-full blur-2xl dark:blur-3xl pointer-events-none" />
         <div className="absolute top-2 right-1/4 w-32 h-32 bg-emerald-300/10 dark:bg-[#88c958]/5 rounded-full blur-xl dark:blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-2xl space-y-2.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white/20 text-white backdrop-blur-xs border border-white/25 shadow-2xs dark:bg-[#88c958]/10 dark:text-[#88c958] dark:border-[#88c958]/25">
-            <Sparkles className="w-3.5 h-3.5 text-white dark:hidden" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#88c958] animate-pulse hidden dark:inline-block" />
-            <span>{isAdmin ? 'Agile Retrospective Engine' : 'Collaborative Workspace'}</span>
-          </div>
-
+        <div className="relative z-10 max-w-2xl space-y-1.5">
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:font-black">
             Welcome back, <span className="text-white dark:text-[#88c958]">{firstName}</span>!
           </h2>

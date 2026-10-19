@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, FolderKanban } from 'lucide-react';
 import { api, ENDPOINTS } from '@/lib/api';
 import {
   AnalyticsData,
@@ -22,7 +22,11 @@ export interface AnalyticsTabProps {
  * Senior orchestrator component coordinating data fetching, project & year filtering,
  * and passing dynamic props down to modular, single-responsibility child components.
  */
-export const AnalyticsTab: React.FC<AnalyticsTabProps> = () => {
+export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
+  user,
+  isAdmin = false,
+  isManager = false,
+}) => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<number>(() => new Date().getFullYear());
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -77,6 +81,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = () => {
         onRefresh={() => fetchAnalytics(selectedProjectId, selectedYear, true)}
         isLoading={isLoading}
         isRefreshing={isRefreshing}
+        isAdmin={isAdmin}
       />
 
       {/* Error Alert with Retry */}
@@ -100,7 +105,19 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = () => {
       {isLoading && <AnalyticsSkeleton />}
 
       {/* Loaded Content */}
-      {!isLoading && data && (
+      {!isLoading && data && !isAdmin && (data.noProjectsAssigned || data.projects?.length === 0) ? (
+        <div className="p-12 text-center rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-4 max-w-lg mx-auto">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shadow-2xs">
+            <FolderKanban className="w-7 h-7 text-[#5cb028] dark:text-[#88c958]" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">No Projects Assigned Yet</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              You are not assigned to any projects currently. Contact a Workspace Administrator to assign you to a project to view its retrospective analytics.
+            </p>
+          </div>
+        </div>
+      ) : !isLoading && data ? (
         <>
           {/* Annual Retrospective & Commitments 12-Month Bar Chart */}
           <AnalyticsMonthlyBarChart
@@ -116,7 +133,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = () => {
             selectedYear={data.selectedYear || selectedYear}
           />
         </>
-      )}
+      ) : null}
     </div>
   );
 };

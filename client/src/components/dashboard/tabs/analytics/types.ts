@@ -135,6 +135,7 @@ export interface AnalyticsData {
   monthlyTrends?: MonthlyRetroBarData[];
   yearSummary?: YearAnalyticsSummary;
   memberAnalytics: MemberAnalyticsItem[];
+  noProjectsAssigned?: boolean;
 }
 
 export type MemberStatusFilter = 'ALL' | 'CONSISTENT' | 'ACTIVE' | 'LOW';
