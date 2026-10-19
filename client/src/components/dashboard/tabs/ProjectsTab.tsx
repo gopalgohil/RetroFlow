@@ -26,8 +26,6 @@ interface ProjectsTabProps {
   user?: { name?: string; email?: string; role?: string; projectRole?: string } | null;
 }
 
-// In-memory cache to prevent skeleton flickering and duplicate network calls on tab switching
-let inMemoryProjectsCache: Project[] | null = null;
 
 const formatProjectCreatedDate = (dateStr?: string | Date) => {
   if (!dateStr) return null;
@@ -46,8 +44,8 @@ const formatProjectCreatedDate = (dateStr?: string | Date) => {
 
 export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user = null }) => {
   const router = useRouter();
-  const [projects, setProjects] = useState<Project[]>(() => inMemoryProjectsCache || []);
-  const [isLoading, setIsLoading] = useState(() => inMemoryProjectsCache === null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     email?: string;
@@ -87,11 +85,11 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     currentUser?.role?.toLowerCase().includes('manager')
   );
 
-  const fetchProjects = useCallback(async (page: number) => {
-    if (!inMemoryProjectsCache) {
-      setIsLoading(true);
-    } else {
+  const fetchProjects = useCallback(async (page: number, isPaging = false) => {
+    if (isPaging) {
       setIsFilterLoading(true);
+    } else {
+      setIsLoading(true);
     }
     try {
       const res = await ProjectApiService.getPaginatedProjects({
@@ -102,7 +100,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       setProjects(res.projects);
       setPagination(res.pagination);
       setTabCounts(res.counts);
-      inMemoryProjectsCache = res.projects;
     } catch (err) {
       console.warn('[ProjectsTab] Live API request error:', err);
     } finally {
@@ -112,7 +109,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   }, []);
 
   useEffect(() => {
-    fetchProjects(currentPage);
+    fetchProjects(currentPage, currentPage > 1);
   }, [fetchProjects, currentPage]);
 
   const handleDeleteProject = async () => {
@@ -122,13 +119,12 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     try {
       await ProjectApiService.deleteProject(projectToDelete.id);
       ProjectApiService.clearProjectsCache();
-      inMemoryProjectsCache = null;
       setProjectToDelete(null);
       const targetPage = projects.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
       if (targetPage !== currentPage) {
         setCurrentPage(targetPage);
       } else {
-        fetchProjects(targetPage);
+        fetchProjects(targetPage, false);
       }
     } catch (err: any) {
       setDeleteProjectError(err.message || 'Failed to delete project.');

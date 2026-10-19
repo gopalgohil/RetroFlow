@@ -81,29 +81,28 @@ export const ProjectsTabSkeleton: React.FC = () => {
   return (
     <div className="space-y-8 animate-pulse">
       {/* Top Header Banner Skeleton */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#eaf5e3]/60 via-slate-50 to-white dark:from-slate-900/90 dark:via-slate-900/80 dark:to-slate-950 border border-[#cdeac0]/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#eaf5e3]/60 via-slate-50 to-white dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#0e1015] border border-[#cdeac0]/80 dark:border-white/[0.08] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-3 max-w-xl w-full">
           <div className="flex items-center gap-2">
-            <div className="h-5 w-28 rounded-full bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30" />
-            <div className="h-4 w-32 rounded-md bg-slate-200/60 dark:bg-slate-800" />
+            <div className="h-5 w-28 rounded-full bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30" />
+            <div className="h-4 w-32 rounded-md bg-slate-200/60 dark:bg-white/[0.06]" />
           </div>
-          <div className="h-7 sm:h-8 w-3/4 max-w-md rounded-xl bg-slate-200/80 dark:bg-slate-800" />
+          <div className="h-7 sm:h-8 w-3/4 max-w-md rounded-xl bg-slate-200/80 dark:bg-white/[0.08]" />
           <div className="space-y-2 pt-0.5">
-            <div className="h-3.5 w-full rounded-md bg-slate-100 dark:bg-slate-800/60" />
-            <div className="h-3.5 w-4/5 rounded-md bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-3.5 w-full rounded-md bg-slate-100 dark:bg-white/[0.04]" />
+            <div className="h-3.5 w-4/5 rounded-md bg-slate-100 dark:bg-white/[0.04]" />
           </div>
         </div>
 
-        <div className="h-10 w-44 rounded-xl bg-[#5cb028]/30 shrink-0 self-start sm:self-auto" />
+        <div className="h-10 w-44 rounded-xl bg-[#5cb028]/20 dark:bg-[#88c958]/20 border border-[#5cb028]/30 dark:border-[#88c958]/30 shrink-0 self-start sm:self-auto" />
       </div>
 
       {/* View Filter Switcher Bar Skeleton */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 rounded-xl w-fit">
-          <div className="h-7 w-28 rounded-lg bg-slate-200/80 dark:bg-slate-700" />
-          <div className="h-7 w-36 rounded-lg bg-slate-200/60 dark:bg-slate-700/60" />
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] rounded-xl w-fit">
+          <div className="h-7 w-28 rounded-lg bg-slate-200/80 dark:bg-white/[0.08]" />
         </div>
-        <div className="h-4 w-36 rounded bg-slate-200/50 dark:bg-slate-800" />
+        <div className="h-4 w-36 rounded bg-slate-200/50 dark:bg-white/[0.05]" />
       </div>
 
       {/* Project Cards Grid Skeleton */}
