@@ -200,28 +200,25 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
         const savedUser = localStorage.getItem('retroflow_user');
         if (savedUser) setCurrentUser(JSON.parse(savedUser));
 
-        // Re-sync projects list so newly created projects appear in the dropdown immediately
-        ProjectApiService.getProjects(true)
-          .then((list) => {
-            if (Array.isArray(list)) {
-              setProjects(list);
-            }
-          })
-          .catch(() => {});
+        const storedList = localStorage.getItem(STORAGE_CACHED_PROJS_LIST);
+        if (storedList) {
+          const parsedList = JSON.parse(storedList);
+          if (Array.isArray(parsedList) && parsedList.length > 0) {
+            setProjects(parsedList);
+          }
+        }
       } catch {}
     };
 
     syncStorage();
     window.addEventListener('storage', syncStorage);
     window.addEventListener(EVENT_ACTIVE_PROJ_CHANGED, syncStorage);
-    window.addEventListener('focus', syncStorage);
 
     return () => {
       window.removeEventListener('storage', syncStorage);
       window.removeEventListener(EVENT_ACTIVE_PROJ_CHANGED, syncStorage);
-      window.removeEventListener('focus', syncStorage);
     };
-  }, [isOpen]);
+  }, []);
 
   // Active project resolution
   const resolvedProjectId =
@@ -301,7 +298,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   // Background sync with live REST API
   useEffect(() => {
     let isMounted = true;
-    ProjectApiService.getProjects(true)
+    ProjectApiService.getProjects(false)
       .then((list) => {
         if (!isMounted) return;
         const validList = Array.isArray(list) ? list : [];

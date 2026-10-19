@@ -62,7 +62,7 @@ export class MembersApiService {
 export class ProjectApiService {
   private static inFlightProjectsPromise: Promise<Project[]> | null = null;
   private static cachedProjects: { data: Project[]; timestamp: number } | null = null;
-  private static readonly CACHE_TTL_MS = 3000;
+  private static readonly CACHE_TTL_MS = 60000;
 
   private static inFlightProjectById: Map<string, Promise<Project>> = new Map();
   private static cachedProjectById: Map<string, { data: Project; timestamp: number }> = new Map();
