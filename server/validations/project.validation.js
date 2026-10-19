@@ -81,16 +81,20 @@ export const exportActionItemsSchema = z.object({
           .optional(),
         sourceRetroId: z.string().optional(),
         sourceRetroTitle: z.string().optional(),
+        dueDate: z.string().nullable().optional(),
       })
     )
     .min(1, 'At least one action item is required for export'),
 });
 
-export const updateSprintItemStatusSchema = z.object({
-  status: z.enum(['todo', 'in_progress', 'done'], {
-    required_error: 'Item status must be one of: todo, in_progress, done',
-  }),
-});
+export const updateSprintItemStatusSchema = z
+  .object({
+    status: z.enum(['todo', 'in_progress', 'done']).optional(),
+    dueDate: z.string().nullable().optional(),
+  })
+  .refine((data) => data.status !== undefined || data.dueDate !== undefined, {
+    message: 'Either status or dueDate must be provided',
+  });
 
 export const updateSprintDatesSchema = z
   .object({

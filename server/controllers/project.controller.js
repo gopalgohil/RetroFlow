@@ -136,15 +136,15 @@ class ProjectController {
    * PATCH /api/projects/:id/sprints/:sprintId/items/:itemId/status
    */
   updateSprintItemStatus = asyncHandler(async (req, res) => {
-    const { status } = req.body;
+    const { status, dueDate } = req.body;
     const project = await projectService.updateSprintItemStatus(
       req.params.id,
       req.params.sprintId,
       req.params.itemId,
-      status,
+      { status, dueDate },
       req.user
     );
-    return ApiResponse.ok(res, project, 'Sprint item status updated successfully');
+    return ApiResponse.ok(res, project, 'Sprint item updated successfully');
   });
 
   /**

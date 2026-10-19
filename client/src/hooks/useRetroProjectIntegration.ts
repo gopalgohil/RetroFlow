@@ -90,6 +90,7 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
           description: c.description || '',
           storyPoints: typeof c.storyPoints === 'number' ? c.storyPoints : 3,
           priority: c.priority || 'high',
+          dueDate: c.dueDate || undefined,
           assignee: c.assignee ? { name: c.assignee.name, avatar: c.assignee.avatar } : undefined,
           sourceRetroId: retroId,
           sourceRetroTitle: retroTitle,

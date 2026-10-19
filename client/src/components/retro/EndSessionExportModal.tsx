@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Plus,
   X,
+  Calendar,
 } from 'lucide-react';
 import { RetroTopic, StickyCard } from '@/types/retro';
 import { useRetroProjectIntegration } from '@/hooks/useRetroProjectIntegration';
@@ -45,6 +46,7 @@ interface ItemConfig {
   assigneeName: string;
   storyPoints: number;
   priority: 'low' | 'medium' | 'high' | 'critical';
+  dueDate?: string;
 }
 
 export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
@@ -322,6 +324,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
           text: c.text,
           storyPoints: cfg.storyPoints,
           priority: cfg.priority,
+          dueDate: cfg.dueDate || currentSprint?.endDate || undefined,
           assignee: matchedMember
             ? { name: matchedMember.name, avatar: matchedMember.avatar }
             : cfg.assigneeName
@@ -872,6 +875,24 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                   </option>
                                 ))}
                               </select>
+                            </div>
+
+                            {/* Due Date Picker */}
+                            <div
+                              className="flex items-center gap-1.5"
+                              title="Custom Due Date for this Action Item (Defaults to sprint end date)"
+                            >
+                              <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+                              <input
+                                type="date"
+                                value={cfg.dueDate || (currentSprint?.endDate ? currentSprint.endDate.split('T')[0] : '')}
+                                onChange={(e) =>
+                                  handleUpdateItemConfig(card.id, {
+                                    dueDate: e.target.value,
+                                  })
+                                }
+                                className="px-2 py-1 bg-white dark:bg-[#141720] border border-slate-200 dark:border-white/[0.08] rounded-lg text-[11px] text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#88c958] cursor-pointer"
+                              />
                             </div>
                           </div>
                         )}

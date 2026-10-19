@@ -294,6 +294,43 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     }
   };
 
+  const handleUpdateItemDueDate = async (
+    sprintId: string,
+    itemId: string,
+    newDueDate: string | null
+  ) => {
+    const updatedSprints = project.sprints.map((sp) => {
+      if (sp.id === sprintId) {
+        const updatedItems = sp.items.map((it) =>
+          it.id === itemId ? { ...it, dueDate: newDueDate } : it
+        );
+        return {
+          ...sp,
+          items: updatedItems,
+        };
+      }
+      return sp;
+    });
+
+    const optimisticProject = { ...project, sprints: updatedSprints };
+    onProjectUpdated(optimisticProject);
+    setUpdatingItemId(itemId);
+
+    try {
+      const updated = await ProjectApiService.updateSprintItemDueDate(
+        project.id,
+        sprintId,
+        itemId,
+        newDueDate
+      );
+      if (updated) onProjectUpdated(updated);
+    } catch (err) {
+      console.warn('[SprintsTab] API update item dueDate fallback:', err);
+    } finally {
+      setUpdatingItemId(null);
+    }
+  };
+
   const handleDeleteItem = async (sprintId: string, itemId: string) => {
     const updatedSprints = project.sprints.map((sp) => {
       if (sp.id === sprintId) {
@@ -443,6 +480,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               onEditDates={(sp) => setEditingDatesSprint(sp)}
               onDeleteSprint={(sp) => setSprintToDelete(sp)}
               onUpdateItemStatus={handleUpdateItemStatus}
+              onUpdateDueDate={handleUpdateItemDueDate}
               onDeleteItem={(sprintId, itemId) => {
                 const sp = project.sprints.find((s) => s.id === sprintId);
                 const it = sp?.items.find((i) => i.id === itemId);

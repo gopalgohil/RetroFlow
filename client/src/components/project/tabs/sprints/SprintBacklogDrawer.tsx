@@ -19,6 +19,11 @@ export interface SprintBacklogDrawerProps {
     itemId: string,
     newStatus: 'todo' | 'in_progress' | 'done'
   ) => Promise<void>;
+  onUpdateDueDate?: (
+    sprintId: string,
+    itemId: string,
+    newDueDate: string | null
+  ) => Promise<void> | void;
   onDeleteItem?: (sprintId: string, itemId: string) => Promise<void> | void;
 }
 
@@ -34,6 +39,7 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
   deletingItemId = null,
   canManageProject = false,
   onUpdateItemStatus,
+  onUpdateDueDate,
   onDeleteItem,
 }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -221,6 +227,7 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
                   isDeleting={deletingItemId === item.id}
                   canManageProject={canManageProject}
                   onUpdateStatus={onUpdateItemStatus}
+                  onUpdateDueDate={onUpdateDueDate}
                   onDeleteItem={onDeleteItem}
                 />
               ))}

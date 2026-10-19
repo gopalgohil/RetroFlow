@@ -25,6 +25,11 @@ export interface SprintCardProps {
     itemId: string,
     newStatus: 'todo' | 'in_progress' | 'done'
   ) => Promise<void>;
+  onUpdateDueDate?: (
+    sprintId: string,
+    itemId: string,
+    newDueDate: string | null
+  ) => Promise<void> | void;
   onDeleteItem?: (sprintId: string, itemId: string) => Promise<void> | void;
 }
 
@@ -47,6 +52,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   onEditDates,
   onDeleteSprint,
   onUpdateItemStatus,
+  onUpdateDueDate,
   onDeleteItem,
 }) => {
   const percentComplete = Math.round(
@@ -210,6 +216,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
           deletingItemId={deletingItemId}
           canManageProject={canManageProject}
           onUpdateItemStatus={onUpdateItemStatus}
+          onUpdateDueDate={onUpdateDueDate}
           onDeleteItem={onDeleteItem}
         />
       )}

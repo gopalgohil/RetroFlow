@@ -852,7 +852,7 @@ class ProjectService {
   /**
    * Update status of an individual backlog item / action item in a sprint
    */
-  async updateSprintItemStatus(idOrKey, sprintId, itemId, status, currentUser = null) {
+  async updateSprintItemStatus(idOrKey, sprintId, itemId, payload, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
 
@@ -864,7 +864,20 @@ class ProjectService {
     );
     if (!item) throw new Error(`Item with ID ${itemId} not found in sprint ${sprint.name}`);
 
-    item.status = status;
+    const status = typeof payload === 'string' ? payload : payload?.status;
+    const dueDate = typeof payload === 'object' ? payload?.dueDate : undefined;
+
+    if (status) {
+      item.status = status;
+      if (status === 'done' && !item.completedAt) {
+        item.completedAt = new Date();
+      }
+    }
+
+    if (dueDate !== undefined) {
+      item.dueDate = dueDate;
+    }
+
     item.updatedAt = new Date();
 
     // Dynamically recalculate completedStoryPoints for this sprint based on completed items

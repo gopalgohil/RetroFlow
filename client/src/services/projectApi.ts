@@ -253,13 +253,26 @@ export class ProjectApiService {
     projectId: string,
     sprintId: string,
     itemId: string,
-    status: 'todo' | 'in_progress' | 'done'
+    statusOrPayload: 'todo' | 'in_progress' | 'done' | { status?: 'todo' | 'in_progress' | 'done'; dueDate?: string | null }
   ): Promise<Project> {
+    const payload = typeof statusOrPayload === 'string' ? { status: statusOrPayload } : statusOrPayload;
     const res = await api.patch<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/sprints/${sprintId}/items/${itemId}/status`,
-      { status }
+      payload
     );
     return res.data;
+  }
+
+  /**
+   * Update due date of an individual backlog item in a sprint
+   */
+  static async updateSprintItemDueDate(
+    projectId: string,
+    sprintId: string,
+    itemId: string,
+    dueDate: string | null
+  ): Promise<Project> {
+    return this.updateSprintItemStatus(projectId, sprintId, itemId, { dueDate });
   }
 
   /**
@@ -430,6 +443,7 @@ export class ProjectApiService {
       description?: string;
       priority?: 'low' | 'medium' | 'high' | 'critical';
       storyPoints?: number;
+      dueDate?: string | null;
       assignee?: { name: string; avatar?: string };
       sourceRetroId?: string;
       sourceRetroTitle?: string;
