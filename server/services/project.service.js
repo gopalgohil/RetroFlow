@@ -1559,13 +1559,27 @@ class ProjectService {
     // 2. Collect direct action cards from accessible Retrospective Sessions (Action Items topic)
     let retroQuery = {};
     if (!isAdmin && userEmail) {
-      retroQuery = {
-        $or: [
-          { approvedMembers: { $in: [userEmail, new RegExp(`^${userEmail}$`, 'i')] } },
-          { 'cards.authorEmail': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
-          ...(currentUser?._id ? [{ createdBy: currentUser._id }] : []),
-        ],
-      };
+      if (fetchAll) {
+        // Manager's "All Team Items": Only retros belonging to manager's accessible projects
+        const projectIds = projects.map((p) => p._id);
+        const projectKeys = projects.map((p) => p.key);
+        retroQuery = {
+          $or: [
+            { projectId: { $in: projectIds } },
+            { projectKey: { $in: projectKeys } },
+            ...(currentUser?._id ? [{ createdBy: currentUser._id }] : []),
+          ],
+        };
+      } else {
+        // "My Action Items": Retros where user is approved, author, or creator
+        retroQuery = {
+          $or: [
+            { approvedMembers: { $in: [userEmail, new RegExp(`^${userEmail}$`, 'i')] } },
+            { 'cards.authorEmail': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+            ...(currentUser?._id ? [{ createdBy: currentUser._id }] : []),
+          ],
+        };
+      }
     }
 
     const retros = await RetroBoard.find(retroQuery).lean();
@@ -1606,6 +1620,11 @@ class ProjectService {
             (retro.projectId && (p._id.toString() === retro.projectId.toString() || p.id === retro.projectId.toString())) ||
             (retro.projectKey && p.key?.toUpperCase() === retro.projectKey.toUpperCase())
         );
+
+        // When viewing team items as non-admin manager, card must belong to an accessible project or retro created by user
+        if (fetchAll && !isAdmin && !matchingProject && (!currentUser?._id || retro.createdBy?.toString() !== currentUser._id.toString())) {
+          continue;
+        }
 
         // Intelligent Assignee Resolution: Check @mention in card.text vs card.author
         let directAssigneeName = card.author || 'Assigned Member';
