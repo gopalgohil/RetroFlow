@@ -3,6 +3,7 @@
 import React from 'react';
 import { RetroBoard } from '@/types/retro';
 import { SessionList } from '../SessionList';
+import { SessionsSkeleton } from '../skeletons/SessionsSkeleton';
 
 interface SessionsTabProps {
   sessions: RetroBoard[];
@@ -38,6 +39,11 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
   searchQuery,
   onSearchChange,
 }) => {
+  // Guarantee welcome banner and active sessions cards load together in sync without premature banner render
+  if (isLoading && sessions.length === 0 && !searchQuery) {
+    return <SessionsSkeleton />;
+  }
+
   const firstName = user?.name ? user.name.split(' ')[0] : 'there';
   const completedCount = sessions.filter((s) => s.status === 'completed').length;
   const totalTopicsCount = sessions.reduce((acc, s) => acc + (s.topics?.length || 3), 0);

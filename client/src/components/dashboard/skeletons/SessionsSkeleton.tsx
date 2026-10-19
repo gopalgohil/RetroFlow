@@ -55,50 +55,23 @@ export const SessionsSkeleton: React.FC = () => {
   return (
     <div className="space-y-6 animate-pulse">
       {/* Top Banner Overview Card Skeleton */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-[#eaf5e3]/60 via-slate-50 to-white dark:from-slate-900/90 dark:via-slate-900/80 dark:to-slate-950 border border-[#cdeac0]/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="space-y-3 max-w-xl w-full">
-          {/* Engine Pill Badge */}
-          <div className="h-6 w-32 rounded-full bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30" />
-          {/* Main Hub Title */}
-          <div className="h-8 w-3/4 max-w-md rounded-xl bg-slate-200/90 dark:bg-slate-800" />
-          {/* Subtitle Description Lines */}
-          <div className="space-y-2 pt-1">
-            <div className="h-3.5 w-full rounded-md bg-slate-100 dark:bg-slate-800/60" />
-            <div className="h-3.5 w-4/5 rounded-md bg-slate-100 dark:bg-slate-800/60" />
-          </div>
-        </div>
-
-        {/* Right Stats Box Skeleton */}
-        <div className="hidden md:flex flex-col gap-2.5 shrink-0 bg-white/90 dark:bg-slate-900/90 p-4 rounded-xl border border-[#cdeac0]/80 dark:border-slate-800 shadow-xs w-52">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40" />
-            <div className="space-y-1.5 flex-1">
-              <div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
-              <div className="h-2.5 w-14 bg-slate-100 dark:bg-slate-800/60 rounded" />
-            </div>
-          </div>
-          <div className="flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] dark:bg-[#5cb028]/20 border border-[#cdeac0] dark:border-[#5cb028]/30" />
-            <div className="space-y-1.5 flex-1">
-              <div className="h-3 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
-              <div className="h-2.5 w-16 bg-slate-100 dark:bg-slate-800/60 rounded" />
-            </div>
-          </div>
-        </div>
+      <div className="relative py-5 px-6 sm:py-6 sm:px-8 rounded-2xl bg-[#5cb028]/15 dark:bg-[#0e1015] border border-[#5cb028]/25 dark:border-white/[0.08] shadow-xs flex flex-col justify-center space-y-2.5">
+        <div className="h-7 sm:h-8 w-60 sm:w-72 rounded-xl bg-[#5cb028]/25 dark:bg-white/[0.1]" />
+        <div className="h-3.5 w-full max-w-lg rounded-md bg-[#5cb028]/15 dark:bg-white/[0.05]" />
       </div>
 
       {/* Filter Tabs Bar Skeleton */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800 pb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 border-b border-slate-200/80 dark:border-white/[0.08] pb-3.5">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-8 w-24 rounded-lg bg-slate-200/70 dark:bg-slate-800" />
+            <div key={i} className="h-7 w-24 rounded-xl bg-slate-200/80 dark:bg-white/[0.06]" />
           ))}
         </div>
-        <div className="h-4 w-32 rounded bg-slate-100 dark:bg-slate-800/60" />
+        <div className="h-8 w-full sm:w-56 md:w-64 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.08]" />
       </div>
 
-      {/* Sessions Grid Skeleton (4 Cards) */}
-      <SessionCardsSkeleton count={4} />
+      {/* Sessions Grid Skeleton (6 Cards) */}
+      <SessionCardsSkeleton count={6} />
     </div>
   );
 };

@@ -269,7 +269,7 @@ export const SessionList: React.FC<SessionListProps> = ({
 
   const isSearchDebouncing = localSearch.trim() !== searchQuery.trim();
   const isSearching = isSearchDebouncing || isLoading;
-  const isCardsLoading = isLoading || isFilterLoading || isPageLoading || isSearchDebouncing;
+  const isCardsLoading = (isLoading && sessions.length === 0) || isFilterLoading || isPageLoading || isSearchDebouncing;
 
   // Tab counts
   const activeCount = sessions.filter((s) => s.status === 'active').length;
