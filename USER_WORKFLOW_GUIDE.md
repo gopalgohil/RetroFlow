@@ -17,7 +17,27 @@
 
 ---
 
-## 🔄 2. Complete Workflow Step-by-Step
+## 🛠️ 2. Technology Stack & Tools Architecture
+
+A modern, high-performance, and scalable full-stack architecture:
+
+| Layer | Technology | Details / Purpose |
+| :--- | :--- | :--- |
+| **Frontend Framework** | **Next.js 16 + React 19** | Modern App Router, Server/Client components, SSR & fast hydration. |
+| **Programming Language** | **TypeScript 5** | Strict type safety, clean interfaces, enterprise maintainability. |
+| **Styling & Icons** | **Tailwind CSS v4 + Lucide React** | Utility-first responsive design, dark/light theme support, rich iconography. |
+| **Animation Engine** | **Framer Motion** | Micro-animations, interactive modals, and smooth state transitions. |
+| **Backend Runtime** | **Node.js + Express.js** | Modular REST API built with modern ES Modules architecture. |
+| **Real-Time Communication**| **Socket.io (WebSockets)** | Instant bidirectional sync for retro feedback cards, live voting & delete broadcast. |
+| **Database** | **MongoDB Atlas + Mongoose** | Cloud NoSQL database with flexible document schemas and high availability. |
+| **Authentication & Auth** | **Firebase Auth + JWT** | Google OAuth & Email/Password login, signed JWT tokens, bcrypt encryption. |
+| **Email Service** | **Brevo (Sendinblue API)** | Transactional email delivery for contributor invitations and admin approvals. |
+| **Background Scheduler** | **Node-Cron** | Automated monthly retrospective session generator (runs on 1st of every month). |
+| **Validation & Security** | **Zod, Helmet, Rate-Limit** | Strict request schema validation, secure HTTP headers, and API rate limiting. |
+
+---
+
+## 🔄 3. Complete Workflow Step-by-Step
 
 ```mermaid
 flowchart TD
@@ -34,7 +54,7 @@ flowchart TD
 
 ---
 
-## 📝 3. Detailed Walkthrough
+## 📝 4. Detailed Walkthrough
 
 ### Step 1: Sign Up & Registration
 1. User navigates to the **Sign Up** page.
