@@ -12,6 +12,7 @@ import { errorHandler } from './middlewares/error.middleware.js';
 import { requestLogger } from './middlewares/logger.middleware.js';
 import { ApiError } from './utils/ApiError.js';
 import { initRetroSocket } from './sockets/retro.socket.js';
+import cronService from './services/cron.service.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -139,6 +140,9 @@ const startServer = async () => {
   // Connect to MongoDB Atlas with connection pooling
   await database.connect();
 
+  // Initialize background Cron scheduler for automated monthly retrospectives
+  cronService.initMonthlyRetroCron(io);
+
   server = httpServer.listen(PORT, () => {
     console.log(`\n======================================================`);
     console.log(` 🚀 RetroFlow Enterprise API Server Operational`);
@@ -153,6 +157,9 @@ const startServer = async () => {
 // 10. Graceful Shutdown Handlers (SIGTERM, SIGINT)
 const gracefulShutdown = async (signal) => {
   console.log(`\n[Server] Received ${signal}. Commencing graceful shutdown...`);
+  if (cronService) {
+    cronService.stopCron();
+  }
   if (io) {
     io.close();
   }

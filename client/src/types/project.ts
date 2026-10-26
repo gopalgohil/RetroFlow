@@ -96,6 +96,7 @@ export interface Project {
   cadence: SprintCadence;
   customCadenceDays?: number;
   isArchived?: boolean;
+  autoMonthlyRetro?: boolean;
   lead: {
     id: string;
     name: string;
@@ -132,4 +133,5 @@ export interface CreateProjectPayload {
   }>;
   cadence: SprintCadence;
   customCadenceDays?: number;
+  autoMonthlyRetro?: boolean;
 }

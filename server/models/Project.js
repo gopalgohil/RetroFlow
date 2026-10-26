@@ -245,6 +245,10 @@ const projectSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    autoMonthlyRetro: {
+      type: Boolean,
+      default: true,
+    },
     lead: {
       id: { type: String, default: 'lead-1' },
       name: { type: String, default: 'Project Lead' },

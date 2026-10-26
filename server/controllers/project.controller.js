@@ -4,6 +4,7 @@ import projectService from '../services/project.service.js';
 import Project from '../models/Project.js';
 import { isSuperAdmin } from '../config/admin.config.js';
 import { isManagerUser } from '../utils/role.js';
+import cronService from '../services/cron.service.js';
 
 class ProjectController {
   /**
@@ -382,6 +383,16 @@ class ProjectController {
       req.user
     );
     return ApiResponse.ok(res, result, 'Action item status updated successfully');
+  });
+
+  /**
+   * Manually trigger monthly automated retro creation (Admin / Manager testing)
+   * POST /api/projects/admin/trigger-monthly-cron
+   */
+  triggerMonthlyRetroCron = asyncHandler(async (req, res) => {
+    const io = req.app.get('io');
+    const result = await cronService.runMonthlyRetroJob(io);
+    return ApiResponse.ok(res, result, 'Monthly retrospective cron job executed successfully');
   });
 }
 

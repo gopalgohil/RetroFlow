@@ -327,8 +327,21 @@ class ProjectService {
       };
     }
 
+    // 3.5 Archived Query Construction
+    let archivedQuery = { isArchived: true };
+    if (!isAdmin && userEmail) {
+      archivedQuery = {
+        isArchived: true,
+        $or: [
+          { 'lead.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+          { 'members.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+          ...(currentUser._id ? [{ createdBy: currentUser._id }] : []),
+        ],
+      };
+    }
+
     // 4. Select Target Query based on filter
-    let targetQuery = filter === 'managed' ? managedQuery : baseQuery;
+    let targetQuery = filter === 'archived' ? archivedQuery : filter === 'managed' ? managedQuery : baseQuery;
 
     // 5. Apply Search Filter if specified
     if (search && typeof search === 'string' && search.trim()) {
@@ -356,9 +369,10 @@ class ProjectService {
     const skip = (pageNum - 1) * limitNum;
 
     // 7. Concurrent Execution for High-Performance Sub-millisecond Execution
-    const [allCount, managedCount, totalItems, rawProjects] = await Promise.all([
+    const [allCount, managedCount, archivedCount, totalItems, rawProjects] = await Promise.all([
       Project.countDocuments(baseQuery),
       Project.countDocuments(managedQuery),
+      Project.countDocuments(archivedQuery),
       Project.countDocuments(targetQuery),
       isAll
         ? Project.find(targetQuery).sort({ createdAt: -1 })
@@ -394,6 +408,7 @@ class ProjectService {
       counts: {
         all: allCount,
         managed: managedCount,
+        archived: archivedCount,
       },
     };
   }
@@ -742,6 +757,7 @@ class ProjectService {
       healthStatus: 'on_track',
       cadence: payload.cadence || '2_weeks',
       customCadenceDays: payload.customCadenceDays || 14,
+      autoMonthlyRetro: payload.autoMonthlyRetro !== undefined ? !!payload.autoMonthlyRetro : true,
       lead: {
         id: leadId,
         name: leadName,
@@ -792,6 +808,7 @@ class ProjectService {
     if (payload.type) project.type = payload.type;
     if (payload.healthStatus) project.healthStatus = payload.healthStatus;
     if (payload.customCadenceDays) project.customCadenceDays = payload.customCadenceDays;
+    if (payload.autoMonthlyRetro !== undefined) project.autoMonthlyRetro = !!payload.autoMonthlyRetro;
 
     await project.save();
     return project;

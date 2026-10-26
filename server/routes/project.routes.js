@@ -230,4 +230,10 @@ router.delete('/:id/retros/:retroId', optionalAuth, projectController.deleteProj
  */
 router.patch('/:id/retros/:retroId', optionalAuth, projectController.updateProjectRetro);
 
+/**
+ * @route   POST /api/projects/admin/trigger-monthly-cron
+ * @desc    Manually trigger monthly automated retrospective job
+ */
+router.post('/admin/trigger-monthly-cron', optionalAuth, projectController.triggerMonthlyRetroCron);
+
 export default router;

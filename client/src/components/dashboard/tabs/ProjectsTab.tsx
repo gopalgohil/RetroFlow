@@ -13,6 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
+  Archive,
+  RotateCcw,
 } from 'lucide-react';
 import { Project } from '@/types/project';
 import { PaginationMeta } from '@/types/retro';
@@ -66,9 +68,10 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     hasNextPage: false,
     hasPrevPage: false,
   });
-  const [tabCounts, setTabCounts] = useState<{ all: number; managed: number }>({
+  const [tabCounts, setTabCounts] = useState<{ all: number; managed: number; archived?: number }>({
     all: 0,
     managed: 0,
+    archived: 0,
   });
 
   const projectsGridRef = useRef<HTMLDivElement>(null);
@@ -85,28 +88,48 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     currentUser?.role?.toLowerCase().includes('manager')
   );
 
-  const fetchProjects = useCallback(async (page: number, isPaging = false) => {
-    if (isPaging) {
-      setIsFilterLoading(true);
-    } else {
-      setIsLoading(true);
-    }
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'archived'>('all');
+  const [restoringProjectId, setRestoringProjectId] = useState<string | null>(null);
+
+  const fetchProjects = useCallback(
+    async (page: number, isPaging = false, filterOverride?: 'all' | 'archived') => {
+      const activeFilter = filterOverride || selectedFilter;
+      if (isPaging) {
+        setIsFilterLoading(true);
+      } else {
+        setIsLoading(true);
+      }
+      try {
+        const res = await ProjectApiService.getPaginatedProjects({
+          page,
+          limit: 6,
+          filter: activeFilter,
+        });
+        setProjects(res.projects);
+        setPagination(res.pagination);
+        setTabCounts(res.counts);
+      } catch (err) {
+        console.warn('[ProjectsTab] Live API request error:', err);
+      } finally {
+        setIsLoading(false);
+        setIsFilterLoading(false);
+      }
+    },
+    [selectedFilter]
+  );
+
+  const handleRestoreProject = async (projectId: string) => {
+    setRestoringProjectId(projectId);
     try {
-      const res = await ProjectApiService.getPaginatedProjects({
-        page,
-        limit: 6,
-        filter: 'all',
-      });
-      setProjects(res.projects);
-      setPagination(res.pagination);
-      setTabCounts(res.counts);
-    } catch (err) {
-      console.warn('[ProjectsTab] Live API request error:', err);
+      await ProjectApiService.archiveProject(projectId, false);
+      ProjectApiService.clearProjectsCache();
+      fetchProjects(currentPage, false, selectedFilter);
+    } catch (err: any) {
+      console.error('[ProjectsTab] Failed to restore project:', err);
     } finally {
-      setIsLoading(false);
-      setIsFilterLoading(false);
+      setRestoringProjectId(null);
     }
-  }, []);
+  };
 
   useEffect(() => {
     fetchProjects(currentPage, currentPage > 1);
@@ -238,9 +261,42 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       {/* View Filter Switcher Bar */}
       <div ref={projectsGridRef} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
         <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] rounded-xl w-fit">
-          <span className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-[#141720] text-slate-900 dark:text-white shadow-xs">
-            All Projects ({tabCounts.all || pagination.totalItems})
-          </span>
+          <button
+            type="button"
+            onClick={() => {
+              if (selectedFilter !== 'all') {
+                setSelectedFilter('all');
+                setCurrentPage(1);
+                fetchProjects(1, false, 'all');
+              }
+            }}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              selectedFilter === 'all'
+                ? 'bg-white dark:bg-[#141720] text-slate-900 dark:text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            All Projects ({tabCounts.all || 0})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (selectedFilter !== 'archived') {
+                setSelectedFilter('archived');
+                setCurrentPage(1);
+                fetchProjects(1, false, 'archived');
+              }
+            }}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              selectedFilter === 'archived'
+                ? 'bg-white dark:bg-[#141720] text-amber-600 dark:text-amber-400 shadow-xs'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Archive className="w-3.5 h-3.5" />
+            <span>Archived ({tabCounts.archived || 0})</span>
+          </button>
         </div>
 
         {isFilterLoading ? (
@@ -248,7 +304,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         ) : (
           <p className="text-xs text-slate-400 dark:text-slate-500">
             Showing <strong className="text-slate-700 dark:text-slate-300">{projects.length}</strong> of{' '}
-            <strong className="text-slate-700 dark:text-slate-300">{pagination.totalItems}</strong> active initiatives
+            <strong className="text-slate-700 dark:text-slate-300">{pagination.totalItems}</strong>{' '}
+            {selectedFilter === 'archived' ? 'archived initiatives' : 'active initiatives'}
           </p>
         )}
       </div>
@@ -328,6 +385,11 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                         </h3>
                         <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                           <span>{project.key}</span>
+                          {project.isArchived && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                              Archived
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -433,33 +495,63 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
               {/* Action Button */}
               <div className="w-full">
-                <Link
-                  href={`/projects/${project.id}`}
-                  onClick={() => {
-                    setOpeningProjectId(project.id);
-                    if (typeof window !== 'undefined') {
-                      localStorage.setItem('retroflow_active_project_id', project.id);
-                      localStorage.setItem('retroflow_cached_active_project', JSON.stringify(project));
-                      try {
-                        sessionStorage.setItem(`retroflow_cached_project_${project.id}`, JSON.stringify(project));
-                      } catch {}
-                      window.dispatchEvent(new CustomEvent('retroflow_active_project_changed', { detail: project }));
-                    }
-                  }}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-xs hover:scale-[1.01] cursor-pointer disabled:opacity-75 dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
-                >
-                  {openingProjectId === project.id ? (
-                    <span className="inline-flex items-center gap-2 animate-pulse">
-                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white dark:border-[#08090a]/30 dark:border-t-[#08090a] rounded-full animate-spin" />
-                      <span>Opening Dashboard...</span>
-                    </span>
-                  ) : (
-                    <>
-                      <span>Open Project Dashboard</span>
+                {project.isArchived ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRestoreProject(project.id);
+                      }}
+                      disabled={restoringProjectId === project.id}
+                      className="flex-1 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {restoringProjectId === project.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      )}
+                      <span>{restoringProjectId === project.id ? 'Restoring...' : 'Restore Project'}</span>
+                    </button>
+                    <Link
+                      href={`/projects/${project.id}`}
+                      className="px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-slate-600 dark:text-slate-300 text-xs font-semibold flex items-center gap-1 shrink-0"
+                      title="View Read-Only Project Dashboard"
+                    >
+                      <span>View</span>
                       <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </Link>
+                    </Link>
+                  </div>
+                ) : (
+                  <Link
+                    href={`/projects/${project.id}`}
+                    onClick={() => {
+                      setOpeningProjectId(project.id);
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('retroflow_active_project_id', project.id);
+                        localStorage.setItem('retroflow_cached_active_project', JSON.stringify(project));
+                        try {
+                          sessionStorage.setItem(`retroflow_cached_project_${project.id}`, JSON.stringify(project));
+                        } catch {}
+                        window.dispatchEvent(new CustomEvent('retroflow_active_project_changed', { detail: project }));
+                      }
+                    }}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-xs hover:scale-[1.01] cursor-pointer disabled:opacity-75 dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
+                  >
+                    {openingProjectId === project.id ? (
+                      <span className="inline-flex items-center gap-2 animate-pulse">
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white dark:border-[#08090a]/30 dark:border-t-[#08090a] rounded-full animate-spin" />
+                        <span>Opening Dashboard...</span>
+                      </span>
+                    ) : (
+                      <>
+                        <span>Open Project Dashboard</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </Link>
+                )}
               </div>
             </div>
           );

@@ -10,6 +10,8 @@ import {
   ChevronDown,
   Check,
   AlertCircle,
+  CalendarClock,
+  Info,
 } from 'lucide-react';
 import {
   ProjectType,
@@ -52,8 +54,19 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [key, setKey] = useState('');
   const [isKeyManuallyEdited, setIsKeyManuallyEdited] = useState(false);
   const [description, setDescription] = useState('');
+  const [autoMonthlyRetro, setAutoMonthlyRetro] = useState(true);
   const type: ProjectType = 'scrum';
   const [availableLeads, setAvailableLeads] = useState<WorkspaceMemberOption[]>(DEFAULT_WORKSPACE_LEADS);
+
+  const getNextMonthFirstDay = (): string => {
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return nextMonth.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   // Team Member Dropdown selection state (Multi-Select)
   const [selectedMemberEmails, setSelectedMemberEmails] = useState<string[]>([]);
@@ -100,6 +113,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       setKey('');
       setIsKeyManuallyEdited(false);
       setDescription('');
+      setAutoMonthlyRetro(true);
       setIsMemberDropdownOpen(false);
       setSelectedMemberEmails([]);
       setNewMemberRole('Developer');
@@ -486,6 +500,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       members: finalMembers,
       cadence: '2_weeks',
       customCadenceDays: 14,
+      autoMonthlyRetro,
     };
 
     try {
@@ -507,6 +522,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       setKey('');
       setIsKeyManuallyEdited(false);
       setDescription('');
+      setAutoMonthlyRetro(true);
       setMembers([]);
       setSelectedMemberEmails([]);
       setNewMemberRole('Developer');
@@ -706,6 +722,51 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             <p className="text-[11px] text-slate-400 dark:text-slate-500">
               Briefly describe the initiative scope, objectives, and deliverables.
             </p>
+          )}
+        </div>
+
+        {/* Automated Monthly Retrospective Configuration Card */}
+        <div className="rounded-xl border border-slate-200/90 dark:border-white/[0.08] bg-slate-50/70 dark:bg-[#12151c]/70 p-3.5 space-y-2.5 transition-all">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-0.5">
+              <label
+                htmlFor="create-auto-monthly-retro-toggle"
+                className="text-xs font-bold text-slate-900 dark:text-white cursor-pointer select-none flex items-center gap-2"
+              >
+                <CalendarClock className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
+                <span>Enable Monthly Automated Retrospective</span>
+              </label>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Automatically opens on 1st of every month and closes at month-end.
+              </p>
+            </div>
+
+            <input
+              id="create-auto-monthly-retro-toggle"
+              type="checkbox"
+              checked={autoMonthlyRetro}
+              onChange={(e) => setAutoMonthlyRetro(e.target.checked)}
+              className="w-4 h-4 mt-0.5 accent-[#5cb028] dark:accent-[#88c958] rounded cursor-pointer"
+            />
+          </div>
+
+          {autoMonthlyRetro ? (
+            <div className="p-2.5 rounded-lg bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/60 text-blue-900 dark:text-blue-300 text-[11px] flex items-start gap-2">
+              <Info className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">
+                  Next automated session will be created on: <strong>{getNextMonthFirstDay()}</strong>
+                </p>
+                <p className="text-blue-700/80 dark:text-blue-300/80">
+                  (For current month, you can create a Custom Retro anytime)
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-2.5 rounded-lg bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.06] text-slate-600 dark:text-slate-400 text-[11px] flex items-center gap-1.5">
+              <Info className="w-3.5 h-3.5 shrink-0" />
+              <span>Automated monthly generation is disabled. Retrospectives must be created manually.</span>
+            </div>
           )}
         </div>
 

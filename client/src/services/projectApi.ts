@@ -19,7 +19,7 @@ export interface ApiResponseWrapper<T> {
 export interface PaginatedProjectsResponse {
   projects: Project[];
   pagination: PaginationMeta;
-  counts: { all: number; managed: number };
+  counts: { all: number; managed: number; archived?: number };
 }
 
 export class MembersApiService {
@@ -111,7 +111,7 @@ export class ProjectApiService {
   static async getPaginatedProjects(options?: {
     page?: number;
     limit?: number;
-    filter?: 'all' | 'managed';
+    filter?: 'all' | 'managed' | 'archived';
     search?: string;
   }): Promise<PaginatedProjectsResponse> {
     const page = options?.page || 1;
@@ -149,6 +149,7 @@ export class ProjectApiService {
     const counts = res?.meta?.counts || {
       all: pagination.totalItems,
       managed: 0,
+      archived: 0,
     };
 
     return {
@@ -214,6 +215,7 @@ export class ProjectApiService {
       type: string;
       healthStatus: string;
       customCadenceDays: number;
+      autoMonthlyRetro: boolean;
     }>
   ): Promise<Project> {
     const res = await api.put<ApiResponseWrapper<Project>>(

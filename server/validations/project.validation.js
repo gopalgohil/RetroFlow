@@ -33,6 +33,7 @@ export const createProjectSchema = z.object({
   type: z.enum(['scrum', 'kanban']).default('scrum'),
   cadence: z.enum(['1_week', '2_weeks', '3_weeks', 'custom']).default('2_weeks'),
   customCadenceDays: z.coerce.number().min(1).max(90).optional(),
+  autoMonthlyRetro: z.boolean().optional().default(true),
   leadId: z.string().optional(),
   lead: z
     .object({
@@ -56,6 +57,7 @@ export const updateProjectSchema = z.object({
   cadence: z.enum(['1_week', '2_weeks', '3_weeks', 'custom']).optional(),
   customCadenceDays: z.coerce.number().min(1).max(90).optional(),
   healthStatus: z.enum(['on_track', 'at_risk', 'delayed']).optional(),
+  autoMonthlyRetro: z.boolean().optional(),
 });
 
 export const addMemberSchema = memberInputSchema;

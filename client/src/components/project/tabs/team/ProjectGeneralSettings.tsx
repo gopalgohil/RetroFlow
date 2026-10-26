@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Check, Lock } from 'lucide-react';
+import { Settings, Save, Check, Lock, CalendarClock, Info } from 'lucide-react';
 import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
@@ -21,12 +21,27 @@ export const ProjectGeneralSettings: React.FC<ProjectGeneralSettingsProps> = ({
 }) => {
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description || '');
+  const [autoMonthlyRetro, setAutoMonthlyRetro] = useState<boolean>(
+    project.autoMonthlyRetro !== false
+  );
   const [savedNotice, setSavedNotice] = useState(false);
 
   useEffect(() => {
     setName(project.name);
     setDescription(project.description || '');
-  }, [project.name, project.description]);
+    setAutoMonthlyRetro(project.autoMonthlyRetro !== false);
+  }, [project.name, project.description, project.autoMonthlyRetro]);
+
+  // Compute 1st day of next month (e.g., "November 1, 2026")
+  const getNextMonthFirstDay = (): string => {
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return nextMonth.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +50,7 @@ export const ProjectGeneralSettings: React.FC<ProjectGeneralSettingsProps> = ({
         name: name.trim(),
         description: description.trim(),
         cadence: project.cadence,
+        autoMonthlyRetro,
       });
       if (updated) onProjectUpdated(updated);
     } catch {
@@ -43,6 +59,7 @@ export const ProjectGeneralSettings: React.FC<ProjectGeneralSettingsProps> = ({
       if (idx !== -1) {
         projects[idx].name = name.trim();
         projects[idx].description = description.trim();
+        projects[idx].autoMonthlyRetro = autoMonthlyRetro;
         onProjectUpdated(projects[idx]);
       }
     }
@@ -88,7 +105,7 @@ export const ProjectGeneralSettings: React.FC<ProjectGeneralSettingsProps> = ({
         </div>
       )}
 
-      <form onSubmit={handleSaveSettings} className="space-y-4 max-w-xl">
+      <form onSubmit={handleSaveSettings} className="space-y-5 max-w-xl">
         <fieldset disabled={!canManageProject} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">Project Name</label>
@@ -120,6 +137,53 @@ export const ProjectGeneralSettings: React.FC<ProjectGeneralSettingsProps> = ({
                   : 'bg-slate-100/70 dark:bg-[#12151c]/50 border-slate-200 dark:border-white/[0.08] text-slate-500 dark:text-slate-400 cursor-not-allowed select-none'
               }`}
             />
+          </div>
+
+          {/* Automated Monthly Retrospective Configuration Card */}
+          <div className="rounded-2xl border border-slate-200/90 dark:border-white/[0.08] bg-slate-50/70 dark:bg-[#12151c]/70 p-4 space-y-3 transition-all">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <label
+                  htmlFor="auto-monthly-retro-toggle"
+                  className="text-xs font-bold text-slate-900 dark:text-white cursor-pointer select-none flex items-center gap-2"
+                >
+                  <CalendarClock className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
+                  <span>Enable Monthly Automated Retrospective</span>
+                </label>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Automatically opens on 1st of every month and closes at month-end.
+                </p>
+              </div>
+
+              <input
+                id="auto-monthly-retro-toggle"
+                type="checkbox"
+                disabled={!canManageProject}
+                checked={autoMonthlyRetro}
+                onChange={(e) => setAutoMonthlyRetro(e.target.checked)}
+                className="w-4 h-4 mt-0.5 accent-[#5cb028] dark:accent-[#88c958] rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+
+            {/* Information preview */}
+            {autoMonthlyRetro ? (
+              <div className="p-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/60 text-blue-900 dark:text-blue-300 text-xs flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-xs">
+                    Next automated session will be created on: <strong>{getNextMonthFirstDay()}</strong>
+                  </p>
+                  <p className="text-[11px] text-blue-700/80 dark:text-blue-300/80">
+                    (For current month, you can create a Custom Retro anytime)
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.06] text-slate-600 dark:text-slate-400 text-xs flex items-center gap-2">
+                <Info className="w-3.5 h-3.5 shrink-0" />
+                <span>Automated monthly generation is disabled. Retrospectives must be created manually.</span>
+              </div>
+            )}
           </div>
         </fieldset>
 
