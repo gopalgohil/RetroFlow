@@ -473,7 +473,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                             >
                               Admin
                             </span>
-                          ) : m.status === 'pending' || !m.isApproved ? (
+                          ) : m.status === 'pending' ? (
                             <div className="inline-flex items-center gap-2 justify-end">
                               <button
                                 type="button"
@@ -686,7 +686,10 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         <Modal
           isOpen={!!memberToReject}
           onClose={() => !rejectingEmail && setMemberToReject(null)}
-          title="Reject Access Request"
+          title="Reject Access Request?"
+          description="Are you sure you want to decline this registration request?"
+          variant="danger"
+          maxWidth="md"
           footer={
             <>
               <button
@@ -717,34 +720,29 @@ export const MembersTab: React.FC<MembersTabProps> = ({
             </>
           }
         >
-          <div className="space-y-4 text-xs text-slate-600 dark:text-slate-300">
-            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/90 dark:border-rose-500/30 text-rose-950 dark:text-rose-200 space-y-1.5">
-              <div className="flex items-center gap-2 font-bold text-rose-900 dark:text-rose-300 text-xs">
-                <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
-                <span>Confirm Request Rejection</span>
-              </div>
-              <p className="text-[11px] leading-relaxed text-rose-800 dark:text-rose-300">
-                Are you sure you want to reject the workspace access request for{' '}
-                <strong>{memberToReject.name || memberToReject.email}</strong> ({memberToReject.email})?
-              </p>
-            </div>
-
+          <div className="py-1">
             <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <UserAvatar name={memberToReject.name || memberToReject.email} email={memberToReject.email} title={memberToReject.email} avatar={memberToReject.avatar} size="md" />
-                <div>
-                  <p className="font-bold text-slate-900 dark:text-white">{memberToReject.name || memberToReject.email}</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{memberToReject.email}</p>
+              <div className="flex items-center gap-3 min-w-0">
+                <UserAvatar
+                  name={memberToReject.name || memberToReject.email}
+                  email={memberToReject.email}
+                  title={memberToReject.email}
+                  avatar={memberToReject.avatar}
+                  size="md"
+                />
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                    {memberToReject.name || memberToReject.email}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                    {memberToReject.email}
+                  </p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30">
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 shrink-0">
                 Pending Approval
               </span>
             </div>
-
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-              Their account registration will be cancelled and removed. If they wish to join later, they will need to register again.
-            </p>
           </div>
         </Modal>
       )}

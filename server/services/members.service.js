@@ -181,7 +181,8 @@ class MembersService {
           projectNames: stats.names,
           isPrimaryLead: false,
           avatar: email.charAt(0).toUpperCase(),
-          status: 'whitelisted',
+          status: 'active',
+          isApproved: true,
           isWhitelisted: true,
           joinedAt: new Date(),
         });
@@ -375,22 +376,28 @@ class MembersService {
    */
   async approveMember(adminUserId, email, assignedRole) {
     const cleanEmail = email.toLowerCase().trim();
+    const escapedEmail = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const emailRegex = new RegExp(`^${escapedEmail}$`, 'i');
 
-    const user = await User.findOne({ email: cleanEmail });
-    if (!user) {
-      throw new Error(`User with email "${cleanEmail}" not found.`);
+    let user = await User.findOne({ email: emailRegex });
+    if (user) {
+      user.isApproved = true;
+      if (assignedRole && typeof assignedRole === 'string' && assignedRole.trim()) {
+        user.projectRole = assignedRole.trim();
+      }
+      await user.save();
     }
 
-    user.isApproved = true;
-    if (assignedRole && typeof assignedRole === 'string' && assignedRole.trim()) {
-      user.projectRole = assignedRole.trim();
-    }
-    await user.save();
+    // Ensure email is whitelisted in RetroBoard
+    await RetroBoard.updateMany(
+      {},
+      { $addToSet: { approvedMembers: cleanEmail } }
+    );
 
     return {
       email: cleanEmail,
-      name: user.name,
-      projectRole: user.projectRole,
+      name: user?.name || cleanEmail.split('@')[0],
+      projectRole: user?.projectRole || assignedRole || 'Developer',
       isApproved: true,
     };
   }
@@ -411,14 +418,11 @@ class MembersService {
     const emailRegex = new RegExp(`^${escapedEmail}$`, 'i');
 
     const user = await User.findOne({ email: emailRegex });
-    if (!user) {
-      throw new Error(`User with email "${cleanEmail}" not found.`);
-    }
-
-    if (user.role === 'admin') {
+    if (user && user.role === 'admin') {
       throw new Error('Admin users cannot be rejected.');
     }
 
+    // Cleanly remove from all retro boards, projects, and delete user account if exists
     await Promise.all([
       RetroBoard.updateMany({}, { $pull: { approvedMembers: emailRegex } }),
       Project.updateMany({}, { $pull: { members: { email: emailRegex } } }),
