@@ -63,4 +63,10 @@ Retro_Flow/
 - **Health Check**: `GET http://localhost:5000/api/health`
 - **Items List**: `GET http://localhost:5000/api/items`
 - **Create Item**: `POST http://localhost:5000/api/items`
-# RetroFlow
+
+---
+
+## 📖 Documentation & User Guide
+
+- **Complete User Workflow Guide**: Check out [USER_WORKFLOW_GUIDE.md](./USER_WORKFLOW_GUIDE.md) for a simple, step-by-step walkthrough of registration, admin approval, projects, sprints, and live retrospective sessions.
+
