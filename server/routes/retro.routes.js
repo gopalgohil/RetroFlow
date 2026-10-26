@@ -105,7 +105,7 @@ router.post(
  */
 router.post(
   '/:id/cards',
-  protect,
+  optionalAuth,
   retroController.addCard
 );
 
@@ -115,12 +115,12 @@ router.post(
  */
 router.put(
   '/:id/cards/:cardId',
-  protect,
+  optionalAuth,
   retroController.updateCard
 );
 router.patch(
   '/:id/cards/:cardId',
-  protect,
+  optionalAuth,
   retroController.updateCard
 );
 
@@ -150,7 +150,7 @@ router.put(
  */
 router.delete(
   '/:id/cards/:cardId',
-  protect,
+  optionalAuth,
   retroController.deleteCard
 );
 
@@ -160,7 +160,7 @@ router.delete(
  */
 router.post(
   '/:id/cards/:cardId/vote',
-  protect,
+  optionalAuth,
   retroController.voteCard
 );
 

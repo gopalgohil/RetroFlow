@@ -168,6 +168,9 @@ class RetroController {
     const io = req.app.get('io');
     if (io) {
       io.of('/retro').to(`retro:${req.params.id}`).emit('card:deleted', { cardId: req.params.cardId });
+      if (result?.shareToken && result.shareToken !== req.params.id) {
+        io.of('/retro').to(`retro:${result.shareToken}`).emit('card:deleted', { cardId: req.params.cardId });
+      }
     }
 
     return ApiResponse.ok(res, result, 'Card deleted successfully');

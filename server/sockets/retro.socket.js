@@ -53,6 +53,9 @@ const cardDeleteSchema = z.object({
   shareToken: z.string().min(1, 'Share token is required'),
   cardId: z.string().min(1, 'Card ID is required'),
   token: z.string().optional(),
+  author: z.string().optional(),
+  authorEmail: z.string().optional(),
+  role: z.string().optional(),
 });
 
 const cardVoteSchema = z.object({
@@ -128,7 +131,7 @@ export function initRetroSocket(io) {
       next();
     });
 
-    // Cryptographically verified identity helper (Bug 7 Fix: Prevents client payload spoofing)
+    // Identity verification helper (Supports JWT, socket handshake, and session participant identity)
     function getAuthenticatedUser(payload) {
       // 1. If payload or handshake contains a signed JWT token, verify it
       const tokenCandidate = payload?.token || socket.handshake.auth?.token;
@@ -149,9 +152,23 @@ export function initRetroSocket(io) {
         } catch (e) {}
       }
 
-      // 2. Return verified user from connection handshake
-      if (socket.user) {
+      // 2. Return user from connection or previous join
+      if (socket.user && (socket.user.email || socket.user.name)) {
         return socket.user;
+      }
+
+      if (currentUser && (currentUser.email || currentUser.name)) {
+        return currentUser;
+      }
+
+      // 3. Fallback to payload author / email / role if provided
+      if (payload?.author || payload?.authorEmail) {
+        return {
+          name: (payload.author || 'Teammate').trim(),
+          email: (payload.authorEmail || '').toLowerCase().trim(),
+          role: (payload.role || 'developer').toLowerCase().trim(),
+          isGuest: true,
+        };
       }
 
       return null;
@@ -171,10 +188,25 @@ export function initRetroSocket(io) {
         currentShareToken = shareToken;
         const verifiedUser = getAuthenticatedUser(payload);
         if (verifiedUser) {
+          // If verifiedUser has no email but user payload provided email, enrich it
+          if (!verifiedUser.email && user?.email) {
+            verifiedUser.email = user.email.toLowerCase().trim();
+          }
+          if (user?.role && !verifiedUser.role) {
+            verifiedUser.role = user.role;
+          }
           socket.user = verifiedUser;
           currentUser = verifiedUser;
         } else {
-          currentUser = user ? { name: user.name || 'Teammate', email: '', isGuest: true } : { name: 'Teammate', email: '', isGuest: true };
+          currentUser = user
+            ? {
+                name: (user.name || 'Teammate').trim(),
+                email: (user.email || '').toLowerCase().trim(),
+                role: (user.role || 'developer').toLowerCase().trim(),
+                isGuest: true,
+              }
+            : { name: 'Teammate', email: '', role: 'developer', isGuest: true };
+          socket.user = currentUser;
         }
 
         const roomName = `retro:${shareToken}`;
@@ -380,10 +412,13 @@ export function initRetroSocket(io) {
       if (!requester) return false;
       const requesterEmail = (requester?.email || '').toLowerCase().trim();
       const requesterRole = (requester?.role || '').toLowerCase().trim();
+      const requesterProjectRole = (requester?.projectRole || '').toLowerCase().trim();
 
       // 1. Workspace Admin
       const isWsAdmin =
         requesterRole === 'admin' ||
+        requesterRole.includes('admin') ||
+        requesterProjectRole === 'admin' ||
         isSuperAdmin(requesterEmail);
 
       if (isWsAdmin) return true;
@@ -392,7 +427,9 @@ export function initRetroSocket(io) {
       if (
         requesterRole === 'manager' ||
         requesterRole.includes('lead') ||
-        requesterRole.includes('manager')
+        requesterRole.includes('manager') ||
+        requesterProjectRole === 'manager' ||
+        requesterProjectRole.includes('lead')
       ) {
         return true;
       }
@@ -596,7 +633,7 @@ export function initRetroSocket(io) {
 
         const isAuthor =
           Boolean(userEmail && targetEmail && userEmail === targetEmail) ||
-          Boolean(!targetEmail && targetAuthor && userName && userName === targetAuthor);
+          Boolean(targetAuthor && userName && userName === targetAuthor);
 
         const isPrivileged = checkAdminOrManager(board, authUser);
 

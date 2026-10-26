@@ -1493,7 +1493,7 @@ class RetroService {
       projectService.syncRetroBoardToProjects(retro.shareToken).catch(() => {});
     }
 
-    return { success: true, cardId };
+    return { success: true, cardId, shareToken: retro.shareToken };
   }
 
   /**

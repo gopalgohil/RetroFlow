@@ -35,40 +35,76 @@ export function useRetroCards({
       const trimmed = text.trim();
       if (!trimmed || !shareToken) return;
 
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const optimisticCard: StickyCard = {
+        id: tempId,
+        cardId: tempId,
+        topicId,
+        text: trimmed,
+        author: currentAuthorName,
+        authorEmail: currentUserRef.current?.email || '',
+        votes: 0,
+        voters: [],
+        createdAt: new Date().toISOString(),
+      };
+
+      // 1. Instant optimistic insertion for smooth zero-latency UX
+      setCards((prev) => [...prev, optimisticCard]);
+
       const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
+      const user = currentUserRef.current;
       const payload = {
         shareToken,
         topicId,
         text: trimmed,
         author: currentAuthorName,
-        authorEmail: currentUserRef.current?.email || '',
+        authorEmail: user?.email || '',
+        role: user?.role || user?.projectRole || 'developer',
         token,
       };
 
       const socket = getRetroSocket();
       if (socket && socket.connected) {
-        socket.emit('card:add', payload);
+        socket.emit('card:add', payload, (res: any) => {
+          if (res?.card) {
+            setCards((prev) =>
+              prev.map((c) =>
+                c.id === tempId
+                  ? {
+                      ...c,
+                      id: res.card.cardId || res.card.id,
+                      cardId: res.card.cardId || res.card.id,
+                      createdAt: res.card.createdAt || c.createdAt,
+                    }
+                  : c
+              )
+            );
+          } else if (res?.error) {
+            console.warn('[RetroSession] Server rejected card creation:', res.error);
+            setCards((prev) => prev.filter((c) => c.id !== tempId));
+          }
+        });
       } else {
         try {
           const res = await api.post(`${ENDPOINTS.RETROS}/${shareToken}/cards`, payload);
           if (res.data) {
-            const c = res.data;
-            setCards((prev) => [
-              ...prev,
-              {
-                id: c.cardId || c.id,
-                cardId: c.cardId || c.id,
-                topicId: c.topicId,
-                text: c.text,
-                author: c.author,
-                authorEmail: c.authorEmail,
-                votes: typeof c.votes === 'number' ? c.votes : 0,
-                voters: Array.isArray(c.voters) ? c.voters : [],
-              },
-            ]);
+            const confirmed = res.data;
+            setCards((prev) =>
+              prev.map((c) =>
+                c.id === tempId
+                  ? {
+                      ...c,
+                      id: confirmed.cardId || confirmed.id,
+                      cardId: confirmed.cardId || confirmed.id,
+                      createdAt: confirmed.createdAt || c.createdAt,
+                    }
+                  : c
+              )
+            );
           }
         } catch (err) {
-          console.error('[RetroSession] Failed to add card:', err);
+          console.error('[RetroSession] Failed to add card via REST fallback:', err);
+          setCards((prev) => prev.filter((c) => c.id !== tempId));
         }
       }
     },
@@ -119,10 +155,12 @@ export function useRetroCards({
     async (cardId: string) => {
       if (!shareToken) return;
 
+      const previousCards = cardsRef.current;
       // Optimistic Removal
-      setCards((prev) => prev.filter((c) => c.id !== cardId));
+      setCards((prev) => prev.filter((c) => c.id !== cardId && c.cardId !== cardId));
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
+      const user = currentUserRef.current;
       const socket = getRetroSocket();
       if (socket && socket.connected) {
         socket.emit(
@@ -131,10 +169,15 @@ export function useRetroCards({
             shareToken,
             cardId,
             token,
+            author: currentAuthorName,
+            authorEmail: user?.email || '',
+            role: user?.role || user?.projectRole || 'developer',
           },
           (res: any) => {
             if (res?.error) {
               console.warn('[RetroSession] Failed to delete card:', res.error);
+              // Rollback if server rejected
+              setCards(previousCards);
             }
           }
         );
@@ -142,11 +185,12 @@ export function useRetroCards({
         try {
           await api.delete(`${ENDPOINTS.RETROS}/${shareToken}/cards/${cardId}`);
         } catch (err) {
-          console.error('[RetroSession] Failed to delete card:', err);
+          console.error('[RetroSession] Failed to delete card via REST fallback:', err);
+          setCards(previousCards);
         }
       }
     },
-    [shareToken, setCards]
+    [shareToken, currentAuthorName, cardsRef, currentUserRef, setCards]
   );
 
   const moveCard = useCallback(

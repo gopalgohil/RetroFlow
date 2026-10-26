@@ -106,7 +106,28 @@ export function useRetroSocketSync({
     const onCardCreated = (newCard: any) => {
       const id = newCard.cardId || newCard.id;
       setCards((prev) => {
-        if (prev.some((c) => c.id === id)) return prev;
+        // Match existing confirmed card or optimistic temp card
+        const tempIdx = prev.findIndex(
+          (c) =>
+            c.id === id ||
+            (c.text === newCard.text && c.topicId === newCard.topicId && String(c.id).startsWith('temp-'))
+        );
+        if (tempIdx !== -1) {
+          const next = [...prev];
+          next[tempIdx] = {
+            ...next[tempIdx],
+            id,
+            cardId: id,
+            topicId: newCard.topicId,
+            text: newCard.text,
+            author: newCard.author,
+            authorEmail: newCard.authorEmail,
+            votes: typeof newCard.votes === 'number' ? newCard.votes : next[tempIdx].votes || 0,
+            voters: Array.isArray(newCard.voters) ? newCard.voters : next[tempIdx].voters || [],
+            createdAt: newCard.createdAt || next[tempIdx].createdAt,
+          };
+          return next;
+        }
         return [
           ...prev,
           {
@@ -126,12 +147,12 @@ export function useRetroSocketSync({
 
     const onCardUpdated = (payload: { cardId: string; text: string }) => {
       setCards((prev) =>
-        prev.map((c) => (c.id === payload.cardId ? { ...c, text: payload.text } : c))
+        prev.map((c) => (c.id === payload.cardId || c.cardId === payload.cardId ? { ...c, text: payload.text } : c))
       );
     };
 
     const onCardDeleted = (payload: { cardId: string }) => {
-      setCards((prev) => prev.filter((c) => c.id !== payload.cardId));
+      setCards((prev) => prev.filter((c) => c.id !== payload.cardId && c.cardId !== payload.cardId));
     };
 
     const onCardMoved = (payload: { cardId: string; targetTopicId: string }) => {

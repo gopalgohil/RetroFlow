@@ -62,6 +62,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(card.text);
   const [isDragging, setIsDragging] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const handleStartEdit = () => {
     setEditText(card.text);
@@ -311,13 +312,39 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                     </button>
                   )}
                   {canDelete && (
-                    <button
-                      onClick={() => onDelete(card.id)}
-                      title={canEdit ? 'Delete your thought' : 'Moderate / Delete thought'}
-                      className="p-1 rounded text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                    isConfirmingDelete ? (
+                      <div className="inline-flex items-center gap-1 bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-800/80 rounded-md px-1.5 py-0.5 animate-in fade-in zoom-in-95 duration-100 z-10 shadow-xs">
+                        <span className="text-[10px] font-bold text-rose-700 dark:text-rose-300">Delete?</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsConfirmingDelete(false);
+                            onDelete(card.id);
+                          }}
+                          className="px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-700 text-white text-[9px] font-bold transition-colors cursor-pointer"
+                          title="Confirm deletion"
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsConfirmingDelete(false)}
+                          className="p-0.5 rounded text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                          title="Cancel"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsConfirmingDelete(true)}
+                        title={canEdit ? 'Delete your thought' : 'Moderate / Delete thought'}
+                        className="p-1 rounded text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )
                   )}
                 </div>
               )}
