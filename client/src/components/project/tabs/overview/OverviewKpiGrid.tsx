@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Activity, Clock, CheckCircle2, Users } from 'lucide-react';
+import { Clock, CheckCircle2, Users } from 'lucide-react';
 import { Project, Sprint } from '@/types/project';
-import { MetricCard, StatusPill } from '@/components/ui';
+import { MetricCard } from '@/components/ui';
 
 export interface OverviewKpiGridProps {
-  project: Project;
+  project?: Project;
   activeSprint?: Sprint;
   totalTasks: number;
   completedTasks: number;
@@ -18,7 +18,7 @@ export interface OverviewKpiGridProps {
 
 /**
  * OverviewKpiGrid:
- * Top 4 KPI metric cards showing Project Health, Sprint Timeline, Tasks Progress, and Team Roster.
+ * Top 3 KPI metric cards showing Sprint Timeline, Tasks Progress, and Team Roster.
  */
 export const OverviewKpiGrid: React.FC<OverviewKpiGridProps> = ({
   project,
@@ -31,30 +31,7 @@ export const OverviewKpiGrid: React.FC<OverviewKpiGridProps> = ({
   leadDisplayName,
 }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* Metric 1: Health Status */}
-      <MetricCard
-        title="Project Health"
-        value={
-          <div className="flex items-center gap-2">
-            <span
-              className={
-                project.healthStatus === 'on_track' ? 'text-emerald-700' : 'text-amber-700'
-              }
-            >
-              {project.healthStatus === 'on_track' ? 'On Track' : 'At Risk'}
-            </span>
-            <StatusPill status={project.healthStatus} pulse />
-          </div>
-        }
-        icon={<Activity className="w-4 h-4" />}
-        variant={project.healthStatus === 'on_track' ? 'success' : 'warning'}
-        subtitle={
-          project.healthStatus === 'on_track'
-            ? 'Velocity matches sprint commitments. 94% predictability.'
-            : 'Staging environment blockers impacting active sprint delivery.'
-        }
-      />
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
       {/* Metric 2: Active Sprint Days Left */}
       <MetricCard
