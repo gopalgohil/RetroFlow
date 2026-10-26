@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+  <linearGradient id="lime" x1="11.5" y1="118.5" x2="254.283" y2="-14.3875" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#92DC5A"/><stop offset="0.586312" stop-color="#668A52"/>
+  </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="88" fill="#0D0F0E"/>
+  <g transform="translate(123.7802 67.2135) scale(2.786496)">
+    <path d="M93.9004 132.6H83.8008V113.819C75.6834 126.282 61.8514 134.501 46.2002 134.501C21.3002 134.501 1 113.601 1 88.1006C1.00011 62.6007 21.2003 41.8008 46.2002 41.8008C61.8513 41.8009 75.6834 49.9802 83.8008 62.4131V1H93.9004V132.6ZM47.7002 50.501C28.0003 50.501 12.0001 67.3007 12 88.1006C12 108.901 28.0002 125.701 47.7002 125.701C67.4001 125.701 83.4004 108.801 83.4004 88.1006C83.4003 67.4008 67.4 50.5011 47.7002 50.501Z" fill="url(#lime)" stroke="url(#lime)" stroke-width="3.2" stroke-linejoin="round"/>
+  </g>
+</svg>
