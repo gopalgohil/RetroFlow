@@ -16,7 +16,7 @@ class MembersService {
    */
   async getWorkspaceMembers(userId, { page = 1, limit = 10, search = '' } = {}) {
 
-    const [users, retros, projects] = await Promise.all([
+    const [users, projects] = await Promise.all([
       User.find(
         {
           $or: [
@@ -28,7 +28,6 @@ class MembersService {
         },
         'name email role projectRole isApproved createdAt isVerified hasLoggedIn'
       ).lean(),
-      RetroBoard.find({ createdBy: userId }, 'approvedMembers').lean(),
       Project.find({}, 'name key members lead').lean(),
     ]);
 
@@ -61,13 +60,6 @@ class MembersService {
           }
           if (m.role) stat.roles.add(m.role);
         });
-      }
-    });
-
-    const whitelistedSet = new Set();
-    retros.forEach((r) => {
-      if (Array.isArray(r.approvedMembers)) {
-        r.approvedMembers.forEach((email) => whitelistedSet.add(email.toLowerCase().trim()));
       }
     });
 
@@ -163,28 +155,6 @@ class MembersService {
               joinedAt: m.joinedAt || new Date(),
             });
           }
-        });
-      }
-    });
-
-    // 5. Include any guest whitelisted emails not yet registered
-    whitelistedSet.forEach((email) => {
-      if (!memberMap.has(email)) {
-        const stats = projectStatsMap.get(email) || { count: 0, roles: new Set(), names: [], isLead: false };
-        memberMap.set(email, {
-          id: `guest-${email}`,
-          name: email.split('@')[0],
-          email,
-          role: 'Invited Contributor',
-          projectRole: 'Developer',
-          projectsCount: stats.count,
-          projectNames: stats.names,
-          isPrimaryLead: false,
-          avatar: email.charAt(0).toUpperCase(),
-          status: 'active',
-          isApproved: true,
-          isWhitelisted: true,
-          joinedAt: new Date(),
         });
       }
     });
