@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, UserPlus, Check, Trash2, AlertTriangle } from 'lucide-react';
+import { Users, UserPlus, Check, Trash2, X } from 'lucide-react';
 import { Project, ProjectMemberRole } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
-import { UserAvatar, StatusPill, Modal } from '@/components/ui';
+import { UserAvatar, StatusPill } from '@/components/ui';
 
 export interface TeamMembersListProps {
   project: Project;
@@ -23,10 +23,9 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
   // Role Update state
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
 
-  // Remove Member state
-  const [memberToRemove, setMemberToRemove] = useState<Project['members'][0] | null>(null);
-  const [isRemovingMember, setIsRemovingMember] = useState(false);
-  const [removeMemberError, setRemoveMemberError] = useState('');
+  // Clean inline member remove state (matching retro delete card)
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [memberRemovedNotice, setMemberRemovedNotice] = useState<string | null>(null);
 
   const handleRoleChange = async (member: Project['members'][0], newRole: ProjectMemberRole) => {
@@ -54,37 +53,33 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
     }
   };
 
-  const handleConfirmRemoveMember = async () => {
-    if (!memberToRemove) return;
-    setIsRemovingMember(true);
-    setRemoveMemberError('');
+  const handleConfirmRemoveMember = async (member: Project['members'][0]) => {
+    setRemovingMemberId(member.id);
     try {
       const updated = await ProjectApiService.removeMember(
         project.id,
-        memberToRemove.id || memberToRemove.email
+        member.id || member.email
       );
       if (updated) onProjectUpdated(updated);
-      setMemberRemovedNotice(`Removed ${memberToRemove.name} from project.`);
-      setTimeout(() => setMemberRemovedNotice(null), 4000);
-      setMemberToRemove(null);
+      setMemberRemovedNotice(`Removed ${member.name} from project.`);
+      setTimeout(() => setMemberRemovedNotice(null), 3500);
+      setConfirmRemoveId(null);
     } catch (err: any) {
       console.warn('Backend removeMember failed, trying local fallback:', err);
       try {
         const updated = ProjectDataService.removeMember(
           project.id,
-          memberToRemove.id || memberToRemove.email
+          member.id || member.email
         );
         if (updated) onProjectUpdated(updated);
-        setMemberRemovedNotice(`Removed ${memberToRemove.name} from project.`);
-        setTimeout(() => setMemberRemovedNotice(null), 4000);
-        setMemberToRemove(null);
+        setMemberRemovedNotice(`Removed ${member.name} from project.`);
+        setTimeout(() => setMemberRemovedNotice(null), 3500);
+        setConfirmRemoveId(null);
       } catch (fallbackErr: any) {
-        setRemoveMemberError(
-          err?.response?.data?.message || err?.message || 'Failed to remove member from project.'
-        );
+        alert(err?.response?.data?.message || err?.message || 'Failed to remove member from project.');
       }
     } finally {
-      setIsRemovingMember(false);
+      setRemovingMemberId(null);
     }
   };
 
@@ -233,13 +228,33 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
                       >
                         {member.role === 'Project Lead' ? 'Lead' : 'Manager'}
                       </span>
+                    ) : confirmRemoveId === member.id ? (
+                      <div className="inline-flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-900/60 rounded-xl px-2.5 py-1 animate-in fade-in zoom-in-95 duration-100 shadow-xs">
+                        <span className="text-[11px] font-bold text-rose-700 dark:text-rose-300">
+                          Remove {member.name.split(' ')[0]}?
+                        </span>
+                        <button
+                          type="button"
+                          disabled={removingMemberId === member.id}
+                          onClick={() => handleConfirmRemoveMember(member)}
+                          className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          {removingMemberId === member.id ? 'Removing...' : 'Yes, Remove'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={removingMemberId === member.id}
+                          onClick={() => setConfirmRemoveId(null)}
+                          className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                          title="Cancel"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     ) : (
                       <button
                         type="button"
-                        onClick={() => {
-                          setRemoveMemberError('');
-                          setMemberToRemove(member);
-                        }}
+                        onClick={() => setConfirmRemoveId(member.id)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:border-rose-300 dark:hover:border-rose-500/50 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
                         title={`Remove ${member.name} from project`}
                       >
@@ -255,84 +270,21 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
         </table>
       </div>
 
-      {/* Remove Team Member Confirmation Modal */}
-      {memberToRemove && (
-        <Modal
-          isOpen={!!memberToRemove}
-          onClose={() => {
-            if (!isRemovingMember) {
-              setMemberToRemove(null);
-              setRemoveMemberError('');
-            }
-          }}
-          title="Remove Team Member?"
-          description="Revoke access to this project workspace"
-          icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
-          maxWidth="md"
-          footer={
-            <>
-              <button
-                type="button"
-                disabled={isRemovingMember}
-                onClick={() => {
-                  setMemberToRemove(null);
-                  setRemoveMemberError('');
-                }}
-                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isRemovingMember}
-                onClick={handleConfirmRemoveMember}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>{isRemovingMember ? 'Removing...' : 'Remove Member'}</span>
-              </button>
-            </>
-          }
-        >
-          <div className="space-y-4 text-xs text-slate-600 dark:text-slate-300">
-            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/90 dark:border-rose-900/60 text-rose-950 dark:text-rose-200 space-y-1.5">
-              <div className="flex items-center gap-2 font-bold text-rose-900 dark:text-rose-300 text-xs">
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>Confirm Revocation of Project Access</span>
-              </div>
-              <p className="text-[11px] leading-relaxed text-rose-800 dark:text-rose-300/80">
-                Are you sure you want to remove <strong>{memberToRemove.name}</strong> ({memberToRemove.email}) from <strong>{project.name}</strong> ({project.key})?
-              </p>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <UserAvatar
-                  name={memberToRemove.name}
-                  email={memberToRemove.email}
-                  title={memberToRemove.email}
-                  avatar={memberToRemove.avatar}
-                  size="md"
-                />
-                <div>
-                  <p className="font-bold text-slate-900 dark:text-white">{memberToRemove.name}</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{memberToRemove.email}</p>
-                </div>
-              </div>
-              <StatusPill status={memberToRemove.role} />
-            </div>
-
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-              Once removed, this user will immediately lose access to all sprint backlogs, task assignments, and private retrospectives associated with this project.
-            </p>
-
-            {removeMemberError && (
-              <div className="p-3 rounded-xl bg-rose-100/70 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-xs font-medium animate-in fade-in">
-                {removeMemberError}
-              </div>
-            )}
+      {/* Modern Floating Toast Notification */}
+      {memberRemovedNotice && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-white dark:bg-[#12151c] text-slate-900 dark:text-white px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/30 dark:border-emerald-500/40 backdrop-blur-md animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <Check className="w-4 h-4 stroke-[2.5]" />
           </div>
-        </Modal>
+          <p className="text-xs font-bold">{memberRemovedNotice}</p>
+          <button
+            type="button"
+            onClick={() => setMemberRemovedNotice(null)}
+            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer ml-1"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
       )}
     </div>
   );
