@@ -111,7 +111,14 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
         {/* Right: Assignee, Status Select Dropdown, Delete Action */}
         <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
           {item.assignee && (
-            <div className="flex items-center gap-1.5">
+            <div
+              className="flex items-center gap-1.5 cursor-pointer"
+              title={
+                item.givenBy || (item as any).managerName
+                  ? `Assigned to: ${item.assignee.name}\nGiven by: ${item.givenBy || (item as any).managerName}`
+                  : `Assigned to: ${item.assignee.name}`
+              }
+            >
               <UserAvatar name={item.assignee.name} avatar={item.assignee.avatar} size="xs" />
               <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium hidden md:inline">
                 {item.assignee.name}

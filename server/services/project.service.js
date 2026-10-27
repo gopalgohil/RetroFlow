@@ -581,6 +581,18 @@ class ProjectService {
                   sprintItemsChanged = true;
                 }
               } else {
+                const projectManager =
+                  project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
+                  project.lead;
+                const managerName = projectManager?.name || project.lead?.name || 'Project Manager';
+
+                const getInitials = (str) => {
+                  if (!str) return 'U';
+                  const parts = str.trim().split(/\s+/);
+                  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                  return str.slice(0, 2).toUpperCase();
+                };
+
                 sprint.items.push({
                   id: `act-${card.cardId || crypto.randomUUID().slice(0, 8)}`,
                   title: cardTitle,
@@ -593,13 +605,9 @@ class ProjectService {
                   assignee: {
                     name: assigneeName,
                     email: assigneeEmail,
-                    avatar: assigneeName
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2),
+                    avatar: getInitials(assigneeName),
                   },
+                  givenBy: managerName,
                   sourceRetroId: retroItem.id || retroItem.shareToken,
                   sourceRetroTitle: retroItem.title,
                   createdAt: card.createdAt || new Date(),
@@ -1872,6 +1880,11 @@ class ProjectService {
             seenCardIds.add(`${normalizeKey(item.sourceRetroId)}-${normalizeKey(item.title)}`);
           }
 
+          const projectManager =
+            proj.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
+            proj.lead;
+          const managerName = item.givenBy || projectManager?.name || proj.lead?.name || 'Project Manager';
+
           actionItems.push({
             ...item,
             id: item.id || `item-${Date.now()}`,
@@ -1885,6 +1898,8 @@ class ProjectService {
             sprintName: sprint.name,
             sprintStatus: sprint.status,
             isDirectRetroCard: false,
+            givenBy: managerName,
+            managerName: managerName,
             createdAt: item.createdAt || proj.createdAt || new Date().toISOString(),
           });
         }
@@ -2002,6 +2017,18 @@ class ProjectService {
           if (!isAssigned) continue;
         }
 
+        const projectManager =
+          matchingProject?.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
+          matchingProject?.lead;
+        const managerName = card.givenBy || projectManager?.name || matchingProject?.lead?.name || retro.ownerName || 'Project Manager';
+
+        const getInitials = (str) => {
+          if (!str) return 'U';
+          const parts = str.trim().split(/\s+/);
+          if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+          return str.slice(0, 2).toUpperCase();
+        };
+
         actionItems.push({
           id: card.cardId,
           title: card.text,
@@ -2014,8 +2041,10 @@ class ProjectService {
           assignee: {
             name: directAssigneeName,
             email: directAssigneeEmail,
-            avatar: directAssigneeName.slice(0, 2).toUpperCase(),
+            avatar: getInitials(directAssigneeName),
           },
+          givenBy: managerName,
+          managerName: managerName,
           sourceRetroId: retro._id.toString(),
           sourceRetroTitle: retro.title,
           sourceRetroShareToken: retro.shareToken,

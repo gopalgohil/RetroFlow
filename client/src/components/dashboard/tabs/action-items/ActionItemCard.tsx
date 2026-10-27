@@ -45,6 +45,16 @@ const PRIORITY_CONFIG: Record<
   },
 };
 
+const getAssigneeInitials = (name?: string, avatar?: string): string => {
+  if (avatar && avatar.trim().length >= 2) return avatar.trim().slice(0, 2).toUpperCase();
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.trim().slice(0, 2).toUpperCase();
+};
+
 export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
   item,
   displayIndex,
@@ -54,6 +64,12 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
 }) => {
   const isDone = item.status === 'done';
   const isInProgress = item.status === 'in_progress';
+
+  const assigneeName = item.assignee?.name || 'Unassigned';
+  const givenByName = item.givenBy || item.managerName;
+  const hoverTooltip = givenByName
+    ? `Assigned to: ${assigneeName}\nGiven by: ${givenByName}`
+    : `Assigned to: ${assigneeName}`;
 
   // Calculate Due Date Urgency
   const urgency = React.useMemo(() => {
@@ -289,16 +305,12 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
 
         {item.assignee?.name && (
           <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] text-xs sm:text-sm text-slate-800 dark:text-slate-200 shadow-2xs"
-            title={`Assigned to ${item.assignee.name}`}
+            className="relative flex items-center justify-center shrink-0 cursor-pointer group/avatar"
+            title={hoverTooltip}
           >
-            <div className="w-6 h-6 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-bold flex items-center justify-center shrink-0">
-              {item.assignee.avatar ||
-                item.assignee.name.slice(0, 1).toUpperCase()}
+            <div className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-slate-100 dark:ring-white/[0.08] hover:ring-[#88c958] hover:scale-105 transition-all select-none">
+              {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
             </div>
-            <span className="font-bold text-xs sm:text-sm truncate max-w-[120px]">
-              {item.assignee.name}
-            </span>
           </div>
         )}
       </div>

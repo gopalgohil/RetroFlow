@@ -35,6 +35,8 @@ export interface BacklogItem {
   };
   sourceRetroId?: string;
   sourceRetroTitle?: string;
+  givenBy?: string;
+  managerName?: string;
   createdAt: string;
   assignedAt?: string;
 }
