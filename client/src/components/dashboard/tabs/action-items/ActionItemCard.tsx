@@ -303,35 +303,40 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
 
-        {/* Avatars: Assigned By (Manager) ➔ Assigned To (Member) */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {givenByName && (
+        {/* Unified Dual Avatar Badge: Left Half (Assigned By) + Right Half (Assigned To) */}
+        <div className="flex items-center shrink-0 select-none">
+          {givenByName && item.assignee?.name ? (
             <div
-              className="relative flex items-center justify-center shrink-0 cursor-pointer group/creator"
-              title={`Assigned by: ${givenByName}`}
+              className="inline-flex items-center h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] shadow-2xs border border-[#4d9720]/40 dark:border-white/[0.1] overflow-hidden"
+              title={`Assigned by: ${givenByName}\nAssigned to: ${assigneeName}`}
             >
-              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-slate-200 border-2 border-slate-200 dark:border-white/[0.12] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs hover:scale-105 hover:border-[#88c958] transition-all select-none">
+              {/* Left Half: Assigned By (Manager) */}
+              <div
+                className="h-full pl-2.5 pr-1.5 flex items-center justify-center text-xs font-black tracking-tight hover:bg-black/10 transition-colors cursor-pointer"
+                title={`Assigned by: ${givenByName}`}
+              >
                 {getAssigneeInitials(givenByName)}
               </div>
-            </div>
-          )}
 
-          {givenByName && item.assignee?.name && (
-            <span className="text-slate-300 dark:text-white/20 text-xs font-black select-none px-0.5">
-              →
-            </span>
-          )}
+              {/* Subtle Middle Divider */}
+              <div className="w-[1px] h-4 bg-white/35 dark:bg-black/25 shrink-0" />
 
-          {item.assignee?.name && (
-            <div
-              className="relative flex items-center justify-center shrink-0 cursor-pointer group/avatar"
-              title={`Assigned to: ${assigneeName}`}
-            >
-              <div className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-slate-100 dark:ring-white/[0.08] hover:ring-[#88c958] hover:scale-105 transition-all select-none">
+              {/* Right Half: Assigned To (Member) */}
+              <div
+                className="h-full pl-1.5 pr-2.5 flex items-center justify-center text-xs font-black tracking-tight hover:bg-black/10 transition-colors cursor-pointer"
+                title={`Assigned to: ${assigneeName}`}
+              >
                 {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
               </div>
             </div>
-          )}
+          ) : item.assignee?.name ? (
+            <div
+              className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-slate-100 dark:ring-white/[0.08] cursor-pointer"
+              title={`Assigned to: ${assigneeName}`}
+            >
+              {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
