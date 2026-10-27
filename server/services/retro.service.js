@@ -74,6 +74,30 @@ class RetroService {
         linkedProject.sprints?.find((s) => s.status === 'active') ||
         linkedProject.sprints?.[0] ||
         null;
+
+      if (!targetSprint) {
+        const cadenceDays =
+          linkedProject.cadence === '1_week' ? 7 : linkedProject.cadence === '3_weeks' ? 21 : 14;
+        targetSprint = {
+          id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
+          name: `Sprint ${sprintNum} - Execution & Backlog`,
+          number: sprintNum,
+          status: linkedProject.sprints.length === 0 ? 'active' : 'upcoming',
+          startDate: payload.startDate
+            ? new Date(payload.startDate).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0],
+          endDate: payload.endDate
+            ? new Date(payload.endDate).toISOString().split('T')[0]
+            : new Date(Date.now() + cadenceDays * 86400000).toISOString().split('T')[0],
+          goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
+          daysLeft: cadenceDays,
+          totalStoryPoints: 0,
+          completedStoryPoints: 0,
+          openBlockers: 0,
+          items: [],
+        };
+        linkedProject.sprints.push(targetSprint);
+      }
     }
 
     const retro = await RetroBoard.create({

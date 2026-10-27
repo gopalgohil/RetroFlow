@@ -14,7 +14,7 @@ const backlogItemSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Item title is required'],
       trim: true,
-      maxlength: 300,
+      maxlength: 1000,
     },
     description: {
       type: String,

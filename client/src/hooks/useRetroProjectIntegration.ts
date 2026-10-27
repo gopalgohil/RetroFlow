@@ -91,7 +91,13 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
           storyPoints: typeof c.storyPoints === 'number' ? c.storyPoints : 3,
           priority: c.priority || 'high',
           dueDate: c.dueDate || undefined,
-          assignee: c.assignee ? { name: c.assignee.name, avatar: c.assignee.avatar } : undefined,
+          assignee: c.assignee
+            ? {
+                name: c.assignee.name,
+                email: c.assignee.email,
+                avatar: c.assignee.avatar,
+              }
+            : undefined,
           sourceRetroId: retroId,
           sourceRetroTitle: retroTitle,
         }));

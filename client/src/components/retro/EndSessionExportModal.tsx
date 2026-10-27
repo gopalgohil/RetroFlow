@@ -177,6 +177,25 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     }
   }, [projects, projectId, projectKey, sprintId, sprintName, retroTitle, getSuggestedSprint, isOpen]);
 
+  const selectedProject = useMemo(() => {
+    return projects.find((p) => p.id === selectedProjectId) || projects[0];
+  }, [projects, selectedProjectId]);
+
+  const assignableMembers = useMemo(() => {
+    if (!selectedProject) return [];
+    const list = [...(selectedProject.members || [])];
+    if (selectedProject.lead && !list.some((m) => m.email?.toLowerCase() === selectedProject.lead.email?.toLowerCase())) {
+      list.unshift({
+        id: selectedProject.lead.id || 'lead',
+        name: selectedProject.lead.name,
+        email: selectedProject.lead.email,
+        role: 'Project Lead',
+        avatar: selectedProject.lead.avatar || selectedProject.lead.name.slice(0, 2).toUpperCase(),
+      });
+    }
+    return list;
+  }, [selectedProject]);
+
   // Initialize selected card IDs and default item configs when modal opens or cards change
   useEffect(() => {
     if (actionCards.length > 0) {
@@ -185,26 +204,52 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
 
       const initialConfigs: Record<string, ItemConfig> = {};
       actionCards.forEach((c) => {
+        let defaultAssignee = '';
+        const mention = (c.text || '').match(/@([a-zA-Z0-9._-]+)/);
+        if (mention) {
+          const handle = mention[1].toLowerCase().trim();
+          const matched = assignableMembers.find(
+            (m) =>
+              m.name.toLowerCase() === handle ||
+              m.email.toLowerCase() === handle ||
+              m.email.split('@')[0].toLowerCase() === handle
+          );
+          defaultAssignee = matched ? matched.name : mention[1];
+        }
+
         initialConfigs[c.id] = {
-          assigneeName: '',
+          assigneeName: defaultAssignee,
           storyPoints: 3,
           priority: 'high',
         };
       });
       setItemConfigs(initialConfigs);
     }
-  }, [actionCards, isOpen]);
-
-  const selectedProject = useMemo(() => {
-    return projects.find((p) => p.id === selectedProjectId) || projects[0];
-  }, [projects, selectedProjectId]);
+  }, [actionCards, isOpen, assignableMembers]);
 
   const suggestedSprint = useMemo(() => {
     return selectedProject ? getSuggestedSprint(selectedProject.id) : null;
   }, [selectedProject, getSuggestedSprint]);
 
   const currentSprint = useMemo(() => {
-    if (!selectedProject?.sprints || selectedProject.sprints.length === 0) return null;
+    if (!selectedProject?.sprints || selectedProject.sprints.length === 0) {
+      const match = (retroTitle || sprintName || '').match(/\d+/);
+      const sprintNum = match ? parseInt(match[0], 10) : (selectedProject?.retrospectives?.length || 1);
+      return {
+        id: `sprint-auto-${sprintNum}`,
+        name: `Sprint ${sprintNum} - Execution & Backlog`,
+        number: sprintNum,
+        status: 'active' as const,
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+        goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
+        daysLeft: 14,
+        totalStoryPoints: 0,
+        completedStoryPoints: 0,
+        openBlockers: 0,
+        items: [],
+      };
+    }
     const targetId = selectedSprintId || suggestedSprint?.id;
     return (
       selectedProject.sprints.find((s) => s.id === targetId) ||
@@ -212,7 +257,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       selectedProject.sprints[0] ||
       null
     );
-  }, [selectedProject, selectedSprintId, suggestedSprint]);
+  }, [selectedProject, selectedSprintId, suggestedSprint, retroTitle, sprintName]);
 
   const [isSprintDropdownOpen, setIsSprintDropdownOpen] = useState(false);
   const sprintDropdownRef = useRef<HTMLDivElement>(null);
@@ -315,8 +360,11 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       .filter((c) => selectedCardIds.includes(c.id))
       .map((c) => {
         const cfg = itemConfigs[c.id] || { assigneeName: '', storyPoints: 3, priority: 'high' };
-        const matchedMember = selectedProject.members?.find(
-          (m) => m.name.toLowerCase() === cfg.assigneeName.toLowerCase()
+        const matchedMember = assignableMembers.find(
+          (m) =>
+            m.name.toLowerCase() === cfg.assigneeName.toLowerCase() ||
+            m.email.toLowerCase() === cfg.assigneeName.toLowerCase() ||
+            m.email.split('@')[0].toLowerCase() === cfg.assigneeName.toLowerCase()
         );
 
         return {
@@ -326,7 +374,11 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
           priority: cfg.priority,
           dueDate: cfg.dueDate || currentSprint?.endDate || undefined,
           assignee: matchedMember
-            ? { name: matchedMember.name, avatar: matchedMember.avatar }
+            ? {
+                name: matchedMember.name,
+                email: matchedMember.email,
+                avatar: matchedMember.avatar,
+              }
             : cfg.assigneeName
             ? { name: cfg.assigneeName, avatar: cfg.assigneeName.slice(0, 2).toUpperCase() }
             : undefined,
@@ -674,9 +726,41 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                   <div className="absolute z-50 top-full left-0 right-0 sm:right-0 sm:left-auto sm:min-w-[340px] w-full mt-1.5 bg-white dark:bg-[#161a23] border border-slate-200 dark:border-white/[0.1] rounded-xl shadow-2xl p-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                     <div className="max-h-[220px] overflow-y-auto space-y-1 pr-0.5 overscroll-contain">
                       {(!selectedProject?.sprints || selectedProject.sprints.length === 0) ? (
-                        <div className="px-3 py-3 text-center text-xs text-slate-400">
-                          No sprints found in this project
-                        </div>
+                        currentSprint ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedSprintId(currentSprint.id);
+                              setIsSprintDropdownOpen(false);
+                            }}
+                            className="w-full text-left p-2.5 rounded-lg transition-all flex items-center justify-between gap-2.5 cursor-pointer border bg-[#88c958]/10 border-[#88c958]/30 dark:bg-[#88c958]/15 text-slate-900 dark:text-white"
+                          >
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                  {currentSprint.name}
+                                </span>
+                                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                  ACTIVE
+                                </span>
+                                <span className="text-[9px] font-semibold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/20 px-1.5 py-0.5 rounded border border-[#cdeac0] dark:border-[#88c958]/30">
+                                  Dedicated Retro Sprint
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                                <span>{currentSprint.startDate} → {currentSprint.endDate}</span>
+                                <span>• 14d left</span>
+                              </div>
+                            </div>
+                            <div className="w-5 h-5 rounded-full bg-[#88c958] text-white flex items-center justify-center shrink-0">
+                              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                            </div>
+                          </button>
+                        ) : (
+                          <div className="px-3 py-3 text-center text-xs text-slate-400">
+                            No sprints found in this project
+                          </div>
+                        )
                       ) : (
                         selectedProject.sprints.map((sp) => {
                           const isSelected = sp.id === currentSprint?.id;
@@ -850,8 +934,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                 className="px-2 py-1 bg-white dark:bg-[#141720] border border-slate-200 dark:border-white/[0.08] rounded-lg text-[11px] text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#88c958] cursor-pointer"
                               >
                                 <option value="" className="dark:bg-[#141720]">Unassigned</option>
-                                {selectedProject?.members?.map((m) => (
-                                  <option key={m.id || m.name} value={m.name} className="dark:bg-[#141720]">
+                                {assignableMembers.map((m) => (
+                                  <option key={m.id || m.email || m.name} value={m.name} className="dark:bg-[#141720]">
                                     {m.name} ({m.role})
                                   </option>
                                 ))}

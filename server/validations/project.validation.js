@@ -93,10 +93,22 @@ export const updateSprintItemStatusSchema = z
   .object({
     status: z.enum(['todo', 'in_progress', 'done']).optional(),
     dueDate: z.string().nullable().optional(),
+    assignee: z
+      .object({
+        name: z.string(),
+        email: z.string().optional(),
+        avatar: z.string().optional(),
+      })
+      .nullable()
+      .optional(),
   })
-  .refine((data) => data.status !== undefined || data.dueDate !== undefined, {
-    message: 'Either status or dueDate must be provided',
-  });
+  .refine(
+    (data) =>
+      data.status !== undefined || data.dueDate !== undefined || data.assignee !== undefined,
+    {
+      message: 'Either status, dueDate, or assignee must be provided',
+    }
+  );
 
 export const updateSprintDatesSchema = z
   .object({

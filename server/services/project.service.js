@@ -205,7 +205,7 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
   if (aName && tName) {
     if (aName === tName) return true;
 
-    // Word tokens check: "Gopal Gohel" matches "Gopal", but "Raj" does NOT match "Rajesh"
+    // Word tokens check: "Jay Sadhu" matches "Jay", but "Raj" does NOT match "Rajesh"
     const aWords = aName.split(/\s+/).filter(Boolean);
     const tWords = tName.split(/\s+/).filter(Boolean);
     if (aWords.some((w) => w === tName) || tWords.some((w) => w === aName)) {
@@ -213,7 +213,23 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
     }
   }
 
-  // 3. Explicit @handle mention in text (e.g. "@Gopal" or "@drashti")
+  // 3. Username / Email Prefix / Handle Match (e.g. "jays" <-> "jays@digiflux.io" or "Jay Sadhu")
+  const tHandle = tEmail.includes('@') ? tEmail.split('@')[0] : tEmail;
+  const aHandle = aEmail.includes('@') ? aEmail.split('@')[0] : aEmail;
+
+  if (tHandle) {
+    if (aName && (aName === tHandle || aName.toLowerCase() === tHandle)) return true;
+    if (aHandle && aHandle === tHandle) return true;
+  }
+  if (aHandle) {
+    if (tName && tName === aHandle) return true;
+  }
+
+  // 4. Cross Email <-> Name Match
+  if (aEmail && tName && (aEmail === tName || aEmail.startsWith(tName))) return true;
+  if (tEmail && aName && (tEmail === aName || tEmail.startsWith(aName))) return true;
+
+  // 5. Explicit @handle mention in text (e.g. "@Gopal" or "@jays" or "@vikasr")
   if (contextText) {
     const textLower = contextText.toLowerCase();
     if (tName && (textLower.includes(`@${tName}`) || textLower.includes(`@ ${tName}`))) {
@@ -222,6 +238,12 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
     if (tEmail) {
       const emailPrefix = tEmail.split('@')[0];
       if (emailPrefix && (textLower.includes(`@${emailPrefix}`) || textLower.includes(`@ ${emailPrefix}`))) {
+        return true;
+      }
+    }
+    const tWords = tName.split(/\s+/).filter(Boolean);
+    for (const w of tWords) {
+      if (w.length >= 3 && (textLower.includes(`@${w}`) || textLower.includes(`@ ${w}`))) {
         return true;
       }
     }
@@ -441,19 +463,27 @@ class ProjectService {
       });
 
       let hasChanges = false;
+      project.sprints = Array.isArray(project.sprints) ? project.sprints : [];
+
       for (const retroItem of project.retrospectives) {
         const liveBoard = boardMap.get(retroItem.shareToken) || boardMap.get(retroItem.id);
         if (liveBoard) {
           const totalCards = Array.isArray(liveBoard.cards) ? liveBoard.cards.length : 0;
           const actionTopics = (liveBoard.topics || []).filter((t) => {
             const title = (t.title || '').toLowerCase();
-            return title.includes('action') || title.includes('deliverable') || title.includes('task') || t.topicId === 'topic-3';
+            return (
+              title.includes('action') ||
+              title.includes('deliverable') ||
+              title.includes('task') ||
+              t.topicId === 'topic-3'
+            );
           });
           const actionTopicIds = new Set(actionTopics.map((t) => t.topicId));
 
-          const actionItemsCount = Array.isArray(liveBoard.cards)
-            ? liveBoard.cards.filter((c) => actionTopicIds.has(c.topicId)).length
-            : 0;
+          const actionCards = Array.isArray(liveBoard.cards)
+            ? liveBoard.cards.filter((c) => actionTopicIds.has(c.topicId) && !c.isSprintRemoved)
+            : [];
+          const actionItemsCount = actionCards.length;
 
           const topicsCount = (liveBoard.topics || []).length;
 
@@ -476,13 +506,132 @@ class ProjectService {
             retroItem.topicsCount = topicsCount;
             hasChanges = true;
           }
+
+          // 1. Ensure a sprint exists for this linked retrospective
+          let sprintNum = 1;
+          const sMatch = (retroItem.sprintName || retroItem.title || '').match(/\d+/);
+          if (sMatch) sprintNum = parseInt(sMatch[0], 10);
+
+          let sprint = project.sprints.find(
+            (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
+          );
+
+          if (!sprint) {
+            const cadenceDays = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
+            sprint = {
+              id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
+              name: `Sprint ${sprintNum} - Execution & Backlog`,
+              number: sprintNum,
+              status: project.sprints.length === 0 ? 'active' : 'upcoming',
+              startDate: retroItem.startDate || (liveBoard.startDate ? new Date(liveBoard.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
+              endDate: retroItem.endDate || (liveBoard.endDate ? new Date(liveBoard.endDate).toISOString().split('T')[0] : new Date(Date.now() + cadenceDays * 86400000).toISOString().split('T')[0]),
+              goal: `${retroItem.title || `Sprint ${sprintNum}`} deliverables and retrospective action items.`,
+              daysLeft: cadenceDays,
+              totalStoryPoints: 0,
+              completedStoryPoints: 0,
+              openBlockers: 0,
+              items: [],
+            };
+            project.sprints.push(sprint);
+            hasChanges = true;
+          }
+
+          // 2. Synchronize action items from live retro board into the sprint backlog
+          if (actionCards.length > 0) {
+            sprint.items = sprint.items || [];
+            let sprintItemsChanged = false;
+
+            for (const card of actionCards) {
+              const cardTitle = (card.text || '').trim();
+              if (!cardTitle) continue;
+
+              const existingItem = sprint.items.find(
+                (it) =>
+                  it.id === card.cardId ||
+                  it.id === `act-${card.cardId}` ||
+                  ((it.sourceRetroId === retroItem.id || it.sourceRetroId === retroItem.shareToken) &&
+                    it.title.toLowerCase().trim() === cardTitle.toLowerCase())
+              );
+
+              let assigneeName = card.author || 'Assigned Member';
+              let assigneeEmail = card.authorEmail || undefined;
+              const mentionMatch = cardTitle.match(/@([a-zA-Z0-9._-]+)/);
+              if (mentionMatch) {
+                const handle = mentionMatch[1].toLowerCase().trim();
+                const member = (project.members || []).find(
+                  (m) =>
+                    (m.email && m.email.toLowerCase().includes(handle)) ||
+                    (m.name && m.name.toLowerCase().includes(handle))
+                );
+                if (member) {
+                  assigneeName = member.name;
+                  assigneeEmail = member.email;
+                } else {
+                  assigneeName = mentionMatch[1].trim();
+                }
+              }
+
+              if (existingItem) {
+                if (card.status && existingItem.status !== card.status) {
+                  existingItem.status = card.status;
+                  sprintItemsChanged = true;
+                }
+                if (card.dueDate && existingItem.dueDate !== card.dueDate) {
+                  existingItem.dueDate = card.dueDate;
+                  sprintItemsChanged = true;
+                }
+              } else {
+                sprint.items.push({
+                  id: `act-${card.cardId || crypto.randomUUID().slice(0, 8)}`,
+                  title: cardTitle,
+                  description: '',
+                  type: 'action_item',
+                  priority: card.priority || 'high',
+                  status: card.status || 'todo',
+                  dueDate: card.dueDate || sprint.endDate || null,
+                  storyPoints: 3,
+                  assignee: {
+                    name: assigneeName,
+                    email: assigneeEmail,
+                    avatar: assigneeName
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2),
+                  },
+                  sourceRetroId: retroItem.id || retroItem.shareToken,
+                  sourceRetroTitle: retroItem.title,
+                  createdAt: card.createdAt || new Date(),
+                });
+                sprintItemsChanged = true;
+              }
+            }
+
+            if (sprintItemsChanged) {
+              sprint.totalStoryPoints = sprint.items.reduce(
+                (acc, it) => acc + (Number(it.storyPoints) || 0),
+                0
+              );
+              sprint.completedStoryPoints = sprint.items
+                .filter((it) => it.status === 'done')
+                .reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
+              retroItem.actionItemsExported = true;
+              hasChanges = true;
+            }
+          }
         }
       }
 
       if (hasChanges && project._id) {
         await Project.updateOne(
           { _id: project._id },
-          { $set: { retrospectives: project.retrospectives } }
+          {
+            $set: {
+              retrospectives: project.retrospectives,
+              sprints: project.sprints,
+            },
+          }
         ).catch(() => {});
       }
     } catch (err) {
@@ -550,6 +699,22 @@ class ProjectService {
             ],
           }
         ).catch(() => {});
+      }
+
+      // Live-sync project sprints and backlog items
+      try {
+        const matchingProjects = await Project.find({
+          $or: [
+            ...(identifierConditions.length > 0 ? identifierConditions : []),
+            ...(board.projectId ? [{ _id: board.projectId }] : []),
+            ...(board.projectKey ? [{ key: board.projectKey.toUpperCase() }] : []),
+          ],
+        });
+        for (const proj of matchingProjects) {
+          await this.syncProjectRetrospectives(proj);
+        }
+      } catch (projSyncErr) {
+        console.warn('[ProjectService] Error live-syncing project sprints from retro:', projSyncErr.message);
       }
 
       const payload = {
@@ -893,6 +1058,29 @@ class ProjectService {
 
     if (dueDate !== undefined) {
       item.dueDate = dueDate;
+    }
+
+    const assignee = typeof payload === 'object' ? payload?.assignee : undefined;
+    if (assignee !== undefined) {
+      if (assignee && typeof assignee === 'object') {
+        let aEmail = assignee.email?.toLowerCase().trim();
+        let aName = assignee.name?.trim();
+        if (!aEmail && aName) {
+          const m = (project.members || []).find(
+            (mem) =>
+              mem.name?.toLowerCase().trim() === aName.toLowerCase() ||
+              mem.email?.split('@')[0]?.toLowerCase().trim() === aName.toLowerCase()
+          );
+          if (m?.email) aEmail = m.email.toLowerCase().trim();
+        }
+        item.assignee = {
+          name: aName || '',
+          email: aEmail,
+          avatar: assignee.avatar || (aName ? aName.slice(0, 2).toUpperCase() : ''),
+        };
+      } else {
+        item.assignee = undefined;
+      }
     }
 
     item.updatedAt = new Date();
@@ -1417,13 +1605,85 @@ class ProjectService {
       sprint.daysLeft = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
     }
 
-    if (!sprint) throw new Error('No target sprint found to receive action items');
+    if (!sprint) {
+      let sprintNum = 1;
+      const sourceTitle = items[0]?.sourceRetroTitle || '';
+      const match = sourceTitle.match(/sprint\s*(\d+)/i);
+      if (match) {
+        sprintNum = parseInt(match[1], 10);
+      } else if (items[0]?.sourceRetroId) {
+        const retroEntry = project.retrospectives?.find(
+          (r) => r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId
+        );
+        if (retroEntry?.sprintName) {
+          const sMatch = retroEntry.sprintName.match(/\d+/);
+          if (sMatch) sprintNum = parseInt(sMatch[0], 10);
+        }
+      }
+
+      const cadenceDays = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
+      sprint = {
+        id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
+        name: `Sprint ${sprintNum} - Execution & Backlog`,
+        number: sprintNum,
+        status: 'active',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date(Date.now() + cadenceDays * 86400000).toISOString().split('T')[0],
+        goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
+        daysLeft: cadenceDays,
+        totalStoryPoints: 0,
+        completedStoryPoints: 0,
+        openBlockers: 0,
+        items: [],
+      };
+      project.sprints.push(sprint);
+    }
 
     const newItems = items.map((item) => {
       const itemStatus = ['todo', 'in_progress', 'done'].includes(item.status) ? item.status : 'todo';
       const storyPointsNum = typeof item.storyPoints === 'number'
         ? item.storyPoints
         : (Number(item.storyPoints) || 3);
+
+      let resolvedName = item.assignee?.name ? item.assignee.name.trim() : undefined;
+      let resolvedEmail = item.assignee?.email ? item.assignee.email.toLowerCase().trim() : undefined;
+      let resolvedAvatar = item.assignee?.avatar;
+
+      // Auto-resolve email and canonical member details from project members and lead
+      if (resolvedName || resolvedEmail) {
+        const candidateMembers = [...(project.members || [])];
+        if (project.lead) candidateMembers.push(project.lead);
+
+        const matchedMember = candidateMembers.find((m) => {
+          const mEmail = (m.email || '').toLowerCase().trim();
+          const mName = (m.name || '').toLowerCase().trim();
+          const mHandle = mEmail.split('@')[0];
+          const qName = (resolvedName || '').toLowerCase().trim();
+          const qEmail = (resolvedEmail || '').toLowerCase().trim();
+
+          if (qEmail && mEmail === qEmail) return true;
+          if (qName) {
+            if (mName === qName) return true;
+            if (mHandle === qName) return true;
+            if (mEmail === qName) return true;
+            const mWords = mName.split(/\s+/);
+            if (mWords.some((w) => w === qName)) return true;
+          }
+          return false;
+        });
+
+        if (matchedMember) {
+          if (!resolvedEmail && matchedMember.email) {
+            resolvedEmail = matchedMember.email.toLowerCase().trim();
+          }
+          if (matchedMember.name) {
+            resolvedName = matchedMember.name;
+          }
+          if (!resolvedAvatar && matchedMember.avatar) {
+            resolvedAvatar = matchedMember.avatar;
+          }
+        }
+      }
 
       return {
         id: `act-${crypto.randomUUID().slice(0, 8)}`,
@@ -1435,13 +1695,13 @@ class ProjectService {
         completedAt: itemStatus === 'done' ? new Date() : null,
         dueDate: item.dueDate || sprint.endDate || null,
         storyPoints: storyPointsNum,
-        assignee: item.assignee?.name
+        assignee: resolvedName
           ? {
-              name: item.assignee.name.trim(),
-              email: item.assignee.email ? item.assignee.email.toLowerCase().trim() : undefined,
+              name: resolvedName,
+              email: resolvedEmail,
               avatar:
-                item.assignee.avatar ||
-                item.assignee.name
+                resolvedAvatar ||
+                resolvedName
                   .split(' ')
                   .map((n) => n[0])
                   .join('')
@@ -1455,7 +1715,25 @@ class ProjectService {
       };
     });
 
-    sprint.items.push(...newItems);
+    sprint.items = sprint.items || [];
+    for (const newItem of newItems) {
+      const existingIdx = sprint.items.findIndex(
+        (it) =>
+          it.id === newItem.id ||
+          (newItem.sourceRetroId &&
+            it.sourceRetroId === newItem.sourceRetroId &&
+            it.title.toLowerCase().trim() === newItem.title.toLowerCase().trim())
+      );
+      if (existingIdx !== -1) {
+        sprint.items[existingIdx] = {
+          ...sprint.items[existingIdx],
+          ...newItem,
+          id: sprint.items[existingIdx].id,
+        };
+      } else {
+        sprint.items.push(newItem);
+      }
+    }
     sprint.totalStoryPoints = sprint.items.reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
     sprint.completedStoryPoints = sprint.items
       .filter((it) => it.status === 'done')
@@ -1525,10 +1803,14 @@ class ProjectService {
     // 1. Fetch accessible projects
     let projectQuery = {};
     if (!isAdmin && userEmail) {
+      const userHandle = userEmail.includes('@') ? userEmail.split('@')[0] : userEmail;
       projectQuery = {
         $or: [
           { 'lead.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
           { 'members.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+          { 'sprints.items.assignee.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+          ...(userName ? [{ 'sprints.items.assignee.name': { $regex: new RegExp(`^${userName}$`, 'i') } }] : []),
+          ...(userHandle ? [{ 'sprints.items.assignee.name': { $regex: new RegExp(`^${userHandle}$`, 'i') } }] : []),
           ...(currentUser?._id ? [{ createdBy: currentUser._id }] : []),
         ],
       };
@@ -1587,10 +1869,11 @@ class ProjectService {
     // 2. Collect direct action cards from accessible Retrospective Sessions (Action Items topic)
     let retroQuery = {};
     if (!isAdmin && userEmail) {
+      const projectIds = projects.map((p) => p._id);
+      const projectKeys = projects.map((p) => p.key).filter(Boolean);
+
       if (fetchAll) {
         // Manager's "All Team Items": Only retros belonging to manager's accessible projects
-        const projectIds = projects.map((p) => p._id);
-        const projectKeys = projects.map((p) => p.key);
         retroQuery = {
           $or: [
             { projectId: { $in: projectIds } },
@@ -1599,11 +1882,14 @@ class ProjectService {
           ],
         };
       } else {
-        // "My Action Items": Retros where user is approved, author, or creator
+        // "My Action Items": Retros where user is approved, attendee, author, creator, or member of associated project
         retroQuery = {
           $or: [
             { approvedMembers: { $in: [userEmail, new RegExp(`^${userEmail}$`, 'i')] } },
+            { 'attendees.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
             { 'cards.authorEmail': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+            ...(projectIds.length > 0 ? [{ projectId: { $in: projectIds } }] : []),
+            ...(projectKeys.length > 0 ? [{ projectKey: { $in: projectKeys } }] : []),
             ...(currentUser?._id ? [{ createdBy: currentUser._id }] : []),
           ],
         };
@@ -1661,7 +1947,10 @@ class ProjectService {
         const mentionMatch = (card.text || '').match(/@([a-zA-Z0-9._-]+)/);
         if (mentionMatch) {
           const mentionedHandle = mentionMatch[1].toLowerCase().trim();
-          const matchedMember = (matchingProject?.members || []).find(
+          const candidateMembers = [...(matchingProject?.members || [])];
+          if (matchingProject?.lead) candidateMembers.push(matchingProject.lead);
+
+          const matchedMember = candidateMembers.find(
             (m) =>
               (m.email && m.email.toLowerCase().includes(mentionedHandle)) ||
               (m.name && m.name.toLowerCase().includes(mentionedHandle))

@@ -373,19 +373,38 @@ export class ProjectDataService {
     if (projIndex === -1) return { success: false, addedCount: 0 };
 
     const project = projects[projIndex];
-    const sprint = project.sprints.find((s) => s.id === targetSprintId) || project.sprints[0];
-    if (!sprint) return { success: false, addedCount: 0 };
+    let sprint = project.sprints.find((s) => s.id === targetSprintId) || project.sprints[0];
+    if (!sprint) {
+      sprint = {
+        id: `sprint-${Date.now()}`,
+        projectId: project.id,
+        name: 'Sprint 1 - Execution & Backlog',
+        number: 1,
+        status: 'active',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+        goal: 'Sprint 1 deliverables and retrospective action items.',
+        daysLeft: 14,
+        totalStoryPoints: 0,
+        completedStoryPoints: 0,
+        openBlockers: 0,
+        items: [],
+      };
+      project.sprints.push(sprint);
+    }
 
-    const newBacklogItems: BacklogItem[] = items.map((item, idx) => ({
+    const newBacklogItems: BacklogItem[] = items.map((item: any, idx) => ({
       id: `act-item-${Date.now()}-${idx}`,
       projectId: project.id,
       sprintId: sprint.id,
       title: item.title,
       description: item.description,
       type: 'action_item',
-      priority: 'high',
+      priority: item.priority || 'high',
       status: 'todo',
-      storyPoints: 3,
+      storyPoints: typeof item.storyPoints === 'number' ? item.storyPoints : 3,
+      assignee: item.assignee,
+      dueDate: item.dueDate,
       sourceRetroId: item.sourceRetroId,
       sourceRetroTitle: item.sourceRetroTitle || 'Sprint Retrospective',
       createdAt: new Date().toISOString().split('T')[0],
