@@ -90,11 +90,12 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'archived'>('all');
   const [restoringProjectId, setRestoringProjectId] = useState<string | null>(null);
+  const isInitialMountRef = useRef(true);
 
   const fetchProjects = useCallback(
-    async (page: number, isPaging = false, filterOverride?: 'all' | 'archived') => {
+    async (page: number, isSubsequent = false, filterOverride?: 'all' | 'archived') => {
       const activeFilter = filterOverride || selectedFilter;
-      if (isPaging) {
+      if (isSubsequent || !isInitialMountRef.current) {
         setIsFilterLoading(true);
       } else {
         setIsLoading(true);
@@ -113,6 +114,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       } finally {
         setIsLoading(false);
         setIsFilterLoading(false);
+        isInitialMountRef.current = false;
       }
     },
     [selectedFilter]
@@ -123,7 +125,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     try {
       await ProjectApiService.archiveProject(projectId, false);
       ProjectApiService.clearProjectsCache();
-      fetchProjects(currentPage, false, selectedFilter);
+      fetchProjects(currentPage, true, selectedFilter);
     } catch (err: any) {
       console.error('[ProjectsTab] Failed to restore project:', err);
     } finally {
@@ -132,7 +134,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   };
 
   useEffect(() => {
-    fetchProjects(currentPage, currentPage > 1);
+    fetchProjects(currentPage, !isInitialMountRef.current);
   }, [fetchProjects, currentPage]);
 
   const handleDeleteProject = async () => {
@@ -147,7 +149,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       if (targetPage !== currentPage) {
         setCurrentPage(targetPage);
       } else {
-        fetchProjects(targetPage, false);
+        fetchProjects(targetPage, true);
       }
     } catch (err: any) {
       setDeleteProjectError(err.message || 'Failed to delete project.');
@@ -267,7 +269,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               if (selectedFilter !== 'all') {
                 setSelectedFilter('all');
                 setCurrentPage(1);
-                fetchProjects(1, false, 'all');
+                fetchProjects(1, true, 'all');
               }
             }}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
@@ -285,7 +287,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               if (selectedFilter !== 'archived') {
                 setSelectedFilter('archived');
                 setCurrentPage(1);
-                fetchProjects(1, false, 'archived');
+                fetchProjects(1, true, 'archived');
               }
             }}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
