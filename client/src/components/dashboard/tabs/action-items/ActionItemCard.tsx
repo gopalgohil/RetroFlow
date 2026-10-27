@@ -303,27 +303,24 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
 
-        {/* Unified Dual Avatar Badge: Left Half (Assigned By) + Right Half (Assigned To) */}
+        {/* Merged Round Circles: Assigned By (Manager) & Assigned To (Member) merged half-half with round curve */}
         <div className="flex items-center shrink-0 select-none">
           {givenByName && item.assignee?.name ? (
             <div
-              className="inline-flex items-center h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] shadow-2xs border border-[#4d9720]/40 dark:border-white/[0.1] overflow-hidden"
+              className="flex items-center -space-x-3.5 group/merged"
               title={`Assigned by: ${givenByName}\nAssigned to: ${assigneeName}`}
             >
-              {/* Left Half: Assigned By (Manager) */}
+              {/* Left Round Circle: Assigned By (Manager) */}
               <div
-                className="h-full pl-2.5 pr-1.5 flex items-center justify-center text-xs font-black tracking-tight hover:bg-black/10 transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#488e1e] text-white dark:bg-[#72ad46] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-0 group-hover/merged:z-10 group-hover/merged:scale-105 transition-all"
                 title={`Assigned by: ${givenByName}`}
               >
                 {getAssigneeInitials(givenByName)}
               </div>
 
-              {/* Subtle Middle Divider */}
-              <div className="w-[1px] h-4 bg-white/35 dark:bg-black/25 shrink-0" />
-
-              {/* Right Half: Assigned To (Member) */}
+              {/* Right Round Circle: Assigned To (Member) */}
               <div
-                className="h-full pl-1.5 pr-2.5 flex items-center justify-center text-xs font-black tracking-tight hover:bg-black/10 transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-10 hover:z-20 hover:scale-105 transition-all"
                 title={`Assigned to: ${assigneeName}`}
               >
                 {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
@@ -331,7 +328,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
             </div>
           ) : item.assignee?.name ? (
             <div
-              className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-slate-100 dark:ring-white/[0.08] cursor-pointer"
+              className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015] cursor-pointer"
               title={`Assigned to: ${assigneeName}`}
             >
               {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
