@@ -218,14 +218,17 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
             />
           ) : (
             <div className="space-y-2">
-              {paginatedItems.map((item) => (
+              {paginatedItems.map((item, idx) => (
                 <SprintBacklogItemRow
                   key={item.id}
                   sprintId={sprint.id}
                   item={item}
+                  itemIndex={(currentPage - 1) * limit + idx + 1}
                   isUpdating={updatingItemId === item.id}
                   isDeleting={deletingItemId === item.id}
                   canManageProject={canManageProject}
+                  sprintStartDate={sprint.startDate}
+                  sprintEndDate={sprint.endDate}
                   onUpdateStatus={onUpdateItemStatus}
                   onUpdateDueDate={onUpdateDueDate}
                   onDeleteItem={onDeleteItem}

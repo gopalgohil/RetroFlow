@@ -259,6 +259,9 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     );
   }, [selectedProject, selectedSprintId, suggestedSprint, retroTitle, sprintName]);
 
+  const sprintMinDate = currentSprint?.startDate ? currentSprint.startDate.split('T')[0] : '';
+  const sprintMaxDate = currentSprint?.endDate ? currentSprint.endDate.split('T')[0] : '';
+
   const [isSprintDropdownOpen, setIsSprintDropdownOpen] = useState(false);
   const sprintDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -384,6 +387,27 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
             : undefined,
         };
       });
+
+    // Validate bounds for due dates against sprint start and end dates
+    if (sprintMinDate && sprintMaxDate) {
+      const sStartMs = new Date(sprintMinDate).getTime();
+      const sEndMs = new Date(sprintMaxDate).getTime();
+
+      for (const item of itemsToExport) {
+        if (item.dueDate) {
+          const itemDue = item.dueDate.split('T')[0];
+          const dueMs = new Date(itemDue).getTime();
+          if (dueMs < sStartMs) {
+            alert(`Due date for "${item.text.slice(0, 35)}..." cannot be earlier than sprint start date (${sprintMinDate}).`);
+            return;
+          }
+          if (dueMs > sEndMs) {
+            alert(`Due date for "${item.text.slice(0, 35)}..." cannot exceed sprint end date (${sprintMaxDate}).`);
+            return;
+          }
+        }
+      }
+    }
 
     await exportActionItems({
       projectId: selectedProject.id,
@@ -961,15 +985,24 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                               </select>
                             </div>
 
-                            {/* Due Date Picker */}
+                            {/* Due Date Picker with bounds validation and clear 'Due:' label */}
                             <div
                               className="flex items-center gap-1.5"
-                              title="Custom Due Date for this Action Item (Defaults to sprint end date)"
+                              title={
+                                sprintMinDate && sprintMaxDate
+                                  ? `Task Deadline (Must be between ${sprintMinDate} and ${sprintMaxDate})`
+                                  : 'Task Deadline (Defaults to sprint end date)'
+                              }
                             >
-                              <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+                              <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
+                              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 select-none">
+                                Due:
+                              </span>
                               <input
                                 type="date"
-                                value={cfg.dueDate || (currentSprint?.endDate ? currentSprint.endDate.split('T')[0] : '')}
+                                min={sprintMinDate || undefined}
+                                max={sprintMaxDate || undefined}
+                                value={cfg.dueDate || sprintMaxDate || ''}
                                 onChange={(e) =>
                                   handleUpdateItemConfig(card.id, {
                                     dueDate: e.target.value,
