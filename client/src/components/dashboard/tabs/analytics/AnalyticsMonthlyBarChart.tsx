@@ -163,7 +163,7 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
                 : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
-            Completed ({computedYearSummary.completedTasks})
+            Done ({computedYearSummary.completedTasks})
           </button>
         </div>
       </div>
