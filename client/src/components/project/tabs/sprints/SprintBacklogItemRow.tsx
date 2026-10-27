@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, ChevronDown, Trash2, Calendar } from 'lucide-react';
+import { Sparkles, ChevronDown, Trash2, Calendar, CheckCircle2, Bookmark, Bug } from 'lucide-react';
 import { BacklogItem } from '@/types/project';
-import { StatusPill, UserAvatar } from '@/components/ui';
+import { UserAvatar } from '@/components/ui';
 
 interface SprintBacklogItemRowProps {
   sprintId: string;
@@ -50,10 +50,31 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
   }) => {
     return (
       <div className="group p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
-        {/* Left: Type badge & Title */}
-        <div className="flex items-center gap-3">
-          <StatusPill status={item.type} />
-          <div>
+        {/* Left: Sleek Type Icon & Title */}
+        <div className="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+          {item.type === 'bug' ? (
+            <div
+              className="w-6 h-6 rounded-lg bg-rose-500/10 border border-rose-500/25 flex items-center justify-center shrink-0 text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-0"
+              title="Bug"
+            >
+              <Bug className="w-3.5 h-3.5 stroke-[2.2]" />
+            </div>
+          ) : item.type === 'story' ? (
+            <div
+              className="w-6 h-6 rounded-lg bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center shrink-0 text-indigo-600 dark:text-indigo-400 mt-0.5 sm:mt-0"
+              title="User Story"
+            >
+              <Bookmark className="w-3.5 h-3.5 stroke-[2.2]" />
+            </div>
+          ) : (
+            <div
+              className="w-6 h-6 rounded-lg bg-[#88c958]/15 dark:bg-[#88c958]/20 border border-[#88c958]/35 flex items-center justify-center shrink-0 text-[#3d8318] dark:text-[#88c958] mt-0.5 sm:mt-0"
+              title="Action Item"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.2]" />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
               {item.title}
             </p>
