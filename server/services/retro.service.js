@@ -1947,17 +1947,32 @@ class RetroService {
         );
       });
 
-      const completedCount = actionCards.filter((c) => c.status === 'done').length;
-      const inProgressCount = actionCards.filter((c) => c.status === 'in_progress').length;
-      const todoCount = actionCards.filter((c) => c.status === 'todo' || (!c.status && c.status !== 'done')).length;
-      const pendingCount = actionCards.length - completedCount;
-      const completionRate = actionCards.length > 0 ? Math.round((completedCount / actionCards.length) * 100) : 0;
-
       const linkedProject = projectsList.find(
         (p) =>
           (r.projectId && p._id.toString() === r.projectId.toString()) ||
           (r.projectKey && p.key.toUpperCase() === r.projectKey.toUpperCase())
       );
+
+      const sprintItems = (linkedProject?.sprints || []).flatMap((s) => s.items || []);
+
+      const getEffectiveStatus = (c) => {
+        const matchedSprintItem = sprintItems.find(
+          (si) =>
+            si.id === c.cardId ||
+            (si.sourceRetroId === r._id.toString() && si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()) ||
+            si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()
+        );
+        return matchedSprintItem?.status || c.status || 'todo';
+      };
+
+      const completedCount = actionCards.filter((c) => getEffectiveStatus(c) === 'done').length;
+      const inProgressCount = actionCards.filter((c) => getEffectiveStatus(c) === 'in_progress').length;
+      const todoCount = actionCards.filter((c) => {
+        const s = getEffectiveStatus(c);
+        return s === 'todo' || (!s && s !== 'done');
+      }).length;
+      const pendingCount = actionCards.length - completedCount;
+      const completionRate = actionCards.length > 0 ? Math.round((completedCount / actionCards.length) * 100) : 0;
 
       // Dynamically resolve Manager / Project Lead for this project
       const projectManager =
@@ -1975,8 +1990,6 @@ class RetroService {
         projectManager?.email ||
         linkedProject?.lead?.email ||
         null;
-
-      const sprintItems = (linkedProject?.sprints || []).flatMap((s) => s.items || []);
 
       // Extract unique assignees for this retro's action items
       const assigneesMap = new Map();
@@ -2247,8 +2260,23 @@ class RetroService {
             );
           });
 
-          const completedCount = actionCards.filter((c) => c.status === 'done').length;
-          const pendingCount = actionCards.filter((c) => c.status !== 'done').length;
+          const linkedP = projectsList.find(
+            (p) =>
+              (r.projectId && p._id.toString() === r.projectId.toString()) ||
+              (r.projectKey && p.key.toUpperCase() === r.projectKey.toUpperCase())
+          );
+          const pSprintItems = (linkedP?.sprints || []).flatMap((s) => s.items || []);
+
+          const completedCount = actionCards.filter((c) => {
+            const matched = pSprintItems.find(
+              (si) =>
+                si.id === c.cardId ||
+                (si.sourceRetroId === r._id.toString() && si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()) ||
+                si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()
+            );
+            return (matched?.status || c.status) === 'done';
+          }).length;
+          const pendingCount = actionCards.length - completedCount;
           const totalTasksCount = actionCards.length;
 
           targetMonth.totalTasks += totalTasksCount;

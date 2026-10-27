@@ -1085,6 +1085,31 @@ class ProjectService {
 
     item.updatedAt = new Date();
 
+    // Bi-directional Sync: Synchronize matching card in RetroBoard if linked
+    if (item.sourceRetroId && status) {
+      try {
+        const retroQuery = mongoose.isValidObjectId(item.sourceRetroId)
+          ? { _id: item.sourceRetroId }
+          : { shareToken: item.sourceRetroId };
+        const retro = await RetroBoard.findOne(retroQuery);
+        if (retro) {
+          const normTitle = (item.title || '').toLowerCase().trim();
+          const matchedCard = retro.cards.find(
+            (c) =>
+              c.cardId === itemId ||
+              (c.text && c.text.toLowerCase().trim() === normTitle)
+          );
+          if (matchedCard) {
+            matchedCard.status = status;
+            matchedCard.updatedAt = new Date();
+            await retro.save();
+          }
+        }
+      } catch (syncErr) {
+        console.warn('[updateSprintItemStatus] Failed to sync to RetroBoard:', syncErr?.message || syncErr);
+      }
+    }
+
     // Dynamically recalculate completedStoryPoints for this sprint based on completed items
     sprint.completedStoryPoints = sprint.items
       .filter((i) => i.status === 'done')
