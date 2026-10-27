@@ -303,16 +303,36 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
 
-        {item.assignee?.name && (
-          <div
-            className="relative flex items-center justify-center shrink-0 cursor-pointer group/avatar"
-            title={hoverTooltip}
-          >
-            <div className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-slate-100 dark:ring-white/[0.08] hover:ring-[#88c958] hover:scale-105 transition-all select-none">
-              {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+        {/* Avatars: Assigned By (Manager) ➔ Assigned To (Member) */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {givenByName && (
+            <div
+              className="relative flex items-center justify-center shrink-0 cursor-pointer group/creator"
+              title={`Assigned by: ${givenByName}`}
+            >
+              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-slate-200 border-2 border-slate-200 dark:border-white/[0.12] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs hover:scale-105 hover:border-[#88c958] transition-all select-none">
+                {getAssigneeInitials(givenByName)}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {givenByName && item.assignee?.name && (
+            <span className="text-slate-300 dark:text-white/20 text-xs font-black select-none px-0.5">
+              →
+            </span>
+          )}
+
+          {item.assignee?.name && (
+            <div
+              className="relative flex items-center justify-center shrink-0 cursor-pointer group/avatar"
+              title={`Assigned to: ${assigneeName}`}
+            >
+              <div className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-slate-100 dark:ring-white/[0.08] hover:ring-[#88c958] hover:scale-105 transition-all select-none">
+                {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
