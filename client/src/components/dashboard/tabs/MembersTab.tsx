@@ -44,6 +44,115 @@ interface MembersTabProps {
   isAdmin?: boolean;
 }
 
+const ROLE_OPTIONS = ['Developer', 'QA', 'Manager', 'DevOps', 'Project Lead'];
+
+interface MemberRoleDropdownProps {
+  email: string;
+  currentRole?: string;
+  onSelect: (email: string, role: string) => void;
+  isUpdating: boolean;
+  rowIndex: number;
+  totalRows: number;
+}
+
+const MemberRoleDropdown: React.FC<MemberRoleDropdownProps> = ({
+  email,
+  currentRole,
+  onSelect,
+  isUpdating,
+  rowIndex,
+  totalRows,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const normalizedRole =
+    currentRole === 'QA Specialist' || currentRole === 'QA'
+      ? 'QA'
+      : currentRole && currentRole !== 'Unassigned'
+      ? currentRole
+      : 'Developer';
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // Open upward if near bottom of table
+  const openUpward = totalRows > 3 && rowIndex >= totalRows - 2;
+
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={isUpdating}
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="inline-flex items-center justify-between gap-2 px-3 py-1.5 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18] rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all cursor-pointer shadow-2xs disabled:opacity-50 min-w-[110px]"
+        title="Assign project role"
+      >
+        <span>{normalizedRole}</span>
+        {isUpdating ? (
+          <Loader2 className="w-3.5 h-3.5 text-[#88c958] animate-spin" />
+        ) : (
+          <ChevronDown
+            className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 ${
+              isOpen ? 'rotate-180' : ''
+            }`}
+          />
+        )}
+      </button>
+
+      {isOpen && (
+        <div
+          className={`absolute left-0 ${
+            openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          } z-50 w-36 rounded-2xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] py-1.5 animate-in fade-in zoom-in-95 duration-150 overflow-hidden flex flex-col`}
+        >
+          <div className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
+            Project Role
+          </div>
+          <div className="py-0.5">
+            {ROLE_OPTIONS.map((role) => {
+              const isSelected = role === normalizedRole;
+              return (
+                <button
+                  key={role}
+                  type="button"
+                  onClick={() => {
+                    if (role !== normalizedRole) {
+                      onSelect(email, role);
+                    }
+                    setIsOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer text-left ${
+                    isSelected
+                      ? 'bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/15 dark:text-[#88c958] font-bold'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <span>{role}</span>
+                  {isSelected && (
+                    <Check className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 /**
  * Enterprise-Grade MembersTab Component
  * Features:
@@ -229,7 +338,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         </div>
 
         {/* Members Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto min-h-[300px] pb-12 sm:pb-6">
           <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
             <thead className="bg-slate-50/80 dark:bg-[#12151c]/70 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-white/[0.08]">
               <tr>
@@ -409,30 +518,14 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                             <StatusPill status="admin" label="ADMIN" />
                           </div>
                         ) : isAdmin ? (
-                          <div className="relative inline-flex items-center">
-                            <select
-                              value={
-                                m.projectRole === 'QA Specialist' || m.projectRole === 'QA'
-                                  ? 'QA'
-                                  : m.projectRole && m.projectRole !== 'Unassigned'
-                                  ? m.projectRole
-                                  : 'Developer'
-                              }
-                              onChange={(e) => handleRoleSelect(m.email, e.target.value)}
-                              disabled={updatingRoleEmail === m.email}
-                              className="px-3 py-1.5 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18] rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all cursor-pointer shadow-2xs disabled:opacity-50"
-                              title="Assign project role"
-                            >
-                              <option value="Developer" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Developer</option>
-                              <option value="QA" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">QA</option>
-                              <option value="Manager" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Manager</option>
-                              <option value="DevOps" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">DevOps</option>
-                              <option value="Project Lead" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Project Lead</option>
-                            </select>
-                            {updatingRoleEmail === m.email && (
-                              <Loader2 className="w-3.5 h-3.5 text-[#88c958] animate-spin ml-2 shrink-0" />
-                            )}
-                          </div>
+                          <MemberRoleDropdown
+                            email={m.email}
+                            currentRole={m.projectRole}
+                            onSelect={handleRoleSelect}
+                            isUpdating={updatingRoleEmail === m.email}
+                            rowIndex={index}
+                            totalRows={members.length}
+                          />
                         ) : (
                           <StatusPill status={m.projectRole && m.projectRole !== 'Unassigned' ? m.projectRole : 'Developer'} />
                         )}
