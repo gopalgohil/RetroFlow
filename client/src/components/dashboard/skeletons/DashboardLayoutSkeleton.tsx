@@ -39,9 +39,9 @@ export const DashboardLayoutSkeleton: React.FC<{ tab?: string }> = ({ tab = 'ses
         {/* Nav Items Skeleton (Pulsing only below the header) */}
         <div className="px-4 pt-12 pb-6 flex-1 overflow-y-auto space-y-2 animate-pulse">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-10 rounded-xl bg-slate-100/70 dark:bg-[#12151c]/60 flex items-center px-3.5 gap-3">
-              <div className="w-4 h-4 rounded-md bg-slate-200 dark:bg-[#1a1f2c]" />
-              <div className="h-3 w-28 rounded bg-slate-200 dark:bg-[#1a1f2c]" />
+            <div key={i} className="h-12 rounded-xl bg-slate-100/70 dark:bg-[#12151c]/60 flex items-center px-3.5 gap-3">
+              <div className="w-[18px] h-[18px] rounded-md bg-slate-200 dark:bg-[#1a1f2c]" />
+              <div className="h-3.5 w-32 rounded bg-slate-200 dark:bg-[#1a1f2c]" />
             </div>
           ))}
         </div>
