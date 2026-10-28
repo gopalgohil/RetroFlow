@@ -20,6 +20,14 @@ export interface SprintsTabProps {
   project: Project;
   onProjectUpdated: (updated: Project) => void;
   canManageProject?: boolean;
+  canMarkDone?: boolean;
+  currentUser?: {
+    id?: string;
+    _id?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | null;
   canDeleteSprint?: boolean;
 }
 
@@ -32,8 +40,22 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   project,
   onProjectUpdated,
   canManageProject = true,
+  canMarkDone = false,
+  currentUser = null,
   canDeleteSprint = false,
 }) => {
+  const [effectiveUser, setEffectiveUser] = useState(currentUser);
+
+  useEffect(() => {
+    if (currentUser) {
+      setEffectiveUser(currentUser);
+    } else {
+      try {
+        const saved = localStorage.getItem('retroflow_user');
+        if (saved) setEffectiveUser(JSON.parse(saved));
+      } catch {}
+    }
+  }, [currentUser]);
   const [filter, setFilter] = useState<SprintFilterTab>('all');
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [sprintPage, setSprintPage] = useState<number>(1);
@@ -472,6 +494,8 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               sprint={sprint}
               isExpanded={expandedSprintIds.includes(sprint.id)}
               canManageProject={canManageProject}
+              canMarkDone={canMarkDone}
+              currentUser={effectiveUser}
               updatingItemId={updatingItemId}
               deletingItemId={deletingItemId}
               onToggleExpand={toggleExpand}

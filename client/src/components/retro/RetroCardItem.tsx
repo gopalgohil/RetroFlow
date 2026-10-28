@@ -82,6 +82,10 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   };
 
   const canInteract = card.hasVoted || remainingVotes > 0;
+  const isCardAssigned = Boolean(card.assignedTo?.name || card.isExportedToActionItems);
+  const effectiveCanEdit = canEdit && !isCardAssigned;
+  const effectiveCanDelete = canDelete && !isCardAssigned;
+  const effectiveMoveToActions = isCardAssigned ? undefined : onMoveToActions;
 
   return (
     <div
@@ -277,10 +281,10 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
 
             <div className="flex items-center gap-1 shrink-0">
               {/* 1-Click Promote to Action Items (Admin/Manager only) */}
-              {onMoveToActions && (
+              {effectiveMoveToActions && (
                 <button
                   type="button"
-                  onClick={() => onMoveToActions(card.id)}
+                  onClick={() => effectiveMoveToActions(card.id)}
                   title="Promote to Action Items"
                   className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100/90 dark:hover:bg-amber-900/50 border border-amber-200/80 dark:border-amber-800/60 transition-all hover:scale-[1.03] active:scale-95 cursor-pointer shadow-2xs"
                 >
@@ -300,9 +304,9 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
               )}
 
               {/* Edit (Author Only) & Delete (Author or Facilitator Moderation) */}
-              {(canEdit || canDelete) && (
+              {(effectiveCanEdit || effectiveCanDelete) && (
                 <div className="flex items-center gap-0.5">
-                  {canEdit && (
+                  {effectiveCanEdit && (
                     <button
                       onClick={handleStartEdit}
                       title="Edit your thought"
@@ -311,7 +315,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                       <Pencil className="w-3 h-3" />
                     </button>
                   )}
-                  {canDelete && (
+                  {effectiveCanDelete && (
                     isConfirmingDelete ? (
                       <div className="inline-flex items-center gap-1 bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-800/80 rounded-md px-1.5 py-0.5 animate-in fade-in zoom-in-95 duration-100 z-10 shadow-xs">
                         <span className="text-[10px] font-bold text-rose-700 dark:text-rose-300">Delete?</span>
@@ -355,6 +359,20 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
           <p className="text-xs text-slate-800 dark:text-slate-100 leading-snug break-words font-medium py-0.5">
             {card.text}
           </p>
+
+          {/* Locked Assignee Badge for Committed Action Items */}
+          {card.assignedTo?.name && (
+            <div
+              title={`Already assigned to ${card.assignedTo.name}. It cannot be reassigned.`}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 select-none shadow-2xs"
+            >
+              <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span className="truncate">
+                Assigned to: <strong className="font-extrabold">{card.assignedTo.name}</strong>
+                {card.assignedSprintName ? ` (${card.assignedSprintName})` : ''}
+              </span>
+            </div>
+          )}
 
           {/* Card Author Attribution: Completely hidden by default, smoothly revealed on mouse hover */}
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pt-1.5 border-t border-slate-200/40 dark:border-white/[0.08] flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">

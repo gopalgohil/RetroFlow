@@ -98,6 +98,19 @@ const cardSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    assignedTo: {
+      name: { type: String, default: null },
+      email: { type: String, default: null },
+      avatar: { type: String, default: null },
+    },
+    assignedSprintName: {
+      type: String,
+      default: null,
+    },
+    isExportedToActionItems: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

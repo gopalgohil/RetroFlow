@@ -13,6 +13,14 @@ interface SprintBacklogItemRowProps {
   sprintEndDate?: string;
   isUpdating: boolean;
   canManageProject?: boolean;
+  canMarkDone?: boolean;
+  currentUser?: {
+    id?: string;
+    _id?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | null;
   isDeleting?: boolean;
   onUpdateStatus: (
     sprintId: string,
@@ -49,11 +57,28 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
     sprintEndDate,
     isUpdating,
     canManageProject = false,
+    canMarkDone = false,
+    currentUser = null,
     isDeleting = false,
     onUpdateStatus,
     onUpdateDueDate,
     onDeleteItem,
   }) => {
+    const userEmail = currentUser?.email?.toLowerCase().trim();
+    const userName = currentUser?.name?.toLowerCase().trim();
+    const assigneeEmail = item.assignee?.email?.toLowerCase().trim();
+    const assigneeName = item.assignee?.name?.toLowerCase().trim();
+
+    const isAssignee = Boolean(
+      item.assignee && (
+        (userEmail && assigneeEmail && userEmail === assigneeEmail) ||
+        (userName && assigneeName && userName === assigneeName)
+      )
+    );
+
+    // Only Manager/Admin (canManageProject) or designated Assignee can update status
+    const canChangeStatus = Boolean(canManageProject || isAssignee);
+
     return (
       <div className="group p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
         {/* Left: Item Index Number & Title */}
@@ -126,41 +151,73 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
             </div>
           )}
 
-          {/* Interactive Ticket Status Toggle Dropdown */}
-          <div className="relative inline-block">
-            <select
-              value={item.status}
-              disabled={isUpdating || isDeleting}
-              onChange={(e) =>
-                onUpdateStatus(
-                  sprintId,
-                  item.id,
-                  e.target.value as 'todo' | 'in_progress' | 'done'
-                )
+          {/* Status Display: Interactive Dropdown for Assignee/Manager, Static Read-Only Badge for Others */}
+          {!canChangeStatus ? (
+            <div
+              title={
+                item.assignee?.name
+                  ? `Assigned to ${item.assignee.name}. Only ${item.assignee.name} or Manager can update status.`
+                  : 'Unassigned task. Only Manager can update status.'
               }
-              title="Click to update ticket status (TODO ➔ IN PROGRESS ➔ DONE)"
-              className={`appearance-none pl-2.5 pr-7 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer border shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#88c958]/30 ${
+              className={`px-2.5 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider select-none border shadow-2xs ${
                 item.status === 'done'
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100/90'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
                   : item.status === 'in_progress'
-                  ? 'bg-[#88c958]/15 text-[#88c958] border-[#88c958]/30 hover:bg-[#88c958]/25'
-                  : 'bg-slate-100 dark:bg-[#141720] text-slate-700 dark:text-slate-300 border-slate-300 dark:border-white/[0.08] hover:bg-slate-200/80 dark:hover:bg-white/[0.05]'
+                  ? 'bg-[#88c958]/15 text-[#88c958] border-[#88c958]/30'
+                  : 'bg-slate-100 dark:bg-[#141720] text-slate-700 dark:text-slate-300 border-slate-300 dark:border-white/[0.08]'
               }`}
             >
-              <option value="todo" className="text-slate-800 dark:text-slate-200 bg-white dark:bg-[#0e1015] font-bold py-1">
-                ○ TO DO
-              </option>
-              <option value="in_progress" className="text-[#88c958] bg-white dark:bg-[#0e1015] font-bold py-1">
-                ◑ IN PROGRESS
-              </option>
-              <option value="done" className="text-emerald-700 dark:text-emerald-400 bg-white dark:bg-[#0e1015] font-bold py-1">
-                ● DONE
-              </option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <ChevronDown className="w-3.5 h-3.5 opacity-60 text-current" />
+              {item.status === 'done' ? '● DONE' : item.status === 'in_progress' ? '◑ IN PROGRESS' : '○ TO DO'}
             </div>
-          </div>
+          ) : !canMarkDone && item.status === 'done' ? (
+            <div
+              title="This task is completed. Only Admin or Manager can modify completed tasks."
+              className="px-2.5 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider select-none border shadow-2xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 cursor-not-allowed opacity-90"
+            >
+              ● DONE
+            </div>
+          ) : (
+            <div className="relative inline-block">
+              <select
+                value={item.status}
+                disabled={isUpdating || isDeleting}
+                onChange={(e) =>
+                  onUpdateStatus(
+                    sprintId,
+                    item.id,
+                    e.target.value as 'todo' | 'in_progress' | 'done'
+                  )
+                }
+                title={
+                  canMarkDone
+                    ? 'Click to update ticket status (TODO ➔ IN PROGRESS ➔ DONE)'
+                    : 'Click to update status (TODO ➔ IN PROGRESS). Only Manager/Admin can mark Done.'
+                }
+                className={`appearance-none pl-2.5 pr-7 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer border shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#88c958]/30 ${
+                  item.status === 'done'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100/90'
+                    : item.status === 'in_progress'
+                    ? 'bg-[#88c958]/15 text-[#88c958] border-[#88c958]/30 hover:bg-[#88c958]/25'
+                    : 'bg-slate-100 dark:bg-[#141720] text-slate-700 dark:text-slate-300 border-slate-300 dark:border-white/[0.08] hover:bg-slate-200/80 dark:hover:bg-white/[0.05]'
+                }`}
+              >
+                <option value="todo" className="text-slate-800 dark:text-slate-200 bg-white dark:bg-[#0e1015] font-bold py-1">
+                  ○ TO DO
+                </option>
+                <option value="in_progress" className="text-[#88c958] bg-white dark:bg-[#0e1015] font-bold py-1">
+                  ◑ IN PROGRESS
+                </option>
+                {canMarkDone && (
+                  <option value="done" className="text-emerald-700 dark:text-emerald-400 bg-white dark:bg-[#0e1015] font-bold py-1">
+                    ● DONE
+                  </option>
+                )}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <ChevronDown className="w-3.5 h-3.5 opacity-60 text-current" />
+              </div>
+            </div>
+          )}
 
           {/* Admin / Manager / Lead Delete Action */}
           {canManageProject && onDeleteItem && (

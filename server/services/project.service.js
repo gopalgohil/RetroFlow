@@ -1048,6 +1048,42 @@ class ProjectService {
     const status = typeof payload === 'string' ? payload : payload?.status;
     const dueDate = typeof payload === 'object' ? payload?.dueDate : undefined;
 
+    // RBAC & Assignee validation:
+    // Only assigned developer or manager can update status; only manager can mark as done.
+    if (currentUser && status) {
+      let isManager = false;
+      try {
+        this.assertCanManage(project, currentUser);
+        isManager = true;
+      } catch {
+        isManager = false;
+      }
+
+      const userEmail = currentUser.email?.toLowerCase().trim();
+      const userName = currentUser.name?.toLowerCase().trim();
+      const assigneeEmail = item.assignee?.email?.toLowerCase().trim();
+      const assigneeName = item.assignee?.name?.toLowerCase().trim();
+
+      const isAssignee = Boolean(
+        item.assignee && (
+          (userEmail && assigneeEmail && userEmail === assigneeEmail) ||
+          (userName && assigneeName && userName === assigneeName)
+        )
+      );
+
+      if (!isManager && !isAssignee) {
+        const error = new Error('Access Denied: Only the assigned developer or project manager can update this task.');
+        error.statusCode = 403;
+        throw error;
+      }
+
+      if (!isManager && status === 'done') {
+        const error = new Error('Access Denied: Only Workspace Admins and Managers can mark tasks as Done.');
+        error.statusCode = 403;
+        throw error;
+      }
+    }
+
     if (status) {
       item.status = status;
       if (status === 'done' && !item.completedAt) {
@@ -1780,9 +1816,26 @@ class ProjectService {
           ? { $or: [{ _id: retroIdentifier }, { shareToken: retroIdentifier }] }
           : { shareToken: retroIdentifier };
 
-        await RetroBoard.updateOne(retroQuery, { $set: { status: 'completed' } });
+        const retroBoardDoc = await RetroBoard.findOne(retroQuery);
+        if (retroBoardDoc) {
+          retroBoardDoc.status = 'completed';
+          retroBoardDoc.cards = retroBoardDoc.cards || [];
+          for (const it of newItems) {
+            const card = retroBoardDoc.cards.find(
+              (c) =>
+                (it.id && (c.cardId === it.id || (c._id && c._id.toString() === it.id))) ||
+                (c.text && it.title && c.text.trim().toLowerCase() === it.title.trim().toLowerCase())
+            );
+            if (card) {
+              card.assignedTo = it.assignee;
+              card.assignedSprintName = sprint.name;
+              card.isExportedToActionItems = true;
+            }
+          }
+          await retroBoardDoc.save();
+        }
       } catch (err) {
-        console.warn('[exportActionItems] Failed to update RetroBoard status:', err);
+        console.warn('[exportActionItems] Failed to update RetroBoard status and cards:', err);
       }
     }
 

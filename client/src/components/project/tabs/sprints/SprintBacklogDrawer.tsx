@@ -14,6 +14,14 @@ export interface SprintBacklogDrawerProps {
   updatingItemId: string | null;
   deletingItemId?: string | null;
   canManageProject?: boolean;
+  canMarkDone?: boolean;
+  currentUser?: {
+    id?: string;
+    _id?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | null;
   onUpdateItemStatus: (
     sprintId: string,
     itemId: string,
@@ -38,6 +46,8 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
   updatingItemId,
   deletingItemId = null,
   canManageProject = false,
+  canMarkDone = false,
+  currentUser = null,
   onUpdateItemStatus,
   onUpdateDueDate,
   onDeleteItem,
@@ -227,6 +237,8 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
                   isUpdating={updatingItemId === item.id}
                   isDeleting={deletingItemId === item.id}
                   canManageProject={canManageProject}
+                  canMarkDone={canMarkDone}
+                  currentUser={currentUser}
                   sprintStartDate={sprint.startDate}
                   sprintEndDate={sprint.endDate}
                   onUpdateStatus={onUpdateItemStatus}

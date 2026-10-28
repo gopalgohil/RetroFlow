@@ -20,6 +20,13 @@ export interface RetroCard {
   authorEmail?: string;
   votes: number;
   voters?: string[];
+  assignedTo?: {
+    name: string;
+    email?: string;
+    avatar?: string;
+  } | null;
+  assignedSprintName?: string | null;
+  isExportedToActionItems?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

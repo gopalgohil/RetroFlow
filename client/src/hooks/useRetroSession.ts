@@ -202,6 +202,9 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
               authorEmail: c.authorEmail,
               votes: typeof c.votes === 'number' ? c.votes : 0,
               voters: Array.isArray(c.voters) ? c.voters : [],
+              assignedTo: c.assignedTo || null,
+              assignedSprintName: c.assignedSprintName || null,
+              isExportedToActionItems: Boolean(c.isExportedToActionItems || c.assignedTo),
               hasVoted: Array.isArray(c.voters) && (
                 c.voters.some((v: string) => {
                   const vLower = (v || '').toLowerCase().trim();

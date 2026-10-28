@@ -945,6 +945,8 @@ function ProjectDetailContent() {
                       project={project}
                       onProjectUpdated={(up) => setProject({ ...up })}
                       canManageProject={canManageProject}
+                      canMarkDone={Boolean(isWorkspaceAdmin || isManager)}
+                      currentUser={activeUser}
                     />
                   )}
 

@@ -12,6 +12,14 @@ export interface SprintCardProps {
   sprint: Sprint;
   isExpanded: boolean;
   canManageProject: boolean;
+  canMarkDone?: boolean;
+  currentUser?: {
+    id?: string;
+    _id?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | null;
   canDeleteSprint?: boolean;
   updatingItemId: string | null;
   deletingItemId?: string | null;
@@ -43,6 +51,8 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   sprint,
   isExpanded,
   canManageProject,
+  canMarkDone = false,
+  currentUser = null,
   canDeleteSprint = false,
   updatingItemId,
   deletingItemId = null,
@@ -215,6 +225,8 @@ export const SprintCard: React.FC<SprintCardProps> = ({
           updatingItemId={updatingItemId}
           deletingItemId={deletingItemId}
           canManageProject={canManageProject}
+          canMarkDone={canMarkDone}
+          currentUser={currentUser}
           onUpdateItemStatus={onUpdateItemStatus}
           onUpdateDueDate={onUpdateDueDate}
           onDeleteItem={onDeleteItem}

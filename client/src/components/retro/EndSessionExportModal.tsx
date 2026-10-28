@@ -197,9 +197,14 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   }, [selectedProject]);
 
   // Initialize selected card IDs and default item configs when modal opens or cards change
+  const unassignedActionCards = useMemo(() => {
+    return actionCards.filter((c) => !c.assignedTo?.name && !c.isExportedToActionItems);
+  }, [actionCards]);
+
   useEffect(() => {
     if (actionCards.length > 0) {
-      const ids = actionCards.map((c) => c.id);
+      // ONLY auto-select unassigned cards (Option 2: Never auto-select already assigned cards)
+      const ids = unassignedActionCards.map((c) => c.id);
       setSelectedCardIds(ids);
 
       const initialConfigs: Record<string, ItemConfig> = {};
@@ -281,6 +286,9 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
 
   // Toggle single card selection
   const handleToggleCard = (cardId: string) => {
+    const card = actionCards.find((c) => c.id === cardId);
+    if (card?.assignedTo?.name || card?.isExportedToActionItems) return; // Cannot toggle already assigned card
+
     setSelectedCardIds((prev) =>
       prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
     );
@@ -415,6 +423,17 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       retroId,
       retroTitle,
       actionCards: itemsToExport,
+    });
+
+    // Mark exported cards in-place so UI shows the locked badge instantly
+    const targetSprintObj = selectedProject.sprints?.find((s) => s.id === sprintIdToUse);
+    itemsToExport.forEach((it) => {
+      const originalCard = cards.find((c) => c.id === it.id);
+      if (originalCard) {
+        originalCard.assignedTo = it.assignee;
+        originalCard.assignedSprintName = targetSprintObj?.name || 'Sprint Backlog';
+        originalCard.isExportedToActionItems = true;
+      }
     });
 
     if (onSessionEnded && mode === 'end_and_export') {
@@ -905,9 +924,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                   </div>
                 ) : (
                   actionCards.map((card) => {
+                    const isAlreadyAssigned = Boolean(card.assignedTo?.name || card.isExportedToActionItems);
                     const isSelected = selectedCardIds.includes(card.id);
                     const cfg = itemConfigs[card.id] || {
-                      assigneeName: '',
+                      assigneeName: card.assignedTo?.name || '',
                       storyPoints: 3,
                       priority: 'high',
                     };
@@ -916,24 +936,42 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                       <div
                         key={card.id}
                         className={`p-3 rounded-xl border transition-all space-y-2.5 ${
-                          isSelected
+                          isAlreadyAssigned
+                            ? 'bg-slate-100/80 dark:bg-white/[0.04] border-slate-200 dark:border-white/[0.08] opacity-80'
+                            : isSelected
                             ? 'bg-[#eaf5e3]/40 dark:bg-[#88c958]/10 border-[#cdeac0]/90 dark:border-[#88c958]/30 shadow-2xs'
                             : 'bg-slate-50/50 dark:bg-[#12151c]/40 border-slate-200/70 dark:border-white/[0.05] opacity-60'
                         }`}
                       >
-                        {/* Top: Checkbox + Card Text */}
+                        {/* Top: Checkbox + Card Text + Already Assigned Locked Tag */}
                         <div className="flex items-start gap-3">
                           <input
                             type="checkbox"
                             checked={isSelected}
+                            disabled={isAlreadyAssigned}
                             onChange={() => handleToggleCard(card.id)}
-                            className="mt-1 w-4 h-4 rounded text-[#88c958] border-slate-300 dark:border-white/20 dark:bg-[#141720] focus:ring-[#88c958] cursor-pointer"
+                            title={
+                              isAlreadyAssigned
+                                ? `Already assigned to ${card.assignedTo?.name || 'team member'} (${card.assignedSprintName || 'Sprint Backlog'}). Cannot re-assign.`
+                                : undefined
+                            }
+                            className={`mt-1 w-4 h-4 rounded text-[#88c958] border-slate-300 dark:border-white/20 dark:bg-[#141720] focus:ring-[#88c958] ${
+                              isAlreadyAssigned ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'
+                            }`}
                           />
 
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-slate-900 dark:text-white leading-snug">
-                              {card.text}
-                            </p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className={`text-xs font-bold leading-snug ${isAlreadyAssigned ? 'text-slate-600 dark:text-slate-300' : 'text-slate-900 dark:text-white'}`}>
+                                {card.text}
+                              </p>
+                              {isAlreadyAssigned && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
+                                  <Check className="w-2.5 h-2.5" />
+                                  Already Assigned to: {card.assignedTo?.name || 'Member'} {card.assignedSprintName ? `(${card.assignedSprintName})` : ''}
+                                </span>
+                              )}
+                            </div>
                             {card.author && (
                               <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
                                 Raised by: <span className="font-semibold text-slate-600 dark:text-slate-300">{card.author}</span>
@@ -942,8 +980,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                           </div>
                         </div>
 
-                        {/* Bottom: Assignee & Priority Selector (Only enabled if selected) */}
-                        {isSelected && (
+                        {/* Bottom: Assignee & Priority Selector (Only enabled if selected and not already assigned) */}
+                        {isSelected && !isAlreadyAssigned && (
                           <div className="flex flex-wrap items-center gap-2 pl-7 pt-1 border-t border-[#cdeac0]/80 dark:border-white/[0.08]">
                             {/* Assignee Selector */}
                             <div className="flex items-center gap-1.5">
