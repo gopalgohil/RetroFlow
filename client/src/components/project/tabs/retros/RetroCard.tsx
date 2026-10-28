@@ -36,12 +36,8 @@ export const RetroCard: React.FC<RetroCardProps> = ({
 }) => {
   const isActive = retro.status === 'active';
 
-  const start = retro.startDate || retro.scheduledDate;
-  const end = retro.endDate;
-  const dateDisplay =
-    start && end
-      ? `${formatDateDMY(start)} – ${formatDateDMY(end)}`
-      : formatDateDMY(start || retro.scheduledDate);
+  const meetingDate = retro.startDate || retro.scheduledDate || (retro as any).createdAt;
+  const dateDisplay = formatDateDMY(meetingDate);
 
   return (
     <div className="group p-3.5 sm:p-4.5 2xl:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
