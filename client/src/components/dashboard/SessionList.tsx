@@ -57,8 +57,6 @@ export const SessionList: React.FC<SessionListProps> = ({
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
   const projectDropdownRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isFilterLoading, setIsFilterLoading] = useState(false);
-  const [isPageLoading, setIsPageLoading] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [invitingSession, setInvitingSession] = useState<RetroBoard | null>(null);
@@ -216,33 +214,21 @@ export const SessionList: React.FC<SessionListProps> = ({
 
   const handleTabClick = (tabId: 'all' | 'active' | 'upcoming' | 'completed') => {
     if (tabId === activeFilter) return;
-    setIsFilterLoading(true);
     setActiveFilter(tabId);
     setCurrentPage(1);
-    setTimeout(() => {
-      setIsFilterLoading(false);
-    }, 320);
   };
 
   const handleProjectSelect = (projectName: string) => {
     setIsProjectDropdownOpen(false);
     if (projectName.toLowerCase() === selectedProject.toLowerCase()) return;
-    setIsFilterLoading(true);
     setSelectedProject(projectName);
     setCurrentPage(1);
-    setTimeout(() => {
-      setIsFilterLoading(false);
-    }, 320);
   };
 
   const handlePageChange = (newPage: number) => {
     const target = Math.min(Math.max(1, newPage), totalPages);
-    if (target === safeCurrentPage || isPageLoading) return;
-    setIsPageLoading(true);
+    if (target === safeCurrentPage) return;
     setCurrentPage(target);
-    setTimeout(() => {
-      setIsPageLoading(false);
-    }, 300);
   };
 
   const handleCopyLink = (shareToken: string) => {
@@ -267,9 +253,9 @@ export const SessionList: React.FC<SessionListProps> = ({
     });
   };
 
-  const isSearchDebouncing = localSearch.trim() !== searchQuery.trim();
+  const isSearchDebouncing = localSearch.trim() !== (searchQuery || '').trim();
   const isSearching = isSearchDebouncing || isLoading;
-  const isCardsLoading = (isLoading && sessions.length === 0) || isFilterLoading || isPageLoading || isSearchDebouncing;
+  const isCardsLoading = isLoading && sessions.length === 0;
 
   // Tab counts
   const activeCount = sessions.filter((s) => s.status === 'active').length;
