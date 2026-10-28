@@ -709,15 +709,9 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
 
               {/* Destination Sprint Selector */}
               <div className="space-y-1 relative" ref={sprintDropdownRef}>
-                <div className="flex items-center justify-between">
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                    Target Sprint
-                  </label>
-                  <span className="text-[10px] text-[#3d8318] dark:text-[#88c958] font-bold bg-[#eaf5e3] dark:bg-[#88c958]/20 px-2 py-0.5 rounded border border-[#cdeac0] dark:border-[#88c958]/30 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-[#88c958]" />
-                    Dedicated Retro Sprint
-                  </span>
-                </div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                  Target Sprint
+                </label>
 
                 {/* Custom Sprint Dropdown Trigger */}
                 <button
@@ -784,9 +778,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                 <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                                   ACTIVE
                                 </span>
-                                <span className="text-[9px] font-semibold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/20 px-1.5 py-0.5 rounded border border-[#cdeac0] dark:border-[#88c958]/30">
-                                  Dedicated Retro Sprint
-                                </span>
+
                               </div>
                               <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                 <span>{currentSprint.startDate} → {currentSprint.endDate}</span>
