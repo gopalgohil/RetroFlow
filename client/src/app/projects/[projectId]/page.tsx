@@ -488,46 +488,57 @@ function ProjectDetailContent() {
 
   const userEmail = activeUser.email?.toLowerCase().trim();
   const userRole = activeUser.role?.toLowerCase().trim();
-  const userProjectRole = (activeUser as any).projectRole;
 
+  // 1. Workspace Administrator (Has master authority over all workspace initiatives)
   const isWorkspaceAdmin = Boolean(userRole === 'admin');
 
+  // 2. Designated Project Lead (from project.lead)
   const isDesignatedLead = Boolean(
     userEmail && project?.lead?.email?.toLowerCase().trim() === userEmail
   );
 
+  // 3. User's specific membership record inside THIS project
   const userMemberRecord = project?.members?.find(
     (m) => m.email?.toLowerCase().trim() === userEmail
   );
 
-  // Effective role in this agile project context
+  // 4. Project-scoped role priority:
+  // If user is explicitly assigned in project.members, that project role strictly governs!
+  // If user is designated lead, their role is Project Lead.
+  // If user is Workspace Admin, their role is Admin / Manager.
+  // Otherwise default to Developer.
+  const projectAssignedRole = userMemberRecord?.role;
+
   const effectiveRole =
-    userMemberRecord?.role ||
-    userProjectRole ||
+    projectAssignedRole ||
     (isDesignatedLead ? 'Project Lead' : isWorkspaceAdmin ? 'Manager' : 'Developer');
 
-  // Check Manager authority (allowed to create project, create retro, share link, delete project)
+  const normalizedProjectRole = (projectAssignedRole || '').toLowerCase().trim();
+  const isAssignedProjectManager =
+    normalizedProjectRole === 'manager' || normalizedProjectRole.includes('manager');
+  const isAssignedProjectLead =
+    normalizedProjectRole === 'project lead' || normalizedProjectRole.includes('lead');
+
+  // Check Manager authority IN THIS SPECIFIC PROJECT:
+  // Allowed ONLY for Workspace Admins, members assigned as 'Manager' in this project,
+  // or designated project leads whose role is Manager.
+  // CRITICAL: A user holding a "Manager" title in workspace/other projects MUST NOT have manager authority
+  // in a project where they are assigned as Developer/QA/DevOps.
   const isManager = Boolean(
     isWorkspaceAdmin ||
-    effectiveRole === 'Manager' ||
-    userRole === 'manager' ||
-    userRole?.includes('manager') ||
-    userMemberRecord?.role === 'Manager'
+    isAssignedProjectManager ||
+    (isDesignatedLead && !projectAssignedRole)
   );
 
-  // Check Project Lead authority (allowed to create retro, share link; STRICTLY CANNOT delete project)
+  // Check Project Lead authority IN THIS SPECIFIC PROJECT:
   const isProjectLead = Boolean(
     !isManager && (
-      effectiveRole === 'Project Lead' ||
       isDesignatedLead ||
-      userRole === 'project lead' ||
-      userRole === 'team lead' ||
-      userRole?.includes('lead') ||
-      userMemberRecord?.role === 'Project Lead'
+      isAssignedProjectLead
     )
   );
 
-  // Check Developer / QA / DevOps (STRICTLY CANNOT share links, cannot create retro/projects, cannot delete)
+  // Check Developer / QA / DevOps in this project:
   const isDevOrQAOrDevOps = Boolean(
     !isWorkspaceAdmin &&
     !isManager &&
@@ -542,14 +553,14 @@ function ProjectDetailContent() {
   const canShare = Boolean(isClientMounted && (isWorkspaceAdmin || isManager || isProjectLead) && !isDevOrQAOrDevOps);
 
   // 2. Project deletion (Danger Zone)
-  // Workspace Admin and Manager ONLY; Project Lead STRICTLY CANNOT delete project
+  // Workspace Admin and Project-level Manager ONLY; Project Lead STRICTLY CANNOT delete project
   const canDeleteProject = Boolean(isWorkspaceAdmin || isManager);
 
   // 3. Retro creation
   // Admin, Manager, and Project Lead CAN create retro; Developer, QA, DevOps CANNOT
   const canCreateRetro = Boolean((isWorkspaceAdmin || isManager || isProjectLead) && !isDevOrQAOrDevOps);
 
-  // 4. Project management general (sprints, tabs)
+  // 4. Project management general (sprints, tabs, backlog drag-and-drop)
   const canManageProject = Boolean(isWorkspaceAdmin || isManager || isProjectLead);
 
   const initials = activeUser.name

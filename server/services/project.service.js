@@ -798,7 +798,7 @@ class ProjectService {
   }
 
   /**
-   * Helper to verify if currentUser has Manager, Project Lead, or Admin authority
+   * Helper to verify if currentUser has Manager, Project Lead, or Admin authority in THIS project
    */
   assertCanManage(project, currentUser) {
     if (!currentUser) {
@@ -813,29 +813,20 @@ class ProjectService {
 
     if (isAdmin) return;
 
-    const isGlobalManagerOrLead =
-      currentUser.projectRole === 'Manager' ||
-      currentUser.projectRole === 'Project Lead' ||
-      currentUser.role?.toLowerCase() === 'manager' ||
-      currentUser.role?.toLowerCase() === 'project lead' ||
-      currentUser.role?.toLowerCase() === 'team lead' ||
-      currentUser.role?.toLowerCase().includes('manager') ||
-      currentUser.role?.toLowerCase().includes('lead');
-
-    if (isGlobalManagerOrLead) return;
-
     const email = currentUser.email?.toLowerCase().trim();
     const isLead = project.lead?.email?.toLowerCase().trim() === email;
-    const memberRecord = project.members?.find((m) => m.email?.toLowerCase().trim() === email);
-    const isManager =
-      memberRecord &&
-      (memberRecord.role === 'Manager' ||
-        memberRecord.role?.toLowerCase().includes('manager') ||
-        memberRecord.role?.toLowerCase().includes('lead'));
     const isCreator = currentUser._id && project.createdBy?.toString() === currentUser._id.toString();
+    const memberRecord = project.members?.find((m) => m.email?.toLowerCase().trim() === email);
 
-    if (!isLead && !isManager && !isCreator) {
-      const error = new Error('Access Denied: Only Project Lead, Managers, or Workspace Admins can perform this action.');
+    // Project-specific role check:
+    // User must be designated lead, creator, or assigned Manager/Lead in THIS specific project.
+    // A user with "Manager" in workspace but "Developer" in this project must NOT have management rights here.
+    const projectRole = (memberRecord?.role || '').toLowerCase();
+    const isProjectManager = projectRole === 'manager' || projectRole.includes('manager');
+    const isProjectLead = projectRole === 'project lead' || projectRole.includes('lead');
+
+    if (!isLead && !isProjectManager && !isProjectLead && !isCreator) {
+      const error = new Error('Access Denied: Only Project Lead, Managers, or Workspace Admins can perform this action in this project.');
       error.statusCode = 403;
       throw error;
     }
@@ -2300,13 +2291,10 @@ class ProjectService {
       )
     );
 
-    const isManager =
-      currentUser?.projectRole === 'Manager' ||
-      currentUser?.role?.toLowerCase() === 'manager' ||
-      currentUser?.role?.toLowerCase()?.includes('manager') ||
-      isProjectMemberManager;
+    // Only Workspace Admins or members explicitly assigned as Manager in this project can delete
+    const isProjectManager = isProjectMemberManager || (project.lead?.email?.toLowerCase()?.trim() === email);
 
-    if (!isAdmin && !isManager) {
+    if (!isAdmin && !isProjectManager) {
       const isProjectLead =
         currentUser?.projectRole === 'Project Lead' ||
         currentUser?.role?.toLowerCase() === 'project lead' ||
