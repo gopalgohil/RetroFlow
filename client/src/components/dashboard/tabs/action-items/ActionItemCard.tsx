@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ExternalLink,
   Check,
+  User,
 } from 'lucide-react';
 import { EnrichedActionItem } from '@/types/project';
 
@@ -249,6 +250,20 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
                   <span className="truncate">{item.sourceRetroTitle}</span>
                 </span>
               )
+            )}
+
+            {/* Assigned Member Badge */}
+            {item.assignee?.name && (
+              <>
+                <span className="text-slate-300 dark:text-white/20">•</span>
+                <span
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30"
+                  title={`Assigned to: ${item.assignee.name}${givenByName ? `\nGiven by: ${givenByName}` : ''}`}
+                >
+                  <User className="w-3.5 h-3.5 shrink-0" />
+                  <span>Assigned to: <strong className="font-extrabold">{item.assignee.name}</strong></span>
+                </span>
+              </>
             )}
 
             {/* Assigned Date Badge */}

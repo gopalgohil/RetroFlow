@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, memo } from 'react';
-import { Pencil, Trash2, Check, X, ThumbsUp, GripVertical, Zap } from 'lucide-react';
+import { Pencil, Trash2, Check, X, ThumbsUp, GripVertical, Zap, User } from 'lucide-react';
 import { StickyCard } from '@/types/retro';
 
 export interface RetroCardItemProps {
@@ -120,6 +120,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
       onDrop={(e) => {
         if (canMoveCrossColumn) onCardDrop?.(card.id, e);
       }}
+      title={
+        card.assignedTo?.name
+          ? `Action Item: ${card.text}\nAssigned to: ${card.assignedTo.name}${card.assignedSprintName ? ` (${card.assignedSprintName})` : ''}\nRaised by: ${card.author}`
+          : `Feedback: ${card.text}\nRaised by: ${card.author}`
+      }
       style={{
         backgroundColor: `${topicColor}08`,
         borderColor: `${topicColor}30`,
@@ -374,19 +379,28 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             </div>
           )}
 
-          {/* Card Author Attribution: Completely hidden by default, smoothly revealed on mouse hover */}
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pt-1.5 border-t border-slate-200/40 dark:border-white/[0.08] flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+          {/* Card Author & Assignee Attribution: Smoothly revealed on mouse hover */}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pt-1.5 border-t border-slate-200/40 dark:border-white/[0.08] flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
               <div className="w-4 h-4 rounded-full bg-slate-200 dark:bg-[#141720] text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-[8px] uppercase shrink-0">
                 {card.author ? card.author.slice(0, 2) : 'RF'}
               </div>
               <span className="truncate font-medium">by {card.author}</span>
             </div>
-            {isCurrentAuthor && (
+
+            {card.assignedTo?.name ? (
+              <div
+                className="flex items-center gap-1 font-bold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/15 px-1.5 py-0.5 rounded border border-[#cdeac0] dark:border-[#88c958]/30 shrink-0 select-none"
+                title={`Assigned to: ${card.assignedTo.name}${card.assignedSprintName ? ` (${card.assignedSprintName})` : ''}`}
+              >
+                <User className="w-2.5 h-2.5 shrink-0" />
+                <span className="truncate max-w-[120px]">Assigned: {card.assignedTo.name}</span>
+              </div>
+            ) : isCurrentAuthor ? (
               <span className="text-[9px] font-bold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/15 px-1.5 py-0.2 rounded border border-[#cdeac0] dark:border-[#88c958]/30 shrink-0">
                 You
               </span>
-            )}
+            ) : null}
           </div>
         </>
       )}
