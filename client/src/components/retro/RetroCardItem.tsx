@@ -120,11 +120,6 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
       onDrop={(e) => {
         if (canMoveCrossColumn) onCardDrop?.(card.id, e);
       }}
-      title={
-        card.assignedTo?.name
-          ? `Action Item: ${card.text}\nAssigned to: ${card.assignedTo.name}${card.assignedSprintName ? ` (${card.assignedSprintName})` : ''}\nRaised by: ${card.author}`
-          : `Feedback: ${card.text}\nRaised by: ${card.author}`
-      }
       style={{
         backgroundColor: `${topicColor}08`,
         borderColor: `${topicColor}30`,

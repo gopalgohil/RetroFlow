@@ -10,8 +10,6 @@ import {
   Check,
   User,
   ListFilter,
-  CheckSquare,
-  Square,
   ShieldAlert,
   ChevronDown,
   AlertTriangle,
@@ -891,23 +889,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleToggleSelectAll}
-                  className="text-xs font-bold text-[#88c958] hover:text-[#96dc63] flex items-center gap-1 cursor-pointer transition-colors"
-                >
-                  {isAllSelected ? (
-                    <>
-                      <CheckSquare className="w-3.5 h-3.5 text-[#88c958]" />
-                      <span>Deselect All</span>
-                    </>
-                  ) : (
-                    <>
-                      <Square className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Select All</span>
-                    </>
-                  )}
-                </button>
+
               </div>
 
               {/* Scrollable list of items */}
