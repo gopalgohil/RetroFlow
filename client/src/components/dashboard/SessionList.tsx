@@ -57,6 +57,8 @@ export const SessionList: React.FC<SessionListProps> = ({
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
   const projectDropdownRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [invitingSession, setInvitingSession] = useState<RetroBoard | null>(null);
@@ -214,21 +216,33 @@ export const SessionList: React.FC<SessionListProps> = ({
 
   const handleTabClick = (tabId: 'all' | 'active' | 'upcoming' | 'completed') => {
     if (tabId === activeFilter) return;
+    setIsFilterLoading(true);
     setActiveFilter(tabId);
     setCurrentPage(1);
+    setTimeout(() => {
+      setIsFilterLoading(false);
+    }, 280);
   };
 
   const handleProjectSelect = (projectName: string) => {
     setIsProjectDropdownOpen(false);
     if (projectName.toLowerCase() === selectedProject.toLowerCase()) return;
+    setIsFilterLoading(true);
     setSelectedProject(projectName);
     setCurrentPage(1);
+    setTimeout(() => {
+      setIsFilterLoading(false);
+    }, 280);
   };
 
   const handlePageChange = (newPage: number) => {
     const target = Math.min(Math.max(1, newPage), totalPages);
-    if (target === safeCurrentPage) return;
+    if (target === safeCurrentPage || isPageLoading) return;
+    setIsPageLoading(true);
     setCurrentPage(target);
+    setTimeout(() => {
+      setIsPageLoading(false);
+    }, 250);
   };
 
   const handleCopyLink = (shareToken: string) => {
@@ -253,9 +267,10 @@ export const SessionList: React.FC<SessionListProps> = ({
     });
   };
 
+  const isInitialLoading = isLoading && sessions.length === 0;
   const isSearchDebouncing = localSearch.trim() !== (searchQuery || '').trim();
   const isSearching = isSearchDebouncing || isLoading;
-  const isCardsLoading = isLoading && sessions.length === 0;
+  const isCardsLoading = isInitialLoading || isFilterLoading || isPageLoading || isSearchDebouncing;
 
   // Tab counts
   const activeCount = sessions.filter((s) => s.status === 'active').length;
@@ -422,7 +437,7 @@ export const SessionList: React.FC<SessionListProps> = ({
             </div>
           )}
 
-          {isCardsLoading ? (
+          {isInitialLoading ? (
             <div className="h-4 w-24 rounded bg-slate-200/80 dark:bg-white/[0.06] animate-pulse hidden sm:block shrink-0" />
           ) : (
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline-block shrink-0">
