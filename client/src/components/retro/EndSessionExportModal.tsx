@@ -728,19 +728,14 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                     {currentSprint ? (
                       <>
                         <span
-                          className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 ${
+                          className={`w-2 h-2 rounded-full shrink-0 ${
                             currentSprint.status === 'active'
-                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25'
+                              ? 'bg-emerald-500 animate-pulse ring-2 ring-emerald-500/20'
                               : currentSprint.status === 'upcoming'
-                              ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/25'
-                              : 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/25'
+                              ? 'bg-sky-500'
+                              : 'bg-slate-400'
                           }`}
-                        >
-                          {currentSprint.status === 'active' && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          )}
-                          {currentSprint.status.toUpperCase()}
-                        </span>
+                        />
                         <span className="truncate text-slate-900 dark:text-white font-bold" title={currentSprint.name}>
                           {currentSprint.name}
                         </span>
@@ -797,8 +792,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                       ) : (
                         selectedProject.sprints.map((sp) => {
                           const isSelected = sp.id === currentSprint?.id;
-                          const isSuggested = sp.id === suggestedSprint?.id;
-                          return (
+                                                    return (
                             <button
                               key={sp.id}
                               type="button"
@@ -828,11 +822,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                   >
                                     {sp.status}
                                   </span>
-                                  {isSuggested && (
-                                    <span className="text-[9px] font-semibold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/20 px-1.5 py-0.5 rounded border border-[#cdeac0] dark:border-[#88c958]/30">
-                                      Suggested
-                                    </span>
-                                  )}
                                 </div>
 
                                 {/* Full Sprint Details ("sabhi bat dikhao") */}
