@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Calendar,
@@ -8,6 +8,7 @@ import {
   Sparkles,
   ChevronDown,
   ExternalLink,
+  Check,
 } from 'lucide-react';
 import { EnrichedActionItem } from '@/types/project';
 
@@ -64,6 +65,23 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
 }) => {
   const isDone = item.status === 'done';
   const isInProgress = item.status === 'in_progress';
+
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
+  const statusRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (statusRef.current && !statusRef.current.contains(e.target as Node)) {
+        setIsStatusOpen(false);
+      }
+    };
+    if (isStatusOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isStatusOpen]);
 
   const assigneeName = item.assignee?.name || 'Unassigned';
   const givenByName = item.givenBy || item.managerName;
@@ -266,17 +284,12 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
 
       {/* Right: Status Dropdown & Assignee */}
       <div className="flex items-center justify-between md:justify-end gap-3.5 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-white/[0.08] shrink-0">
-        <div className="relative">
-          <select
-            value={item.status}
+        <div className="relative" ref={statusRef}>
+          <button
+            type="button"
             disabled={isUpdating || (!canMarkDone && isDone)}
-            onChange={(e) =>
-              onStatusChange(
-                item,
-                e.target.value as 'todo' | 'in_progress' | 'done'
-              )
-            }
-            className={`appearance-none pl-3.5 pr-8 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-colors ${
+            onClick={() => setIsStatusOpen((prev) => !prev)}
+            className={`inline-flex items-center justify-between gap-2 pl-3.5 pr-2.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-colors ${
               !canMarkDone && isDone ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'
             } ${
               isDone
@@ -291,16 +304,50 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
                 : undefined
             }
           >
-            <option value="todo" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">To Do</option>
-            <option value="in_progress" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">In Progress</option>
-            {canMarkDone && (
-              <option value="done" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">Done</option>
-            )}
-            {!canMarkDone && isDone && (
-              <option value="done" disabled className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-semibold">Done</option>
-            )}
-          </select>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <span>{isDone ? 'Done' : isInProgress ? 'In Progress' : 'To Do'}</span>
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                isStatusOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          {isStatusOpen && (
+            <div className="absolute right-0 top-full mt-1.5 w-36 rounded-2xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden flex flex-col">
+              <div className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
+                Update Status
+              </div>
+              <div className="py-0.5">
+                {[
+                  { value: 'todo' as const, label: 'To Do' },
+                  { value: 'in_progress' as const, label: 'In Progress' },
+                  ...(canMarkDone ? [{ value: 'done' as const, label: 'Done' }] : []),
+                ].map((s) => {
+                  const isSelected = item.status === s.value;
+                  return (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => {
+                        onStatusChange(item, s.value);
+                        setIsStatusOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer text-left ${
+                        isSelected
+                          ? 'bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/15 dark:text-[#88c958] font-bold'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <span>{s.label}</span>
+                      {isSelected && (
+                        <Check className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Merged Round Circles: Assigned By (Manager) & Assigned To (Member) merged half-half with round curve */}
