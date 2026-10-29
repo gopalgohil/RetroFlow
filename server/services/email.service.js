@@ -12,8 +12,39 @@ class EmailService {
    * @param {string} options.subject - Email subject
    * @param {string} options.htmlContent - HTML body content
    * @returns {Promise<Object>}
+  /**
+   * Helper to strip HTML tags and generate a clean plain-text fallback
+   * Critical for email deliverability: multipart/alternative reduces spam scores significantly
    */
-  async sendEmail({ to, subject, htmlContent }) {
+  _htmlToPlainText(html) {
+    if (!html) return '';
+    return html
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#847;/g, '')
+      .replace(/&zwnj;/g, '')
+      .replace(/&#8199;/g, '')
+      .replace(/&#65279;/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /**
+   * Sends transactional email
+   * @param {Object} options
+   * @param {string} options.to - Recipient email
+   * @param {string} options.subject - Email subject
+   * @param {string} options.htmlContent - HTML body content
+   * @param {string} [options.textContent] - Optional plain text alternative
+   * @returns {Promise<Object>}
+   */
+  async sendEmail({ to, subject, htmlContent, textContent }) {
     const apiKey = env.BREVO_API_KEY || process.env.BREVO_API_KEY;
     const senderEmail = env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || 'gopalgohel249@gmail.com';
     const senderName = env.BREVO_SENDER_NAME || process.env.BREVO_SENDER_NAME || 'Digiflux';
@@ -28,6 +59,8 @@ class EmailService {
       return { success: true, simulated: true };
     }
 
+    const plainText = textContent || this._htmlToPlainText(htmlContent);
+
     try {
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
@@ -39,8 +72,11 @@ class EmailService {
         body: JSON.stringify({
           sender: { name: senderName, email: senderEmail },
           to: [{ email: to }],
+          replyTo: { name: senderName, email: senderEmail },
           subject,
           htmlContent,
+          textContent: plainText,
+          tags: ['transactional'],
         }),
       });
 
@@ -121,12 +157,9 @@ class EmailService {
   </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-  <!-- Hidden Preheader Snippet (Sets clean preview text in Gmail/Outlook inbox and prevents header badge from leaking) -->
-  <div style="display: none; font-size: 1px; color: #ffffff; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+  <!-- Preheader preview text -->
+  <div style="display: none; font-size: 1px; color: #f8fafc; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
     ${previewText}
-  </div>
-  <div style="display: none; font-size: 1px; color: #ffffff; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
-    &#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;&#847;&zwnj;&nbsp;&#8199;&#65279;
   </div>
   <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc;">
     <tr>
@@ -164,6 +197,9 @@ class EmailService {
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 24px; border-top: 1px solid #f1f5f9;">
                 <tr>
                   <td align="center" style="padding-top: 18px;">
+                    <p style="font-size: 11px; color: #94a3b8; margin: 0 0 6px 0; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                      This is an automated transactional message regarding your Digiflux account.
+                    </p>
                     <p style="font-size: 11px; color: #94a3b8; margin: 0; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                       &copy; ${new Date().getFullYear()} Digiflux. Continuous Improvement for Modern Agile Teams.
                     </p>
@@ -234,7 +270,7 @@ class EmailService {
         Verify Your Email Address
       </h1>
       <p style="font-size: 14px; line-height: 22px; color: #334155; margin: 0 0 12px 0;">
-        Welcome to Digiflux, <strong>${recipientName}</strong>! 🎉
+        Welcome to Digiflux, <strong>${recipientName}</strong>!
       </p>
       <p style="font-size: 14px; line-height: 22px; color: #334155; margin: 0 0 20px 0;">
         To complete your account registration, please enter this 6-digit verification code:
@@ -543,7 +579,7 @@ class EmailService {
     const bodyHtml = `
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #eaf5e3; color: #2d6614; border: 1px solid #cdeac0; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
-          🎉 Account Approved
+          Account Approved
         </div>
         <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 14px 0 6px 0; letter-spacing: -0.5px;">
           Welcome to Digiflux, ${userName}!
@@ -648,7 +684,7 @@ class EmailService {
       });
       return await this.sendEmail({
         to: adminEmail,
-        subject: `Action Required: New User Registration Awaiting Approval - ${user.name || user.email}`,
+        subject: `New User Registration Awaiting Approval - ${user.name || user.email}`,
         htmlContent,
       });
     } catch (err) {
@@ -671,7 +707,7 @@ class EmailService {
       });
       return await this.sendEmail({
         to: user.email,
-        subject: '🎉 Your Digiflux Account Has Been Approved!',
+        subject: 'Your Digiflux Account Has Been Approved',
         htmlContent,
       });
     } catch (err) {
