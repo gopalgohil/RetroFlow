@@ -185,26 +185,28 @@ export const SessionList: React.FC<SessionListProps> = ({
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [sessions, getSessionProjectName]);
 
-  // Status & Project Filtered sessions
-  const filteredSessions = sessions.filter((s) => {
-    // 1. Status Filter
-    if (activeFilter === 'active' && s.status !== 'active') return false;
-    if (activeFilter === 'completed' && s.status !== 'completed') return false;
-    if (activeFilter === 'upcoming') {
-      const isUpcoming = new Date(s.scheduledDate) > new Date();
-      if (!isUpcoming) return false;
-    }
-
-    // 2. Project Filter
-    if (selectedProject !== 'all') {
+  // Project Scoped Sessions (filtered by project before status filter)
+  const projectScopedSessions = React.useMemo(() => {
+    if (selectedProject === 'all') return sessions;
+    return sessions.filter((s) => {
       const projName = getSessionProjectName(s);
-      if (projName.toLowerCase() !== selectedProject.toLowerCase()) {
-        return false;
-      }
-    }
+      return projName.toLowerCase() === selectedProject.toLowerCase();
+    });
+  }, [sessions, selectedProject, getSessionProjectName]);
 
-    return true;
-  });
+  // Status & Project Filtered sessions
+  const filteredSessions = React.useMemo(() => {
+    return projectScopedSessions.filter((s) => {
+      // Status Filter
+      if (activeFilter === 'active' && s.status !== 'active') return false;
+      if (activeFilter === 'completed' && s.status !== 'completed') return false;
+      if (activeFilter === 'upcoming') {
+        const isUpcoming = new Date(s.scheduledDate) > new Date();
+        if (!isUpcoming) return false;
+      }
+      return true;
+    });
+  }, [projectScopedSessions, activeFilter]);
 
   const totalItems = filteredSessions.length;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
@@ -272,13 +274,23 @@ export const SessionList: React.FC<SessionListProps> = ({
   const isSearching = isSearchDebouncing || isLoading;
   const isCardsLoading = isInitialLoading || isFilterLoading || isPageLoading || isSearchDebouncing;
 
-  // Tab counts
-  const activeCount = sessions.filter((s) => s.status === 'active').length;
-  const upcomingCount = sessions.filter(
-    (s) => new Date(s.scheduledDate) > new Date() && s.status !== 'completed'
-  ).length;
-  const completedCount = sessions.filter((s) => s.status === 'completed').length;
-  const allCount = sessions.length;
+  // Tab counts (Dynamic and Project-aware)
+  const activeCount = React.useMemo(
+    () => projectScopedSessions.filter((s) => s.status === 'active').length,
+    [projectScopedSessions]
+  );
+  const upcomingCount = React.useMemo(
+    () =>
+      projectScopedSessions.filter(
+        (s) => new Date(s.scheduledDate) > new Date() && s.status !== 'completed'
+      ).length,
+    [projectScopedSessions]
+  );
+  const completedCount = React.useMemo(
+    () => projectScopedSessions.filter((s) => s.status === 'completed').length,
+    [projectScopedSessions]
+  );
+  const allCount = projectScopedSessions.length;
 
   const tabs = [
     { id: 'active', label: 'Active Sessions', count: activeCount },
@@ -443,7 +455,7 @@ export const SessionList: React.FC<SessionListProps> = ({
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline-block shrink-0">
               {totalItems > ITEMS_PER_PAGE
                 ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} Retros`
-                : `Showing ${totalItems} of ${sessions.length} Retros`}
+                : `Showing ${totalItems} of ${projectScopedSessions.length} Retros`}
             </span>
           )}
         </div>
