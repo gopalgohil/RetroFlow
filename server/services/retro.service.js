@@ -1216,6 +1216,10 @@ class RetroService {
       throw ApiError.notFound('Card or retrospective session not found');
     }
 
+    if (retro.shareToken) {
+      projectService.syncRetroBoardToProjects(retro.shareToken).catch(() => {});
+    }
+
     return { cardId, text: trimmedText, updatedAt: updatedTime };
   }
 
@@ -1322,6 +1326,10 @@ class RetroService {
 
     if (!retro) {
       throw ApiError.notFound('Card not found in retrospective session');
+    }
+
+    if (retro.shareToken) {
+      projectService.syncRetroBoardToProjects(retro.shareToken).catch(() => {});
     }
 
     return { cardId, topicId, updatedAt: updatedTime };

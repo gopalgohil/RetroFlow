@@ -536,97 +536,138 @@ class ProjectService {
             hasChanges = true;
           }
 
-          // 2. Synchronize action items from live retro board into the sprint backlog
-          if (actionCards.length > 0) {
-            sprint.items = sprint.items || [];
-            let sprintItemsChanged = false;
+          // 2. Synchronize action items from live retro board into the sprint backlog dynamically
+          sprint.items = sprint.items || [];
+          let sprintItemsChanged = false;
 
-            for (const card of actionCards) {
-              const cardTitle = (card.text || '').trim();
-              if (!cardTitle) continue;
+          const activeCardIds = new Set(actionCards.map((c) => c.cardId));
+          const activeCardTitles = new Set(
+            actionCards.map((c) => (c.text || '').toLowerCase().trim()).filter(Boolean)
+          );
 
-              const existingItem = sprint.items.find(
-                (it) =>
-                  it.id === card.cardId ||
-                  it.id === `act-${card.cardId}` ||
-                  ((it.sourceRetroId === retroItem.id || it.sourceRetroId === retroItem.shareToken) &&
-                    it.title.toLowerCase().trim() === cardTitle.toLowerCase())
+          // 2a. Prune items that belong to this retro but are no longer active action items (e.g. deleted or moved to another column)
+          const prevCount = sprint.items.length;
+          sprint.items = sprint.items.filter((it) => {
+            const isFromThisRetro = Boolean(
+              it.sourceRetroId &&
+                (it.sourceRetroId === retroItem.id ||
+                  it.sourceRetroId === retroItem.shareToken ||
+                  (liveBoard._id && it.sourceRetroId === liveBoard._id.toString()) ||
+                  (liveBoard.shareToken && it.sourceRetroId === liveBoard.shareToken))
+            );
+
+            // If it belongs to a different retro or is a standalone sprint item, retain it
+            if (!isFromThisRetro) return true;
+
+            const cleanId = (it.id || '').replace(/^act-/, '');
+            const cardTitle = (it.title || '').toLowerCase().trim();
+
+            const isStillActiveActionCard =
+              activeCardIds.has(cleanId) ||
+              activeCardIds.has(it.id) ||
+              activeCardTitles.has(cardTitle);
+
+            return isStillActiveActionCard;
+          });
+
+          if (sprint.items.length !== prevCount) {
+            sprintItemsChanged = true;
+          }
+
+          // 2b. Add or update active action cards from live retro board
+          for (const card of actionCards) {
+            const cardTitle = (card.text || '').trim();
+            if (!cardTitle) continue;
+
+            const cleanCardId = card.cardId;
+            const existingItem = sprint.items.find(
+              (it) =>
+                it.id === cleanCardId ||
+                it.id === `act-${cleanCardId}` ||
+                ((it.sourceRetroId === retroItem.id ||
+                  it.sourceRetroId === retroItem.shareToken ||
+                  (liveBoard._id && it.sourceRetroId === liveBoard._id.toString()) ||
+                  (liveBoard.shareToken && it.sourceRetroId === liveBoard.shareToken)) &&
+                  it.title.toLowerCase().trim() === cardTitle.toLowerCase())
+            );
+
+            let assigneeName = card.author || 'Assigned Member';
+            let assigneeEmail = card.authorEmail || undefined;
+            const mentionMatch = cardTitle.match(/@([a-zA-Z0-9._-]+)/);
+            if (mentionMatch) {
+              const handle = mentionMatch[1].toLowerCase().trim();
+              const member = (project.members || []).find(
+                (m) =>
+                  (m.email && m.email.toLowerCase().includes(handle)) ||
+                  (m.name && m.name.toLowerCase().includes(handle))
               );
-
-              let assigneeName = card.author || 'Assigned Member';
-              let assigneeEmail = card.authorEmail || undefined;
-              const mentionMatch = cardTitle.match(/@([a-zA-Z0-9._-]+)/);
-              if (mentionMatch) {
-                const handle = mentionMatch[1].toLowerCase().trim();
-                const member = (project.members || []).find(
-                  (m) =>
-                    (m.email && m.email.toLowerCase().includes(handle)) ||
-                    (m.name && m.name.toLowerCase().includes(handle))
-                );
-                if (member) {
-                  assigneeName = member.name;
-                  assigneeEmail = member.email;
-                } else {
-                  assigneeName = mentionMatch[1].trim();
-                }
-              }
-
-              if (existingItem) {
-                if (card.status && existingItem.status !== card.status) {
-                  existingItem.status = card.status;
-                  sprintItemsChanged = true;
-                }
-                if (card.dueDate && existingItem.dueDate !== card.dueDate) {
-                  existingItem.dueDate = card.dueDate;
-                  sprintItemsChanged = true;
-                }
+              if (member) {
+                assigneeName = member.name;
+                assigneeEmail = member.email;
               } else {
-                const projectManager =
-                  project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
-                  project.lead;
-                const managerName = projectManager?.name || project.lead?.name || 'Project Manager';
+                assigneeName = mentionMatch[1].trim();
+              }
+            }
 
-                const getInitials = (str) => {
-                  if (!str) return 'U';
-                  const parts = str.trim().split(/\s+/);
-                  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-                  return str.slice(0, 2).toUpperCase();
-                };
-
-                sprint.items.push({
-                  id: `act-${card.cardId || crypto.randomUUID().slice(0, 8)}`,
-                  title: cardTitle,
-                  description: '',
-                  type: 'action_item',
-                  priority: card.priority || 'high',
-                  status: card.status || 'todo',
-                  dueDate: card.dueDate || sprint.endDate || null,
-                  storyPoints: 3,
-                  assignee: {
-                    name: assigneeName,
-                    email: assigneeEmail,
-                    avatar: getInitials(assigneeName),
-                  },
-                  givenBy: managerName,
-                  sourceRetroId: retroItem.id || retroItem.shareToken,
-                  sourceRetroTitle: retroItem.title,
-                  createdAt: card.createdAt || new Date(),
-                });
+            if (existingItem) {
+              if (card.status && existingItem.status !== card.status) {
+                existingItem.status = card.status;
                 sprintItemsChanged = true;
               }
-            }
+              if (card.dueDate && existingItem.dueDate !== card.dueDate) {
+                existingItem.dueDate = card.dueDate;
+                sprintItemsChanged = true;
+              }
+              if (card.priority && existingItem.priority !== card.priority) {
+                existingItem.priority = card.priority;
+                sprintItemsChanged = true;
+              }
+            } else {
+              const projectManager =
+                project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
+                project.lead;
+              const managerName = projectManager?.name || project.lead?.name || 'Project Manager';
 
-            if (sprintItemsChanged) {
-              sprint.totalStoryPoints = sprint.items.reduce(
-                (acc, it) => acc + (Number(it.storyPoints) || 0),
-                0
-              );
-              sprint.completedStoryPoints = sprint.items
-                .filter((it) => it.status === 'done')
-                .reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
-              retroItem.actionItemsExported = true;
-              hasChanges = true;
+              const getInitials = (str) => {
+                if (!str) return 'U';
+                const parts = str.trim().split(/\s+/);
+                if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                return str.slice(0, 2).toUpperCase();
+              };
+
+              sprint.items.push({
+                id: `act-${cleanCardId || crypto.randomUUID().slice(0, 8)}`,
+                title: cardTitle,
+                description: '',
+                type: 'action_item',
+                priority: card.priority || 'high',
+                status: card.status || 'todo',
+                dueDate: card.dueDate || sprint.endDate || null,
+                storyPoints: 3,
+                assignee: {
+                  name: assigneeName,
+                  email: assigneeEmail,
+                  avatar: getInitials(assigneeName),
+                },
+                givenBy: managerName,
+                sourceRetroId: retroItem.id || retroItem.shareToken || liveBoard._id?.toString(),
+                sourceRetroTitle: retroItem.title || liveBoard.title,
+                createdAt: card.createdAt || new Date(),
+              });
+              sprintItemsChanged = true;
             }
+          }
+
+          if (sprintItemsChanged) {
+            sprint.totalStoryPoints = sprint.items.reduce(
+              (acc, it) => acc + (Number(it.storyPoints) || 0),
+              0
+            );
+            sprint.completedStoryPoints = sprint.items
+              .filter((it) => it.status === 'done')
+              .reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
+            retroItem.actionItemsExported = true;
+            hasChanges = true;
           }
         }
       }
