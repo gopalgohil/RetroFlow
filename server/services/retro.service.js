@@ -199,6 +199,28 @@ class RetroService {
       conditions.push({ $or: orConditions });
     }
 
+    // Ensure orphaned project retrospectives (where the project was deleted) are excluded
+    try {
+      const activeProjects = await Project.find({}).select('_id key').lean();
+      const activeProjectIds = activeProjects.map((p) => p._id);
+      const activeProjectKeys = activeProjects.map((p) => p.key).filter(Boolean);
+
+      conditions.push({
+        $or: [
+          { projectId: { $in: activeProjectIds } },
+          { projectKey: { $in: activeProjectKeys } },
+          {
+            $and: [
+              { $or: [{ projectId: null }, { projectId: { $exists: false } }] },
+              { $or: [{ projectKey: null }, { projectKey: { $exists: false } }, { projectKey: '' }] },
+            ],
+          },
+        ],
+      });
+    } catch (projErr) {
+      console.warn('[getAllRetrospectives] Failed to load active projects for orphan filtering:', projErr);
+    }
+
     if (filters.status && filters.status !== 'all') {
       conditions.push({ status: filters.status });
     }

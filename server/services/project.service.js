@@ -2365,6 +2365,18 @@ class ProjectService {
 
     await Project.deleteOne({ _id: project._id });
 
+    // Cascade delete associated RetroBoards to prevent orphaned sessions
+    try {
+      await RetroBoard.deleteMany({
+        $or: [
+          { projectId: project._id },
+          { projectKey: project.key }
+        ]
+      });
+    } catch (cascadeErr) {
+      console.warn('[deleteProject] Failed to cascade delete RetroBoards:', cascadeErr);
+    }
+
     // Locate the next available project if any remain
     const nextProject = await Project.findOne().sort({ createdAt: -1 });
 
