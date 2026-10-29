@@ -72,6 +72,8 @@ router.delete(
 
 /**
  * @route   PATCH /api/members/:email/approve
+ * @route   POST  /api/members/:email/approve
+ * @route   POST  /api/members/approve
  * @desc    Approve a pending developer access request
  * @access  Private (Admin only)
  */
@@ -80,14 +82,47 @@ router.patch(
   protect,
   membersController.approveMember
 );
+router.post(
+  '/:email/approve',
+  protect,
+  membersController.approveMember
+);
+router.post(
+  '/approve',
+  protect,
+  membersController.approveMember
+);
 
 /**
  * @route   DELETE /api/members/:email/reject
- * @desc    Reject and delete a pending developer access request
+ * @route   PATCH  /api/members/:email/reject
+ * @route   POST   /api/members/:email/reject
+ * @route   POST   /api/members/reject
+ * @desc    Reject a pending developer access request
  * @access  Private (Admin only)
  */
 router.delete(
   '/:email/reject',
+  protect,
+  membersController.rejectMember
+);
+router.patch(
+  '/:email/reject',
+  protect,
+  membersController.rejectMember
+);
+router.post(
+  '/:email/reject',
+  protect,
+  membersController.rejectMember
+);
+router.post(
+  '/reject',
+  protect,
+  membersController.rejectMember
+);
+router.delete(
+  '/reject',
   protect,
   membersController.rejectMember
 );

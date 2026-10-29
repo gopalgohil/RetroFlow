@@ -2,6 +2,8 @@ import User from '../models/User.js';
 import RetroBoard from '../models/RetroBoard.js';
 import Project from '../models/Project.js';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
+import emailService from './email.service.js';
+import env from '../config/env.js';
 
 /**
  * Members & Whitelist Service
@@ -22,11 +24,12 @@ class MembersService {
           $or: [
             { role: 'admin' },
             { email: getSuperAdminEmail() },
+            { status: { $in: ['pending', 'approved'] } },
             { isApproved: true },
-            { isVerified: true, hasLoggedIn: true },
+            { isVerified: true },
           ],
         },
-        'name email role projectRole isApproved createdAt isVerified hasLoggedIn'
+        'name email role projectRole status isApproved createdAt isVerified hasLoggedIn'
       ).lean(),
       Project.find({}, 'name key members lead').lean(),
     ]);
@@ -89,8 +92,17 @@ class MembersService {
         ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
         : (u.name?.[0] || u.email[0]).toUpperCase();
 
-      // Exclude users who are still on the OTP screen or haven't logged in yet
-      if (!isAdmin && !u.isApproved && (!u.isVerified || !u.hasLoggedIn)) {
+      // Exclude users who are still unverified
+      if (!isAdmin && !u.isVerified) {
+        return;
+      }
+
+      // Determine member status
+      const isPending = !isAdmin && (u.status === 'pending' || (!u.isApproved && u.status !== 'rejected'));
+      const memberStatus = isPending ? 'pending' : u.status === 'rejected' ? 'rejected' : 'active';
+
+      // Skip rejected users from active workspace roster
+      if (memberStatus === 'rejected') {
         return;
       }
 
@@ -104,8 +116,8 @@ class MembersService {
         projectNames: stats.names,
         isPrimaryLead: isSuperAdmin(emailLower),
         avatar,
-        status: (!u.isApproved && !isAdmin) ? 'pending' : 'active',
-        isApproved: Boolean(isAdmin || u.isApproved),
+        status: memberStatus,
+        isApproved: Boolean(isAdmin || u.isApproved || u.status === 'approved'),
         isWhitelisted: true,
         joinedAt: u.createdAt,
       });
@@ -341,16 +353,23 @@ class MembersService {
   /**
    * Approves a pending developer access request permanently
    * @param {string|ObjectId} adminUserId - Admin user ID
-   * @param {string} email - Applicant developer email
+   * @param {string} emailOrId - Applicant developer email or ID
    * @param {string} assignedRole - Role to assign (e.g. Developer, QA, etc.)
    */
-  async approveMember(adminUserId, email, assignedRole) {
-    const cleanEmail = email.toLowerCase().trim();
+  async approveMember(adminUserId, emailOrId, assignedRole) {
+    const cleanEmail = (emailOrId || '').toLowerCase().trim();
     const escapedEmail = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const emailRegex = new RegExp(`^${escapedEmail}$`, 'i');
 
-    let user = await User.findOne({ email: emailRegex });
+    let user = await User.findOne({
+      $or: [
+        { email: emailRegex },
+        ...(cleanEmail.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: cleanEmail }] : []),
+      ],
+    });
+
     if (user) {
+      user.status = 'approved';
       user.isApproved = true;
       if (assignedRole && typeof assignedRole === 'string' && assignedRole.trim()) {
         user.projectRole = assignedRole.trim();
@@ -358,27 +377,44 @@ class MembersService {
       await user.save();
     }
 
+    const targetEmail = user?.email || cleanEmail;
+
     // Ensure email is whitelisted in RetroBoard
     await RetroBoard.updateMany(
       {},
-      { $addToSet: { approvedMembers: cleanEmail } }
+      { $addToSet: { approvedMembers: targetEmail.toLowerCase().trim() } }
     );
 
+    // Send email notification to user stating their account has been approved and they can now log in
+    if (user) {
+      const loginUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
+      emailService.notifyUserApproved({
+        user,
+        role: user.projectRole || assignedRole || 'Developer',
+        loginUrl,
+      }).catch((err) => {
+        console.error('[Brevo User Approval Notification Error]', err.message);
+      });
+      console.log(`\n📬 [User Approved Notification]: Dispatched approval email to ${user.email}\n`);
+    }
+
     return {
-      email: cleanEmail,
-      name: user?.name || cleanEmail.split('@')[0],
+      id: user?._id,
+      email: targetEmail,
+      name: user?.name || targetEmail.split('@')[0],
       projectRole: user?.projectRole || assignedRole || 'Developer',
+      status: 'approved',
       isApproved: true,
     };
   }
 
   /**
-   * Rejects a pending developer access request and deletes their registration
+   * Rejects a pending developer access request and updates status to rejected
    * @param {string|ObjectId} adminUserId - Admin user ID
-   * @param {string} email - Applicant developer email
+   * @param {string} emailOrId - Applicant developer email or ID
    */
-  async rejectMember(adminUserId, email) {
-    const cleanEmail = email.toLowerCase().trim();
+  async rejectMember(adminUserId, emailOrId) {
+    const cleanEmail = (emailOrId || '').toLowerCase().trim();
 
     if (isSuperAdmin(cleanEmail)) {
       throw new Error('Primary Workspace Owner cannot be rejected.');
@@ -387,25 +423,49 @@ class MembersService {
     const escapedEmail = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const emailRegex = new RegExp(`^${escapedEmail}$`, 'i');
 
-    const user = await User.findOne({ email: emailRegex });
+    const user = await User.findOne({
+      $or: [
+        { email: emailRegex },
+        ...(cleanEmail.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: cleanEmail }] : []),
+      ],
+    });
+
     if (user && user.role === 'admin') {
       throw new Error('Admin users cannot be rejected.');
     }
 
-    // Cleanly remove from all retro boards, projects, and delete user account if exists
+    // Update status to 'rejected'
+    if (user) {
+      user.status = 'rejected';
+      user.isApproved = false;
+      await user.save();
+    }
+
+    const targetEmail = user?.email || cleanEmail;
+
+    // Cleanly remove from all retro boards and projects
     await Promise.all([
-      RetroBoard.updateMany({}, { $pull: { approvedMembers: emailRegex } }),
-      Project.updateMany({}, { $pull: { members: { email: emailRegex } } }),
-      User.deleteMany({ email: emailRegex }),
+      RetroBoard.updateMany({}, { $pull: { approvedMembers: targetEmail.toLowerCase().trim() } }),
+      Project.updateMany({}, { $pull: { members: { email: targetEmail.toLowerCase().trim() } } }),
     ]);
 
+    // Send email notification to the user stating their signup request has been rejected
+    emailService.notifyUserRejected({
+      user: user || { email: targetEmail, name: targetEmail.split('@')[0] },
+      contactEmail: getSuperAdminEmail(),
+    }).catch((err) => {
+      console.error('[Brevo User Rejection Notification Error]', err.message);
+    });
+    console.log(`\n📬 [User Rejected Notification]: Dispatched rejection email to ${targetEmail}\n`);
+
     return {
-      email: cleanEmail,
+      id: user?._id,
+      email: targetEmail,
+      status: 'rejected',
       rejected: true,
     };
   }
 }
-
 
 export const membersService = new MembersService();
 export default membersService;

@@ -2001,18 +2001,23 @@ class RetroService {
             si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()
         );
 
+        const assignedObj = (c.assignedTo && typeof c.assignedTo === 'object') ? c.assignedTo : null;
+        const assignedStr = (typeof c.assignedTo === 'string') ? c.assignedTo.trim() : '';
+
         let email = (
           c.assignedToEmail ||
+          assignedObj?.email ||
           matchedSprintItem?.assignee?.email ||
-          (c.assignedTo && c.assignedTo.includes('@') ? c.assignedTo : '') ||
+          (assignedStr.includes('@') ? assignedStr : '') ||
           ''
         ).toLowerCase().trim();
 
         let name =
           c.assignedToName ||
+          assignedObj?.name ||
           c.assignee ||
           matchedSprintItem?.assignee?.name ||
-          (c.assignedTo && !c.assignedTo.includes('@') ? c.assignedTo : null) ||
+          (assignedStr && !assignedStr.includes('@') ? assignedStr : null) ||
           (email ? email.split('@')[0] : null);
 
         // Intelligent fallback: check if card text mentions any project member
@@ -2060,16 +2065,21 @@ class RetroService {
             si.title?.toLowerCase().trim() === (c.text || '').toLowerCase().trim()
         );
 
+        const assignedObj = (c.assignedTo && typeof c.assignedTo === 'object') ? c.assignedTo : null;
+        const assignedStr = (typeof c.assignedTo === 'string') ? c.assignedTo.trim() : '';
+
         let assignedName =
           c.assignedToName ||
+          assignedObj?.name ||
           c.assignee ||
           matchedSprintItem?.assignee?.name ||
-          (c.assignedTo && !c.assignedTo.includes('@') ? c.assignedTo : null);
+          (assignedStr && !assignedStr.includes('@') ? assignedStr : null);
 
         let assignedEmail =
           c.assignedToEmail ||
+          assignedObj?.email ||
           matchedSprintItem?.assignee?.email ||
-          (c.assignedTo && c.assignedTo.includes('@') ? c.assignedTo : null);
+          (assignedStr.includes('@') ? assignedStr : null);
 
         // Intelligent fallback: check if card text mentions any project member
         if (!assignedName && linkedProject?.members) {

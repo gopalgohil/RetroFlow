@@ -471,6 +471,236 @@ class EmailService {
       bodyHtml,
     });
   }
+
+  /**
+   * Admin Notification: New user registered and awaiting approval
+   */
+  getAdminNewUserPendingTemplate({ userName, userEmail, registeredAt, reviewUrl }) {
+    const formattedDate = registeredAt || new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+    const bodyHtml = `
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+          Pending Approval
+        </div>
+        <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 14px 0 6px 0; letter-spacing: -0.5px;">
+          New User Awaiting Approval
+        </h2>
+        <p style="font-size: 13px; color: #64748b; margin: 0; line-height: 1.5;">
+          A new user has registered and verified their email address. They are waiting for your approval to access the workspace.
+        </p>
+      </div>
+
+      <!-- User Details Card -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="retro-card-padding" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+        <tr>
+          <td>
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 6px;">Applicant Information</div>
+            <div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">${userName}</div>
+            <div style="font-size: 13px; color: #475569; margin-bottom: 8px;">
+              Email: <strong style="color: #0f172a;">${userEmail}</strong>
+            </div>
+            <div style="font-size: 12px; color: #64748b;">
+              Registered At: <strong>${formattedDate}</strong>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Action Button -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0 16px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
+              <tr>
+                <td align="center" style="background-color: #5cb028; border-radius: 10px; box-shadow: 0 4px 14px rgba(92, 176, 40, 0.3);">
+                  <a href="${reviewUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                    Review &amp; Approve User &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
+        Or open the Admin Dashboard:<br />
+        <a href="${reviewUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${reviewUrl}</a>
+      </p>
+    `;
+
+    return this._wrapEmail({
+      title: 'New User Awaiting Approval - Digiflux',
+      preheader: `${userName} (${userEmail}) registered and is awaiting your approval.`,
+      bodyHtml,
+    });
+  }
+
+  /**
+   * User Notification: Account has been approved by administrator
+   */
+  getUserAccountApprovedTemplate({ userName, userEmail, role = 'Developer', loginUrl }) {
+    const bodyHtml = `
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #eaf5e3; color: #2d6614; border: 1px solid #cdeac0; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+          🎉 Account Approved
+        </div>
+        <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 14px 0 6px 0; letter-spacing: -0.5px;">
+          Welcome to Digiflux, ${userName}!
+        </h2>
+        <p style="font-size: 13px; color: #64748b; margin: 0; line-height: 1.5;">
+          Great news! Your account has been reviewed and approved by the workspace administrator. You can now log in and access your workspace.
+        </p>
+      </div>
+
+      <!-- Account Role Card -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="retro-card-padding" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+        <tr>
+          <td>
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 4px;">Account Details</div>
+            <div style="font-size: 14px; color: #334155; margin-bottom: 4px;">Email: <strong style="color: #0f172a;">${userEmail}</strong></div>
+            <div style="font-size: 14px; color: #334155;">Assigned Role: <strong style="color: #3d8318;">${role}</strong></div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- CTA Button -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0 16px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
+              <tr>
+                <td align="center" style="background-color: #5cb028; border-radius: 10px; box-shadow: 0 4px 14px rgba(92, 176, 40, 0.3);">
+                  <a href="${loginUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                    Sign In to Your Workspace &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
+        Or go directly to:<br />
+        <a href="${loginUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${loginUrl}</a>
+      </p>
+    `;
+
+    return this._wrapEmail({
+      title: 'Your Account Has Been Approved - Digiflux',
+      preheader: `Good news ${userName}! Your account has been approved and you can now log in.`,
+      bodyHtml,
+    });
+  }
+
+  /**
+   * User Notification: Registration request was rejected by administrator
+   */
+  getUserAccountRejectedTemplate({ userName, userEmail, contactEmail }) {
+    const supportEmail = contactEmail || 'support@digiflux.io';
+    const bodyHtml = `
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+          Registration Update
+        </div>
+        <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 14px 0 6px 0; letter-spacing: -0.5px;">
+          Update on Your Registration Request
+        </h2>
+        <p style="font-size: 13px; color: #64748b; margin: 0; line-height: 1.5;">
+          Hello ${userName}, thank you for your interest in Digiflux.
+        </p>
+      </div>
+
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="retro-card-padding" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+        <tr>
+          <td>
+            <p style="font-size: 13px; color: #334155; line-height: 1.6; margin: 0 0 10px 0;">
+              Your signup request for <strong>${userEmail}</strong> was reviewed by the workspace administrator, but could not be approved at this time.
+            </p>
+            <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin: 0;">
+              If you believe this was an error or would like to request access again, please contact your workspace administrator at <a href="mailto:${supportEmail}" style="color: #3d8318; font-weight: 600;">${supportEmail}</a>.
+            </p>
+          </td>
+        </tr>
+      </table>
+    `;
+
+    return this._wrapEmail({
+      title: 'Digiflux Registration Update',
+      preheader: `Update regarding your Digiflux registration request for ${userEmail}.`,
+      bodyHtml,
+    });
+  }
+
+  /**
+   * Dispatches pending approval alert to Super Admin email
+   */
+  async notifyAdminNewUser({ user, reviewUrl }) {
+    try {
+      const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalgohel249@gmail.com').toLowerCase().trim();
+      const url = reviewUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard`;
+      const htmlContent = this.getAdminNewUserPendingTemplate({
+        userName: user.name || 'New User',
+        userEmail: user.email,
+        registeredAt: new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
+        reviewUrl: url,
+      });
+      return await this.sendEmail({
+        to: adminEmail,
+        subject: `Action Required: New User Registration Awaiting Approval - ${user.name || user.email}`,
+        htmlContent,
+      });
+    } catch (err) {
+      console.error('[Brevo] Failed to dispatch admin pending notification:', err.message);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Dispatches approval notification to user
+   */
+  async notifyUserApproved({ user, role, loginUrl }) {
+    try {
+      const url = loginUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
+      const htmlContent = this.getUserAccountApprovedTemplate({
+        userName: user.name || user.email.split('@')[0],
+        userEmail: user.email,
+        role: role || user.projectRole || 'Developer',
+        loginUrl: url,
+      });
+      return await this.sendEmail({
+        to: user.email,
+        subject: '🎉 Your Digiflux Account Has Been Approved!',
+        htmlContent,
+      });
+    } catch (err) {
+      console.error('[Brevo] Failed to dispatch user approved notification:', err.message);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Dispatches rejection notification to user
+   */
+  async notifyUserRejected({ user, contactEmail }) {
+    try {
+      const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalgohel249@gmail.com').toLowerCase().trim();
+      const htmlContent = this.getUserAccountRejectedTemplate({
+        userName: user.name || user.email.split('@')[0],
+        userEmail: user.email,
+        contactEmail: contactEmail || adminEmail,
+      });
+      return await this.sendEmail({
+        to: user.email,
+        subject: 'Update on Your Digiflux Registration Request',
+        htmlContent,
+      });
+    } catch (err) {
+      console.error('[Brevo] Failed to dispatch user rejection notification:', err.message);
+      return { success: false, error: err.message };
+    }
+  }
 }
 
 export const emailService = new EmailService();

@@ -105,6 +105,7 @@ class MembersController {
   /**
    * Approve a pending developer access request
    * PATCH /api/members/:email/approve
+   * POST  /api/members/approve
    */
   approveMember = asyncHandler(async (req, res) => {
     const isAdmin =
@@ -114,10 +115,15 @@ class MembersController {
       throw ApiError.forbidden('Only workspace administrators can approve access requests.');
     }
 
+    const targetEmail = req.params.email || req.body?.email || req.body?.id || req.body?.userId;
+    if (!targetEmail) {
+      throw ApiError.badRequest('User email or identifier is required.');
+    }
+
     const { role = 'Developer' } = req.body || {};
     const result = await membersService.approveMember(
       req.user._id,
-      req.params.email,
+      targetEmail,
       role
     );
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -129,8 +135,9 @@ class MembersController {
   });
 
   /**
-   * Reject and delete a pending developer access request
+   * Reject a pending developer access request
    * DELETE /api/members/:email/reject
+   * POST   /api/members/reject
    */
   rejectMember = asyncHandler(async (req, res) => {
     const isAdmin =
@@ -140,15 +147,20 @@ class MembersController {
       throw ApiError.forbidden('Only workspace administrators can reject access requests.');
     }
 
+    const targetEmail = req.params.email || req.body?.email || req.body?.id || req.body?.userId;
+    if (!targetEmail) {
+      throw ApiError.badRequest('User email or identifier is required.');
+    }
+
     const result = await membersService.rejectMember(
       req.user._id,
-      req.params.email
+      targetEmail
     );
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     return ApiResponse.ok(
       res,
       result,
-      `Registration request for ${result.email} rejected and removed.`
+      `Registration request for ${result.email} rejected.`
     );
   });
 }

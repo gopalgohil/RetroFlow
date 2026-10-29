@@ -47,6 +47,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'Developer',
     },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending',
+    },
     isVerified: {
       type: Boolean,
       default: false,
@@ -87,6 +92,18 @@ const userSchema = new mongoose.Schema(
 
 // Pre-save hook: Hash password with bcrypt if modified and present
 userSchema.pre('save', async function (next) {
+  if (this.isModified('status')) {
+    if (this.status === 'approved') {
+      this.isApproved = true;
+    } else if (this.status === 'rejected' || this.status === 'pending') {
+      this.isApproved = false;
+    }
+  } else if (this.isModified('isApproved')) {
+    if (this.isApproved && this.status !== 'approved') {
+      this.status = 'approved';
+    }
+  }
+
   if (!this.isModified('password') || !this.password) {
     return next();
   }
@@ -105,6 +122,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 
 // Performance indexes for rapid authentication and roster lookups
 userSchema.index({ role: 1 });
+userSchema.index({ status: 1 });
 userSchema.index({ createdAt: -1 });
 
 const User = mongoose.model('User', userSchema);

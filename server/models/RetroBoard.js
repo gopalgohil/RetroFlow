@@ -1,9 +1,7 @@
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 
-/**
- * Subdocument Schema for an individual retrospective topic/column
- */
+
 const topicSchema = new mongoose.Schema(
   {
     topicId: {
@@ -38,9 +36,7 @@ const topicSchema = new mongoose.Schema(
   { _id: false }
 );
 
-/**
- * Subdocument Schema for an individual retrospective sticky card/thought
- */
+
 const cardSchema = new mongoose.Schema(
   {
     cardId: {
@@ -118,9 +114,7 @@ const cardSchema = new mongoose.Schema(
   }
 );
 
-/**
- * Subdocument Schema for an individual retrospective session attendee/participant
- */
+
 const attendeeSchema = new mongoose.Schema(
   {
     userId: {
@@ -304,7 +298,7 @@ const retroBoardSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for high-speed dashboard, whitelisting, and real-time session lookups
+
 retroBoardSchema.index({ createdBy: 1, createdAt: -1 });
 retroBoardSchema.index({ approvedMembers: 1 });
 retroBoardSchema.index({ projectKey: 1 });
@@ -316,3 +310,6 @@ retroBoardSchema.index({ projectId: 1, status: 1 });
 const RetroBoard = mongoose.model('RetroBoard', retroBoardSchema);
 
 export default RetroBoard;
+
+
+

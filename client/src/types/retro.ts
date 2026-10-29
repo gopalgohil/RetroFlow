@@ -106,7 +106,7 @@ export interface TeamMember {
   name: string;
   email: string;
   role: string;
-  status: 'active' | 'pending' | 'whitelisted' | 'unverified';
+  status: 'active' | 'pending' | 'whitelisted' | 'unverified' | 'approved' | 'rejected';
   isWhitelisted: boolean;
   isApproved?: boolean;
   joinedAt: string;

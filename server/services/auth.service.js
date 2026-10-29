@@ -7,6 +7,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { generateToken } from '../utils/token.js';
 import emailService from './email.service.js';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
+import env from '../config/env.js';
 
 /**
  * Cryptographically hashes an OTP with bcrypt before persisting to MongoDB Atlas.
@@ -55,25 +56,29 @@ class AuthService {
 
     if (user && !user.isVerified) {
       // Re-use existing unverified profile and update credentials
+      const isSuper = isSuperAdmin(normalizedEmail);
       user.name = name.trim();
       user.password = password; // pre-save hook will hash
+      user.status = isSuper ? 'approved' : 'pending';
       user.verificationOtp = hashedOtp;
       user.verificationOtpExpires = otpExpires;
       await user.save();
     } else {
-      // Check if email was pre-approved via Instant Member Access / retro whitelists
+      // Check if email was pre-approved via Super Admin or retro whitelists
+      const isSuper = isSuperAdmin(normalizedEmail);
       const isPreApproved = Boolean(
-        isSuperAdmin(normalizedEmail) ||
+        isSuper ||
         (await RetroBoard.exists({ approvedMembers: normalizedEmail }))
       );
 
-      // Create new unverified user
+      // Create new unverified user with status 'pending' (or 'approved' for Super Admin)
       user = await User.create({
         name: name.trim(),
         email: normalizedEmail,
         password,
-        role: 'member',
-        projectRole: 'Developer',
+        role: isSuper ? 'admin' : 'member',
+        projectRole: isSuper ? 'Manager' : 'Developer',
+        status: isSuper ? 'approved' : 'pending',
         isVerified: false,
         isApproved: isPreApproved,
         hasLoggedIn: false,
@@ -128,16 +133,28 @@ class AuthService {
       throw ApiError.badRequest('Verification code has expired. Please request a new code.');
     }
 
-    // Activate user account
+    // Activate user email verification & ensure status is pending
+    const isSuper = isSuperAdmin(user.email);
     user.isVerified = true;
+    user.status = isSuper ? 'approved' : (user.status || 'pending');
     user.verificationOtp = null;
     user.verificationOtpExpires = null;
     await user.save();
 
+    // Send email notification to Admin that a new user has registered and is waiting for approval
+    if (!isSuper) {
+      const reviewUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard`;
+      emailService.notifyAdminNewUser({ user, reviewUrl }).catch((err) => {
+        console.error('[Brevo Admin Notification Error]', err.message);
+      });
+      console.log(`\n📬 [Admin Notification]: Dispatched new pending user alert for ${user.email} to Admin\n`);
+    }
+
     return {
       verified: true,
+      status: user.status,
       email: user.email,
-      message: 'Email verified successfully! You can now sign in to your account.',
+      message: 'Email verified successfully! Your account is now pending administrator approval. You will receive an email once your account has been approved.',
     };
   }
 
@@ -209,15 +226,19 @@ class AuthService {
       }
     }
 
-    // Ensure Admin is always verified and has admin role
-    if (isSuperAdmin(normalizedEmail) && (!user.isVerified || user.role !== 'admin')) {
-      await User.updateOne(
-        { _id: user._id },
-        { $set: { isVerified: true, role: 'admin', projectRole: 'Manager' } }
-      );
-      user.isVerified = true;
-      user.role = 'admin';
-      user.projectRole = 'Manager';
+    // Ensure Admin is always verified and has approved status
+    if (isSuperAdmin(normalizedEmail)) {
+      if (user.status !== 'approved' || !user.isVerified || user.role !== 'admin' || !user.isApproved) {
+        await User.updateOne(
+          { _id: user._id },
+          { $set: { status: 'approved', isVerified: true, isApproved: true, role: 'admin', projectRole: 'Manager' } }
+        );
+        user.status = 'approved';
+        user.isApproved = true;
+        user.isVerified = true;
+        user.role = 'admin';
+        user.projectRole = 'Manager';
+      }
     }
 
     // Block login if email is not verified yet
@@ -242,6 +263,34 @@ class AuthService {
         'Your email address is not verified yet. We have sent a verification code to your email. Please verify your account to sign in.',
         { email: user.email, requiresVerification: true }
       );
+    }
+
+    // Check approval status: prevent login if status is not 'approved'
+    const isSuper = isSuperAdmin(normalizedEmail) || user.role === 'admin';
+    const userStatus = user.status || (user.isApproved ? 'approved' : 'pending');
+
+    if (!isSuper) {
+      if (userStatus === 'pending') {
+        throw new ApiError(
+          403,
+          'Your account is pending administrator approval. You will receive an email notification once your account has been approved.',
+          { status: 'pending', email: user.email }
+        );
+      }
+      if (userStatus === 'rejected') {
+        throw new ApiError(
+          403,
+          'Your registration request has been rejected by the workspace administrator. Please contact support if you believe this is an error.',
+          { status: 'rejected', email: user.email }
+        );
+      }
+      if (userStatus !== 'approved') {
+        throw new ApiError(
+          403,
+          'Your account is not approved to sign in. Please contact your workspace administrator.',
+          { status: userStatus, email: user.email }
+        );
+      }
     }
 
     // Mark user as having logged in so their verified account now registers in workspace directory/pending requests
@@ -270,6 +319,7 @@ class AuthService {
         email: user.email,
         role: user.role || 'member',
         projectRole: effectiveRole,
+        status: user.status || 'approved',
         isApproved: Boolean(user.role === 'admin' || isSuperAdmin(user.email) || user.isApproved),
       },
       token,
@@ -379,6 +429,7 @@ class AuthService {
     return {
       ...user.toObject(),
       projectRole: effectiveProjectRole,
+      status: user.status || (isAdmin || user.isApproved ? 'approved' : 'pending'),
       isApproved: Boolean(isAdmin || user.isApproved),
       activeProjectsCount: userProjects.length,
       activeProjects: userProjects.map((p) => ({ id: p._id?.toString() || p.id, key: p.key, name: p.name })),
@@ -450,6 +501,8 @@ class AuthService {
       isSuperAdmin(normalizedEmail)
     );
 
+    let isNewUser = false;
+
     if (user) {
       // Update existing user with Google attributes and ensure verified
       let needsSave = false;
@@ -465,10 +518,11 @@ class AuthService {
         user.isVerified = true;
         needsSave = true;
       }
-      if (isAdmin && (user.role !== 'admin' || user.projectRole !== 'Manager')) {
+      if (isAdmin) {
         user.role = 'admin';
         user.projectRole = 'Manager';
         user.isApproved = true;
+        user.status = 'approved';
         needsSave = true;
       }
       user.hasLoggedIn = true;
@@ -476,6 +530,7 @@ class AuthService {
       await user.save();
     } else {
       // Auto-approve if Admin or invited in retro boards
+      isNewUser = true;
       const isPreApproved = Boolean(
         isAdmin ||
         (await RetroBoard.exists({ approvedMembers: normalizedEmail }))
@@ -489,12 +544,40 @@ class AuthService {
         authProvider: 'google',
         role: isAdmin ? 'admin' : 'member',
         projectRole: isAdmin ? 'Manager' : 'Developer',
+        status: isAdmin ? 'approved' : 'pending',
         isVerified: true,
         isApproved: isPreApproved,
         hasLoggedIn: true,
         lastLogin: new Date(),
       });
       console.log(`\n🎉 [Google Account Initialized] ${user.name} (${user.email}) registered via Google Auth.\n`);
+
+      // Dispatch admin notification for new user registered with Google
+      if (!isAdmin) {
+        const reviewUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard`;
+        emailService.notifyAdminNewUser({ user, reviewUrl }).catch((err) => {
+          console.error('[Brevo Admin Notification Error]', err.message);
+        });
+      }
+    }
+
+    // Check approval status: prevent login if status is not 'approved'
+    const isSuper = isAdmin || user.role === 'admin';
+    const userStatus = user.status || (user.isApproved ? 'approved' : 'pending');
+
+    if (!isSuper && userStatus !== 'approved') {
+      if (userStatus === 'rejected') {
+        throw new ApiError(
+          403,
+          'Your registration request has been rejected by the workspace administrator. Please contact support if you believe this is an error.',
+          { status: 'rejected', email: user.email }
+        );
+      }
+      throw new ApiError(
+        403,
+        'Your account is pending administrator approval. You will receive an email notification once your account has been approved.',
+        { status: 'pending', email: user.email }
+      );
     }
 
     const token = generateToken({ id: user._id, email: user.email, role: user.role || 'member' });
@@ -513,6 +596,7 @@ class AuthService {
         email: user.email,
         role: user.role,
         projectRole: effectiveRole,
+        status: user.status || 'approved',
         isVerified: user.isVerified,
         isApproved: user.isApproved,
         avatar: user.avatar,

@@ -68,12 +68,12 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
         otp: validation.data.otp,
       });
 
-      setSuccessMessage('🎉 Email verified successfully! Redirecting you to sign in...');
+      setSuccessMessage(data.message || '🎉 Email verified successfully! Your account is now pending administrator approval. Redirecting you to sign in...');
 
-      // Redirect to login page with verified parameter after 1.5 seconds
+      // Redirect to login page with verified parameter after 2 seconds
       setTimeout(() => {
         router.push(`/login?verified=true&email=${encodeURIComponent(email)}`);
-      }, 1500);
+      }, 2000);
     } catch (err: any) {
       setError(err.message || 'Invalid or expired verification code.');
     } finally {
