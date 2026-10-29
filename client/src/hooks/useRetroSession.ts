@@ -202,9 +202,17 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
               authorEmail: c.authorEmail,
               votes: typeof c.votes === 'number' ? c.votes : 0,
               voters: Array.isArray(c.voters) ? c.voters : [],
-              assignedTo: c.assignedTo || null,
+              assignedTo:
+                c.assignedTo && typeof c.assignedTo === 'object' && c.assignedTo.name
+                  ? c.assignedTo
+                  : typeof c.assignedTo === 'string' && c.assignedTo.trim() && c.assignedTo !== 'Unassigned'
+                  ? { name: c.assignedTo.trim() }
+                  : null,
               assignedSprintName: c.assignedSprintName || null,
-              isExportedToActionItems: Boolean(c.isExportedToActionItems || c.assignedTo),
+              isExportedToActionItems: Boolean(
+                c.isExportedToActionItems &&
+                (c.assignedSprintName || (c.assignedTo && typeof c.assignedTo === 'object' && c.assignedTo.name))
+              ),
               hasVoted: Array.isArray(c.voters) && (
                 c.voters.some((v: string) => {
                   const vLower = (v || '').toLowerCase().trim();
