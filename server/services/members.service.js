@@ -371,6 +371,7 @@ class MembersService {
     if (user) {
       user.status = 'approved';
       user.isApproved = true;
+      user.isVerified = true;
       if (assignedRole && typeof assignedRole === 'string' && assignedRole.trim()) {
         user.projectRole = assignedRole.trim();
       }
