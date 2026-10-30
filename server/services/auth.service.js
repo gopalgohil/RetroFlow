@@ -141,9 +141,14 @@ class AuthService {
     user.verificationOtpExpires = null;
     await user.save();
 
+    // Dispatch Welcome to Digiflux email to the newly verified user
+    emailService.notifyUserWelcome({ user }).catch((err) => {
+      console.error('[Brevo User Welcome Notification Error]', err.message);
+    });
+
     // Send email notification to Admin that a new user has registered and is waiting for approval
     if (!isSuper) {
-      const reviewUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard`;
+      const reviewUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard?tab=members`;
       emailService.notifyAdminNewUser({ user, reviewUrl }).catch((err) => {
         console.error('[Brevo Admin Notification Error]', err.message);
       });
@@ -154,7 +159,7 @@ class AuthService {
       verified: true,
       status: user.status,
       email: user.email,
-      message: 'Email verified successfully! Your account is now pending administrator approval. You will receive an email once your account has been approved.',
+      message: 'Email verified successfully! You can now sign in to your account.',
     };
   }
 
@@ -265,32 +270,16 @@ class AuthService {
       );
     }
 
-    // Check approval status: prevent login if status is not 'approved'
+    // Block login only if user was explicitly rejected by workspace administrator
     const isSuper = isSuperAdmin(normalizedEmail) || user.role === 'admin';
     const userStatus = user.status || (user.isApproved ? 'approved' : 'pending');
 
-    if (!isSuper) {
-      if (userStatus === 'pending') {
-        throw new ApiError(
-          403,
-          'Your account is pending administrator approval. You will receive an email notification once your account has been approved.',
-          { status: 'pending', email: user.email }
-        );
-      }
-      if (userStatus === 'rejected') {
-        throw new ApiError(
-          403,
-          'Your registration request has been rejected by the workspace administrator. Please contact support if you believe this is an error.',
-          { status: 'rejected', email: user.email }
-        );
-      }
-      if (userStatus !== 'approved') {
-        throw new ApiError(
-          403,
-          'Your account is not approved to sign in. Please contact your workspace administrator.',
-          { status: userStatus, email: user.email }
-        );
-      }
+    if (!isSuper && userStatus === 'rejected') {
+      throw new ApiError(
+        403,
+        'Your registration request has been rejected by the workspace administrator. Please contact support if you believe this is an error.',
+        { status: 'rejected', email: user.email }
+      );
     }
 
     // Mark user as having logged in so their verified account now registers in workspace directory/pending requests
@@ -552,31 +541,28 @@ class AuthService {
       });
       console.log(`\n🎉 [Google Account Initialized] ${user.name} (${user.email}) registered via Google Auth.\n`);
 
-      // Dispatch admin notification for new user registered with Google
+      // Dispatch Welcome to Digiflux email and admin notification for new user registered with Google
       if (!isAdmin) {
-        const reviewUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard`;
+        emailService.notifyUserWelcome({ user }).catch((err) => {
+          console.error('[Brevo User Welcome Notification Error]', err.message);
+        });
+
+        const reviewUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard?tab=members`;
         emailService.notifyAdminNewUser({ user, reviewUrl }).catch((err) => {
           console.error('[Brevo Admin Notification Error]', err.message);
         });
       }
     }
 
-    // Check approval status: prevent login if status is not 'approved'
+    // Block login only if explicitly rejected
     const isSuper = isAdmin || user.role === 'admin';
     const userStatus = user.status || (user.isApproved ? 'approved' : 'pending');
 
-    if (!isSuper && userStatus !== 'approved') {
-      if (userStatus === 'rejected') {
-        throw new ApiError(
-          403,
-          'Your registration request has been rejected by the workspace administrator. Please contact support if you believe this is an error.',
-          { status: 'rejected', email: user.email }
-        );
-      }
+    if (!isSuper && userStatus === 'rejected') {
       throw new ApiError(
         403,
-        'Your account is pending administrator approval. You will receive an email notification once your account has been approved.',
-        { status: 'pending', email: user.email }
+        'Your registration request has been rejected by the workspace administrator. Please contact support if you believe this is an error.',
+        { status: 'rejected', email: user.email }
       );
     }
 
@@ -598,7 +584,7 @@ class AuthService {
         projectRole: effectiveRole,
         status: user.status || 'approved',
         isVerified: user.isVerified,
-        isApproved: user.isApproved,
+        isApproved: Boolean(isAdmin || user.isApproved || user.status === 'approved'),
         avatar: user.avatar,
       },
     };

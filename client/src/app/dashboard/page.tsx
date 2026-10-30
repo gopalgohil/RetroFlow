@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ProjectApiService } from '@/services/projectApi';
 
-const WORKSPACE_SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@retroflow.io';
+const WORKSPACE_SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@digiflux.io';
 import {
   Sidebar,
   DashboardHeader,
@@ -255,6 +255,13 @@ function DashboardContent() {
         .get(ENDPOINTS.AUTH.ME)
         .then((res) => {
           if (res?.data) {
+            if (res.data.status === 'rejected') {
+              try {
+                localStorage.setItem('retroflow_rejected', 'true');
+              } catch {}
+              setIsRejected(true);
+              return;
+            }
             if (res.data.isApproved) {
               setCurrentUser(res.data);
               try {
@@ -289,6 +296,13 @@ function DashboardContent() {
     try {
       const res = await api.get(ENDPOINTS.AUTH.ME);
       if (res?.data) {
+        if (res.data.status === 'rejected') {
+          try {
+            localStorage.setItem('retroflow_rejected', 'true');
+          } catch {}
+          setIsRejected(true);
+          return;
+        }
         if (res.data.isApproved) {
           setCurrentUser(res.data);
           try {
@@ -492,7 +506,7 @@ function DashboardContent() {
                 One-Time Workspace Review
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-                Welcome, <span className="text-slate-900 font-bold">{activeUser.name || 'Developer'}</span>! Your registration is complete and email verified. Workspace Administrator approval is required before accessing Retrospectives and Projects.
+                Welcome to Digiflux, <span className="text-slate-900 font-bold">{activeUser.name || 'Developer'}</span>! Your registration is complete and email verified. Workspace Administrator approval is required before accessing Retrospectives and Projects.
               </p>
             </div>
 

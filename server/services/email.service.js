@@ -670,12 +670,97 @@ class EmailService {
   }
 
   /**
+   * User Notification: Welcome to Digiflux upon successful email verification / registration
+   */
+  getUserWelcomeTemplate({ userName, userEmail, dashboardUrl }) {
+    const url = dashboardUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
+    const bodyHtml = `
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #eaf5e3; color: #2d6614; border: 1px solid #cdeac0; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+          🎉 Welcome to Digiflux
+        </div>
+        <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 14px 0 6px 0; letter-spacing: -0.5px;">
+          Welcome to Digiflux, ${userName}!
+        </h2>
+        <p style="font-size: 13px; color: #64748b; margin: 0; line-height: 1.5;">
+          Your email address (<strong>${userEmail}</strong>) has been successfully verified and your account is ready.
+        </p>
+      </div>
+
+      <!-- Account Status Box -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="retro-card-padding" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+        <tr>
+          <td>
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 6px;">Registration Summary</div>
+            <div style="font-size: 14px; color: #334155; margin-bottom: 4px;">User: <strong style="color: #0f172a;">${userName}</strong></div>
+            <div style="font-size: 14px; color: #334155; margin-bottom: 6px;">Email: <strong style="color: #0f172a;">${userEmail}</strong></div>
+            <div style="font-size: 13px; color: #92400e; background-color: #fef3c7; border: 1px solid #fde68a; padding: 10px 12px; border-radius: 8px; margin-top: 10px; line-height: 1.5;">
+              ⏳ <strong>Status: Pending Workspace Review</strong><br />
+              <span style="font-size: 12px; color: #78350f;">Your account has been submitted to your workspace administrator for approval. You can sign in anytime to monitor your approval status.</span>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- CTA Button -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0 16px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
+              <tr>
+                <td align="center" style="background-color: #5cb028; border-radius: 10px; box-shadow: 0 4px 14px rgba(92, 176, 40, 0.3);">
+                  <a href="${url}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                    Sign In to Your Workspace &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
+        Or go directly to:<br />
+        <a href="${url}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${url}</a>
+      </p>
+    `;
+
+    return this._wrapEmail({
+      title: 'Welcome to Digiflux!',
+      preheader: `Welcome to Digiflux, ${userName}! Your email has been verified.`,
+      bodyHtml,
+    });
+  }
+
+  /**
+   * Dispatches welcome notification to newly verified user
+   */
+  async notifyUserWelcome({ user, dashboardUrl }) {
+    try {
+      const url = dashboardUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
+      const htmlContent = this.getUserWelcomeTemplate({
+        userName: user.name || user.email.split('@')[0],
+        userEmail: user.email,
+        dashboardUrl: url,
+      });
+      return await this.sendEmail({
+        to: user.email,
+        subject: `Welcome to Digiflux, ${user.name || user.email.split('@')[0]}! 🎉`,
+        htmlContent,
+      });
+    } catch (err) {
+      console.error('[Brevo] Failed to dispatch user welcome notification:', err.message);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
    * Dispatches pending approval alert to Super Admin email
    */
   async notifyAdminNewUser({ user, reviewUrl }) {
     try {
       const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalgohel249@gmail.com').toLowerCase().trim();
-      const url = reviewUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard`;
+      const url = reviewUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard?tab=members`;
       const htmlContent = this.getAdminNewUserPendingTemplate({
         userName: user.name || 'New User',
         userEmail: user.email,

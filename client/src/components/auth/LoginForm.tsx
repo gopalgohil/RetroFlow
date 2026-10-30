@@ -213,7 +213,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {/* Verification Success Alert if redirected after verify */}
       {isVerifiedParam && !generalError && (
         <Alert variant="success">
-          🎉 Your email has been verified! Your account is submitted for administrator approval. If already approved, please sign in.
+          🎉 Your email has been verified successfully! Please sign in to access your workspace.
         </Alert>
       )}
 
