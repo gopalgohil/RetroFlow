@@ -609,7 +609,16 @@ class ProjectService {
               }
             }
 
+            const projectManager =
+              project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
+              project.lead;
+            const managerName = projectManager?.name || project.lead?.name || 'Project Manager';
+
             if (existingItem) {
+              if (!existingItem.givenBy) {
+                existingItem.givenBy = managerName;
+                sprintItemsChanged = true;
+              }
               if (card.status && existingItem.status !== card.status) {
                 existingItem.status = card.status;
                 sprintItemsChanged = true;
@@ -623,10 +632,6 @@ class ProjectService {
                 sprintItemsChanged = true;
               }
             } else {
-              const projectManager =
-                project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
-                project.lead;
-              const managerName = projectManager?.name || project.lead?.name || 'Project Manager';
 
               const getInitials = (str) => {
                 if (!str) return 'U';
@@ -804,6 +809,25 @@ class ProjectService {
 
     // Dynamically calculate and sync live retrospective counts before checking permissions
     await this.syncProjectRetrospectives(project);
+
+    // Ensure all sprint items have givenBy and managerName populated
+    if (project.sprints && Array.isArray(project.sprints)) {
+      const projectManager =
+        project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
+        project.lead;
+      const defaultManagerName = projectManager?.name || project.lead?.name || 'Project Manager';
+
+      project.sprints.forEach((s) => {
+        if (Array.isArray(s.items)) {
+          s.items.forEach((it) => {
+            if (!it.givenBy) {
+              it.givenBy = defaultManagerName;
+              it.managerName = defaultManagerName;
+            }
+          });
+        }
+      });
+    }
 
     // Admin has unrestricted master access to all projects
     const isAdmin = Boolean(
@@ -1337,7 +1361,18 @@ class ProjectService {
     const sprint = project.sprints.find((s) => s.id === sprintId);
     if (!sprint) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
 
-    let items = Array.isArray(sprint.items) ? [...sprint.items] : [];
+    const projectManager =
+      project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
+      project.lead;
+    const defaultManagerName = projectManager?.name || project.lead?.name || 'Project Manager';
+
+    let items = Array.isArray(sprint.items)
+      ? sprint.items.map((it) => ({
+          ...it,
+          givenBy: it.givenBy || defaultManagerName,
+          managerName: it.managerName || it.givenBy || defaultManagerName,
+        }))
+      : [];
 
     // Optional status filtering ('todo' | 'in_progress' | 'done')
     if (status && status !== 'all') {
@@ -1786,6 +1821,17 @@ class ProjectService {
         }
       }
 
+      const projectManager =
+        project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
+        project.lead;
+      const resolvedGivenBy =
+        item.givenBy ||
+        item.managerName ||
+        currentUser?.name ||
+        projectManager?.name ||
+        project.lead?.name ||
+        'Project Manager';
+
       return {
         id: `act-${crypto.randomUUID().slice(0, 8)}`,
         title: item.title.trim(),
@@ -1810,6 +1856,8 @@ class ProjectService {
                   .slice(0, 2),
             }
           : undefined,
+        givenBy: resolvedGivenBy,
+        managerName: resolvedGivenBy,
         sourceRetroId: item.sourceRetroId,
         sourceRetroTitle: item.sourceRetroTitle,
         createdAt: new Date(),

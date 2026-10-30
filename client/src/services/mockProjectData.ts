@@ -404,6 +404,7 @@ export class ProjectDataService {
       status: 'todo',
       storyPoints: typeof item.storyPoints === 'number' ? item.storyPoints : 3,
       assignee: item.assignee,
+      givenBy: item.givenBy || project.lead?.name || 'Project Manager',
       dueDate: item.dueDate,
       sourceRetroId: item.sourceRetroId,
       sourceRetroTitle: item.sourceRetroTitle || 'Sprint Retrospective',

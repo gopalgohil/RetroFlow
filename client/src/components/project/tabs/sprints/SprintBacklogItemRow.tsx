@@ -88,7 +88,10 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
     // Only Manager/Admin (canManageProject) or designated Assignee can update status
     const canChangeStatus = Boolean(canManageProject || isAssignee);
 
-    const givenByName = item.givenBy || (item as any).managerName;
+    const givenByName =
+      item.givenBy ||
+      (item as any).managerName ||
+      (currentUser?.role?.toLowerCase() === 'admin' ? currentUser.name || 'Admin' : 'Admin');
     const assigneeDisplayName = item.assignee?.name;
 
     const rowHoverTooltip = item.assignee?.name
