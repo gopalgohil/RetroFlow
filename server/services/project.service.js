@@ -465,6 +465,17 @@ class ProjectService {
       let hasChanges = false;
       project.sprints = Array.isArray(project.sprints) ? project.sprints : [];
 
+      // Automatically prune orphaned retrospectives (retrospectives deleted from RetroBoard collection)
+      const prevRetroCount = project.retrospectives.length;
+      project.retrospectives = project.retrospectives.filter((retroItem) => {
+        const liveBoard = boardMap.get(retroItem.shareToken) || boardMap.get(retroItem.id);
+        return Boolean(liveBoard);
+      });
+
+      if (project.retrospectives.length !== prevRetroCount) {
+        hasChanges = true;
+      }
+
       for (const retroItem of project.retrospectives) {
         const liveBoard = boardMap.get(retroItem.shareToken) || boardMap.get(retroItem.id);
         if (liveBoard) {

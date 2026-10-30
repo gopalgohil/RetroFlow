@@ -787,6 +787,36 @@ class RetroService {
       throw ApiError.notFound('Retrospective session not found or you do not have permission to delete it.');
     }
 
+    // Cascade delete: Automatically remove this retrospective from all linked projects
+    try {
+      const tokensToRemove = [
+        retro._id ? retro._id.toString() : null,
+        retro.shareToken,
+        retroId,
+      ].filter(Boolean);
+
+      await Project.updateMany(
+        {
+          $or: [
+            { 'retrospectives.id': { $in: tokensToRemove } },
+            { 'retrospectives.shareToken': { $in: tokensToRemove } },
+          ],
+        },
+        {
+          $pull: {
+            retrospectives: {
+              $or: [
+                { id: { $in: tokensToRemove } },
+                { shareToken: { $in: tokensToRemove } },
+              ],
+            },
+          },
+        }
+      );
+    } catch (err) {
+      console.warn('[RetroService] Error cascading retro delete to projects:', err.message);
+    }
+
     return { id: retroId, deleted: true };
   }
 
