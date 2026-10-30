@@ -31,19 +31,16 @@ export const SprintBacklogListSkeleton: React.FC<{ count?: number }> = ({ count 
             </div>
           </div>
 
-          {/* Right: Story points pill, assignee avatar, status dropdown button skeleton */}
+          {/* Right: Status dropdown button skeleton, merged round circles skeleton */}
           <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-            {/* Story Points badge skeleton */}
-            <div className="w-12 h-5 rounded-md bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-white/[0.06]" />
-
-            {/* Assignee Avatar + Name skeleton */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0" />
-              <div className="w-12 h-3 rounded bg-slate-100 dark:bg-slate-800 hidden md:inline-block" />
-            </div>
-
             {/* Status Dropdown button skeleton */}
             <div className="w-24 h-7 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-white/[0.06]" />
+
+            {/* Merged circles skeleton */}
+            <div className="flex items-center -space-x-3.5">
+              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0 ring-2 ring-white dark:ring-[#0e1015]" />
+              <div className="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0 ring-2 ring-white dark:ring-[#0e1015]" />
+            </div>
           </div>
         </div>
       ))}

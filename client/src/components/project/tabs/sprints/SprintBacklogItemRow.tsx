@@ -3,7 +3,6 @@
 import React from 'react';
 import { Sparkles, ChevronDown, Trash2, Calendar } from 'lucide-react';
 import { BacklogItem } from '@/types/project';
-import { UserAvatar } from '@/components/ui';
 
 interface SprintBacklogItemRowProps {
   sprintId: string;
@@ -44,6 +43,16 @@ const formatDueDate = (dateStr: string) => {
   }
 };
 
+const getAssigneeInitials = (name?: string, avatar?: string): string => {
+  if (avatar && avatar.trim().length >= 2) return avatar.trim().slice(0, 2).toUpperCase();
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.trim().slice(0, 2).toUpperCase();
+};
+
 /**
  * SprintBacklogItemRow:
  * Highly optimized, memoized single backlog / action item card.
@@ -79,8 +88,11 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
     // Only Manager/Admin (canManageProject) or designated Assignee can update status
     const canChangeStatus = Boolean(canManageProject || isAssignee);
 
+    const givenByName = item.givenBy || (item as any).managerName;
+    const assigneeDisplayName = item.assignee?.name;
+
     const rowHoverTooltip = item.assignee?.name
-      ? `Task: ${item.title}\nAssigned to: ${item.assignee.name}${item.givenBy || (item as any).managerName ? `\nGiven by: ${item.givenBy || (item as any).managerName}` : ''}`
+      ? `Task: ${item.title}\nAssigned to: ${item.assignee.name}${givenByName ? `\nGiven by: ${givenByName}` : ''}`
       : `Task: ${item.title}\nStatus: ${item.status.toUpperCase()}`;
 
     return (
@@ -140,24 +152,8 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
           </div>
         </div>
 
-        {/* Right: Assignee, Status Select Dropdown, Delete Action */}
+        {/* Right: Status Select Dropdown, Merged Round Circles, Delete Action */}
         <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-          {item.assignee && (
-            <div
-              className="flex items-center gap-1.5 cursor-pointer"
-              title={
-                item.givenBy || (item as any).managerName
-                  ? `Assigned to: ${item.assignee.name}\nGiven by: ${item.givenBy || (item as any).managerName}`
-                  : `Assigned to: ${item.assignee.name}`
-              }
-            >
-              <UserAvatar name={item.assignee.name} avatar={item.assignee.avatar} size="xs" />
-              <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium hidden md:inline">
-                {item.assignee.name}
-              </span>
-            </div>
-          )}
-
           {/* Status Display: Interactive Dropdown for Assignee/Manager, Static Read-Only Badge for Others */}
           {!canChangeStatus ? (
             <div
@@ -225,6 +221,39 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
               </div>
             </div>
           )}
+
+          {/* Merged Round Circles: Assigned By (Manager) & Assigned To (Member) merged half-half with round curve */}
+          <div className="flex items-center shrink-0 select-none">
+            {givenByName && item.assignee?.name ? (
+              <div
+                className="flex items-center -space-x-3.5 group/merged"
+                title={`Assigned by: ${givenByName}\nAssigned to: ${assigneeDisplayName}`}
+              >
+                {/* Left Round Circle: Assigned By (Manager) */}
+                <div
+                  className="w-8 h-8 rounded-full bg-[#488e1e] text-white dark:bg-[#72ad46] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-0 group-hover/merged:z-10 group-hover/merged:scale-105 transition-all"
+                  title={`Assigned by: ${givenByName}`}
+                >
+                  {getAssigneeInitials(givenByName)}
+                </div>
+
+                {/* Right Round Circle: Assigned To (Member) */}
+                <div
+                  className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-10 hover:z-20 hover:scale-105 transition-all"
+                  title={`Assigned to: ${assigneeDisplayName}`}
+                >
+                  {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+                </div>
+              </div>
+            ) : item.assignee?.name ? (
+              <div
+                className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015] cursor-pointer hover:scale-105 transition-all"
+                title={`Assigned to: ${assigneeDisplayName}`}
+              >
+                {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+              </div>
+            ) : null}
+          </div>
 
           {/* Admin / Manager / Lead Delete Action */}
           {canManageProject && onDeleteItem && (
