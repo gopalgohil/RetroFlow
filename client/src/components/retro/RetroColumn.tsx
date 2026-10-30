@@ -313,7 +313,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             >
               <ColumnIcon className="w-3.5 h-3.5" />
             </div>
-            <h3 className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-white truncate">
+            <h3 className="font-bold text-sm sm:text-[15px] text-slate-900 dark:text-white truncate">
               {topic.title}
             </h3>
           </div>
@@ -324,19 +324,19 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
                 type="button"
                 onClick={onExportTopic}
                 title="Select action items and push directly to sprint backlog"
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-[10px] font-bold shadow-2xs transition-all hover:scale-[1.03] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-2xs transition-all hover:scale-[1.03] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
               >
-                <Sparkles className="w-2.5 h-2.5 text-white dark:text-[#08090a]" />
+                <Sparkles className="w-3 h-3 text-white dark:text-[#08090a]" />
                 <span>To Sprint</span>
               </button>
             )}
-            <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-white/90 dark:bg-[#141720] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08] shrink-0">
+            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-full bg-white/90 dark:bg-[#141720] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/[0.08] shrink-0">
               {cards.length}
             </span>
           </div>
         </div>
         {topic.description && (
-          <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight pl-8 truncate">
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight pl-8 truncate">
             {topic.description}
           </p>
         )}
@@ -407,20 +407,20 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
                 }
               }}
               placeholder="Write a thought or feedback..."
-              className="w-full text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent focus:outline-none resize-none"
+              className="w-full text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent focus:outline-none resize-none"
             />
             <div className="flex items-center justify-end gap-1.5 pt-1">
               <button
                 type="button"
                 onClick={handleCancelInput}
-                className="px-2 py-0.5 rounded-lg text-xs text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#141720] cursor-pointer"
+                className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#141720] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSubmitCard}
-                className="px-2.5 py-1 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
+                className="px-3 py-1.5 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
               >
                 Add Card
               </button>
@@ -436,9 +436,9 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             <button
               type="button"
               onClick={() => setIsInputOpen(true)}
-              className="w-full py-1.5 rounded-xl border border-dashed border-slate-300 dark:border-white/10 hover:border-[#88c958]/60 hover:bg-[#eaf5e3]/50 dark:hover:bg-[#88c958]/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-[#3d8318] dark:hover:text-[#88c958] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="w-full py-2 rounded-xl border border-dashed border-slate-300 dark:border-white/10 hover:border-[#88c958]/60 hover:bg-[#eaf5e3]/50 dark:hover:bg-[#88c958]/10 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-[#3d8318] dark:hover:text-[#88c958] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>Add Card</span>
             </button>
           ) : (

@@ -71,16 +71,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     : (activeUser as any).projectRole &&
       (activeUser as any).projectRole !== 'member' &&
       (activeUser as any).projectRole !== 'Unassigned'
-    ? (activeUser as any).projectRole
-    : 'Developer';
+      ? (activeUser as any).projectRole
+      : 'Developer';
 
   const initials = activeUser.name
     ? activeUser.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
     : 'U';
 
   // Close dropdown on outside click or Escape key
@@ -158,9 +158,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
               {/* Chevron icon toggles up/down on open */}
               <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                  isDropdownOpen ? 'rotate-180 text-[#5cb028]' : ''
-                }`}
+                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-[#5cb028]' : ''
+                  }`}
               />
             </button>
 
@@ -178,24 +177,23 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                     </div>
                     <div className="overflow-hidden flex-1">
                       <div className="flex items-center gap-1.5">
-                        <p suppressHydrationWarning className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        <p suppressHydrationWarning className="text-sm font-bold text-slate-900 dark:text-white truncate">
                           {activeUser.name || 'Gopal'}
                         </p>
                         <span
                           suppressHydrationWarning
-                          className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 leading-none ${
-                            displayRole.toLowerCase() === 'admin'
+                          className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase shrink-0 leading-none ${displayRole.toLowerCase() === 'admin'
                               ? 'bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#86efac] border border-[#cdeac0] dark:border-[#5cb028]/30'
                               : displayRole.toLowerCase() === 'manager'
-                              ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
-                              : displayRole.toLowerCase() === 'project lead'
-                              ? 'bg-sky-100 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
-                              : displayRole.toLowerCase().includes('qa') || displayRole.toLowerCase().includes('tester')
-                              ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
-                              : displayRole.toLowerCase() === 'devops'
-                              ? 'bg-cyan-100 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800'
-                              : 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                          }`}
+                                ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                                : displayRole.toLowerCase() === 'project lead'
+                                  ? 'bg-sky-100 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
+                                  : displayRole.toLowerCase().includes('qa') || displayRole.toLowerCase().includes('tester')
+                                    ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
+                                    : displayRole.toLowerCase() === 'devops'
+                                      ? 'bg-cyan-100 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800'
+                                      : 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                            }`}
                         >
                           {displayRole}
                         </span>

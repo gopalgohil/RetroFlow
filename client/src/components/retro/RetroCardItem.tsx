@@ -155,23 +155,23 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 handleCancelEdit();
               }
             }}
-            className="w-full text-xs text-slate-800 dark:text-slate-100 p-2 rounded-lg border border-[#88c958] bg-white dark:bg-[#141720] focus:outline-none focus:ring-1 focus:ring-[#88c958] resize-none shadow-inner"
+            className="w-full text-sm text-slate-800 dark:text-slate-100 p-2 rounded-lg border border-[#88c958] bg-white dark:bg-[#141720] focus:outline-none focus:ring-1 focus:ring-[#88c958] resize-none shadow-inner"
             placeholder="Update your feedback..."
           />
           <div className="flex items-center justify-end gap-1.5">
             <button
               type="button"
               onClick={handleCancelEdit}
-              className="px-2 py-0.5 rounded text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
+              className="px-2.5 py-1 rounded text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSaveEdit}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#5cb028] hover:bg-[#4e9921] text-white text-[11px] font-bold shadow-xs cursor-pointer transition-colors dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
             >
-              <Check className="w-3 h-3" />
+              <Check className="w-3.5 h-3.5" />
               <span>Save</span>
             </button>
           </div>
@@ -356,7 +356,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
           </div>
 
           {/* Card Body Text */}
-          <p className="text-xs text-slate-800 dark:text-slate-100 leading-snug break-words font-medium py-0.5">
+          <p className="text-sm text-slate-800 dark:text-slate-100 leading-relaxed break-words font-medium py-1">
             {card.text}
           </p>
 
@@ -364,9 +364,9 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
           {card.assignedTo?.name && (
             <div
               title={`Already assigned to ${card.assignedTo.name}. It cannot be reassigned.`}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 select-none shadow-2xs"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold text-emerald-700 dark:text-emerald-400 select-none shadow-2xs"
             >
-              <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span className="truncate">
                 Assigned to: <strong className="font-extrabold">{card.assignedTo.name}</strong>
                 {card.assignedSprintName ? ` (${card.assignedSprintName})` : ''}
