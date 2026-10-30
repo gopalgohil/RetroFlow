@@ -55,6 +55,8 @@ const backlogItemSchema = new mongoose.Schema(
     },
     givenBy: { type: String, trim: true },
     managerName: { type: String, trim: true },
+    completedAt: { type: Date, default: null },
+    completedBy: { type: String, trim: true, default: null },
     sourceRetroId: { type: String },
     sourceRetroTitle: { type: String },
     createdAt: {

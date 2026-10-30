@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, ChevronDown, Trash2, Calendar } from 'lucide-react';
+import { Sparkles, ChevronDown, Trash2, Calendar, Check } from 'lucide-react';
 import { BacklogItem } from '@/types/project';
 
 interface SprintBacklogItemRowProps {
@@ -99,6 +99,14 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
           item.givenBy ||
           (item as any).managerName ||
           'Project Manager';
+    const isDone = item.status === 'done';
+    const isAdminOrManager = Boolean(
+      canManageProject ||
+      currentUser?.role?.toLowerCase() === 'admin' ||
+      currentUser?.role?.toLowerCase() === 'manager'
+    );
+    const completedByName = item.completedBy || givenByName;
+    const completedDateStr = item.completedAt || item.createdAt;
     const assigneeDisplayName = item.assignee?.name;
 
     return (
@@ -122,7 +130,31 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                   From Retro: {item.sourceRetroTitle}
                 </span>
               )}
-              {canManageProject ? (
+              {isDone ? (
+                <>
+                  <span
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                    title={
+                      isAdminOrManager
+                        ? `Completed on ${formatDueDate(completedDateStr)} by ${completedByName}`
+                        : `Completed on ${formatDueDate(completedDateStr)}`
+                    }
+                  >
+                    <Check className="w-2.5 h-2.5 shrink-0" />
+                    <span>
+                      {isAdminOrManager
+                        ? `Completed: ${formatDueDate(completedDateStr)} · by ${completedByName}`
+                        : `Completed: ${formatDueDate(completedDateStr)}`}
+                    </span>
+                  </span>
+                  {item.dueDate && (
+                    <span className="text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 text-[10px]">
+                      <Calendar className="w-2.5 h-2.5 opacity-60" />
+                      Due: {formatDueDate(item.dueDate)}
+                    </span>
+                  )}
+                </>
+              ) : canManageProject ? (
                 <label
                   title="Click to set or change due date for this item"
                   className="relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-colors bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/20"

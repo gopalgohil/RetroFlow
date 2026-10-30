@@ -829,6 +829,14 @@ class ProjectService {
             } else if (!it.managerName) {
               it.managerName = it.givenBy;
             }
+            if (it.status === 'done') {
+              if (!it.completedAt) {
+                it.completedAt = it.createdAt || new Date();
+              }
+              if (!it.completedBy) {
+                it.completedBy = it.givenBy || defaultManagerName;
+              }
+            }
           });
         }
       });
@@ -1156,8 +1164,24 @@ class ProjectService {
 
     if (status) {
       item.status = status;
-      if (status === 'done' && !item.completedAt) {
-        item.completedAt = new Date();
+      if (status === 'done') {
+        if (!item.completedAt) {
+          item.completedAt = new Date();
+        }
+        const projectManager =
+          project.members?.find(
+            (m) =>
+              (m.role || '').toLowerCase().includes('manager') ||
+              (m.role || '').toLowerCase().includes('lead')
+          ) || project.lead;
+        const completerName =
+          (currentUser?.name && currentUser.name !== 'Admin' && currentUser.name !== 'User')
+            ? currentUser.name
+            : (item.givenBy || projectManager?.name || project.lead?.name || currentUser?.name || 'Manager');
+        item.completedBy = completerName;
+      } else {
+        item.completedAt = null;
+        item.completedBy = null;
       }
     }
 
@@ -1379,6 +1403,7 @@ class ProjectService {
           const itObj = it && typeof it.toObject === 'function' ? it.toObject() : { ...it };
           const resolvedGivenBy =
             !itObj.givenBy || itObj.givenBy === 'Admin' ? defaultManagerName : itObj.givenBy;
+          const isDone = itObj.status === 'done';
           return {
             ...itObj,
             givenBy: resolvedGivenBy,
@@ -1386,6 +1411,8 @@ class ProjectService {
               !itObj.managerName || itObj.managerName === 'Admin'
                 ? resolvedGivenBy
                 : itObj.managerName,
+            completedAt: isDone ? (itObj.completedAt || itObj.createdAt || new Date().toISOString()) : itObj.completedAt,
+            completedBy: isDone ? (itObj.completedBy || resolvedGivenBy) : itObj.completedBy,
           };
         })
       : [];
