@@ -602,6 +602,8 @@ class ProjectService {
               } else {
                 assigneeName = mentionMatch[1].trim();
               }
+            }
+
             const projectManager =
               project.members?.find(
                 (m) =>
