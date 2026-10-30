@@ -201,51 +201,35 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
   // 1. Exact Email Match (Gold Standard)
   if (aEmail && tEmail && aEmail === tEmail) return true;
 
-  // 2. Exact Full Name Match
-  if (aName && tName) {
-    if (aName === tName) return true;
-
-    // Word tokens check: "Jay Sadhu" matches "Jay", but "Raj" does NOT match "Rajesh"
-    const aWords = aName.split(/\s+/).filter(Boolean);
-    const tWords = tName.split(/\s+/).filter(Boolean);
-    if (aWords.some((w) => w === tName) || tWords.some((w) => w === aName)) {
-      return true;
-    }
-  }
-
-  // 3. Username / Email Prefix / Handle Match (e.g. "jays" <-> "jays@digiflux.io" or "Jay Sadhu")
+  // 2. Exact Username / Handle Match (e.g. "gopalg" <-> "gopalg@digiflux.io")
   const tHandle = tEmail.includes('@') ? tEmail.split('@')[0] : tEmail;
   const aHandle = aEmail.includes('@') ? aEmail.split('@')[0] : aEmail;
 
-  if (tHandle) {
-    if (aName && (aName === tHandle || aName.toLowerCase() === tHandle)) return true;
-    if (aHandle && aHandle === tHandle) return true;
-  }
-  if (aHandle) {
-    if (tName && tName === aHandle) return true;
-  }
+  if (aHandle && tHandle && aHandle === tHandle) return true;
+  if (aName && tHandle && aName === tHandle) return true;
+  if (tName && aHandle && tName === aHandle) return true;
 
-  // 4. Cross Email <-> Name Match
-  if (aEmail && tName && (aEmail === tName || aEmail.startsWith(tName))) return true;
-  if (tEmail && aName && (tEmail === aName || tEmail.startsWith(aName))) return true;
+  // 3. Exact Full Name Match (Case-insensitive)
+  if (aName && tName && aName === tName) return true;
 
-  // 5. Explicit @handle mention in text (e.g. "@Gopal" or "@jays" or "@vikasr")
-  if (contextText) {
-    const textLower = contextText.toLowerCase();
-    if (tName && (textLower.includes(`@${tName}`) || textLower.includes(`@ ${tName}`))) {
+  // 4. Word Token Match for Multi-Word Names (e.g. "Jay Sadhu" matches "Jay Sadhu")
+  const aWords = aName.split(/\s+/).filter(Boolean);
+  const tWords = tName.split(/\s+/).filter(Boolean);
+  if (aWords.length >= 2 && tWords.length >= 2) {
+    if (aName === tName) return true;
+    if (aWords[0] === tWords[0] && aWords[aWords.length - 1] === tWords[tWords.length - 1]) {
       return true;
     }
-    if (tEmail) {
-      const emailPrefix = tEmail.split('@')[0];
-      if (emailPrefix && (textLower.includes(`@${emailPrefix}`) || textLower.includes(`@ ${emailPrefix}`))) {
-        return true;
-      }
+  }
+
+  // 5. Explicit @handle mention in text (e.g. "@gopalg" or "@vikasr")
+  if (contextText) {
+    const textLower = contextText.toLowerCase();
+    if (tHandle && (textLower.includes(`@${tHandle}`) || textLower.includes(`@ ${tHandle}`))) {
+      return true;
     }
-    const tWords = tName.split(/\s+/).filter(Boolean);
-    for (const w of tWords) {
-      if (w.length >= 3 && (textLower.includes(`@${w}`) || textLower.includes(`@ ${w}`))) {
-        return true;
-      }
+    if (tName && tName.length >= 4 && (textLower.includes(`@${tName}`) || textLower.includes(`@ ${tName}`))) {
+      return true;
     }
   }
 
@@ -1977,17 +1961,13 @@ class ProjectService {
 
     const fetchAll = (options.all === true || options.all === 'true') && isManager;
 
-    // 1. Fetch accessible projects
+    // 1. Fetch accessible projects (only projects where user is lead, member, or creator)
     let projectQuery = {};
     if (!isAdmin && userEmail) {
-      const userHandle = userEmail.includes('@') ? userEmail.split('@')[0] : userEmail;
       projectQuery = {
         $or: [
           { 'lead.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
           { 'members.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
-          { 'sprints.items.assignee.email': { $regex: new RegExp(`^${userEmail}$`, 'i') } },
-          ...(userName ? [{ 'sprints.items.assignee.name': { $regex: new RegExp(`^${userName}$`, 'i') } }] : []),
-          ...(userHandle ? [{ 'sprints.items.assignee.name': { $regex: new RegExp(`^${userHandle}$`, 'i') } }] : []),
           ...(currentUser?._id ? [{ createdBy: currentUser._id }] : []),
         ],
       };
@@ -2119,14 +2099,14 @@ class ProjectService {
             (retro.projectKey && p.key?.toUpperCase() === retro.projectKey.toUpperCase())
         );
 
-        // When viewing team items as non-admin manager, card must belong to an accessible project or retro created by user
-        if (fetchAll && !isAdmin && !matchingProject && (!currentUser?._id || retro.createdBy?.toString() !== currentUser._id.toString())) {
+        // Non-admin members can only access action items belonging to their accessible projects or standalone retros
+        if (!isAdmin && (retro.projectId || retro.projectKey) && !matchingProject && (!currentUser?._id || retro.createdBy?.toString() !== currentUser._id.toString())) {
           continue;
         }
 
-        // Intelligent Assignee Resolution: Check @mention in card.text vs card.author
-        let directAssigneeName = card.author || 'Assigned Member';
-        let directAssigneeEmail = card.authorEmail || undefined;
+        // Intelligent Assignee Resolution: Prioritize card.assignedTo, then @mention, then card.author
+        let directAssigneeName = card.assignedTo?.name || card.author || 'Assigned Member';
+        let directAssigneeEmail = card.assignedTo?.email || card.authorEmail || undefined;
 
         const mentionMatch = (card.text || '').match(/@([a-zA-Z0-9._-]+)/);
         if (mentionMatch) {
