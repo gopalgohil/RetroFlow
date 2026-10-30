@@ -94,15 +94,8 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
       (currentUser?.role?.toLowerCase() === 'admin' ? currentUser.name || 'Admin' : 'Admin');
     const assigneeDisplayName = item.assignee?.name;
 
-    const rowHoverTooltip = item.assignee?.name
-      ? `Task: ${item.title}\nAssigned to: ${item.assignee.name}${givenByName ? `\nGiven by: ${givenByName}` : ''}`
-      : `Task: ${item.title}\nStatus: ${item.status.toUpperCase()}`;
-
     return (
-      <div
-        title={rowHoverTooltip}
-        className="group p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors"
-      >
+      <div className="group p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
         {/* Left: Item Index Number & Title */}
         <div className="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
           <span
