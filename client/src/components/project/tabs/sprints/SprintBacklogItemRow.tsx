@@ -10,6 +10,7 @@ interface SprintBacklogItemRowProps {
   itemIndex?: number;
   sprintStartDate?: string;
   sprintEndDate?: string;
+  projectManagerName?: string;
   isUpdating: boolean;
   canManageProject?: boolean;
   canMarkDone?: boolean;
@@ -64,6 +65,7 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
     itemIndex,
     sprintStartDate,
     sprintEndDate,
+    projectManagerName,
     isUpdating,
     canManageProject = false,
     canMarkDone = false,
@@ -89,9 +91,14 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
     const canChangeStatus = Boolean(canManageProject || isAssignee);
 
     const givenByName =
-      item.givenBy ||
-      (item as any).managerName ||
-      (currentUser?.role?.toLowerCase() === 'admin' ? currentUser.name || 'Admin' : 'Admin');
+      (item.givenBy && item.givenBy !== 'Admin')
+        ? item.givenBy
+        : ((item as any).managerName && (item as any).managerName !== 'Admin')
+        ? (item as any).managerName
+        : projectManagerName ||
+          item.givenBy ||
+          (item as any).managerName ||
+          'Project Manager';
     const assigneeDisplayName = item.assignee?.name;
 
     return (

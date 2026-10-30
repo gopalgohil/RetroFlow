@@ -11,6 +11,7 @@ import { SprintBacklogItemRow } from './SprintBacklogItemRow';
 export interface SprintBacklogDrawerProps {
   projectId: string;
   sprint: Sprint;
+  projectManagerName?: string;
   updatingItemId: string | null;
   deletingItemId?: string | null;
   canManageProject?: boolean;
@@ -43,6 +44,7 @@ export interface SprintBacklogDrawerProps {
 export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
   projectId,
   sprint,
+  projectManagerName,
   updatingItemId,
   deletingItemId = null,
   canManageProject = false,
@@ -239,6 +241,7 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
                   canManageProject={canManageProject}
                   canMarkDone={canMarkDone}
                   currentUser={currentUser}
+                  projectManagerName={projectManagerName}
                   sprintStartDate={sprint.startDate}
                   sprintEndDate={sprint.endDate}
                   onUpdateStatus={onUpdateItemStatus}

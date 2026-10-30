@@ -53,6 +53,8 @@ const backlogItemSchema = new mongoose.Schema(
       email: { type: String, trim: true, lowercase: true },
       avatar: { type: String, trim: true },
     },
+    givenBy: { type: String, trim: true },
+    managerName: { type: String, trim: true },
     sourceRetroId: { type: String },
     sourceRetroTitle: { type: String },
     createdAt: {
@@ -60,7 +62,7 @@ const backlogItemSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { _id: false }
+  { _id: false, strict: false }
 );
 
 /**

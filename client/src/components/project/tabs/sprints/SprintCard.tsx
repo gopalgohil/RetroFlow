@@ -11,6 +11,7 @@ export interface SprintCardProps {
   projectId: string;
   sprint: Sprint;
   isExpanded: boolean;
+  projectManagerName?: string;
   canManageProject: boolean;
   canMarkDone?: boolean;
   currentUser?: {
@@ -50,6 +51,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   projectId,
   sprint,
   isExpanded,
+  projectManagerName,
   canManageProject,
   canMarkDone = false,
   currentUser = null,
@@ -222,6 +224,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
         <SprintBacklogDrawer
           projectId={projectId}
           sprint={sprint}
+          projectManagerName={projectManagerName}
           updatingItemId={updatingItemId}
           deletingItemId={deletingItemId}
           canManageProject={canManageProject}

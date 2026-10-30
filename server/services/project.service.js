@@ -602,16 +602,21 @@ class ProjectService {
               } else {
                 assigneeName = mentionMatch[1].trim();
               }
-            }
-
             const projectManager =
-              project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
-              project.lead;
-            const managerName = projectManager?.name || project.lead?.name || 'Project Manager';
+              project.members?.find(
+                (m) =>
+                  (m.role || '').toLowerCase().includes('manager') ||
+                  (m.role || '').toLowerCase().includes('lead')
+              ) || project.lead;
+            const managerName =
+              (card.givenBy && card.givenBy !== 'Admin')
+                ? card.givenBy
+                : projectManager?.name || project.lead?.name || 'Project Manager';
 
             if (existingItem) {
-              if (!existingItem.givenBy) {
+              if (!existingItem.givenBy || existingItem.givenBy === 'Admin') {
                 existingItem.givenBy = managerName;
+                existingItem.managerName = managerName;
                 sprintItemsChanged = true;
               }
               if (card.status && existingItem.status !== card.status) {
@@ -808,16 +813,21 @@ class ProjectService {
     // Ensure all sprint items have givenBy and managerName populated
     if (project.sprints && Array.isArray(project.sprints)) {
       const projectManager =
-        project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
-        project.lead;
+        project.members?.find(
+          (m) =>
+            (m.role || '').toLowerCase().includes('manager') ||
+            (m.role || '').toLowerCase().includes('lead')
+        ) || project.lead;
       const defaultManagerName = projectManager?.name || project.lead?.name || 'Project Manager';
 
       project.sprints.forEach((s) => {
         if (Array.isArray(s.items)) {
           s.items.forEach((it) => {
-            if (!it.givenBy) {
+            if (!it.givenBy || it.givenBy === 'Admin') {
               it.givenBy = defaultManagerName;
               it.managerName = defaultManagerName;
+            } else if (!it.managerName) {
+              it.managerName = it.givenBy;
             }
           });
         }
@@ -1357,16 +1367,27 @@ class ProjectService {
     if (!sprint) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
 
     const projectManager =
-      project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
-      project.lead;
+      project.members?.find(
+        (m) =>
+          (m.role || '').toLowerCase().includes('manager') ||
+          (m.role || '').toLowerCase().includes('lead')
+      ) || project.lead;
     const defaultManagerName = projectManager?.name || project.lead?.name || 'Project Manager';
 
     let items = Array.isArray(sprint.items)
-      ? sprint.items.map((it) => ({
-          ...it,
-          givenBy: it.givenBy || defaultManagerName,
-          managerName: it.managerName || it.givenBy || defaultManagerName,
-        }))
+      ? sprint.items.map((it) => {
+          const itObj = it && typeof it.toObject === 'function' ? it.toObject() : { ...it };
+          const resolvedGivenBy =
+            !itObj.givenBy || itObj.givenBy === 'Admin' ? defaultManagerName : itObj.givenBy;
+          return {
+            ...itObj,
+            givenBy: resolvedGivenBy,
+            managerName:
+              !itObj.managerName || itObj.managerName === 'Admin'
+                ? resolvedGivenBy
+                : itObj.managerName,
+          };
+        })
       : [];
 
     // Optional status filtering ('todo' | 'in_progress' | 'done')
@@ -1817,15 +1838,20 @@ class ProjectService {
       }
 
       const projectManager =
-        project.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
-        project.lead;
+        project.members?.find(
+          (m) =>
+            (m.role || '').toLowerCase().includes('manager') ||
+            (m.role || '').toLowerCase().includes('lead')
+        ) || project.lead;
       const resolvedGivenBy =
-        item.givenBy ||
-        item.managerName ||
-        currentUser?.name ||
-        projectManager?.name ||
-        project.lead?.name ||
-        'Project Manager';
+        (item.givenBy && item.givenBy !== 'Admin')
+          ? item.givenBy
+          : (item.managerName && item.managerName !== 'Admin')
+          ? item.managerName
+          : projectManager?.name ||
+            project.lead?.name ||
+            currentUser?.name ||
+            'Project Manager';
 
       return {
         id: `act-${crypto.randomUUID().slice(0, 8)}`,
@@ -2005,9 +2031,17 @@ class ProjectService {
           }
 
           const projectManager =
-            proj.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
-            proj.lead;
-          const managerName = item.givenBy || projectManager?.name || proj.lead?.name || 'Project Manager';
+            proj.members?.find(
+              (m) =>
+                (m.role || '').toLowerCase().includes('manager') ||
+                (m.role || '').toLowerCase().includes('lead')
+            ) || proj.lead;
+          const managerName =
+            (item.givenBy && item.givenBy !== 'Admin')
+              ? item.givenBy
+              : (item.managerName && item.managerName !== 'Admin')
+              ? item.managerName
+              : projectManager?.name || proj.lead?.name || 'Project Manager';
 
           actionItems.push({
             ...item,

@@ -81,6 +81,14 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     title: string;
   } | null>(null);
 
+  const projectManager =
+    project.members?.find(
+      (m) =>
+        (m.role || '').toLowerCase().includes('manager') ||
+        (m.role || '').toLowerCase().includes('lead')
+    ) || project.lead;
+  const projectManagerName = projectManager?.name || project.lead?.name || 'Project Manager';
+
   const allSprints = project.sprints || [];
   const currentFilteredSprints = allSprints.filter((s) => {
     if (filter === 'all') return true;
@@ -492,6 +500,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               key={sprint.id}
               projectId={project.id}
               sprint={sprint}
+              projectManagerName={projectManagerName}
               isExpanded={expandedSprintIds.includes(sprint.id)}
               canManageProject={canManageProject}
               canMarkDone={canMarkDone}
