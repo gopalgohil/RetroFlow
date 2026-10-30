@@ -172,7 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation Items Area */}
-        <div className="px-4 pt-12 pb-6 flex-1 overflow-y-auto">
+        <div className="px-3 pt-12 pb-6 flex-1 overflow-y-auto">
           <nav className="space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -184,13 +184,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     setActiveTab(item.id);
                     if (onCloseMobile) onCloseMobile();
                   }}
-                  className={`w-full flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                     isActive
                       ? 'bg-[#5cb028] text-white shadow-sm shadow-[#5cb028]/25 dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/25'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/[0.05]'
                   }`}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <Icon
                       className={`w-[18px] h-[18px] shrink-0 ${
                         isActive
@@ -199,7 +199,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       }`}
                     />
                     <div className="text-left min-w-0">
-                      <p suppressHydrationWarning className="whitespace-nowrap tracking-tight">
+                      <p suppressHydrationWarning className="whitespace-nowrap tracking-tight text-[13.5px]">
                         {item.label}
                       </p>
                       {item.sublabel && !isActive && (
@@ -212,7 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                   {item.badge && (
                     <span
-                      className={`shrink-0 ml-1 px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap leading-tight ${
+                      className={`shrink-0 ml-auto px-2 py-0.5 rounded-full text-[10.5px] font-bold whitespace-nowrap leading-tight ${
                         isActive
                           ? 'bg-white/25 text-white dark:bg-[#08090a]/15 dark:text-[#08090a] dark:font-black'
                           : 'bg-[#eaf5e3] dark:bg-[#88c958]/20 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30'
