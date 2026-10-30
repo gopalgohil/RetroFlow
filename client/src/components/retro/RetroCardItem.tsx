@@ -82,16 +82,21 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   };
 
   const canInteract = card.hasVoted || remainingVotes > 0;
-  const isCardAssigned = Boolean(card.assignedTo?.name || card.isExportedToActionItems);
+  const isCardAssigned = Boolean(
+    card.assignedTo?.name ||
+    card.isExportedToActionItems ||
+    (card as any).assignedSprintName
+  );
   const effectiveCanEdit = canEdit && !isCardAssigned;
   const effectiveCanDelete = canDelete && !isCardAssigned;
   const effectiveMoveToActions = isCardAssigned ? undefined : onMoveToActions;
+  const effectiveCanMoveCrossColumn = Boolean(canMoveCrossColumn && !isCardAssigned);
 
   return (
     <div
-      draggable={!isEditing && Boolean(canMoveCrossColumn)}
+      draggable={!isEditing && Boolean(effectiveCanMoveCrossColumn)}
       onDragStart={(e) => {
-        if (isEditing || !canMoveCrossColumn) {
+        if (isEditing || !effectiveCanMoveCrossColumn) {
           e.preventDefault();
           return;
         }
@@ -126,7 +131,9 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
         borderLeftColor: topicColor,
       }}
       className={`group relative p-2.5 rounded-xl border border-l-[3.5px] shadow-2xs hover:shadow-xs transition-all space-y-2 hover:z-30 dark:bg-[#12151c] dark:border-white/[0.08] ${
-        canMoveCrossColumn ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+        effectiveCanMoveCrossColumn ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+      } ${
+        isCardAssigned ? 'border-dashed' : ''
       } ${
         isDragging ? 'opacity-40 ring-1 ring-[#88c958]/40' : ''
       } ${
@@ -295,12 +302,21 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
 
               {/* Drag Handle (Strictly Admin and Manager only) */}
               {canMoveCrossColumn && (
-                <div
-                  className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 hover:text-[#88c958] dark:hover:text-[#88c958] transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5 dark:hover:bg-white/5"
-                  title="Drag to reorder card or move across questions"
-                >
-                  <GripVertical className="w-3.5 h-3.5" />
-                </div>
+                isCardAssigned ? (
+                  <div
+                    className="text-slate-300 dark:text-slate-600 p-0.5 rounded cursor-not-allowed opacity-30 select-none"
+                    title="Assigned/Exported tasks are locked in sprint and cannot be moved across columns"
+                  >
+                    <GripVertical className="w-3.5 h-3.5" />
+                  </div>
+                ) : (
+                  <div
+                    className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 hover:text-[#88c958] dark:hover:text-[#88c958] transition-colors cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-black/5 dark:hover:bg-white/5"
+                    title="Drag to reorder card or move across questions"
+                  >
+                    <GripVertical className="w-3.5 h-3.5" />
+                  </div>
+                )
               )}
 
               {/* Edit (Author Only) & Delete (Author or Facilitator Moderation) */}

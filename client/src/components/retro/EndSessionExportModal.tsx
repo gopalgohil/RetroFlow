@@ -197,22 +197,21 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   // Initialize selected card IDs and default item configs when modal opens or cards change
   const unassignedActionCards = useMemo(() => {
     return actionCards.filter(
-      (c) => !(c.assignedTo?.name && (c.assignedSprintName || c.isExportedToActionItems))
+      (c) => !(c.assignedTo?.name || c.assignedSprintName || c.isExportedToActionItems)
     );
   }, [actionCards]);
 
   useEffect(() => {
     if (actionCards.length > 0) {
-      // By default, select unassigned action items, or all action items if none are exported yet
-      const defaultSelection = unassignedActionCards.length > 0 ? unassignedActionCards : actionCards;
-      const ids = defaultSelection.map((c) => c.id);
+      // By default, select ONLY unassigned action items; do NOT auto-select already assigned items
+      const ids = unassignedActionCards.map((c) => c.id);
       setSelectedCardIds(ids);
 
       const initialConfigs: Record<string, ItemConfig> = {};
       actionCards.forEach((c) => {
-        let defaultAssignee = '';
+        let defaultAssignee = c.assignedTo?.name || '';
         const mention = (c.text || '').match(/@([a-zA-Z0-9._-]+)/);
-        if (mention) {
+        if (!defaultAssignee && mention) {
           const handle = mention[1].toLowerCase().trim();
           const matched = assignableMembers.find(
             (m) =>
@@ -230,8 +229,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
         };
       });
       setItemConfigs(initialConfigs);
+    } else {
+      setSelectedCardIds([]);
     }
-  }, [actionCards, isOpen, assignableMembers]);
+  }, [actionCards, isOpen, assignableMembers, unassignedActionCards]);
 
   const suggestedSprint = useMemo(() => {
     return selectedProject ? getSuggestedSprint(selectedProject.id) : null;
@@ -285,19 +286,24 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     };
   }, [isSprintDropdownOpen]);
 
-  // Toggle single card selection
+  // Toggle single card selection (disallow toggling already assigned cards)
   const handleToggleCard = (cardId: string) => {
+    const card = actionCards.find((c) => c.id === cardId);
+    if (card?.assignedTo?.name || card?.assignedSprintName || card?.isExportedToActionItems) {
+      return;
+    }
     setSelectedCardIds((prev) =>
       prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
     );
   };
 
-  // Toggle select all / deselect all
+  // Toggle select all / deselect all (only targets unassigned action cards)
   const handleToggleSelectAll = () => {
-    if (selectedCardIds.length === actionCards.length) {
+    const unassignedIds = unassignedActionCards.map((c) => c.id);
+    if (selectedCardIds.length === unassignedIds.length) {
       setSelectedCardIds([]);
     } else {
-      setSelectedCardIds(actionCards.map((c) => c.id));
+      setSelectedCardIds(unassignedIds);
     }
   };
 
@@ -549,7 +555,11 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
               ? selectedCardIds.length > 0
                 ? `End Session & Export (${selectedCardIds.length}) Items`
                 : 'End Session & Complete'
-              : `Export (${selectedCardIds.length}) Items to Sprint`}
+              : selectedCardIds.length > 0
+              ? `Export (${selectedCardIds.length}) Items to Sprint`
+              : unassignedActionCards.length === 0
+              ? 'All Items Already Exported'
+              : 'Select Items to Export'}
           </span>
         </button>
       </>
@@ -863,14 +873,21 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                     <ListFilter className="w-3.5 h-3.5 text-[#88c958]" />
-                    Select Action Items to Export ({selectedCardIds.length}/{actionCards.length})
+                    Select Action Items to Export ({selectedCardIds.length}/{unassignedActionCards.length})
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#eaf5e3] dark:bg-[#88c958]/20 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30">
                     {selectedCardIds.length} Selected
                   </span>
                 </div>
-
-
+                {unassignedActionCards.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleToggleSelectAll}
+                    className="text-[11px] font-semibold text-[#3d8318] dark:text-[#88c958] hover:underline cursor-pointer"
+                  >
+                    {selectedCardIds.length === unassignedActionCards.length ? 'Deselect All' : 'Select All'}
+                  </button>
+                )}
               </div>
 
               {/* Scrollable list of items */}
@@ -888,9 +905,9 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                 ) : (
                   actionCards.map((card) => {
                     const isAlreadyAssigned = Boolean(
-                      card.assignedTo?.name && (card.assignedSprintName || card.isExportedToActionItems)
+                      card.assignedTo?.name || card.assignedSprintName || card.isExportedToActionItems
                     );
-                    const isSelected = selectedCardIds.includes(card.id);
+                    const isSelected = selectedCardIds.includes(card.id) && !isAlreadyAssigned;
                     const cfg = itemConfigs[card.id] || {
                       assigneeName: card.assignedTo?.name || '',
                       storyPoints: 3,
@@ -901,10 +918,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                       <div
                         key={card.id}
                         className={`p-3 rounded-xl border transition-all space-y-2.5 ${
-                          isSelected
+                          isAlreadyAssigned
+                            ? 'bg-slate-100/70 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/[0.06] opacity-60'
+                            : isSelected
                             ? 'bg-[#eaf5e3]/40 dark:bg-[#88c958]/10 border-[#cdeac0]/90 dark:border-[#88c958]/30 shadow-2xs'
-                            : isAlreadyAssigned
-                            ? 'bg-slate-100/60 dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.08]'
                             : 'bg-slate-50/50 dark:bg-[#12151c]/40 border-slate-200/70 dark:border-white/[0.05]'
                         }`}
                       >
@@ -913,19 +930,29 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                           <input
                             type="checkbox"
                             checked={isSelected}
-                            onChange={() => handleToggleCard(card.id)}
-                            className="mt-1 w-4 h-4 rounded text-[#88c958] border-slate-300 dark:border-white/20 dark:bg-[#141720] focus:ring-[#88c958] cursor-pointer"
+                            disabled={isAlreadyAssigned}
+                            onChange={() => !isAlreadyAssigned && handleToggleCard(card.id)}
+                            className={`mt-1 w-4 h-4 rounded text-[#88c958] border-slate-300 dark:border-white/20 dark:bg-[#141720] focus:ring-[#88c958] ${
+                              isAlreadyAssigned ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'
+                            }`}
+                            title={isAlreadyAssigned ? 'This action item is already assigned/exported' : 'Select to export'}
                           />
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className={`text-xs font-bold leading-snug ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
+                              <p className={`text-xs font-bold leading-snug ${
+                                isAlreadyAssigned
+                                  ? 'text-slate-500 dark:text-slate-400'
+                                  : isSelected
+                                  ? 'text-slate-900 dark:text-white'
+                                  : 'text-slate-700 dark:text-slate-300'
+                              }`}>
                                 {card.text}
                               </p>
-                              {isAlreadyAssigned && card.assignedTo?.name && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
+                              {isAlreadyAssigned && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
                                   <Check className="w-2.5 h-2.5" />
-                                  Assigned to: {card.assignedTo.name} {card.assignedSprintName ? `(${card.assignedSprintName})` : ''}
+                                  Assigned to: {card.assignedTo?.name || 'Assigned'} {card.assignedSprintName ? `(${card.assignedSprintName})` : ''}
                                 </span>
                               )}
                             </div>
@@ -937,8 +964,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                           </div>
                         </div>
 
-                        {/* Bottom: Assignee & Priority Selector (Available whenever selected) */}
-                        {isSelected && (
+                        {/* Bottom: Assignee & Priority Selector (Available only when selected and NOT already assigned) */}
+                        {isSelected && !isAlreadyAssigned && (
                           <div className="flex flex-wrap items-center gap-2 pl-7 pt-1 border-t border-[#cdeac0]/80 dark:border-white/[0.08]">
                             {/* Assignee Selector */}
                             <div className="flex items-center gap-1.5">

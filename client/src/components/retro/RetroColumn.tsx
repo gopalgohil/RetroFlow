@@ -116,7 +116,13 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   };
 
   const handleCardDragStart = (cardId: string, e: React.DragEvent) => {
-    if (!canMoveCrossColumn) {
+    const card = cards.find((c) => c.id === cardId);
+    const isAssigned = Boolean(
+      card?.assignedTo?.name ||
+      card?.isExportedToActionItems ||
+      (card as any)?.assignedSprintName
+    );
+    if (!canMoveCrossColumn || isAssigned) {
       e.preventDefault();
       return;
     }
