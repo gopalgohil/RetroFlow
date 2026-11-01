@@ -24,7 +24,6 @@ import {
   RetrosTabSkeleton,
   TeamTabSkeleton,
 } from '@/components/project/ProjectSkeletons';
-import { ShareProjectModal } from '@/components/project/ShareProjectModal';
 import { ThemeToggle } from '@/components/ui';
 import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
@@ -74,7 +73,6 @@ function ProjectDetailContent() {
   );
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCreateRetroOpen, setIsCreateRetroOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isSwitchingProject, setIsSwitchingProject] = useState(false);
   const [isTabTransitioning, setIsTabTransitioning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -628,18 +626,6 @@ function ProjectDetailContent() {
           <div className="flex items-center gap-2.5">
             <ThemeToggle />
 
-            {project && canShare && (
-              <button
-                type="button"
-                onClick={() => setIsShareModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] dark:hover:border-white/[0.16] hover:bg-slate-50 dark:hover:bg-[#0e1015] text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-                title="Share Project & Invite Team Members"
-              >
-                <Share2 className="w-3.5 h-3.5 text-[#88c958]" />
-                <span className="hidden sm:inline">Share</span>
-              </button>
-            )}
-
             {/* User Profile Dropdown Pill */}
             <div className="relative shrink-0" ref={profileDropdownRef}>
               <button
@@ -992,21 +978,6 @@ function ProjectDetailContent() {
             : null
         }
       />
-
-      {/* Share Project & Member Invite Modal (Admin, Manager & Project Lead only) */}
-      {canManageProject && (
-        <ShareProjectModal
-          isOpen={isShareModalOpen}
-          onClose={() => setIsShareModalOpen(false)}
-          project={project}
-          onProjectUpdated={(updatedProject) => {
-            setProject(updatedProject);
-            try {
-              sessionStorage.setItem(`retroflow_cached_project_${updatedProject.id}`, JSON.stringify(updatedProject));
-            } catch { }
-          }}
-        />
-      )}
 
       {/* My Profile Modal */}
       <MyProfileModal

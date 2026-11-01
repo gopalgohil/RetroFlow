@@ -2,11 +2,11 @@
 
 import React, { useState, memo } from 'react';
 import Image from 'next/image';
-import { CheckCircle2, Sparkles, ShieldCheck, Mail, User } from 'lucide-react';
+import { CheckCircle2, Sparkles, ShieldCheck, Mail, User, AlertCircle, Loader2 } from 'lucide-react';
 
 export interface ParticipantNameModalProps {
   isOpen: boolean;
-  onJoin: (name: string, email?: string) => void;
+  onJoin: (name: string, email?: string) => Promise<void> | void;
   verifiedEmail?: string | null;
 }
 
@@ -23,15 +23,30 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
 
     const [nameInput, setNameInput] = useState(initialSuggestion);
     const [emailInput, setEmailInput] = useState(verifiedEmail || '');
+    const [joinError, setJoinError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      setJoinError(null);
       const trimmedName = nameInput.trim();
       if (!trimmedName) return;
       const effectiveEmail = verifiedEmail || emailInput.trim();
-      onJoin(trimmedName, effectiveEmail || undefined);
+      if (!effectiveEmail) {
+        setJoinError('Please provide your work/team email address.');
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        await onJoin(trimmedName, effectiveEmail);
+      } catch (err: any) {
+        setJoinError(err?.message || 'Access Denied: You are not invited to this retrospective session.');
+      } finally {
+        setIsSubmitting(false);
+      }
     };
 
     return (
@@ -117,13 +132,30 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
               </div>
             )}
 
+            {/* Email Verification Error Alert */}
+            {joinError && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl text-rose-700 dark:text-rose-300 text-xs font-medium flex items-start gap-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{joinError}</span>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={!nameInput.trim() || (!verifiedEmail && !emailInput.trim())}
+              disabled={isSubmitting || !nameInput.trim() || (!verifiedEmail && !emailInput.trim())}
               className="w-full py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 mt-2 dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a] dark:disabled:bg-[#88c958]/40"
             >
-              <span>Enter Retrospective Board</span>
-              <Sparkles className="w-3.5 h-3.5" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Verifying Invitation...</span>
+                </>
+              ) : (
+                <>
+                  <span>Enter Retrospective Board</span>
+                  <Sparkles className="w-3.5 h-3.5" />
+                </>
+              )}
             </button>
           </form>
         </div>

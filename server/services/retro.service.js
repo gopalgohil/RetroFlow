@@ -968,10 +968,15 @@ class RetroService {
       throw ApiError.badRequest('Invalid token payload: missing email.');
     }
 
-    // Ensure email is whitelisted in approvedMembers
-    if (!retro.approvedMembers.includes(normalizedEmail)) {
-      retro.approvedMembers.push(normalizedEmail);
-      await retro.save();
+    // Verify email is whitelisted in approvedMembers
+    const isApproved =
+      Array.isArray(retro.approvedMembers) &&
+      retro.approvedMembers.some((e) => e && e.toLowerCase().trim() === normalizedEmail);
+
+    if (!isApproved) {
+      throw ApiError.forbidden(
+        `This invitation link is not authorized for "${normalizedEmail}". Please request an invitation from the Manager.`
+      );
     }
 
     let linkedProject = null;
@@ -1048,6 +1053,9 @@ class RetroService {
 
     const trimmedName = name.trim();
     const normalizedEmail = email ? email.toLowerCase().trim() : '';
+    if (!normalizedEmail) {
+      throw ApiError.badRequest('Valid email address is required to join this retrospective session.');
+    }
 
     const retro = await RetroBoard.findOne({ shareToken });
     if (!retro) {
@@ -1081,34 +1089,59 @@ class RetroService {
       }
     }
 
-    // Whitelist and record attendee in retro if email is provided
-    if (normalizedEmail) {
-      if (!Array.isArray(retro.attendees)) {
-        retro.attendees = [];
-      }
-      const existingAttendee = retro.attendees.find(
-        (a) => a.email?.toLowerCase().trim() === normalizedEmail
+    // Strict Option 1 Whitelist Verification:
+    // User MUST be explicitly in retro.approvedMembers, or be workspace admin / project lead / manager
+    const isApproved =
+      Array.isArray(retro.approvedMembers) &&
+      retro.approvedMembers.some(
+        (e) => e && e.toLowerCase().trim() === normalizedEmail
       );
-      if (existingAttendee) {
-        existingAttendee.lastActiveAt = new Date();
-        existingAttendee.name = trimmedName || existingAttendee.name;
-        existingAttendee.role = assignedRole || existingAttendee.role;
-      } else {
-        retro.attendees.push({
-          userId: `guest-${crypto.randomUUID().slice(0, 8)}`,
-          name: trimmedName,
-          email: normalizedEmail,
-          role: assignedRole,
-          joinedAt: new Date(),
-          lastActiveAt: new Date(),
-        });
-      }
 
-      if (!retro.approvedMembers.includes(normalizedEmail)) {
-        retro.approvedMembers.push(normalizedEmail);
-      }
-      await retro.save();
+    let isLeadOrAdmin = false;
+    if (linkedProject) {
+      isLeadOrAdmin =
+        linkedProject.lead?.email?.toLowerCase().trim() === normalizedEmail ||
+        (Array.isArray(linkedProject.members) &&
+          linkedProject.members.some(
+            (m) =>
+              m.email?.toLowerCase().trim() === normalizedEmail &&
+              (m.role?.toLowerCase() === 'manager' || m.role?.toLowerCase() === 'admin')
+          ));
     }
+
+    // Check if user is workspace admin
+    const userAccount = await User.findOne({ email: normalizedEmail }).select('role');
+    const isWorkspaceAdmin = userAccount && userAccount.role === 'admin';
+
+    if (!isApproved && !isLeadOrAdmin && !isWorkspaceAdmin) {
+      throw ApiError.forbidden(
+        `Access Denied: "${normalizedEmail}" is not invited to this retrospective session. Only users invited by the Admin or Manager can join.`
+      );
+    }
+
+    // Record attendee in retro
+    if (!Array.isArray(retro.attendees)) {
+      retro.attendees = [];
+    }
+    const existingAttendee = retro.attendees.find(
+      (a) => a.email?.toLowerCase().trim() === normalizedEmail
+    );
+    if (existingAttendee) {
+      existingAttendee.lastActiveAt = new Date();
+      existingAttendee.name = trimmedName || existingAttendee.name;
+      existingAttendee.role = assignedRole || existingAttendee.role;
+    } else {
+      retro.attendees.push({
+        userId: `guest-${crypto.randomUUID().slice(0, 8)}`,
+        name: trimmedName,
+        email: normalizedEmail,
+        role: assignedRole,
+        joinedAt: new Date(),
+        lastActiveAt: new Date(),
+      });
+    }
+
+    await retro.save();
 
     const guestId = `guest-${crypto.randomUUID().slice(0, 8)}`;
     const userRole = assignedRole;

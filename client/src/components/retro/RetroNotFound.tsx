@@ -2,6 +2,7 @@
 
 import React, { memo, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ShieldAlert, AlertCircle } from 'lucide-react';
 
 export interface RetroNotFoundProps {
   error?: string | null;
@@ -12,6 +13,7 @@ export const RetroNotFound: React.FC<RetroNotFoundProps> = memo(function RetroNo
   error,
 }) {
   const [hasAccount, setHasAccount] = useState(false);
+  const isAccessDenied = Boolean(error && error.toLowerCase().includes('access denied'));
 
   useEffect(() => {
     try {
@@ -24,9 +26,14 @@ export const RetroNotFound: React.FC<RetroNotFoundProps> = memo(function RetroNo
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans">
-      <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 max-w-md shadow-xs">
-        <h2 className="text-sm font-bold">Retrospective Not Found</h2>
-        <p className="text-xs mt-1 text-rose-600 dark:text-rose-400">
+      <div className="p-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-rose-200 dark:border-rose-900/60 text-slate-800 dark:text-slate-200 max-w-md shadow-lg space-y-3">
+        <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto shadow-2xs">
+          {isAccessDenied ? <ShieldAlert className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
+        </div>
+        <h2 className="text-base font-bold text-slate-900 dark:text-white">
+          {isAccessDenied ? 'Access Denied (Invite Only)' : 'Retrospective Not Found'}
+        </h2>
+        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
           {error || 'Session does not exist or has expired.'}
         </p>
       </div>

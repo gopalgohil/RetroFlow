@@ -242,6 +242,30 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
           const limit = sessionData.votingLimit || 1;
           setRemainingVotes(Math.max(0, limit - votedCount));
         }
+
+        // Strict Option 1 Check: Verify logged in user is authorized
+        const userEmail = (currentUser?.email || '').toLowerCase().trim();
+        if (userEmail) {
+          const isCreator =
+            (sessionData.createdBy?._id && String(sessionData.createdBy._id) === String(currentUser?.id)) ||
+            sessionData.createdBy?.email?.toLowerCase().trim() === userEmail;
+          const isAdmin = currentUser?.role?.toLowerCase() === 'admin';
+          const isProjectLead =
+            sessionData.project?.lead?.email?.toLowerCase().trim() === userEmail;
+          const isWhitelisted =
+            Array.isArray(sessionData.approvedMembers) &&
+            sessionData.approvedMembers.some(
+              (em) => em && em.toLowerCase().trim() === userEmail
+            );
+
+          if (!isCreator && !isAdmin && !isProjectLead && !isWhitelisted) {
+            setError(
+              `Access Denied: "${userEmail}" is not invited to this retrospective session. Only users invited by the Admin or Manager can join.`
+            );
+            setIsLoading(false);
+            return;
+          }
+        }
       } catch (err: any) {
         setError(err.message || 'Unable to load retrospective session');
       } finally {
@@ -252,7 +276,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     if (shareToken) {
       fetchSession();
     }
-  }, [shareToken]);
+  }, [shareToken, currentUser?.email, currentUser?.id, currentUser?.role]);
 
   const currentAuthorName = useMemo(
     () => currentUser?.name || participantName || 'Developer',
@@ -322,23 +346,11 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
           setIsNamePromptOpen(false);
           return;
         }
-      } catch (err) {
-        console.warn('[RetroSession] Backend join-participant failed, using resilient fallback:', err);
+      } catch (err: any) {
+        console.warn('[RetroSession] Backend join-participant failed:', err);
+        const errMsg = err?.message || 'Access Denied: You are not on the invited list for this retrospective.';
+        throw new Error(errMsg);
       }
-
-      const guestProfile = {
-        name: trimmed,
-        email: effectiveEmail,
-        role: 'Developer',
-        isGuest: true,
-      };
-
-      setCurrentUser(guestProfile);
-      localStorage.setItem('retroflow_user', JSON.stringify(guestProfile));
-      localStorage.setItem('retroflow_token', `guest-token-${Date.now()}`);
-      sessionStorage.setItem(`retroflow_guest_${shareToken}`, JSON.stringify(guestProfile));
-      sessionStorage.setItem('retroflow_participant_name', trimmed);
-      setIsNamePromptOpen(false);
     },
     [verifiedGuestEmail, shareToken]
   );
