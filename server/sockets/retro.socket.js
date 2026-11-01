@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { z } from 'zod';
 import RetroBoard from '../models/RetroBoard.js';
+import User from '../models/User.js';
 import projectService from '../services/project.service.js';
 import retroService from '../services/retro.service.js';
 import { isSuperAdmin } from '../config/admin.config.js';
@@ -99,9 +100,16 @@ export function initRetroSocket(io) {
           const decoded = verifyToken(token);
           if (decoded) {
             const email = (decoded.email || '').toLowerCase().trim();
+            let userName = decoded.name;
+            if (!userName || (email && userName === email.split('@')[0])) {
+              const u = await User.findOne(
+                decoded.id ? { _id: decoded.id } : { email }
+              ).select('name email role projectRole').lean();
+              if (u?.name) userName = u.name;
+            }
             socket.user = {
               id: decoded.id || decoded._id,
-              name: decoded.name || (email ? email.split('@')[0] : 'Teammate'),
+              name: userName || (email ? email.split('@')[0] : 'Teammate'),
               email,
               role: decoded.role || 'member',
               projectRole: decoded.projectRole || null,
@@ -140,9 +148,13 @@ export function initRetroSocket(io) {
           const decoded = verifyToken(tokenCandidate);
           if (decoded) {
             const email = (decoded.email || '').toLowerCase().trim();
+            let userName = decoded.name;
+            if (socket.user?.name && (!userName || userName === email.split('@')[0])) {
+              userName = socket.user.name;
+            }
             return {
               id: decoded.id || decoded._id,
-              name: decoded.name || (email ? email.split('@')[0] : 'Teammate'),
+              name: userName || (email ? email.split('@')[0] : 'Teammate'),
               email,
               role: decoded.role || 'member',
               projectRole: decoded.projectRole || null,
@@ -279,11 +291,18 @@ export function initRetroSocket(io) {
         const { shareToken, topicId, text } = parsed.data;
 
         const authUser = getAuthenticatedUser(payload);
-        const authorName = (authUser?.name || payload?.author || currentUser?.name || 'Developer').trim();
+        let authorName = (authUser?.name || payload?.author || currentUser?.name || 'Developer').trim();
         // Strict: If authenticated, lock authorEmail to verified email (cannot spoof authorEmail)
         const authorEmail = authUser?.email
           ? authUser.email.toLowerCase().trim()
           : (payload?.authorEmail || '').toLowerCase().trim();
+
+        if (authorEmail && (!authorName || authorName === authorEmail.split('@')[0] || authorName === 'Developer' || authorName === 'Teammate')) {
+          const dbUser = await User.findOne({ email: authorEmail }).select('name').lean();
+          if (dbUser?.name) {
+            authorName = dbUser.name;
+          }
+        }
 
         const newCard = {
           cardId: crypto.randomUUID(),

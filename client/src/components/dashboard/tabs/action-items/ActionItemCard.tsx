@@ -48,13 +48,15 @@ const PRIORITY_CONFIG: Record<
 };
 
 const getAssigneeInitials = (name?: string, avatar?: string): string => {
-  if (avatar && avatar.trim().length >= 2) return avatar.trim().slice(0, 2).toUpperCase();
-  if (!name) return 'U';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  if (name && name.trim()) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.trim().slice(0, 2).toUpperCase();
   }
-  return name.trim().slice(0, 2).toUpperCase();
+  if (avatar && avatar.trim().length >= 2) return avatar.trim().slice(0, 2).toUpperCase();
+  return 'U';
 };
 
 export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
@@ -85,10 +87,21 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
   }, [isStatusOpen]);
 
   const assigneeName = item.assignee?.name || 'Unassigned';
+  const assigneeEmail = item.assignee?.email;
   const givenByName = item.givenBy || item.managerName;
-  const hoverTooltip = givenByName
-    ? `Assigned to: ${assigneeName}\nGiven by: ${givenByName}`
+  const managerEmail = item.managerEmail;
+
+  const assigneeTooltip = assigneeEmail
+    ? `Assigned to: ${assigneeName} (${assigneeEmail})`
     : `Assigned to: ${assigneeName}`;
+
+  const givenByTooltip = givenByName
+    ? managerEmail
+      ? `Assigned by: ${givenByName} (${managerEmail})`
+      : `Assigned by: ${givenByName}`
+    : '';
+
+  const fullTooltip = [givenByTooltip, assigneeTooltip].filter(Boolean).join('\n');
 
   // Calculate Due Date Urgency
   const urgency = React.useMemo(() => {
@@ -258,10 +271,10 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
                 <span className="text-slate-300 dark:text-white/20">•</span>
                 <span
                   className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30"
-                  title={`Assigned to: ${item.assignee.name}${givenByName ? `\nGiven by: ${givenByName}` : ''}`}
+                  title={fullTooltip || assigneeTooltip}
                 >
                   <User className="w-3.5 h-3.5 shrink-0" />
-                  <span>Assigned to: <strong className="font-extrabold">{item.assignee.name}</strong></span>
+                  <span>Assigned to: <strong className="font-extrabold">{assigneeName}</strong></span>
                 </span>
               </>
             )}
@@ -370,12 +383,12 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           {givenByName && item.assignee?.name ? (
             <div
               className="flex items-center -space-x-3.5 group/merged"
-              title={`Assigned by: ${givenByName}\nAssigned to: ${assigneeName}`}
+              title={fullTooltip}
             >
               {/* Left Round Circle: Assigned By (Manager) */}
               <div
                 className="w-8 h-8 rounded-full bg-[#488e1e] text-white dark:bg-[#72ad46] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-0 group-hover/merged:z-10 group-hover/merged:scale-105 transition-all"
-                title={`Assigned by: ${givenByName}`}
+                title={givenByTooltip}
               >
                 {getAssigneeInitials(givenByName)}
               </div>
@@ -383,7 +396,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               {/* Right Round Circle: Assigned To (Member) */}
               <div
                 className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-10 hover:z-20 hover:scale-105 transition-all"
-                title={`Assigned to: ${assigneeName}`}
+                title={assigneeTooltip}
               >
                 {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
               </div>
@@ -391,7 +404,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           ) : item.assignee?.name ? (
             <div
               className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015] cursor-pointer"
-              title={`Assigned to: ${assigneeName}`}
+              title={assigneeTooltip}
             >
               {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
             </div>

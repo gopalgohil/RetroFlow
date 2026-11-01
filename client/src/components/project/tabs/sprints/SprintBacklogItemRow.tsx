@@ -45,13 +45,15 @@ const formatDueDate = (dateStr: string) => {
 };
 
 const getAssigneeInitials = (name?: string, avatar?: string): string => {
-  if (avatar && avatar.trim().length >= 2) return avatar.trim().slice(0, 2).toUpperCase();
-  if (!name) return 'U';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  if (name && name.trim()) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.trim().slice(0, 2).toUpperCase();
   }
-  return name.trim().slice(0, 2).toUpperCase();
+  if (avatar && avatar.trim().length >= 2) return avatar.trim().slice(0, 2).toUpperCase();
+  return 'U';
 };
 
 /**
@@ -108,6 +110,19 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
     const completedByName = item.completedBy || givenByName;
     const completedDateStr = item.completedAt || item.createdAt;
     const assigneeDisplayName = item.assignee?.name;
+    const managerEmail = item.managerEmail;
+
+    const assigneeTooltip = assigneeEmail
+      ? `Assigned to: ${assigneeDisplayName} (${assigneeEmail})`
+      : `Assigned to: ${assigneeDisplayName}`;
+
+    const givenByTooltip = givenByName
+      ? managerEmail
+        ? `Assigned by: ${givenByName} (${managerEmail})`
+        : `Assigned by: ${givenByName}`
+      : '';
+
+    const fullTooltip = [givenByTooltip, assigneeTooltip].filter(Boolean).join('\n');
 
     return (
       <div className="group p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
@@ -262,12 +277,12 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
             {givenByName && item.assignee?.name ? (
               <div
                 className="flex items-center -space-x-3.5 group/merged"
-                title={`Assigned by: ${givenByName}\nAssigned to: ${assigneeDisplayName}`}
+                title={fullTooltip}
               >
                 {/* Left Round Circle: Assigned By (Manager) */}
                 <div
                   className="w-8 h-8 rounded-full bg-[#488e1e] text-white dark:bg-[#72ad46] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-0 group-hover/merged:z-10 group-hover/merged:scale-105 transition-all"
-                  title={`Assigned by: ${givenByName}`}
+                  title={givenByTooltip}
                 >
                   {getAssigneeInitials(givenByName)}
                 </div>
@@ -275,7 +290,7 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                 {/* Right Round Circle: Assigned To (Member) */}
                 <div
                   className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-10 hover:z-20 hover:scale-105 transition-all"
-                  title={`Assigned to: ${assigneeDisplayName}`}
+                  title={assigneeTooltip}
                 >
                   {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
                 </div>
@@ -283,7 +298,7 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
             ) : item.assignee?.name ? (
               <div
                 className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015] cursor-pointer hover:scale-105 transition-all"
-                title={`Assigned to: ${assigneeDisplayName}`}
+                title={assigneeTooltip}
               >
                 {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
               </div>

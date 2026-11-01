@@ -37,6 +37,7 @@ export interface BacklogItem {
   sourceRetroTitle?: string;
   givenBy?: string;
   managerName?: string;
+  managerEmail?: string;
   completedAt?: string | null;
   completedBy?: string | null;
   createdAt: string;

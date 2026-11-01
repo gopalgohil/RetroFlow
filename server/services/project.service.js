@@ -10,180 +10,7 @@ import { generateToken } from '../utils/token.js';
 import { ApiError } from '../utils/ApiError.js';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 
-/**
- * Canonical Default Project Payload (Payment Gateway Integration)
- */
-const CANONICAL_PGI_PROJECT = {
-  name: 'Payment Gateway Integration',
-  key: 'PGI',
-  description: 'Enterprise Stripe 3DS V2, multi-currency settlement, webhook idempotency, and automated retry pipelines.',
-  type: 'scrum',
-  healthStatus: 'on_track',
-  cadence: '2_weeks',
-  customCadenceDays: 14,
-  lead: {
-    id: 'lead-1',
-    name: 'Workspace Lead',
-    email: getSuperAdminEmail(),
-    avatar: 'WL',
-  },
-  members: [
-    { id: 'm-1', name: 'Workspace Lead', email: getSuperAdminEmail(), role: 'Manager', avatar: 'WL' },
-  ],
-  velocityHistory: [
-    { sprintName: 'Sprint 10', committedPoints: 35, completedPoints: 34 },
-    { sprintName: 'Sprint 11', committedPoints: 38, completedPoints: 38 },
-    { sprintName: 'Sprint 12', committedPoints: 40, completedPoints: 36 },
-    { sprintName: 'Sprint 13', committedPoints: 42, completedPoints: 40 },
-    { sprintName: 'Sprint 14', committedPoints: 42, completedPoints: 34 },
-  ],
-  retrospectives: [
-    {
-      id: 'retro-pgi-1',
-      shareToken: 'retro-pgi-14',
-      title: 'Sprint 14 Mid-Cycle Sync',
-      scheduledDate: '2026-09-08',
-      status: 'active',
-      sprintName: 'Sprint 14 (Active)',
-      topicsCount: 4,
-      cardsCount: 18,
-      actionItemsCount: 4,
-      actionItemsExported: false,
-    },
-    {
-      id: 'retro-pgi-2',
-      shareToken: 'retro-pgi-13',
-      title: 'Sprint 13 Retro: Stripe 3DS V2',
-      scheduledDate: '2026-08-26',
-      status: 'completed',
-      sprintName: 'Sprint 13',
-      topicsCount: 3,
-      cardsCount: 26,
-      actionItemsCount: 5,
-      actionItemsExported: true,
-    },
-    {
-      id: 'retro-pgi-3',
-      shareToken: 'retro-pgi-12',
-      title: 'Sprint 12 Post-Mortem & Flow',
-      scheduledDate: '2026-08-12',
-      status: 'completed',
-      sprintName: 'Sprint 12',
-      topicsCount: 4,
-      cardsCount: 22,
-      actionItemsCount: 3,
-      actionItemsExported: true,
-    },
-  ],
-  sprints: [
-    {
-      id: 'sprint-14',
-      name: 'Sprint 14 - Webhook Resilience & Failover',
-      number: 14,
-      status: 'active',
-      startDate: '2026-09-01',
-      endDate: '2026-09-15',
-      goal: 'Harden Stripe webhook callback queue and reach 99.99% idempotency on dual-charge retries.',
-      daysLeft: 4,
-      totalStoryPoints: 42,
-      completedStoryPoints: 34,
-      openBlockers: 1,
-      items: [
-        {
-          id: 'item-101',
-          title: 'Implement exponential backoff on stripe 500 responses',
-          type: 'story',
-          priority: 'high',
-          status: 'done',
-          storyPoints: 5,
-          assignee: { name: 'Gopal', avatar: 'G' },
-          createdAt: new Date('2026-09-02'),
-        },
-        {
-          id: 'item-102',
-          title: 'Stripe webhook signature validation failing on staging proxy',
-          type: 'bug',
-          priority: 'critical',
-          status: 'in_progress',
-          storyPoints: 8,
-          assignee: { name: 'Gopal', avatar: 'G' },
-          createdAt: new Date('2026-09-04'),
-        },
-        {
-          id: 'item-103',
-          title: 'Add automated integration tests for 3DS challenge flow',
-          type: 'task',
-          priority: 'medium',
-          status: 'todo',
-          storyPoints: 5,
-          assignee: { name: 'Gopal', avatar: 'G' },
-          createdAt: new Date('2026-09-05'),
-        },
-      ],
-    },
-    {
-      id: 'sprint-15',
-      name: 'Sprint 15 - Multi-Currency Settlement',
-      number: 15,
-      status: 'upcoming',
-      startDate: '2026-09-16',
-      endDate: '2026-09-30',
-      goal: 'Enable EUR and GBP settlement pipelines with automated daily exchange rate caching.',
-      daysLeft: 19,
-      totalStoryPoints: 38,
-      completedStoryPoints: 0,
-      openBlockers: 0,
-      items: [
-        {
-          id: 'item-201',
-          title: 'ECB daily rate sync worker cron setup',
-          type: 'story',
-          priority: 'high',
-          status: 'todo',
-          storyPoints: 8,
-          assignee: { name: 'Gopal', avatar: 'G' },
-          createdAt: new Date('2026-09-07'),
-        },
-        {
-          id: 'item-202',
-          title: 'Settlement reconciliation audit log view',
-          type: 'story',
-          priority: 'medium',
-          status: 'todo',
-          storyPoints: 5,
-          assignee: { name: 'Gopal', avatar: 'G' },
-          createdAt: new Date('2026-09-07'),
-        },
-      ],
-    },
-    {
-      id: 'sprint-13',
-      name: 'Sprint 13 - Stripe 3DS V2 Rollout',
-      number: 13,
-      status: 'completed',
-      startDate: '2026-08-16',
-      endDate: '2026-08-31',
-      goal: 'Deliver compliant 3DS V2 checkout friction reduction across EU customers.',
-      daysLeft: 0,
-      totalStoryPoints: 40,
-      completedStoryPoints: 40,
-      openBlockers: 0,
-      items: [
-        {
-          id: 'item-091',
-          title: 'Client modal fallback for legacy browser non-iframe 3DS',
-          type: 'story',
-          priority: 'medium',
-          status: 'done',
-          storyPoints: 5,
-          createdAt: new Date('2026-08-20'),
-        },
-      ],
-    },
-  ],
-};
 
-let hasCheckedSeed = false;
 
 /**
  * Senior Developer Grade Assignee Matching
@@ -238,13 +65,6 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
 
 class ProjectService {
   /**
-   * Automatically seed project check - disabled to prevent dummy project re-creation
-   */
-  async ensureSeededProject() {
-    hasCheckedSeed = true;
-  }
-
-  /**
    * Retrieve projects with Enterprise RBAC filtering and high-performance server-side pagination
    * - Admin: ALWAYS has visibility across all workspace projects
    * - Regular Member/Developer: Strictly scoped to projects where user is Lead, Member, or Creator
@@ -254,9 +74,6 @@ class ProjectService {
    *   2. Retrospective metrics sync executed strictly on paginated result slice (O(limit) vs O(N))
    */
   async getAllProjects(currentUser = null, options = {}) {
-    if (!hasCheckedSeed) {
-      await this.ensureSeededProject();
-    }
 
     const {
       page = 1,
@@ -586,8 +403,9 @@ class ProjectService {
                   it.title.toLowerCase().trim() === cardTitle.toLowerCase())
             );
 
-            let assigneeName = card.author || 'Assigned Member';
-            let assigneeEmail = card.authorEmail || undefined;
+            // Prioritize explicit card.assignedTo first, then @mention, then card.author
+            let assigneeName = card.assignedTo?.name || card.author || 'Assigned Member';
+            let assigneeEmail = card.assignedTo?.email || card.authorEmail || undefined;
             const mentionMatch = cardTitle.match(/@([a-zA-Z0-9._-]+)/);
             if (mentionMatch) {
               const handle = mentionMatch[1].toLowerCase().trim();
@@ -604,6 +422,33 @@ class ProjectService {
               }
             }
 
+            // Cross-reference against project.members and project.lead to resolve full display name
+            const candidateMembers = [...(project.members || [])];
+            if (project.lead) candidateMembers.push(project.lead);
+
+            const matchedMember = candidateMembers.find((m) => {
+              const mEmail = (m.email || '').toLowerCase().trim();
+              const mName = (m.name || '').toLowerCase().trim();
+              const mHandle = mEmail.split('@')[0];
+              const qName = (assigneeName || '').toLowerCase().trim();
+              const qEmail = (assigneeEmail || '').toLowerCase().trim();
+
+              if (qEmail && mEmail === qEmail) return true;
+              if (qName) {
+                if (mName === qName) return true;
+                if (mHandle === qName) return true;
+                if (mEmail === qName) return true;
+                const mWords = mName.split(/\s+/);
+                if (mWords.some((w) => w === qName)) return true;
+              }
+              return false;
+            });
+
+            if (matchedMember) {
+              if (matchedMember.name) assigneeName = matchedMember.name;
+              if (matchedMember.email) assigneeEmail = matchedMember.email;
+            }
+
             const projectManager =
               project.members?.find(
                 (m) =>
@@ -615,7 +460,23 @@ class ProjectService {
                 ? card.givenBy
                 : projectManager?.name || project.lead?.name || 'Project Manager';
 
+            const getInitials = (str) => {
+              if (!str) return 'U';
+              const parts = str.trim().split(/\s+/);
+              if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+              return str.slice(0, 2).toUpperCase();
+            };
+
             if (existingItem) {
+              if (assigneeName && (!existingItem.assignee?.name || existingItem.assignee.name !== assigneeName || existingItem.assignee.name.includes('@') || existingItem.assignee.avatar?.length < 2)) {
+                existingItem.assignee = {
+                  ...(existingItem.assignee || {}),
+                  name: assigneeName,
+                  email: assigneeEmail || existingItem.assignee?.email,
+                  avatar: getInitials(assigneeName),
+                };
+                sprintItemsChanged = true;
+              }
               if (!existingItem.givenBy || existingItem.givenBy === 'Admin') {
                 existingItem.givenBy = managerName;
                 existingItem.managerName = managerName;
@@ -634,13 +495,6 @@ class ProjectService {
                 sprintItemsChanged = true;
               }
             } else {
-
-              const getInitials = (str) => {
-                if (!str) return 'U';
-                const parts = str.trim().split(/\s+/);
-                if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-                return str.slice(0, 2).toUpperCase();
-              };
 
               sprint.items.push({
                 id: `act-${cleanCardId || crypto.randomUUID().slice(0, 8)}`,
@@ -796,7 +650,6 @@ class ProjectService {
    */
   async getProjectByIdOrKey(idOrKey, currentUser = null) {
     if (!idOrKey) return null;
-    await this.ensureSeededProject();
 
     let project = null;
     if (mongoose.Types.ObjectId.isValid(idOrKey) && idOrKey.match(/^[0-9a-fA-F]{24}$/)) {
@@ -2059,6 +1912,36 @@ class ProjectService {
             seenCardIds.add(`${normalizeKey(item.sourceRetroId)}-${normalizeKey(item.title)}`);
           }
 
+          const candidateMembers = [...(proj.members || [])];
+          if (proj.lead) candidateMembers.push(proj.lead);
+
+          let resolvedAssignee = item.assignee;
+          if (item.assignee) {
+            const aEmail = (item.assignee.email || '').toLowerCase().trim();
+            const aName = (item.assignee.name || '').toLowerCase().trim();
+            const matchedMember = candidateMembers.find((m) => {
+              const mEmail = (m.email || '').toLowerCase().trim();
+              const mName = (m.name || '').toLowerCase().trim();
+              const mHandle = mEmail.split('@')[0];
+              if (aEmail && mEmail === aEmail) return true;
+              if (aName && (mName === aName || mHandle === aName || mEmail === aName)) return true;
+              return false;
+            });
+
+            if (matchedMember) {
+              const parts = (matchedMember.name || '').trim().split(/\s+/);
+              const initials = parts.length >= 2
+                ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                : matchedMember.name.slice(0, 2).toUpperCase();
+              resolvedAssignee = {
+                ...item.assignee,
+                name: matchedMember.name,
+                email: matchedMember.email || item.assignee.email,
+                avatar: initials,
+              };
+            }
+          }
+
           const projectManager =
             proj.members?.find(
               (m) =>
@@ -2071,6 +1954,7 @@ class ProjectService {
               : (item.managerName && item.managerName !== 'Admin')
               ? item.managerName
               : projectManager?.name || proj.lead?.name || 'Project Manager';
+          const managerEmail = projectManager?.email || proj.lead?.email;
 
           actionItems.push({
             ...item,
@@ -2085,8 +1969,10 @@ class ProjectService {
             sprintName: sprint.name,
             sprintStatus: sprint.status,
             isDirectRetroCard: false,
+            assignee: resolvedAssignee,
             givenBy: managerName,
             managerName: managerName,
+            managerEmail,
             createdAt: item.createdAt || proj.createdAt || new Date().toISOString(),
           });
         }
@@ -2190,6 +2076,25 @@ class ProjectService {
           }
         }
 
+        const candidateMembers = [...(matchingProject?.members || [])];
+        if (matchingProject?.lead) candidateMembers.push(matchingProject.lead);
+
+        const matchedDirect = candidateMembers.find((m) => {
+          const mEmail = (m.email || '').toLowerCase().trim();
+          const mName = (m.name || '').toLowerCase().trim();
+          const mHandle = mEmail.split('@')[0];
+          const qName = (directAssigneeName || '').toLowerCase().trim();
+          const qEmail = (directAssigneeEmail || '').toLowerCase().trim();
+          if (qEmail && mEmail === qEmail) return true;
+          if (qName && (mName === qName || mHandle === qName || mEmail === qName)) return true;
+          return false;
+        });
+
+        if (matchedDirect) {
+          if (matchedDirect.name) directAssigneeName = matchedDirect.name;
+          if (matchedDirect.email) directAssigneeEmail = matchedDirect.email;
+        }
+
         if (!fetchAll) {
           if (!userEmail && !userName) continue;
 
@@ -2208,6 +2113,7 @@ class ProjectService {
           matchingProject?.members?.find((m) => m.role === 'Manager' || m.role === 'Project Lead') ||
           matchingProject?.lead;
         const managerName = card.givenBy || projectManager?.name || matchingProject?.lead?.name || retro.ownerName || 'Project Manager';
+        const managerEmail = projectManager?.email || matchingProject?.lead?.email;
 
         const getInitials = (str) => {
           if (!str) return 'U';
@@ -2232,6 +2138,7 @@ class ProjectService {
           },
           givenBy: managerName,
           managerName: managerName,
+          managerEmail,
           sourceRetroId: retro._id.toString(),
           sourceRetroTitle: retro.title,
           sourceRetroShareToken: retro.shareToken,

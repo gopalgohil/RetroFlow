@@ -288,7 +288,7 @@ class AuthService {
       { $set: { hasLoggedIn: true, lastLogin: new Date() } }
     );
 
-    const token = generateToken({ id: user._id, email: user.email, role: user.role || 'member' });
+    const token = generateToken({ id: user._id, name: user.name, email: user.email, role: user.role || 'member' });
 
     const isAdmin = Boolean(
       user.role === 'admin' ||
@@ -566,7 +566,7 @@ class AuthService {
       );
     }
 
-    const token = generateToken({ id: user._id, email: user.email, role: user.role || 'member' });
+    const token = generateToken({ id: user._id, name: user.name, email: user.email, role: user.role || 'member' });
 
     const effectiveRole = isAdmin
       ? 'Manager'

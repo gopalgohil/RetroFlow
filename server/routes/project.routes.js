@@ -16,7 +16,7 @@ const router = Router();
 
 /**
  * @route   GET /api/projects
- * @desc    Get all active projects (seeds Payment Gateway Integration if empty)
+ * @desc    Get all active projects
  */
 router.get('/', optionalAuth, projectController.getAllProjects);
 
