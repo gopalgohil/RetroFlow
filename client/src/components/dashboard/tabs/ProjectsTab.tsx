@@ -557,7 +557,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                       </td>
 
                       <td className="py-5 px-5">
-                        <div className="flex items-center gap-2.5 min-w-[160px]">
+                        <div className="flex items-center gap-2.5 min-w-[160px]" title={managerEmail ? `${managerName} (${managerEmail})` : managerName}>
                           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
                             {managerAvatar}
                           </div>
@@ -565,11 +565,9 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                             <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
                               {managerName}
                             </p>
-                            {managerEmail && (
-                              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate max-w-[200px] mt-0.5">
-                                {managerEmail}
-                              </p>
-                            )}
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                              Project Lead
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -735,7 +733,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200/60 dark:border-white/[0.08]">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200/60 dark:border-white/[0.08]" title={managerEmail ? `${managerName} (${managerEmail})` : managerName}>
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
                         {managerAvatar}
@@ -749,12 +747,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                         </p>
                       </div>
                     </div>
-
-                    {managerEmail && (
-                      <span className="text-xs text-slate-400 dark:text-slate-500 font-mono truncate max-w-[150px]">
-                        {managerEmail}
-                      </span>
-                    )}
                   </div>
 
                   <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
