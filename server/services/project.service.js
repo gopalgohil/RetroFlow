@@ -165,6 +165,8 @@ class ProjectService {
           { description: searchRegex },
           { 'lead.name': searchRegex },
           { 'lead.email': searchRegex },
+          { 'members.name': searchRegex },
+          { 'members.email': searchRegex },
         ],
       };
 

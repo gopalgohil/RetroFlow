@@ -26,7 +26,7 @@ import { PaginationMeta } from '@/types/retro';
 import { ProjectApiService } from '@/services/projectApi';
 import { CreateProjectModal } from '@/components/project/CreateProjectModal';
 import { UserAvatar, StatusPill, ProgressBar, Modal } from '@/components/ui';
-import { ProjectsTabSkeleton, ProjectCardsSkeleton } from '@/components/dashboard/DashboardSkeletons';
+import { ProjectsTabSkeleton, ProjectCardsSkeleton, ProjectTableSkeleton } from '@/components/dashboard/DashboardSkeletons';
 
 interface ProjectsTabProps {
   isAdmin?: boolean;
@@ -97,6 +97,9 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   const [restoringProjectId, setRestoringProjectId] = useState<string | null>(null);
   const isInitialMountRef = useRef(true);
 
+  const [isViewSwitching, setIsViewSwitching] = useState(false);
+  const switchTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Load saved view mode from localStorage
   useEffect(() => {
     try {
@@ -108,11 +111,23 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   }, []);
 
   const handleViewModeChange = (mode: 'grid' | 'table') => {
+    if (mode === viewMode) return;
+    setIsViewSwitching(true);
     setViewMode(mode);
     try {
       localStorage.setItem('retroflow_projects_view_mode', mode);
     } catch {}
+    if (switchTimerRef.current) clearTimeout(switchTimerRef.current);
+    switchTimerRef.current = setTimeout(() => {
+      setIsViewSwitching(false);
+    }, 220);
   };
+
+  useEffect(() => {
+    return () => {
+      if (switchTimerRef.current) clearTimeout(switchTimerRef.current);
+    };
+  }, []);
 
   const handleSaveActiveProject = useCallback((project: Project) => {
     setOpeningProjectId(project.id);
@@ -424,67 +439,9 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         </div>
       </div>
 
-      {isFilterLoading ? (
+      {isFilterLoading || isViewSwitching ? (
         viewMode === 'table' ? (
-          <div className="rounded-2xl border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0e1015] shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200/80 dark:border-white/[0.08] bg-slate-50/90 dark:bg-white/[0.02] text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    <th className="py-4 px-5 sm:px-6">Project</th>
-                    <th className="py-4 px-5">Manager / Lead</th>
-                    <th className="py-4 px-5 min-w-[220px]">Active Sprint</th>
-                    <th className="py-4 px-3.5 text-center">Sprints</th>
-                    <th className="py-4 px-3.5 text-center">Retros</th>
-                    <th className="py-4 px-3.5 text-center">Members</th>
-                    <th className="py-4 px-5 sm:px-6 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05]">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <tr key={i} className="animate-pulse">
-                      <td className="py-5 px-5 sm:px-6">
-                        <div className="flex items-center gap-3.5">
-                          <div className="w-10 h-10 rounded-2xl bg-slate-200 dark:bg-white/[0.08]" />
-                          <div className="space-y-2">
-                            <div className="h-4 w-32 bg-slate-200 dark:bg-white/[0.08] rounded-md" />
-                            <div className="h-3 w-20 bg-slate-100 dark:bg-white/[0.05] rounded" />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-5 px-5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-white/[0.08]" />
-                          <div className="space-y-1.5">
-                            <div className="h-3.5 w-24 bg-slate-200 dark:bg-white/[0.08] rounded" />
-                            <div className="h-3 w-28 bg-slate-100 dark:bg-white/[0.05] rounded" />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-5 px-5">
-                        <div className="space-y-2 max-w-[200px]">
-                          <div className="h-3.5 w-28 bg-slate-200 dark:bg-white/[0.08] rounded" />
-                          <div className="h-2 w-full bg-slate-100 dark:bg-white/[0.05] rounded-full" />
-                        </div>
-                      </td>
-                      <td className="py-5 px-3.5 text-center">
-                        <div className="h-6 w-10 bg-slate-100 dark:bg-white/[0.05] rounded-lg mx-auto" />
-                      </td>
-                      <td className="py-5 px-3.5 text-center">
-                        <div className="h-6 w-10 bg-slate-100 dark:bg-white/[0.05] rounded-lg mx-auto" />
-                      </td>
-                      <td className="py-5 px-3.5 text-center">
-                        <div className="h-6 w-10 bg-slate-100 dark:bg-white/[0.05] rounded-lg mx-auto" />
-                      </td>
-                      <td className="py-5 px-5 sm:px-6 text-right">
-                        <div className="h-8 w-20 bg-slate-200 dark:bg-white/[0.08] rounded-xl ml-auto" />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <ProjectTableSkeleton count={displayedProjects.length > 0 ? Math.min(displayedProjects.length, 5) : 4} />
         ) : (
           <ProjectCardsSkeleton count={displayedProjects.length > 0 ? Math.min(displayedProjects.length, 3) : 3} />
         )

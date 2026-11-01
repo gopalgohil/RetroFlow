@@ -119,3 +119,67 @@ export const SprintCardsSkeleton: React.FC<{ count?: number }> = ({ count = 3 })
     </div>
   );
 };
+
+export const ProjectTableSkeleton: React.FC<{ count?: number }> = ({ count = 4 }) => {
+  return (
+    <div className="rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs overflow-hidden animate-pulse">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-slate-200/80 dark:border-white/[0.08] bg-slate-50/90 dark:bg-white/[0.02] text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <th className="py-4 px-5 sm:px-6">Project</th>
+              <th className="py-4 px-5">Manager / Lead</th>
+              <th className="py-4 px-5 min-w-[220px]">Active Sprint</th>
+              <th className="py-4 px-3.5 text-center">Sprints</th>
+              <th className="py-4 px-3.5 text-center">Retros</th>
+              <th className="py-4 px-3.5 text-center">Members</th>
+              <th className="py-4 px-5 sm:px-6 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05]">
+            {Array.from({ length: count }).map((_, i) => (
+              <tr key={i} className="animate-pulse">
+                <td className="py-5 px-5 sm:px-6">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-2xl bg-slate-200 dark:bg-white/[0.08]" />
+                    <div className="space-y-2">
+                      <div className="h-4 w-32 bg-slate-200 dark:bg-white/[0.08] rounded-md" />
+                      <div className="h-3 w-20 bg-slate-100 dark:bg-white/[0.05] rounded" />
+                    </div>
+                  </div>
+                </td>
+                <td className="py-5 px-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-white/[0.08]" />
+                    <div className="space-y-1.5">
+                      <div className="h-3.5 w-24 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                      <div className="h-3 w-28 bg-slate-100 dark:bg-white/[0.05] rounded" />
+                    </div>
+                  </div>
+                </td>
+                <td className="py-5 px-5">
+                  <div className="space-y-2 max-w-[200px]">
+                    <div className="h-3.5 w-28 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                    <div className="h-2 w-full bg-slate-100 dark:bg-white/[0.05] rounded-full" />
+                  </div>
+                </td>
+                <td className="py-5 px-3.5 text-center">
+                  <div className="h-6 w-10 bg-slate-100 dark:bg-white/[0.05] rounded-lg mx-auto" />
+                </td>
+                <td className="py-5 px-3.5 text-center">
+                  <div className="h-6 w-10 bg-slate-100 dark:bg-white/[0.05] rounded-lg mx-auto" />
+                </td>
+                <td className="py-5 px-3.5 text-center">
+                  <div className="h-6 w-10 bg-slate-100 dark:bg-white/[0.05] rounded-lg mx-auto" />
+                </td>
+                <td className="py-5 px-5 sm:px-6 text-right">
+                  <div className="h-8 w-20 bg-slate-200 dark:bg-white/[0.08] rounded-xl ml-auto" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
