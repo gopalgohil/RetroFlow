@@ -163,30 +163,30 @@ export function WaitingForApprovalView({
 
       {/* Clean Center Content Card */}
       <main className="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div className="max-w-md w-full rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] p-8 sm:p-9 shadow-xl dark:shadow-2xl space-y-6 text-center animate-in zoom-in-95 duration-200">
+        <div className="max-w-xl w-full rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] p-8 sm:p-12 shadow-2xl dark:shadow-2xl space-y-7 text-center animate-in zoom-in-95 duration-200">
           {/* Elegant Minimal Icon */}
-          <div className="mx-auto w-14 h-14 rounded-2xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-xs">
-            <Clock className="w-7 h-7" />
+          <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-xs">
+            <Clock className="w-8 h-8 sm:w-10 sm:h-10" />
           </div>
 
           {/* Typography */}
-          <div className="space-y-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <div className="space-y-2.5">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               Waiting for Approval
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
-              Welcome, <span className="font-semibold text-slate-800 dark:text-slate-200">{currentUser.name || 'there'}</span>! Your account has been verified and is awaiting review by a workspace administrator.
+            <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed max-w-md mx-auto">
+              Welcome, <span className="font-bold text-slate-800 dark:text-slate-200">{currentUser.name || 'there'}</span>! Your account has been verified and is awaiting review by a workspace administrator.
             </p>
           </div>
 
           {/* Clean Account Status Badge */}
-          <div className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.06] flex items-center justify-between gap-3 text-left">
+          <div className="px-5 py-4 rounded-2xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.06] flex items-center justify-between gap-4 text-left shadow-2xs">
             <div className="min-w-0">
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Signed in as</p>
-              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{currentUser.email}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Signed in as</p>
+              <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 truncate mt-0.5">{currentUser.email}</p>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
               Pending Review
             </span>
           </div>
@@ -194,7 +194,7 @@ export function WaitingForApprovalView({
           {/* Status Feedback Notice */}
           {message && (
             <div
-              className={`p-3 rounded-xl text-xs font-medium border animate-in fade-in duration-150 ${
+              className={`p-3.5 rounded-2xl text-xs sm:text-sm font-medium border animate-in fade-in duration-150 ${
                 message.includes('approved')
                   ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300'
                   : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300'
@@ -205,30 +205,30 @@ export function WaitingForApprovalView({
           )}
 
           {/* Action Buttons */}
-          <div className="space-y-2.5 pt-1">
+          <div className="space-y-3 pt-1">
             <button
               type="button"
               onClick={handleCheckStatus}
               disabled={isChecking}
-              className="w-full py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] dark:bg-[#88c958] dark:hover:bg-[#76b846] text-white dark:text-[#08090a] text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 px-6 rounded-2xl bg-[#5cb028] hover:bg-[#4e9921] dark:bg-[#88c958] dark:hover:bg-[#76b846] text-white dark:text-[#08090a] text-sm font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isChecking ? 'animate-spin' : ''}`} />
               <span>{isChecking ? 'Checking Status...' : 'Check Approval Status'}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsLogoutModalOpen(true)}
-              className="w-full py-2.5 px-4 rounded-xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-2xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-700 dark:text-slate-300 text-sm font-semibold transition-colors cursor-pointer"
             >
               Log Out
             </button>
           </div>
 
           {/* Support info */}
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
+          <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-500 pt-3 border-t border-slate-100 dark:border-white/[0.06]">
             Need immediate access? Contact{' '}
-            <a href={`mailto:${WORKSPACE_SUPPORT_EMAIL}`} className="text-[#5cb028] dark:text-[#88c958] hover:underline font-medium">
+            <a href={`mailto:${WORKSPACE_SUPPORT_EMAIL}`} className="text-[#5cb028] dark:text-[#88c958] hover:underline font-semibold">
               {WORKSPACE_SUPPORT_EMAIL}
             </a>
           </p>
@@ -236,7 +236,7 @@ export function WaitingForApprovalView({
       </main>
 
       {/* Minimal Footer */}
-      <footer className="py-4 text-center text-[11px] text-slate-400 dark:text-slate-600 relative z-10">
+      <footer className="py-5 text-center text-xs text-slate-400 dark:text-slate-600 relative z-10">
         RetroFlow &bull; Enterprise Agile Retrospectives
       </footer>
 
