@@ -573,7 +573,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         />
       )}
 
-      {/* 4.2 Delete Upcoming Sprint Confirmation Dialog */}
+      {/* 4.2 Delete Sprint Confirmation Dialog */}
       {sprintToDelete && (
         <ConfirmDialog
           isOpen={Boolean(sprintToDelete)}
@@ -584,7 +584,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
             }
           }}
           title={`Delete ${sprintToDelete.name}?`}
-          message={`Are you sure you want to delete "${sprintToDelete.name}"? This upcoming sprint will be permanently deleted from this project.`}
+          message={`Are you sure you want to delete "${sprintToDelete.name}"? This sprint and its configuration will be permanently removed from this project.`}
           confirmLabel="Delete Sprint"
           cancelLabel="Cancel"
           variant="danger"

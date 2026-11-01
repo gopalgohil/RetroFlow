@@ -190,7 +190,7 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
   const endItem = Math.min(pagination.page * pagination.limit, totalItems);
 
   return (
-    <div className="border-t border-slate-100 dark:border-white/[0.08] bg-slate-50/60 dark:bg-[#12151c]/60 p-5 space-y-3">
+    <div className="border-t border-slate-100 dark:border-white/[0.08] bg-slate-50/60 dark:bg-[#12151c]/60 p-5 space-y-3 rounded-b-2xl">
       {/* Drawer Header */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
