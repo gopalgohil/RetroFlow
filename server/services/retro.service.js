@@ -80,7 +80,10 @@ class RetroService {
             : new Date().toISOString().split('T')[0],
           endDate: payload.endDate
             ? new Date(payload.endDate).toISOString().split('T')[0]
-            : new Date(Date.now() + cadenceDays * 86400000).toISOString().split('T')[0],
+            : (() => {
+                const sDate = payload.startDate ? new Date(payload.startDate) : new Date();
+                return new Date(Date.UTC(sDate.getFullYear(), sDate.getMonth() + 1, 0)).toISOString().split('T')[0];
+              })(),
           goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
           daysLeft: cadenceDays,
           totalStoryPoints: 0,
@@ -2097,7 +2100,10 @@ class RetroService {
           c.dueDate ||
           matchedSprint?.endDate ||
           effectiveEndDate ||
-          (rDate ? new Date(new Date(rDate).getTime() + 14 * 86400000).toISOString().split('T')[0] : null);
+          (rDate ? (() => {
+            const d = new Date(rDate);
+            return new Date(Date.UTC(d.getFullYear(), d.getMonth() + 1, 0)).toISOString().split('T')[0];
+          })() : null);
 
         return {
           id: c.cardId || (c._id ? c._id.toString() : Math.random().toString()),

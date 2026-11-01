@@ -122,6 +122,28 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
+  const getEndOfMonthString = (dateInput: string | Date = new Date()): string => {
+    let year: number;
+    let month: number;
+
+    if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateInput)) {
+      const parts = dateInput.split('T')[0].split('-');
+      year = parseInt(parts[0], 10);
+      month = parseInt(parts[1], 10) - 1;
+    } else {
+      const d = new Date(dateInput);
+      if (isNaN(d.getTime())) return '';
+      year = d.getFullYear();
+      month = d.getMonth();
+    }
+
+    const lastDay = new Date(year, month + 1, 0);
+    const yyyy = lastDay.getFullYear();
+    const mm = String(lastDay.getMonth() + 1).padStart(2, '0');
+    const dd = String(lastDay.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   const getLocalDateString = (d?: string | Date | null) => {
     if (!d) return '';
     try {
@@ -138,15 +160,14 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setTitle(initialData.title);
       setDescription(initialData.description || '');
       setScheduledDate(initialData.scheduledDate ? getLocalDateTimeString(new Date(initialData.scheduledDate)) : getLocalDateTimeString());
-      setStartDate(
-        initialData.startDate
-          ? getLocalDateString(initialData.startDate)
-          : getLocalDateString(initialData.scheduledDate) || new Date().toISOString().split('T')[0]
-      );
+      const effectiveStart = initialData.startDate
+        ? getLocalDateString(initialData.startDate)
+        : getLocalDateString(initialData.scheduledDate) || new Date().toISOString().split('T')[0];
+      setStartDate(effectiveStart);
       setEndDate(
         initialData.endDate
           ? getLocalDateString(initialData.endDate)
-          : new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]
+          : getEndOfMonthString(effectiveStart)
       );
       setRevealMode(initialData.revealMode || false);
       setVotingLimit(initialData.votingLimit || 1);
@@ -159,8 +180,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setTitle(`${projectContext.name} - ${sprintTag} Retrospective`);
       setDescription(`Agile feedback & sprint retrospective for ${projectContext.name} (${projectContext.key}).`);
       setScheduledDate(getLocalDateTimeString());
-      setStartDate(new Date().toISOString().split('T')[0]);
-      setEndDate(new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]);
+      const today = new Date().toISOString().split('T')[0];
+      setStartDate(today);
+      setEndDate(getEndOfMonthString(today));
       setRevealMode(false);
       setVotingLimit(1);
       setApprovalRequired(true); 
@@ -199,8 +221,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setTitle(defaultTitle);
       setDescription('Continuous alignment session for Engineering & Product team');
       setScheduledDate(getLocalDateTimeString());
-      setStartDate(new Date().toISOString().split('T')[0]);
-      setEndDate(new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]);
+      const nowDay = new Date().toISOString().split('T')[0];
+      setStartDate(nowDay);
+      setEndDate(getEndOfMonthString(nowDay));
       setRevealMode(false);
       setVotingLimit(1);
       setApprovalRequired(false);
@@ -368,8 +391,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const handleStartDateChange = (newStart: string) => {
     setStartDate(newStart);
     setErrorMessage(null);
-    if (newStart && endDate && endDate < newStart) {
-      setEndDate(newStart);
+    if (newStart) {
+      setEndDate(getEndOfMonthString(newStart));
     }
   };
 
@@ -610,7 +633,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
                     <span>Ending Date <span className="text-rose-500">*</span></span>
-                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(When to end retro)</span>
+                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(Defaults to month end: Jan 31, Feb 28, Nov 30)</span>
                   </label>
                   <div className="relative">
                     <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />

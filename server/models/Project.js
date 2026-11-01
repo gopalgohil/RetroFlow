@@ -92,7 +92,10 @@ const sprintSchema = new mongoose.Schema(
     },
     endDate: {
       type: String,
-      default: () => new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+      default: () => {
+        const now = new Date();
+        return new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 0)).toISOString().split('T')[0];
+      },
     },
     goal: {
       type: String,

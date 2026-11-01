@@ -234,7 +234,10 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
         number: sprintNum,
         status: 'active' as const,
         startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+        endDate: (() => {
+          const now = new Date();
+          return new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 0)).toISOString().split('T')[0];
+        })(),
         goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
         daysLeft: 14,
         totalStoryPoints: 0,

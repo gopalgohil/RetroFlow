@@ -34,7 +34,10 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
       setStartDate(sprint.startDate || new Date().toISOString().split('T')[0]);
       setEndDate(
         sprint.endDate ||
-          new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]
+          (() => {
+            const d = new Date(sprint.startDate || Date.now());
+            return new Date(Date.UTC(d.getFullYear(), d.getMonth() + 1, 0)).toISOString().split('T')[0];
+          })()
       );
       setName(sprint.name || '');
       setError(null);
@@ -49,7 +52,8 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
       const startMs = new Date(newStart).getTime();
       const endMs = new Date(endDate).getTime();
       if (endMs < startMs) {
-        const shiftedEnd = new Date(startMs + 13 * 86400000).toISOString().split('T')[0];
+        const d = new Date(newStart);
+        const shiftedEnd = new Date(Date.UTC(d.getFullYear(), d.getMonth() + 1, 0)).toISOString().split('T')[0];
         setEndDate(shiftedEnd);
       }
     }
