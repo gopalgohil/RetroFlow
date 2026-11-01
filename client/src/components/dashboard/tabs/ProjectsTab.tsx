@@ -309,7 +309,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       </div>
 
       <div ref={projectsGridRef} className="space-y-4 pt-2">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
           <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] rounded-xl w-fit shrink-0">
             <button
               type="button"
@@ -320,7 +320,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   fetchProjects(1, true, 'all');
                 }
               }}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
                 selectedFilter === 'all'
                   ? 'bg-white dark:bg-[#141720] text-slate-900 dark:text-white shadow-xs'
                   : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
@@ -338,24 +338,24 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   fetchProjects(1, true, 'archived');
                 }
               }}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
                 selectedFilter === 'archived'
                   ? 'bg-white dark:bg-[#141720] text-amber-600 dark:text-amber-400 shadow-xs'
                   : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              <Archive className="w-3.5 h-3.5" />
+              <Archive className="w-4 h-4" />
               <span>Archived ({tabCounts.archived || 0})</span>
             </button>
           </div>
 
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
-            <div className="relative w-full sm:w-60 md:w-64">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+            <div className="relative w-full sm:w-64 md:w-72">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
                 {isFilterLoading && debouncedSearch ? (
-                  <Loader2 className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] animate-spin" />
+                  <Loader2 className="w-4 h-4 text-[#5cb028] dark:text-[#88c958] animate-spin" />
                 ) : (
-                  <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                  <Search className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                 )}
               </div>
               <input
@@ -363,16 +363,16 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name, key, lead..."
-                className="w-full pl-8 pr-8 py-1.5 bg-slate-50 dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.16] rounded-xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all shadow-2xs"
+                className="w-full pl-10 pr-9 py-2 bg-slate-50 dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.16] rounded-xl text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all shadow-2xs"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5 rounded-md hover:bg-slate-200/60 dark:hover:bg-white/[0.1] transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5 rounded-md hover:bg-slate-200/60 dark:hover:bg-white/[0.1] transition-colors"
                   title="Clear search"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -381,42 +381,42 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               <button
                 type="button"
                 onClick={() => handleViewModeChange('grid')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   viewMode === 'grid'
                     ? 'bg-white dark:bg-[#141720] text-slate-900 dark:text-[#88c958] shadow-xs'
                     : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
                 title="Grid Cards View"
               >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline text-xs">Grid</span>
+                <LayoutGrid className="w-4 h-4" />
+                <span className="hidden sm:inline text-sm">Grid</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleViewModeChange('table')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   viewMode === 'table'
                     ? 'bg-white dark:bg-[#141720] text-slate-900 dark:text-[#88c958] shadow-xs'
                     : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
                 title="Table / List View"
               >
-                <List className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline text-xs">Table</span>
+                <List className="w-4 h-4" />
+                <span className="hidden sm:inline text-sm">Table</span>
               </button>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
+        <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
           <p>
-            Showing <strong className="text-slate-700 dark:text-slate-300">{projects.length}</strong> of{' '}
-            <strong className="text-slate-700 dark:text-slate-300">{pagination.totalItems}</strong>{' '}
+            Showing <strong className="text-slate-800 dark:text-slate-200 font-bold">{projects.length}</strong> of{' '}
+            <strong className="text-slate-800 dark:text-slate-200 font-bold">{pagination.totalItems}</strong>{' '}
             {selectedFilter === 'archived' ? 'archived initiatives' : 'initiatives'}
             {debouncedSearch.trim() && (
               <span>
                 {' '}for query &ldquo;
-                <span className="text-[#5cb028] dark:text-[#88c958] font-semibold">{debouncedSearch}</span>
+                <span className="text-[#5cb028] dark:text-[#88c958] font-bold">{debouncedSearch}</span>
                 &rdquo;
               </span>
             )}
@@ -430,51 +430,54 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200/80 dark:border-white/[0.08] bg-slate-50/80 dark:bg-white/[0.02] text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                    <th className="py-3.5 px-4 sm:px-6">Project</th>
-                    <th className="py-3.5 px-4">Manager / Lead</th>
-                    <th className="py-3.5 px-4 min-w-[180px]">Active Sprint</th>
-                    <th className="py-3.5 px-3 text-center">Sprints</th>
-                    <th className="py-3.5 px-3 text-center">Retros</th>
-                    <th className="py-3.5 px-3 text-center">Members</th>
-                    <th className="py-3.5 px-4 sm:px-6 text-right">Actions</th>
+                  <tr className="border-b border-slate-200/80 dark:border-white/[0.08] bg-slate-50/90 dark:bg-white/[0.02] text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    <th className="py-4 px-5 sm:px-6">Project</th>
+                    <th className="py-4 px-5">Manager / Lead</th>
+                    <th className="py-4 px-5 min-w-[220px]">Active Sprint</th>
+                    <th className="py-4 px-3.5 text-center">Sprints</th>
+                    <th className="py-4 px-3.5 text-center">Retros</th>
+                    <th className="py-4 px-3.5 text-center">Members</th>
+                    <th className="py-4 px-5 sm:px-6 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05]">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <tr key={i} className="animate-pulse">
-                      <td className="py-4 px-4 sm:px-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-white/[0.08]" />
-                          <div className="space-y-1.5">
-                            <div className="h-3.5 w-28 bg-slate-200 dark:bg-white/[0.08] rounded" />
-                            <div className="h-2.5 w-16 bg-slate-100 dark:bg-white/[0.05] rounded" />
+                      <td className="py-5 px-5 sm:px-6">
+                        <div className="flex items-center gap-3.5">
+                          <div className="w-10 h-10 rounded-2xl bg-slate-200 dark:bg-white/[0.08]" />
+                          <div className="space-y-2">
+                            <div className="h-4 w-32 bg-slate-200 dark:bg-white/[0.08] rounded-md" />
+                            <div className="h-3 w-20 bg-slate-100 dark:bg-white/[0.05] rounded" />
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-lg bg-slate-200 dark:bg-white/[0.08]" />
-                          <div className="h-3 w-20 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                      <td className="py-5 px-5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-white/[0.08]" />
+                          <div className="space-y-1.5">
+                            <div className="h-3.5 w-24 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                            <div className="h-3 w-28 bg-slate-100 dark:bg-white/[0.05] rounded" />
+                          </div>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
-                        <div className="space-y-1.5 max-w-[180px]">
-                          <div className="h-3 w-24 bg-slate-200 dark:bg-white/[0.08] rounded" />
-                          <div className="h-1.5 w-full bg-slate-100 dark:bg-white/[0.05] rounded-full" />
+                      <td className="py-5 px-5">
+                        <div className="space-y-2 max-w-[200px]">
+                          <div className="h-3.5 w-28 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                          <div className="h-2 w-full bg-slate-100 dark:bg-white/[0.05] rounded-full" />
                         </div>
                       </td>
-                      <td className="py-4 px-3 text-center">
-                        <div className="h-5 w-8 bg-slate-100 dark:bg-white/[0.05] rounded mx-auto" />
+                      <td className="py-5 px-3.5 text-center">
+                        <div className="h-6 w-10 bg-slate-100 dark:bg-white/[0.05] rounded-lg mx-auto" />
                       </td>
-                      <td className="py-4 px-3 text-center">
-                        <div className="h-5 w-8 bg-slate-100 dark:bg-white/[0.05] rounded mx-auto" />
+                      <td className="py-5 px-3.5 text-center">
+                        <div className="h-6 w-10 bg-slate-100 dark:bg-white/[0.05] rounded-lg mx-auto" />
                       </td>
-                      <td className="py-4 px-3 text-center">
-                        <div className="h-5 w-8 bg-slate-100 dark:bg-white/[0.05] rounded mx-auto" />
+                      <td className="py-5 px-3.5 text-center">
+                        <div className="h-6 w-10 bg-slate-100 dark:bg-white/[0.05] rounded-lg mx-auto" />
                       </td>
-                      <td className="py-4 px-4 sm:px-6 text-right">
-                        <div className="h-7 w-16 bg-slate-200 dark:bg-white/[0.08] rounded-lg ml-auto" />
+                      <td className="py-5 px-5 sm:px-6 text-right">
+                        <div className="h-8 w-20 bg-slate-200 dark:bg-white/[0.08] rounded-xl ml-auto" />
                       </td>
                     </tr>
                   ))}
@@ -492,17 +495,17 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               <Search className="w-5 h-5 text-slate-400 dark:text-slate-500" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 No initiatives found
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+              <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 No projects match &ldquo;{searchQuery}&rdquo;. Try searching with a different name, key, or manager.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold text-[#5cb028] dark:text-[#88c958] hover:underline cursor-pointer"
+              className="px-3 py-1.5 rounded-lg text-sm font-bold text-[#5cb028] dark:text-[#88c958] hover:underline cursor-pointer"
             >
               Clear search filter
             </button>
@@ -513,10 +516,10 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               <Lock className="w-6 h-6 text-[#5cb028]" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 {canCreateProject ? 'No Projects in Workspace' : 'No Assigned Projects'}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+              <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 {canCreateProject
                   ? 'Initialize your first Scrum or Kanban agile delivery project above.'
                   : `You haven't been assigned to any project yet. Only projects where your email (${
@@ -525,7 +528,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               </p>
             </div>
             {!canCreateProject && (
-              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 Contact your workspace Administrator or Manager to get invited to active projects.
               </p>
             )}
@@ -536,17 +539,17 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200/80 dark:border-white/[0.08] bg-slate-50/80 dark:bg-white/[0.02] text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  <th className="py-3.5 px-4 sm:px-6">Project</th>
-                  <th className="py-3.5 px-4">Manager / Lead</th>
-                  <th className="py-3.5 px-4 min-w-[190px]">Active Sprint</th>
-                  <th className="py-3.5 px-3 text-center">Sprints</th>
-                  <th className="py-3.5 px-3 text-center">Retros</th>
-                  <th className="py-3.5 px-3 text-center">Members</th>
-                  <th className="py-3.5 px-4 sm:px-6 text-right">Actions</th>
+                <tr className="border-b border-slate-200/80 dark:border-white/[0.08] bg-slate-50/90 dark:bg-white/[0.02] text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <th className="py-4 px-5 sm:px-6">Project</th>
+                  <th className="py-4 px-5">Manager / Lead</th>
+                  <th className="py-4 px-5 min-w-[220px]">Active Sprint</th>
+                  <th className="py-4 px-3.5 text-center">Sprints</th>
+                  <th className="py-4 px-3.5 text-center">Retros</th>
+                  <th className="py-4 px-3.5 text-center">Members</th>
+                  <th className="py-4 px-5 sm:px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05] text-xs">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05] text-sm">
                 {displayedProjects.map((project) => {
                   const activeSprint =
                     project.activeSprint ||
@@ -563,28 +566,28 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   return (
                     <tr
                       key={project.id}
-                      className="border-b border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/70 dark:hover:bg-white/[0.02] transition-colors group"
+                      className="border-b border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors group"
                     >
-                      <td className="py-4 px-4 sm:px-6">
-                        <div className="flex items-center gap-3 min-w-[200px]">
-                          <UserAvatar name={project.name} avatar={project.key} size="md" />
+                      <td className="py-5 px-5 sm:px-6">
+                        <div className="flex items-center gap-3.5 min-w-[220px]">
+                          <UserAvatar name={project.name} avatar={project.key} size="lg" />
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <Link
                                 href={`/projects/${project.id}`}
                                 onClick={() => handleSaveActiveProject(project)}
-                                className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#5cb028] dark:group-hover:text-[#88c958] transition-colors truncate hover:underline"
+                                className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-[#5cb028] dark:group-hover:text-[#88c958] transition-colors truncate hover:underline"
                               >
                                 {project.name}
                               </Link>
                               {project.isArchived && (
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                                   Archived
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
-                              <span className="font-mono">{project.key}</span>
+                            <div className="flex items-center gap-2 text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 mt-1">
+                              <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{project.key}</span>
                               {project.createdAt && formatProjectCreatedDate(project.createdAt) && (
                                 <>
                                   <span>•</span>
@@ -596,17 +599,17 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                         </div>
                       </td>
 
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2 min-w-[140px]">
-                          <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] font-black text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
+                      <td className="py-5 px-5">
+                        <div className="flex items-center gap-2.5 min-w-[160px]">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
                             {managerAvatar}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
                               {managerName}
                             </p>
                             {managerEmail && (
-                              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-mono truncate max-w-[130px]">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate max-w-[200px] mt-0.5">
                                 {managerEmail}
                               </p>
                             )}
@@ -614,14 +617,14 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                         </div>
                       </td>
 
-                      <td className="py-4 px-4 min-w-[190px]">
+                      <td className="py-5 px-5 min-w-[220px]">
                         {activeSprint ? (
-                          <div className="space-y-1.5 max-w-[200px]">
-                            <div className="flex items-center justify-between text-[11px]">
-                              <span className="font-semibold text-slate-700 dark:text-slate-300 truncate">
+                          <div className="space-y-2 max-w-[220px]">
+                            <div className="flex items-center justify-between text-xs sm:text-sm">
+                              <span className="font-bold text-slate-800 dark:text-slate-200 truncate">
                                 {activeSprint.name.split(' - ')[0]}
                               </span>
-                              <span className="text-[10px] font-bold text-[#88c958] shrink-0 ml-1.5">
+                              <span className="text-xs font-bold text-[#5cb028] dark:text-[#88c958] shrink-0 ml-2">
                                 {activeSprint.daysLeft}d left
                               </span>
                             </div>
@@ -631,9 +634,9 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                               variant="emerald"
                               size="sm"
                             />
-                            <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
-                              <span>Progress</span>
-                              <span className="font-semibold text-[#88c958]">
+                            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                              <span>Sprint Progress</span>
+                              <span className="font-bold text-[#5cb028] dark:text-[#88c958]">
                                 {Math.round(
                                   (activeSprint.completedStoryPoints / (activeSprint.totalStoryPoints || 1)) * 100
                                 )}
@@ -642,29 +645,29 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                             </div>
                           </div>
                         ) : (
-                          <span className="text-[11px] text-slate-400 dark:text-slate-500 italic">No active sprint</span>
+                          <span className="text-xs sm:text-sm text-slate-400 dark:text-slate-500 italic">No active sprint</span>
                         )}
                       </td>
 
-                      <td className="py-4 px-3 text-center">
-                        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.05] text-slate-700 dark:text-slate-300 font-bold text-xs">
+                      <td className="py-5 px-3.5 text-center">
+                        <span className="inline-flex items-center justify-center min-w-[36px] px-3 py-1 rounded-lg bg-slate-100 dark:bg-white/[0.05] text-slate-800 dark:text-slate-200 font-extrabold text-sm sm:text-base">
                           {project.sprints.length}
                         </span>
                       </td>
 
-                      <td className="py-4 px-3 text-center">
-                        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/10 dark:text-[#88c958] font-bold text-xs">
+                      <td className="py-5 px-3.5 text-center">
+                        <span className="inline-flex items-center justify-center min-w-[36px] px-3 py-1 rounded-lg bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/10 dark:text-[#88c958] font-extrabold text-sm sm:text-base">
                           {project.retrospectives.length}
                         </span>
                       </td>
 
-                      <td className="py-4 px-3 text-center">
-                        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.05] text-slate-700 dark:text-slate-300 font-bold text-xs">
+                      <td className="py-5 px-3.5 text-center">
+                        <span className="inline-flex items-center justify-center min-w-[36px] px-3 py-1 rounded-lg bg-slate-100 dark:bg-white/[0.05] text-slate-800 dark:text-slate-200 font-extrabold text-sm sm:text-base">
                           {project.members.length}
                         </span>
                       </td>
 
-                      <td className="py-4 px-4 sm:px-6 text-right">
+                      <td className="py-5 px-5 sm:px-6 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {project.isArchived ? (
                             <button
@@ -675,12 +678,12 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                                 handleRestoreProject(project.id);
                               }}
                               disabled={restoringProjectId === project.id}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 text-sm font-bold transition-all disabled:opacity-50 cursor-pointer"
                             >
                               {restoringProjectId === project.id ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
-                                <RotateCcw className="w-3.5 h-3.5" />
+                                <RotateCcw className="w-4 h-4" />
                               )}
                               <span>Restore</span>
                             </button>
@@ -688,14 +691,14 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                             <Link
                               href={`/projects/${project.id}`}
                               onClick={() => handleSaveActiveProject(project)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-2xs hover:scale-[1.02] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a]"
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-sm font-bold transition-all shadow-xs hover:scale-[1.02] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a]"
                             >
                               {openingProjectId === project.id ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
                                 <>
                                   <span>Open</span>
-                                  <ArrowRight className="w-3 h-3" />
+                                  <ArrowRight className="w-4 h-4" />
                                 </>
                               )}
                             </Link>
@@ -748,13 +751,13 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     <div className="flex items-center gap-3 min-w-0">
                       <UserAvatar name={project.name} avatar={project.key} size="lg" />
                       <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#88c958] transition-colors truncate">
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-[#88c958] transition-colors truncate">
                           {project.name}
                         </h3>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
-                          <span>{project.key}</span>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                          <span className="font-bold">{project.key}</span>
                           {project.isArchived && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                            <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                               Archived
                             </span>
                           )}
@@ -765,49 +768,49 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     {project.createdAt && formatProjectCreatedDate(project.createdAt) && (
                       <div className="shrink-0">
                         <span
-                          className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 dark:text-slate-500 tracking-tight"
+                          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 dark:text-slate-500 tracking-tight"
                           title={`Project created on ${formatProjectCreatedDate(project.createdAt)}`}
                         >
-                          <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
+                          <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                           <span>{formatProjectCreatedDate(project.createdAt)}</span>
                         </span>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200/60 dark:border-white/[0.08]">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] font-black text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200/60 dark:border-white/[0.08]">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
                         {managerAvatar}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider leading-none">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider leading-none">
                           Manager
                         </p>
-                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate mt-0.5">
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate mt-0.5">
                           {managerName}
                         </p>
                       </div>
                     </div>
 
                     {managerEmail && (
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono truncate max-w-[140px]">
+                      <span className="text-xs text-slate-400 dark:text-slate-500 font-mono truncate max-w-[150px]">
                         {managerEmail}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
                     {project.description || 'No description provided.'}
                   </p>
 
                   {activeSprint ? (
                     <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.08] space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[150px]">
+                      <div className="flex items-center justify-between text-xs sm:text-sm">
+                        <span className="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[160px]">
                           {activeSprint.name.split(' - ')[0]}
                         </span>
-                        <span className="text-[10px] font-bold text-[#88c958]">
+                        <span className="text-xs font-bold text-[#5cb028] dark:text-[#88c958]">
                           {activeSprint.daysLeft} days left
                         </span>
                       </div>
@@ -819,9 +822,9 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                         size="sm"
                       />
 
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
+                      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                         <span>Sprint Progress</span>
-                        <span className="font-semibold text-[#88c958]">
+                        <span className="font-bold text-[#5cb028] dark:text-[#88c958]">
                           {Math.round(
                             (activeSprint.completedStoryPoints / (activeSprint.totalStoryPoints || 1)) *
                               100
@@ -832,26 +835,26 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     </div>
                   ) : (
                     <div className="p-3.5 rounded-xl bg-slate-50/60 dark:bg-[#12151c] border border-dashed border-slate-200 dark:border-white/[0.08] text-center">
-                      <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">No active sprint</span>
+                      <span className="text-xs sm:text-sm text-slate-400 dark:text-slate-500 font-medium">No active sprint</span>
                     </div>
                   )}
 
                   <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-white/[0.08] text-center">
-                    <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-[#12151c]">
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Sprints</span>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <div className="p-2 rounded-lg bg-slate-50 dark:bg-[#12151c]">
+                      <span className="text-xs text-slate-400 dark:text-slate-500 block font-medium">Sprints</span>
+                      <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
                         {project.sprints.length}
                       </span>
                     </div>
-                    <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-[#12151c]">
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Retros</span>
-                      <span className="text-xs font-bold text-[#88c958]">
+                    <div className="p-2 rounded-lg bg-slate-50 dark:bg-[#12151c]">
+                      <span className="text-xs text-slate-400 dark:text-slate-500 block font-medium">Retros</span>
+                      <span className="text-sm sm:text-base font-bold text-[#5cb028] dark:text-[#88c958]">
                         {project.retrospectives.length}
                       </span>
                     </div>
-                    <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-[#12151c]">
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Members</span>
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <div className="p-2 rounded-lg bg-slate-50 dark:bg-[#12151c]">
+                      <span className="text-xs text-slate-400 dark:text-slate-500 block font-medium">Members</span>
+                      <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
                         {project.members.length}
                       </span>
                     </div>
@@ -869,40 +872,40 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                           handleRestoreProject(project.id);
                         }}
                         disabled={restoringProjectId === project.id}
-                        className="flex-1 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        className="flex-1 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                       >
                         {restoringProjectId === project.id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          <RotateCcw className="w-3.5 h-3.5" />
+                          <RotateCcw className="w-4 h-4" />
                         )}
                         <span>{restoringProjectId === project.id ? 'Restoring...' : 'Restore Project'}</span>
                       </button>
                       <Link
                         href={`/projects/${project.id}`}
                         onClick={() => handleSaveActiveProject(project)}
-                        className="px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-slate-600 dark:text-slate-300 text-xs font-semibold flex items-center gap-1 shrink-0"
+                        className="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-slate-600 dark:text-slate-300 text-sm font-semibold flex items-center gap-1 shrink-0"
                         title="View Read-Only Project Dashboard"
                       >
                         <span>View</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <ArrowRight className="w-4 h-4" />
                       </Link>
                     </div>
                   ) : (
                     <Link
                       href={`/projects/${project.id}`}
                       onClick={() => handleSaveActiveProject(project)}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-xs hover:scale-[1.01] cursor-pointer disabled:opacity-75 dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-sm font-bold transition-all shadow-xs hover:scale-[1.01] cursor-pointer disabled:opacity-75 dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
                     >
                       {openingProjectId === project.id ? (
                         <span className="inline-flex items-center gap-2 animate-pulse">
-                          <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white dark:border-[#08090a]/30 dark:border-t-[#08090a] rounded-full animate-spin" />
+                          <span className="w-4 h-4 border-2 border-white/30 border-t-white dark:border-[#08090a]/30 dark:border-t-[#08090a] rounded-full animate-spin" />
                           <span>Opening Dashboard...</span>
                         </span>
                       ) : (
                         <>
                           <span>Open Project Dashboard</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
+                          <ArrowRight className="w-4 h-4" />
                         </>
                       )}
                     </Link>
@@ -916,7 +919,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
       {pagination.totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/90 dark:border-white/[0.08]">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+          <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">
             Showing{' '}
             <span className="font-bold text-slate-900 dark:text-white">
               {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.totalItems)}
@@ -928,12 +931,12 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             of <span className="font-bold text-slate-900 dark:text-white">{pagination.totalItems}</span> initiatives
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => handlePageChange(pagination.page - 1)}
               disabled={!pagination.hasPrevPage || isFilterLoading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Previous</span>
@@ -941,7 +944,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
             {getPageNumbers().map((p, idx) =>
               p === '...' ? (
-                <span key={`ellipsis-${idx}`} className="px-2 text-xs text-slate-400 dark:text-slate-500 font-bold select-none">
+                <span key={`ellipsis-${idx}`} className="px-2 text-sm text-slate-400 dark:text-slate-500 font-bold select-none">
                   ...
                 </span>
               ) : (
@@ -950,7 +953,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   type="button"
                   onClick={() => handlePageChange(Number(p))}
                   disabled={isFilterLoading}
-                  className={`min-w-[34px] h-[34px] rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`min-w-[38px] h-[38px] rounded-xl text-sm font-bold transition-all cursor-pointer ${
                     p === pagination.page
                       ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_10px_rgba(136,201,88,0.25)]'
                       : 'bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white'
@@ -965,7 +968,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               type="button"
               onClick={() => handlePageChange(pagination.page + 1)}
               disabled={!pagination.hasNextPage || isFilterLoading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
             >
               <span className="hidden sm:inline">Next</span>
               <ChevronRight className="w-4 h-4" />
