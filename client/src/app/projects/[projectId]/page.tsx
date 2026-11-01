@@ -912,6 +912,7 @@ function ProjectDetailContent() {
               key: project.key,
               sprintName: `Sprint ${(project.retrospectives?.length || 0) + 1}`,
               members: project.members,
+              retrospectives: project.retrospectives,
             }
             : null
         }

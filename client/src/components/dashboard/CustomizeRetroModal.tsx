@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   X,
@@ -29,6 +29,7 @@ export interface ProjectRetroContext {
   key: string;
   sprintName?: string;
   members: Array<{ name: string; email: string; role: string }>;
+  retrospectives?: any[];
 }
 
 interface CustomizeRetroModalProps {
@@ -399,14 +400,38 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const hasOverLimitTopic = topics.some((t) => t.title.length > MAX_TOPIC_TITLE_LENGTH);
   const hasEmptyTopic = topics.some((t) => !t.title.trim());
   const isTopicsCountValid = topics.length >= MIN_RETRO_TOPICS && topics.length <= MAX_RETRO_TOPICS;
+
+  const activeMonthlyRetro = useMemo(() => {
+    if (initialData || !projectContext?.retrospectives) return null;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const startOfMonth = new Date(currentYear, currentMonth, 1);
+    const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+    const todayMidnight = new Date(new Date().setHours(0, 0, 0, 0));
+
+    return projectContext.retrospectives.find((r: any) => {
+      const rDate = r.startDate || r.scheduledDate ? new Date(r.startDate || r.scheduledDate) : null;
+      const rEndDate = r.endDate ? new Date(r.endDate) : null;
+      const isSameMonth = rDate && rDate >= startOfMonth && rDate <= endOfMonth;
+      const isNotExpired = rEndDate ? rEndDate >= todayMidnight : true;
+      return isSameMonth && isNotExpired;
+    });
+  }, [initialData, projectContext]);
+
   const isFormValid =
     title.trim().length > 0 &&
     dateValidation.isValid &&
     isTopicsCountValid &&
     !hasOverLimitTopic &&
-    !hasEmptyTopic;
+    !hasEmptyTopic &&
+    !activeMonthlyRetro;
 
   const handleSave = async () => {
+    if (!initialData && activeMonthlyRetro) {
+      setErrorMessage(`Project "${projectContext?.name}" already has an active retrospective for this month (${activeMonthlyRetro.title}). In accordance with company policy, only 1 retrospective per project per month is allowed until month-end.`);
+      return;
+    }
     if (!title.trim()) {
       setErrorMessage('Please provide a retrospective session title.');
       setActiveTab('general');
@@ -535,6 +560,20 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
               <span className="w-1.5 h-1.5 rounded-full bg-[#88c958] animate-pulse" />
               {projectContext.members.length} Team Members
             </span>
+          </div>
+        )}
+
+        {activeMonthlyRetro && (
+          <div className="mx-6 mt-3.5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5 shadow-2xs">
+            <span className="text-sm shrink-0 mt-0.5">⚠️</span>
+            <div>
+              <p className="font-extrabold">
+                {projectContext?.name} already has an active retrospective for this month ({activeMonthlyRetro.title})
+              </p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">
+                In accordance with company policy, 1 retrospective per project per month is allowed until month-end. You can manage, export, or delete the current session to make changes.
+              </p>
+            </div>
           </div>
         )}
 
@@ -910,7 +949,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
             onClick={handleSave}
             disabled={isSubmitting || !isFormValid}
             title={
-              !isFormValid
+              activeMonthlyRetro
+                ? `Project already has an active retrospective for this month (${activeMonthlyRetro.title}). Company policy permits 1 retro per month.`
+                : !isFormValid
                 ? !title.trim()
                   ? 'Please provide a session title'
                   : !dateValidation.isValid
@@ -920,7 +961,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
             }
             className="px-6 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all hover:scale-[1.02] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a]"
           >
-            {isSubmitting ? 'Saving...' : initialData ? 'Save Changes' : 'Create & Open Board →'}
+            {isSubmitting ? 'Saving...' : initialData ? 'Save Changes' : activeMonthlyRetro ? 'Monthly Limit Reached' : 'Create & Open Board →'}
           </button>
         </div>
       </div>

@@ -41,6 +41,30 @@ class RetroService {
     let sprintLabel = payload.sprintName || null;
 
     if (linkedProject) {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const startOfMonth = new Date(currentYear, currentMonth, 1);
+      const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+      const todayMidnight = new Date(new Date().setHours(0, 0, 0, 0));
+
+      const existingMonthlyRetro = (linkedProject.retrospectives || []).find((r) => {
+        const rDate = r.startDate || r.scheduledDate ? new Date(r.startDate || r.scheduledDate) : null;
+        const rEndDate = r.endDate ? new Date(r.endDate) : null;
+        const isSameMonth = rDate && rDate >= startOfMonth && rDate <= endOfMonth;
+        const isNotExpired = rEndDate ? rEndDate >= todayMidnight : true;
+        return isSameMonth && isNotExpired;
+      });
+
+      if (existingMonthlyRetro) {
+        const monthName = now.toLocaleString('en-US', { month: 'long' });
+        const err = new Error(
+          `Project "${linkedProject.name}" already has an active retrospective for ${monthName} ("${existingMonthlyRetro.title}"). In accordance with company policy, only 1 retrospective per project per month is allowed until month-end.`
+        );
+        err.statusCode = 400;
+        throw err;
+      }
+
       const projectMemberEmails = linkedProject.members.map((m) => m.email.toLowerCase().trim());
       approvedMembers = Array.from(new Set([...approvedMembers, ...projectMemberEmails]));
 

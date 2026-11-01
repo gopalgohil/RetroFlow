@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
+import { Plus, Lock, ExternalLink } from 'lucide-react';
 import { Project, ProjectRetroLink } from '@/types/project';
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
 import { StatusPill, UserAvatar } from '@/components/ui';
@@ -36,6 +37,25 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
   const [deletingRetro, setDeletingRetro] = useState<ProjectRetroLink | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const currentMonthName = useMemo(() => new Date().toLocaleString('en-US', { month: 'long' }), []);
+
+  const activeMonthlyRetro = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const startOfMonth = new Date(currentYear, currentMonth, 1);
+    const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+    const todayMidnight = new Date(new Date().setHours(0, 0, 0, 0));
+
+    return (project.retrospectives || []).find((r) => {
+      const rDate = r.startDate || r.scheduledDate ? new Date(r.startDate || r.scheduledDate) : null;
+      const rEndDate = r.endDate ? new Date(r.endDate) : null;
+      const isSameMonth = rDate && rDate >= startOfMonth && rDate <= endOfMonth;
+      const isNotExpired = rEndDate ? rEndDate >= todayMidnight : true;
+      return isSameMonth && isNotExpired;
+    });
+  }, [project.retrospectives]);
 
   const ITEMS_PER_PAGE = 9;
   const [currentPage, setCurrentPage] = useState(1);
@@ -242,16 +262,54 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         </div>
 
         {canManageProject && (paginationMeta.totalItems > 0 || (project.retrospectives?.length || 0) > 0) && (
-          <button
-            type="button"
-            onClick={onCreateRetroClick}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all hover:scale-[1.01] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/20"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Create Retrospective</span>
-          </button>
+          activeMonthlyRetro ? (
+            <button
+              type="button"
+              disabled
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-200/90 dark:border-white/[0.08] cursor-not-allowed select-none shadow-xs"
+              title={`${currentMonthName} retrospective is already active for ${project.name}. Company policy permits only 1 retrospective per project per month until month-end.`}
+            >
+              <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span>Create Retrospective</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onCreateRetroClick}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all hover:scale-[1.01] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/20"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Create Retrospective</span>
+            </button>
+          )
         )}
       </div>
+
+      {activeMonthlyRetro && (
+        <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs animate-in fade-in">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <span className="text-amber-600 dark:text-amber-400 font-black text-sm mt-0.5 sm:mt-0">ℹ️</span>
+            <div>
+              <p className="font-extrabold text-amber-900 dark:text-amber-200">
+                {currentMonthName} Retrospective is already active for this project
+              </p>
+              <p className="text-amber-700 dark:text-amber-400 text-[11px] mt-0.5">
+                In accordance with company policy, 1 retrospective per project per month is allowed until month-end. You can manage, export, or delete the current session to make changes.
+              </p>
+            </div>
+          </div>
+          {activeMonthlyRetro.shareToken && (
+            <Link
+              href={`/retro/${activeMonthlyRetro.shareToken}`}
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 shadow-2xs transition-colors cursor-pointer"
+            >
+              <span>Open Active Retro</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          )}
+        </div>
+      )}
 
       {!isLoadingRetros && paginationMeta.totalItems === 0 && (!project.retrospectives || project.retrospectives.length === 0) ? (
         <div className="p-12 text-center bg-white dark:bg-[#0e1015] rounded-2xl border border-dashed border-slate-200 dark:border-white/[0.08] space-y-3">
