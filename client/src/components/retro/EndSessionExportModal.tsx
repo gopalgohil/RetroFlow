@@ -135,27 +135,29 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     if (!targetSprint && sprintName) {
       const match = sprintName.match(/\d+/);
       const sprintNum = match ? parseInt(match[0], 10) : null;
+      const nextSprintNum = sprintNum !== null ? sprintNum + 1 : null;
       targetSprint = targetProj.sprints?.find(
         (s) =>
-          (sprintNum !== null && s.number === sprintNum) ||
-          s.name.toLowerCase().includes(sprintName.toLowerCase())
-      );
+          (nextSprintNum !== null && s.number === nextSprintNum) ||
+          (nextSprintNum !== null && s.name.toLowerCase().includes(`sprint ${nextSprintNum}`))
+      ) || targetProj.sprints?.find((s) => s.status === 'upcoming');
     }
 
     if (!targetSprint && retroTitle) {
       const match = retroTitle.match(/sprint\s*(\d+)/i);
       if (match) {
         const sprintNum = parseInt(match[1], 10);
+        const nextSprintNum = sprintNum + 1;
         targetSprint = targetProj.sprints?.find(
           (s) =>
-            s.number === sprintNum ||
-            s.name.toLowerCase().includes(`sprint ${sprintNum}`)
-        );
+            s.number === nextSprintNum ||
+            s.name.toLowerCase().includes(`sprint ${nextSprintNum}`)
+        ) || targetProj.sprints?.find((s) => s.status === 'upcoming');
       }
     }
 
     if (!targetSprint) {
-      targetSprint = getSuggestedSprint(targetProj.id) || targetProj.sprints?.[0] || null;
+      targetSprint = getSuggestedSprint(targetProj.id) || targetProj.sprints?.find((s) => s.status === 'upcoming') || targetProj.sprints?.[0] || null;
     }
 
     if (targetSprint) {
@@ -227,19 +229,22 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   const currentSprint = useMemo(() => {
     if (!selectedProject?.sprints || selectedProject.sprints.length === 0) {
       const match = (retroTitle || sprintName || '').match(/\d+/);
-      const sprintNum = match ? parseInt(match[0], 10) : (selectedProject?.retrospectives?.length || 1);
+      const retroSprintNum = match ? parseInt(match[0], 10) : (selectedProject?.retrospectives?.length || 1);
+      const nextSprintNum = retroSprintNum + 1;
+      const now = new Date();
+      const nextStart = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 1));
+      const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+      const daysLeft = Math.max(1, Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000));
+
       return {
-        id: `sprint-auto-${sprintNum}`,
-        name: `Sprint ${sprintNum} - Execution & Backlog`,
-        number: sprintNum,
+        id: `sprint-auto-${nextSprintNum}`,
+        name: `Sprint ${nextSprintNum} - Execution & Backlog`,
+        number: nextSprintNum,
         status: 'active' as const,
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: (() => {
-          const now = new Date();
-          return new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 0)).toISOString().split('T')[0];
-        })(),
-        goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
-        daysLeft: 14,
+        startDate: nextStart.toISOString().split('T')[0],
+        endDate: nextEnd.toISOString().split('T')[0],
+        goal: `Sprint ${nextSprintNum} deliverables and retrospective action items.`,
+        daysLeft,
         totalStoryPoints: 0,
         completedStoryPoints: 0,
         openBlockers: 0,
@@ -249,6 +254,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     const targetId = selectedSprintId || suggestedSprint?.id;
     return (
       selectedProject.sprints.find((s) => s.id === targetId) ||
+      selectedProject.sprints.find((s) => s.status === 'upcoming') ||
       selectedProject.sprints.find((s) => s.status === 'active') ||
       selectedProject.sprints[0] ||
       null

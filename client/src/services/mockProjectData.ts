@@ -138,18 +138,84 @@ export class ProjectDataService {
     if (projIndex === -1) return null;
 
     const project = projects[projIndex];
+    let completedSprint: Sprint | null = null;
+
     project.sprints = project.sprints.map((s) => {
       if (s.id === sprintId) {
+        const incomplete = (s.items || []).filter((i) => i.status !== 'done');
+        const done = (s.items || []).filter((i) => i.status === 'done');
+        completedSprint = { ...s };
+        const donePoints = done.reduce((acc, i) => acc + (typeof i.storyPoints === 'number' ? i.storyPoints : 3), 0);
         return {
           ...s,
-          status: 'completed',
+          items: done,
+          status: 'completed' as const,
           daysLeft: 0,
-          completedStoryPoints: s.totalStoryPoints,
+          totalStoryPoints: donePoints,
+          completedStoryPoints: donePoints,
         };
       }
       return s;
     });
 
+    if (!completedSprint) return null;
+
+    const incompleteItems = ((completedSprint as Sprint).items || []).filter((i) => i.status !== 'done');
+
+    // Calculate next month dates (1st of next month to last day of next month)
+    const ref = (completedSprint as Sprint).endDate ? new Date((completedSprint as Sprint).endDate) : new Date();
+    const nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
+    const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+    const now = new Date();
+    const daysLeft = Math.max(1, Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000));
+    const nextStartDate = nextStart.toISOString().split('T')[0];
+    const nextEndDate = nextEnd.toISOString().split('T')[0];
+
+    let nextSprint = project.sprints.find((s) => s.status === 'upcoming');
+    if (nextSprint) {
+      nextSprint.status = 'active';
+      nextSprint.startDate = nextSprint.startDate || nextStartDate;
+      nextSprint.endDate = nextSprint.endDate || nextEndDate;
+      nextSprint.daysLeft = daysLeft;
+    } else {
+      const maxNum = project.sprints.reduce((max, s) => Math.max(max, s.number || 0), 0);
+      const nextNum = ((completedSprint as Sprint).number || maxNum) + 1;
+      nextSprint = {
+        id: `sprint-${Date.now()}`,
+        projectId: project.id,
+        name: `Sprint ${nextNum} - Execution & Backlog`,
+        number: nextNum,
+        status: 'active' as const,
+        startDate: nextStartDate,
+        endDate: nextEndDate,
+        goal: `Sprint ${nextNum} deliverables and retrospective action items.`,
+        daysLeft,
+        totalStoryPoints: 0,
+        completedStoryPoints: 0,
+        openBlockers: 0,
+        items: [],
+      };
+      project.sprints.push(nextSprint);
+    }
+
+    if (incompleteItems.length > 0) {
+      const rolledOver = incompleteItems.map((item) => ({
+        ...item,
+        sprintId: nextSprint!.id,
+        dueDate: nextSprint!.endDate || item.dueDate,
+      }));
+      nextSprint.items = [...(nextSprint.items || []), ...rolledOver];
+    }
+
+    nextSprint.totalStoryPoints = (nextSprint.items || []).reduce(
+      (acc, i) => acc + (typeof i.storyPoints === 'number' ? i.storyPoints : 3),
+      0
+    );
+    nextSprint.completedStoryPoints = (nextSprint.items || [])
+      .filter((i) => i.status === 'done')
+      .reduce((acc, i) => acc + (typeof i.storyPoints === 'number' ? i.storyPoints : 3), 0);
+
+    project.activeSprint = nextSprint;
     project.updatedAt = new Date().toISOString().split('T')[0];
     projects[projIndex] = project;
     this.saveProjects(projects);
@@ -359,18 +425,28 @@ export class ProjectDataService {
     if (projIndex === -1) return { success: false, addedCount: 0 };
 
     const project = projects[projIndex];
-    let sprint = project.sprints.find((s) => s.id === targetSprintId) || project.sprints[0];
+    let sprint = project.sprints.find((s) => s.id === targetSprintId);
     if (!sprint) {
+      sprint = project.sprints.find((s) => s.status === 'upcoming') ||
+               project.sprints.find((s) => s.status === 'active') ||
+               project.sprints[0];
+    }
+    if (!sprint) {
+      const now = new Date();
+      const nextStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+      const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+      const daysLeft = Math.max(1, Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000));
+      const nextNum = (project.sprints.length || 0) + 1;
       sprint = {
         id: `sprint-${Date.now()}`,
         projectId: project.id,
-        name: 'Sprint 1 - Execution & Backlog',
-        number: 1,
+        name: `Sprint ${nextNum} - Execution & Backlog`,
+        number: nextNum,
         status: 'active',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
-        goal: 'Sprint 1 deliverables and retrospective action items.',
-        daysLeft: 14,
+        startDate: nextStart.toISOString().split('T')[0],
+        endDate: nextEnd.toISOString().split('T')[0],
+        goal: `Sprint ${nextNum} deliverables and retrospective action items.`,
+        daysLeft,
         totalStoryPoints: 0,
         completedStoryPoints: 0,
         openBlockers: 0,
@@ -391,7 +467,7 @@ export class ProjectDataService {
       storyPoints: typeof item.storyPoints === 'number' ? item.storyPoints : 3,
       assignee: item.assignee,
       givenBy: item.givenBy || project.lead?.name || 'Project Manager',
-      dueDate: item.dueDate,
+      dueDate: item.dueDate || sprint.endDate,
       sourceRetroId: item.sourceRetroId,
       sourceRetroTitle: item.sourceRetroTitle || 'Sprint Retrospective',
       createdAt: new Date().toISOString().split('T')[0],

@@ -51,6 +51,21 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
   return false;
 }
 
+function getNextMonthlySprintDates(refDate = new Date()) {
+  const ref = new Date(refDate);
+  const nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
+  const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+  const now = new Date();
+  const msDiff = nextEnd.getTime() - now.getTime();
+  const daysLeft = Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24)));
+
+  return {
+    startDate: nextStart.toISOString().split('T')[0],
+    endDate: nextEnd.toISOString().split('T')[0],
+    daysLeft,
+  };
+}
+
 class ProjectService {
   async getAllProjects(currentUser = null, options = {}) {
 
@@ -872,18 +887,67 @@ class ProjectService {
     if (!project) throw new Error('Project not found');
     this.assertCanManage(project, currentUser);
 
-    let found = false;
+    let completedSprint = null;
     project.sprints = project.sprints.map((s) => {
       if (s.id === sprintId) {
-        found = true;
         s.status = 'completed';
         s.daysLeft = 0;
-        s.completedStoryPoints = s.totalStoryPoints;
+        completedSprint = s;
       }
       return s;
     });
 
-    if (!found) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
+    if (!completedSprint) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
+
+    // Incomplete items from the completed sprint roll over to next sprint
+    const incompleteItems = (completedSprint.items || []).filter((i) => i.status !== 'done');
+    const doneItems = (completedSprint.items || []).filter((i) => i.status === 'done');
+    completedSprint.items = doneItems;
+    completedSprint.completedStoryPoints = doneItems.reduce((acc, i) => acc + (i.storyPoints || 0), 0);
+    completedSprint.totalStoryPoints = completedSprint.completedStoryPoints;
+
+    // Calculate Next Sprint Dates (Next Month 1st -> Next Month Last Day)
+    const refDate = completedSprint.endDate ? new Date(completedSprint.endDate) : new Date();
+    const nextDates = getNextMonthlySprintDates(refDate);
+
+    let nextSprint = project.sprints.find((s) => s.status === 'upcoming');
+    if (nextSprint) {
+      nextSprint.status = 'active';
+      nextSprint.startDate = nextSprint.startDate || nextDates.startDate;
+      nextSprint.endDate = nextSprint.endDate || nextDates.endDate;
+      nextSprint.daysLeft = nextDates.daysLeft;
+    } else {
+      const maxNum = project.sprints.reduce((max, s) => Math.max(max, s.number || 0), 0);
+      const nextNum = (completedSprint.number || maxNum) + 1;
+      nextSprint = {
+        id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
+        name: `Sprint ${nextNum} - Execution & Backlog`,
+        number: nextNum,
+        status: 'active',
+        startDate: nextDates.startDate,
+        endDate: nextDates.endDate,
+        goal: `Sprint ${nextNum} deliverables and retrospective action items.`,
+        daysLeft: nextDates.daysLeft,
+        totalStoryPoints: 0,
+        completedStoryPoints: 0,
+        openBlockers: 0,
+        items: [],
+      };
+      project.sprints.push(nextSprint);
+    }
+
+    if (incompleteItems.length > 0) {
+      const rolledOver = incompleteItems.map((item) => ({
+        ...item,
+        dueDate: nextSprint.endDate || item.dueDate,
+      }));
+      nextSprint.items = [...(nextSprint.items || []), ...rolledOver];
+    }
+
+    nextSprint.totalStoryPoints = (nextSprint.items || []).reduce((acc, i) => acc + (i.storyPoints || 0), 0);
+    nextSprint.completedStoryPoints = (nextSprint.items || []).filter((i) => i.status === 'done').reduce((acc, i) => acc + (i.storyPoints || 0), 0);
+
+    project.activeSprint = nextSprint;
 
     await project.save();
     return project;
@@ -1488,21 +1552,29 @@ class ProjectService {
       }
 
       if (sprintNum) {
+        // Retro action items target Sprint N+1 (Next Sprint)
+        const nextSprintNum = sprintNum + 1;
         sprint = project.sprints.find(
-          (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
+          (s) => s.number === nextSprintNum || s.name.toLowerCase().startsWith(`sprint ${nextSprintNum}`)
         );
+        if (!sprint) {
+          sprint = project.sprints.find((s) => s.status === 'upcoming');
+        }
       }
     }
 
     if (!sprint) {
-      sprint = project.sprints.find((s) => s.status === 'active') ||
-               project.sprints.find((s) => s.status === 'upcoming') ||
+      sprint = project.sprints.find((s) => s.status === 'upcoming') ||
+               project.sprints.find((s) => s.status === 'active') ||
                project.sprints[0];
     }
 
     if (sprint && sprint.status === 'upcoming') {
       sprint.status = 'active';
-      sprint.daysLeft = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
+      const nextDates = getNextMonthlySprintDates(sprint.startDate || new Date());
+      sprint.startDate = sprint.startDate || nextDates.startDate;
+      sprint.endDate = sprint.endDate || nextDates.endDate;
+      sprint.daysLeft = nextDates.daysLeft;
     }
 
     if (!sprint) {
@@ -1510,27 +1582,27 @@ class ProjectService {
       const sourceTitle = items[0]?.sourceRetroTitle || '';
       const match = sourceTitle.match(/sprint\s*(\d+)/i);
       if (match) {
-        sprintNum = parseInt(match[1], 10);
+        sprintNum = parseInt(match[1], 10) + 1;
       } else if (items[0]?.sourceRetroId) {
         const retroEntry = project.retrospectives?.find(
           (r) => r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId
         );
         if (retroEntry?.sprintName) {
           const sMatch = retroEntry.sprintName.match(/\d+/);
-          if (sMatch) sprintNum = parseInt(sMatch[0], 10);
+          if (sMatch) sprintNum = parseInt(sMatch[0], 10) + 1;
         }
       }
 
-      const cadenceDays = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
+      const nextDates = getNextMonthlySprintDates(new Date());
       sprint = {
         id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
         name: `Sprint ${sprintNum} - Execution & Backlog`,
         number: sprintNum,
         status: 'active',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(Date.now() + cadenceDays * 86400000).toISOString().split('T')[0],
+        startDate: nextDates.startDate,
+        endDate: nextDates.endDate,
         goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
-        daysLeft: cadenceDays,
+        daysLeft: nextDates.daysLeft,
         totalStoryPoints: 0,
         completedStoryPoints: 0,
         openBlockers: 0,
