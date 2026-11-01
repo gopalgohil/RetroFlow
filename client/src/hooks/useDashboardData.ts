@@ -94,6 +94,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
         if (parsed && (parsed.email || parsed.name)) {
           setUser(parsed);
           setIsAuthReady(true);
+          document.cookie = `retroflow_user=${encodeURIComponent(storedUser)}; path=/; max-age=2592000; SameSite=Lax`;
         }
       } catch {}
     }
@@ -106,8 +107,11 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
           if (res?.data && res.data.email) {
             setUser(res.data);
             try {
-              localStorage.setItem('retroflow_user', JSON.stringify(res.data));
+              const uStr = JSON.stringify(res.data);
+              localStorage.setItem('retroflow_user', uStr);
               localStorage.removeItem('retroflow_rejected');
+              document.cookie = `retroflow_user=${encodeURIComponent(uStr)}; path=/; max-age=2592000; SameSite=Lax`;
+              document.cookie = 'retroflow_rejected=; path=/; max-age=0; SameSite=Lax';
             } catch {}
           }
         })
@@ -123,6 +127,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
           if (isNotFoundOrDeleted) {
             try {
               localStorage.setItem('retroflow_rejected', 'true');
+              document.cookie = 'retroflow_rejected=true; path=/; max-age=2592000; SameSite=Lax';
             } catch {}
           }
         })

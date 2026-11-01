@@ -56,6 +56,14 @@ export default function RootLayout({
                   } else {
                     document.documentElement.classList.remove('dark');
                   }
+                  var u = localStorage.getItem('retroflow_user');
+                  if (u && !document.cookie.includes('retroflow_user=')) {
+                    document.cookie = 'retroflow_user=' + encodeURIComponent(u) + '; path=/; max-age=2592000; SameSite=Lax';
+                  }
+                  var r = localStorage.getItem('retroflow_rejected');
+                  if (r === 'true' && !document.cookie.includes('retroflow_rejected=true')) {
+                    document.cookie = 'retroflow_rejected=true; path=/; max-age=2592000; SameSite=Lax';
+                  }
                 } catch (e) {}
               })();
             `,

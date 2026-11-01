@@ -9,3 +9,5 @@ export * from './WelcomeToast';
 export * from './LogoutConfirmModal';
 export * from './MyProfileModal';
 export * from './MemberDetailModal';
+export * from './WaitingForApprovalView';
+export * from './RejectedView';

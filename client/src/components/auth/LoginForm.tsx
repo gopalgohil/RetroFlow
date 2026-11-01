@@ -111,10 +111,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         if (data.data?.token) {
           localStorage.setItem('retroflow_token', data.data.token);
           localStorage.removeItem('retroflow_rejected');
+          document.cookie = `retroflow_token=${encodeURIComponent(data.data.token)}; path=/; max-age=2592000; SameSite=Lax`;
+          document.cookie = 'retroflow_rejected=; path=/; max-age=0; SameSite=Lax';
         }
         if (data.data?.user) {
-          localStorage.setItem('retroflow_user', JSON.stringify(data.data.user));
+          const uStr = JSON.stringify(data.data.user);
+          localStorage.setItem('retroflow_user', uStr);
           localStorage.removeItem('retroflow_rejected');
+          document.cookie = `retroflow_user=${encodeURIComponent(uStr)}; path=/; max-age=2592000; SameSite=Lax`;
+          document.cookie = 'retroflow_rejected=; path=/; max-age=0; SameSite=Lax';
         }
 
         // Set session flag for role-specific dashboard welcome toast

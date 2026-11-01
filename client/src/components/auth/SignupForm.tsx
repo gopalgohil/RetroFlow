@@ -123,10 +123,15 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
       if (response.data?.token) {
         localStorage.setItem('retroflow_token', response.data.token);
         localStorage.removeItem('retroflow_rejected');
+        document.cookie = `retroflow_token=${encodeURIComponent(response.data.token)}; path=/; max-age=2592000; SameSite=Lax`;
+        document.cookie = 'retroflow_rejected=; path=/; max-age=0; SameSite=Lax';
       }
       if (response.data?.user) {
-        localStorage.setItem('retroflow_user', JSON.stringify(response.data.user));
+        const uStr = JSON.stringify(response.data.user);
+        localStorage.setItem('retroflow_user', uStr);
         localStorage.removeItem('retroflow_rejected');
+        document.cookie = `retroflow_user=${encodeURIComponent(uStr)}; path=/; max-age=2592000; SameSite=Lax`;
+        document.cookie = 'retroflow_rejected=; path=/; max-age=0; SameSite=Lax';
       }
 
       sessionStorage.setItem('retroflow_welcome_toast', 'true');
