@@ -66,12 +66,20 @@ export const SprintCard: React.FC<SprintCardProps> = ({
     ((sprint.completedStoryPoints || 0) / (sprint.totalStoryPoints || 1)) * 100
   );
 
-  const daysRemaining = Math.max(
-    0,
-    Math.ceil(
-      (new Date(sprint.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-    )
+  const totalSprintDays = sprint.startDate && sprint.endDate
+    ? Math.max(
+        1,
+        Math.ceil(
+          (new Date(sprint.endDate).getTime() - new Date(sprint.startDate).getTime()) / (1000 * 60 * 60 * 24)
+        )
+      )
+    : 30;
+
+  const rawRemaining = Math.ceil(
+    (new Date(sprint.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
   );
+
+  const daysRemaining = Math.max(0, Math.min(totalSprintDays, rawRemaining));
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

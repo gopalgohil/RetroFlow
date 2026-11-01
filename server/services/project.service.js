@@ -55,9 +55,10 @@ function getNextMonthlySprintDates(refDate = new Date()) {
   const ref = new Date(refDate);
   const nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
   const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+  const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / (1000 * 60 * 60 * 24)));
   const now = new Date();
-  const msDiff = nextEnd.getTime() - now.getTime();
-  const daysLeft = Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24)));
+  const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const daysLeft = Math.max(1, Math.min(totalDays, rawDiff));
 
   return {
     startDate: nextStart.toISOString().split('T')[0],

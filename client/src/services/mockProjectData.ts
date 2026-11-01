@@ -166,8 +166,10 @@ export class ProjectDataService {
     const ref = (completedSprint as Sprint).endDate ? new Date((completedSprint as Sprint).endDate) : new Date();
     const nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
     const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+    const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / 86400000));
     const now = new Date();
-    const daysLeft = Math.max(1, Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000));
+    const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000);
+    const daysLeft = Math.max(1, Math.min(totalDays, rawDiff));
     const nextStartDate = nextStart.toISOString().split('T')[0];
     const nextEndDate = nextEnd.toISOString().split('T')[0];
 
@@ -435,7 +437,9 @@ export class ProjectDataService {
       const now = new Date();
       const nextStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
       const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
-      const daysLeft = Math.max(1, Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000));
+      const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / 86400000));
+      const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000);
+      const daysLeft = Math.max(1, Math.min(totalDays, rawDiff));
       const nextNum = (project.sprints.length || 0) + 1;
       sprint = {
         id: `sprint-${Date.now()}`,

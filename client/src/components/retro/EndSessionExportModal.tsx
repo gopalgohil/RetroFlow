@@ -234,7 +234,9 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       const now = new Date();
       const nextStart = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 1));
       const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
-      const daysLeft = Math.max(1, Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000));
+      const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / 86400000));
+      const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000);
+      const daysLeft = Math.max(1, Math.min(totalDays, rawDiff));
 
       return {
         id: `sprint-auto-${nextSprintNum}`,
