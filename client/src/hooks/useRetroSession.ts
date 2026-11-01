@@ -74,6 +74,9 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
   cardsRef.current = cards;
   const currentUserRef = useRef(currentUser);
   currentUserRef.current = currentUser;
+  const retroRef = useRef<RetroBoard | null>(null);
+  retroRef.current = retro;
+  const authFetchedRef = useRef(false);
 
   // 1. Initial Load: Participant Identity & Board Fetching
   useEffect(() => {
@@ -162,7 +165,8 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
       }
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
-      if (token) {
+      if (token && !authFetchedRef.current) {
+        authFetchedRef.current = true;
         api
           .get(ENDPOINTS.AUTH.ME)
           .then((res: any) => {
@@ -185,7 +189,10 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     }
 
     const fetchSession = async () => {
-      setIsLoading(true);
+      // Only show full skeleton loader on very first initial load to avoid jarring UI flicker
+      if (!retroRef.current) {
+        setIsLoading(true);
+      }
       setError(null);
       try {
         const res = await api.get(`${ENDPOINTS.RETROS}/${shareToken}`);
@@ -217,8 +224,8 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
                 c.voters.some((v: string) => {
                   const vLower = (v || '').toLowerCase().trim();
                   return (
-                    (currentUser?.email && vLower === currentUser.email.toLowerCase().trim()) ||
-                    (currentUser?.email && vLower.includes(currentUser.email.toLowerCase().trim())) ||
+                    (currentUserRef.current?.email && vLower === currentUserRef.current.email.toLowerCase().trim()) ||
+                    (currentUserRef.current?.email && vLower.includes(currentUserRef.current.email.toLowerCase().trim())) ||
                     (participantName && vLower === participantName.toLowerCase().trim())
                   );
                 })
@@ -233,38 +240,14 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
               c.voters.some((v: string) => {
                 const vLower = (v || '').toLowerCase().trim();
                 return (
-                  (currentUser?.email && vLower === currentUser.email.toLowerCase().trim()) ||
-                  (currentUser?.email && vLower.includes(currentUser.email.toLowerCase().trim())) ||
+                  (currentUserRef.current?.email && vLower === currentUserRef.current.email.toLowerCase().trim()) ||
+                  (currentUserRef.current?.email && vLower.includes(currentUserRef.current.email.toLowerCase().trim())) ||
                   (participantName && vLower === participantName.toLowerCase().trim())
                 );
               })
           ).length;
           const limit = sessionData.votingLimit || 1;
           setRemainingVotes(Math.max(0, limit - votedCount));
-        }
-
-        // Strict Option 1 Check: Verify logged in user is authorized
-        const userEmail = (currentUser?.email || '').toLowerCase().trim();
-        if (userEmail) {
-          const isCreator =
-            (sessionData.createdBy?._id && String(sessionData.createdBy._id) === String(currentUser?.id)) ||
-            sessionData.createdBy?.email?.toLowerCase().trim() === userEmail;
-          const isAdmin = currentUser?.role?.toLowerCase() === 'admin';
-          const isProjectLead =
-            sessionData.project?.lead?.email?.toLowerCase().trim() === userEmail;
-          const isWhitelisted =
-            Array.isArray(sessionData.approvedMembers) &&
-            sessionData.approvedMembers.some(
-              (em) => em && em.toLowerCase().trim() === userEmail
-            );
-
-          if (!isCreator && !isAdmin && !isProjectLead && !isWhitelisted) {
-            setError(
-              `Access Denied: "${userEmail}" is not invited to this retrospective session. Only users invited by the Admin or Manager can join.`
-            );
-            setIsLoading(false);
-            return;
-          }
         }
       } catch (err: any) {
         setError(err.message || 'Unable to load retrospective session');
@@ -276,7 +259,32 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     if (shareToken) {
       fetchSession();
     }
-  }, [shareToken, currentUser?.email, currentUser?.id, currentUser?.role]);
+  }, [shareToken, participantName]);
+
+  // 1.1 Strict Security Check: Verify logged in user is authorized once retro and user are resolved
+  useEffect(() => {
+    if (!retro) return;
+    const userEmail = (currentUser?.email || '').toLowerCase().trim();
+    if (!userEmail) return;
+
+    const isCreator =
+      (retro.createdBy?._id && String(retro.createdBy._id) === String(currentUser?.id)) ||
+      retro.createdBy?.email?.toLowerCase().trim() === userEmail;
+    const isAdmin = currentUser?.role?.toLowerCase() === 'admin';
+    const isProjectLead =
+      retro.project?.lead?.email?.toLowerCase().trim() === userEmail;
+    const isWhitelisted =
+      Array.isArray(retro.approvedMembers) &&
+      retro.approvedMembers.some(
+        (em) => em && em.toLowerCase().trim() === userEmail
+      );
+
+    if (!isCreator && !isAdmin && !isProjectLead && !isWhitelisted) {
+      setError(
+        `Access Denied: "${userEmail}" is not invited to this retrospective session. Only users invited by the Admin or Manager can join.`
+      );
+    }
+  }, [retro, currentUser?.email, currentUser?.id, currentUser?.role]);
 
   const currentAuthorName = useMemo(
     () => currentUser?.name || participantName || 'Developer',
