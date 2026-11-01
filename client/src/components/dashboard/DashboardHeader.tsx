@@ -149,7 +149,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               {/* User Name & Role */}
               <div className="text-left hidden sm:block">
                 <p suppressHydrationWarning className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                  {activeUser.name || 'Gopal'}
+                  {activeUser.name || 'User'}
                 </p>
                 <p suppressHydrationWarning className="text-[11px] font-medium text-slate-400 dark:text-slate-400 capitalize leading-tight">
                   {displayRole}
@@ -178,7 +178,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                     <div className="overflow-hidden flex-1">
                       <div className="flex items-center gap-1.5">
                         <p suppressHydrationWarning className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                          {activeUser.name || 'Gopal'}
+                          {activeUser.name || 'User'}
                         </p>
                         <span
                           suppressHydrationWarning

@@ -42,15 +42,34 @@ const DEFAULT_WORKSPACE_USER = {
 export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const router = useRouter();
 
-  // 1. User Authentication State - initialized consistently to prevent SSR hydration mismatch
+  // 1. User Authentication State - initialized synchronously from localStorage to prevent auth flicker
   const [user, setUser] = useState<{
     name: string;
     email: string;
     role?: string;
     projectRole?: string;
     isApproved?: boolean;
-  }>(DEFAULT_WORKSPACE_USER);
-  const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
+    status?: string;
+  }>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('retroflow_user');
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          if (parsed && (parsed.email || parsed.name)) {
+            return parsed;
+          }
+        }
+      } catch {}
+    }
+    return DEFAULT_WORKSPACE_USER;
+  });
+  const [isAuthReady, setIsAuthReady] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return Boolean(localStorage.getItem('retroflow_user') || localStorage.getItem('retroflow_token'));
+    }
+    return false;
+  });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {

@@ -646,7 +646,7 @@ function ProjectDetailContent() {
                 {/* User Name & Role */}
                 <div className="text-left hidden sm:block">
                   <p suppressHydrationWarning className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                    {activeUser.name || 'Gopal'}
+                    {activeUser.name || 'User'}
                   </p>
                   <p suppressHydrationWarning className="text-[11px] font-medium text-slate-400 dark:text-slate-500 capitalize leading-tight">
                     {displayRole}
@@ -676,7 +676,7 @@ function ProjectDetailContent() {
                       <div className="overflow-hidden flex-1">
                         <div className="flex items-center gap-1.5">
                           <p suppressHydrationWarning className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                            {activeUser.name || 'Gopal'}
+                            {activeUser.name || 'User'}
                           </p>
                           <span
                             suppressHydrationWarning
@@ -1080,7 +1080,7 @@ function ProjectDetailFallback() {
               </div>
               <div className="text-left hidden sm:block">
                 <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                  {activeUser.name || 'Gopal'}
+                  {activeUser.name || 'User'}
                 </p>
                 <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 capitalize leading-tight">
                   {displayRole}

@@ -354,7 +354,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             const managerMember = project.members?.find(
               (m) => (m.role || '').toLowerCase() === 'manager'
             );
-            const managerName = managerMember?.name || project.lead?.name || 'Gopal';
+            const managerName = managerMember?.name || project.lead?.name || 'Manager';
             const managerEmail = (managerMember?.email || project.lead?.email || '').toLowerCase().trim();
             const managerAvatar = managerMember?.avatar || project.lead?.avatar || 'M';
 

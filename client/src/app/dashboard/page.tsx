@@ -27,6 +27,262 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { api, ENDPOINTS } from '@/lib/api';
 import { CheckCircle2, Clock, RefreshCw, LogOut, XCircle, AlertTriangle, UserPlus } from 'lucide-react';
 
+interface WaitingForApprovalViewProps {
+  user: { name?: string; email?: string };
+  onLogout: () => void;
+  isCheckingStatus?: boolean;
+  onCheckApprovalStatus?: () => void;
+  approvalCheckMessage?: string | null;
+}
+
+function WaitingForApprovalView({
+  user,
+  onLogout,
+  isCheckingStatus = false,
+  onCheckApprovalStatus,
+  approvalCheckMessage,
+}: WaitingForApprovalViewProps) {
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex flex-col justify-between selection:bg-[#5cb028] selection:text-white relative overflow-hidden font-sans">
+      {/* Subtle Ambient Background */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[550px] h-[280px] bg-gradient-to-b from-[#88c958]/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none" />
+
+      {/* Minimal Top Header */}
+      <header className="px-6 sm:px-10 py-4 border-b border-slate-200/80 dark:border-white/[0.08] bg-white/70 dark:bg-[#0e1015]/70 backdrop-blur-md flex items-center justify-between relative z-10">
+        <Link href="/dashboard" className="flex items-center select-none">
+          <Image
+            src="/logo.svg"
+            alt="Logo"
+            width={130}
+            height={40}
+            className="h-8 sm:h-9 w-auto object-contain dark:brightness-0 dark:invert"
+            priority
+            unoptimized
+          />
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => setIsLogoutModalOpen(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[#12151c] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors border border-slate-200 dark:border-white/[0.08] cursor-pointer shadow-2xs"
+        >
+          <LogOut className="w-3.5 h-3.5 text-slate-400" />
+          <span>Log Out</span>
+        </button>
+      </header>
+
+      {/* Clean Center Content Card */}
+      <main className="flex-1 flex items-center justify-center p-6 relative z-10">
+        <div className="max-w-md w-full rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] p-8 sm:p-9 shadow-xl dark:shadow-2xl space-y-6 text-center animate-in zoom-in-95 duration-200">
+          {/* Elegant Minimal Icon */}
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-xs">
+            <Clock className="w-7 h-7" />
+          </div>
+
+          {/* Typography */}
+          <div className="space-y-2">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Waiting for Approval
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
+              Welcome, <span className="font-semibold text-slate-800 dark:text-slate-200">{user.name || 'there'}</span>! Your account has been verified and is awaiting review by a workspace administrator.
+            </p>
+          </div>
+
+          {/* Clean Account Status Badge */}
+          <div className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.06] flex items-center justify-between gap-3 text-left">
+            <div className="min-w-0">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Signed in as</p>
+              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{user.email}</p>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              Pending Review
+            </span>
+          </div>
+
+          {/* Status Feedback Notice (Appears when Refresh clicked) */}
+          {approvalCheckMessage && (
+            <div
+              className={`p-3 rounded-xl text-xs font-medium border animate-in fade-in duration-150 ${
+                approvalCheckMessage.includes('approved')
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300'
+                  : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300'
+              }`}
+            >
+              {approvalCheckMessage}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="space-y-2.5 pt-1">
+            <button
+              type="button"
+              onClick={onCheckApprovalStatus || (() => { if (typeof window !== 'undefined') window.location.reload(); })}
+              disabled={isCheckingStatus}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] dark:bg-[#88c958] dark:hover:bg-[#76b846] text-white dark:text-[#08090a] text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isCheckingStatus ? 'animate-spin' : ''}`} />
+              <span>{isCheckingStatus ? 'Checking Status...' : 'Check Approval Status'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="w-full py-2.5 px-4 rounded-xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Log Out
+            </button>
+          </div>
+
+          {/* Support info */}
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
+            Need immediate access? Contact{' '}
+            <a href={`mailto:${WORKSPACE_SUPPORT_EMAIL}`} className="text-[#5cb028] dark:text-[#88c958] hover:underline font-medium">
+              {WORKSPACE_SUPPORT_EMAIL}
+            </a>
+          </p>
+        </div>
+      </main>
+
+      {/* Minimal Footer */}
+      <footer className="py-4 text-center text-[11px] text-slate-400 dark:text-slate-600 relative z-10">
+        RetroFlow &bull; Enterprise Agile Retrospectives
+      </footer>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          setIsLogoutModalOpen(false);
+          onLogout();
+        }}
+        user={user}
+      />
+    </div>
+  );
+}
+
+interface RejectedViewProps {
+  user?: { name?: string; email?: string };
+  onLogout: () => void;
+  onRegisterAgain: () => void;
+}
+
+function RejectedView({ user, onLogout, onRegisterAgain }: RejectedViewProps) {
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF1F2] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex flex-col justify-between selection:bg-rose-500 selection:text-white relative overflow-hidden font-sans">
+      {/* Ambient Glow */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-200/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Top Header */}
+      <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="flex items-center">
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={140}
+              height={44}
+              className="h-9 sm:h-10 w-auto object-contain"
+              priority
+              unoptimized
+            />
+          </Link>
+          <span className="text-[10px] uppercase font-bold text-rose-700 tracking-wider px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200">
+            Request Rejected
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 hover:text-slate-900 transition-all cursor-pointer border border-slate-200 shadow-2xs"
+          >
+            <LogOut className="w-3.5 h-3.5 text-slate-500" />
+            <span>Back to Login</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Center Content Card */}
+      <main className="flex-1 flex items-center justify-center p-6 relative z-10">
+        <div className="max-w-xl w-full rounded-3xl bg-white border border-slate-200/90 p-8 sm:p-10 shadow-xl space-y-6 text-center animate-in zoom-in-95 duration-200">
+          <div className="relative mx-auto w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shadow-xs">
+            <XCircle className="w-8 h-8 text-rose-600" />
+          </div>
+
+          <div className="space-y-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 tracking-wide uppercase">
+              Access Request Rejected
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Request Not Approved
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+              Your workspace access request was not approved by the administrator. Your registration record has been removed from the system.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-left space-y-2 text-xs text-rose-900">
+            <div className="flex items-center gap-2 font-bold text-rose-950">
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>What should you do?</span>
+            </div>
+            <p className="text-[11px] text-rose-800 leading-relaxed">
+              If you believe this was an error, please contact your workspace administrator at <strong className="font-semibold text-rose-950">{WORKSPACE_SUPPORT_EMAIL}</strong>, or you can submit a new registration.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onRegisterAgain}
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Register Again</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5 text-slate-500" />
+              <span>Back to Login</span>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <footer className="py-4 text-center text-xs text-slate-400 relative z-10">
+        Need immediate access? Contact workspace owner at{' '}
+        <a href={`mailto:${WORKSPACE_SUPPORT_EMAIL}`} className="font-semibold text-[#5cb028] hover:underline">
+          {WORKSPACE_SUPPORT_EMAIL}
+        </a>
+      </footer>
+
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          setIsLogoutModalOpen(false);
+          onLogout();
+        }}
+        user={user}
+      />
+    </div>
+  );
+}
+
 /**
  * DashboardContent Component
  * Senior-level orchestrator component delegating feature state, URL sync,
@@ -76,7 +332,16 @@ function DashboardContent() {
     role?: string;
     projectRole?: string;
     isApproved?: boolean;
-  } | null>(null);
+    status?: string;
+  } | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('retroflow_user');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return null;
+  });
 
   useEffect(() => {
     if (user) {
@@ -231,7 +496,7 @@ function DashboardContent() {
     activeUser.email &&
     !isAdmin &&
     !isManager &&
-    activeUser.isApproved === false
+    (activeUser.isApproved === false || (activeUser as any).status === 'pending')
   );
 
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
@@ -339,238 +604,23 @@ function DashboardContent() {
 
   if (isRejected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#FFF1F2] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex flex-col justify-between selection:bg-rose-500 selection:text-white relative overflow-hidden font-sans">
-        {/* Ambient Glow */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-200/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Top Header */}
-        <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="flex items-center">
-              <Image
-                src="/logo.svg"
-                alt="Logo"
-                width={140}
-                height={44}
-                className="h-9 sm:h-10 w-auto object-contain"
-                priority
-                unoptimized
-              />
-            </Link>
-            <span className="text-[10px] uppercase font-bold text-rose-700 tracking-wider px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200">
-              Request Rejected
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setIsLogoutModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 hover:text-slate-900 transition-all cursor-pointer border border-slate-200 shadow-2xs"
-            >
-              <LogOut className="w-3.5 h-3.5 text-slate-500" />
-              <span>Back to Login</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Center Content Card */}
-        <main className="flex-1 flex items-center justify-center p-6 relative z-10">
-          <div className="max-w-xl w-full rounded-3xl bg-white border border-slate-200/90 p-8 sm:p-10 shadow-xl space-y-6 text-center animate-in zoom-in-95 duration-200">
-            {/* Red Ambient Icon */}
-            <div className="relative mx-auto w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shadow-xs">
-              <XCircle className="w-8 h-8 text-rose-600" />
-            </div>
-
-            <div className="space-y-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 tracking-wide uppercase">
-                Access Request Rejected
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Request Not Approved
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-                Your workspace access request was not approved by the administrator. Your registration record has been removed from the system.
-              </p>
-            </div>
-
-            {/* Rejection Details Box */}
-            <div className="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-left space-y-2 text-xs text-rose-900">
-              <div className="flex items-center gap-2 font-bold text-rose-950">
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>What should you do?</span>
-              </div>
-              <p className="text-[11px] text-rose-800 leading-relaxed">
-                If you believe this was an error, please contact your workspace administrator at <strong className="font-semibold text-rose-950">{WORKSPACE_SUPPORT_EMAIL}</strong>, or you can submit a new registration.
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => handleClearAndNavigate('/signup')}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Register Again</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsLogoutModalOpen(true)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5 text-slate-500" />
-                <span>Back to Login</span>
-              </button>
-            </div>
-          </div>
-        </main>
-
-        {/* Footer */}
-        <footer className="py-4 text-center text-xs text-slate-400 relative z-10">
-          Need immediate access? Contact workspace owner at{' '}
-          <a href={`mailto:${WORKSPACE_SUPPORT_EMAIL}`} className="font-semibold text-[#5cb028] hover:underline">
-            {WORKSPACE_SUPPORT_EMAIL}
-          </a>
-        </footer>
-
-        {/* Logout Confirmation Modal */}
-        <LogoutConfirmModal
-          isOpen={isLogoutModalOpen}
-          onClose={() => setIsLogoutModalOpen(false)}
-          onConfirm={() => {
-            setIsLogoutModalOpen(false);
-            handleClearAndNavigate('/login');
-          }}
-          user={activeUser}
-        />
-      </div>
+      <RejectedView
+        user={activeUser}
+        onLogout={handleLogout}
+        onRegisterAgain={() => handleClearAndNavigate('/signup')}
+      />
     );
   }
 
   if (isPendingApproval) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex flex-col justify-between selection:bg-[#5cb028] selection:text-white relative overflow-hidden font-sans">
-        {/* Subtle Ambient Background */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[550px] h-[280px] bg-gradient-to-b from-[#88c958]/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none" />
-
-        {/* Minimal Top Header */}
-        <header className="px-6 sm:px-10 py-4 border-b border-slate-200/80 dark:border-white/[0.08] bg-white/70 dark:bg-[#0e1015]/70 backdrop-blur-md flex items-center justify-between relative z-10">
-          <Link href="/dashboard" className="flex items-center select-none">
-            <Image
-              src="/logo.svg"
-              alt="Logo"
-              width={130}
-              height={40}
-              className="h-8 sm:h-9 w-auto object-contain dark:brightness-0 dark:invert"
-              priority
-              unoptimized
-            />
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => setIsLogoutModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[#12151c] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors border border-slate-200 dark:border-white/[0.08] cursor-pointer shadow-2xs"
-          >
-            <LogOut className="w-3.5 h-3.5 text-slate-400" />
-            <span>Log Out</span>
-          </button>
-        </header>
-
-        {/* Clean Center Content Card */}
-        <main className="flex-1 flex items-center justify-center p-6 relative z-10">
-          <div className="max-w-md w-full rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] p-8 sm:p-9 shadow-xl dark:shadow-2xl space-y-6 text-center animate-in zoom-in-95 duration-200">
-            {/* Elegant Minimal Icon */}
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-xs">
-              <Clock className="w-7 h-7" />
-            </div>
-
-            {/* Typography */}
-            <div className="space-y-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                Waiting for Approval
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
-                Welcome, <span className="font-semibold text-slate-800 dark:text-slate-200">{activeUser.name || 'there'}</span>! Your account has been verified and is awaiting review by a workspace administrator.
-              </p>
-            </div>
-
-            {/* Clean Account Status Badge */}
-            <div className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.06] flex items-center justify-between gap-3 text-left">
-              <div className="min-w-0">
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Signed in as</p>
-                <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{activeUser.email}</p>
-              </div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                Pending Review
-              </span>
-            </div>
-
-            {/* Status Feedback Notice (Appears when Refresh clicked) */}
-            {approvalCheckMessage && (
-              <div
-                className={`p-3 rounded-xl text-xs font-medium border animate-in fade-in duration-150 ${
-                  approvalCheckMessage.includes('approved')
-                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300'
-                    : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300'
-                }`}
-              >
-                {approvalCheckMessage}
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="space-y-2.5 pt-1">
-              <button
-                type="button"
-                onClick={handleCheckApprovalStatus}
-                disabled={isCheckingStatus}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] dark:bg-[#88c958] dark:hover:bg-[#76b846] text-white dark:text-[#08090a] text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isCheckingStatus ? 'animate-spin' : ''}`} />
-                <span>{isCheckingStatus ? 'Checking Status...' : 'Check Approval Status'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsLogoutModalOpen(true)}
-                className="w-full py-2.5 px-4 rounded-xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
-              >
-                Log Out
-              </button>
-            </div>
-
-            {/* Support info */}
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
-              Need immediate access? Contact{' '}
-              <a href={`mailto:${WORKSPACE_SUPPORT_EMAIL}`} className="text-[#5cb028] dark:text-[#88c958] hover:underline font-medium">
-                {WORKSPACE_SUPPORT_EMAIL}
-              </a>
-            </p>
-          </div>
-        </main>
-
-        {/* Minimal Footer */}
-        <footer className="py-4 text-center text-[11px] text-slate-400 dark:text-slate-600 relative z-10">
-          RetroFlow &bull; Enterprise Agile Retrospectives
-        </footer>
-
-        {/* Logout Confirmation Modal */}
-        <LogoutConfirmModal
-          isOpen={isLogoutModalOpen}
-          onClose={() => setIsLogoutModalOpen(false)}
-          onConfirm={() => {
-            setIsLogoutModalOpen(false);
-            handleLogout();
-          }}
-          user={activeUser}
-        />
-      </div>
+      <WaitingForApprovalView
+        user={activeUser}
+        onLogout={handleLogout}
+        isCheckingStatus={isCheckingStatus}
+        onCheckApprovalStatus={handleCheckApprovalStatus}
+        approvalCheckMessage={approvalCheckMessage}
+      />
     );
   }
 
@@ -749,23 +799,104 @@ function DashboardContent() {
 }
 
 function DashboardFallback() {
-  const [user, setUser] = useState<{ name?: string; email?: string; role?: string; projectRole?: string } | null>(null);
+  const [user] = useState<{
+    name?: string;
+    email?: string;
+    role?: string;
+    projectRole?: string;
+    isApproved?: boolean;
+    status?: string;
+  } | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('retroflow_user');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return null;
+  });
 
-  useEffect(() => {
+  const [isRejected] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('retroflow_rejected') === 'true';
+    }
+    return false;
+  });
+
+  const handleLogout = () => {
     try {
-      const saved = localStorage.getItem('retroflow_user');
-      if (saved) setUser(JSON.parse(saved));
+      localStorage.removeItem('retroflow_token');
+      localStorage.removeItem('retroflow_user');
+      localStorage.removeItem('retroflow_rejected');
+      localStorage.removeItem('retroflow_cached_active_project');
+      localStorage.removeItem('retroflow_active_project_id');
+      localStorage.removeItem('retroflow_cached_projects_list');
+      sessionStorage.clear();
     } catch {}
-  }, []);
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  };
+
+  const handleClearAndNavigate = (targetPath: string) => {
+    try {
+      localStorage.removeItem('retroflow_token');
+      localStorage.removeItem('retroflow_user');
+      localStorage.removeItem('retroflow_rejected');
+      sessionStorage.clear();
+    } catch {}
+    if (typeof window !== 'undefined') {
+      window.location.href = targetPath;
+    }
+  };
 
   const activeUser = {
     name: user?.name || '',
     email: user?.email || '',
     role: user?.role || 'member',
     projectRole: user?.projectRole || 'Developer',
+    isApproved: user?.isApproved,
+    status: user?.status,
   };
 
   const isWorkspaceAdmin = Boolean(activeUser.role === 'admin');
+  const isManager = Boolean(
+    isWorkspaceAdmin ||
+    activeUser.projectRole?.toLowerCase() === 'manager' ||
+    activeUser.role === 'manager' ||
+    activeUser.role?.includes('manager')
+  );
+
+  const isPending = Boolean(
+    activeUser.email &&
+    !isWorkspaceAdmin &&
+    !isManager &&
+    (activeUser.isApproved === false || activeUser.status === 'pending')
+  );
+
+  if (isRejected) {
+    return (
+      <RejectedView
+        user={activeUser}
+        onLogout={handleLogout}
+        onRegisterAgain={() => handleClearAndNavigate('/signup')}
+      />
+    );
+  }
+
+  if (isPending) {
+    return (
+      <WaitingForApprovalView
+        user={activeUser}
+        onLogout={handleLogout}
+        onCheckApprovalStatus={() => {
+          if (typeof window !== 'undefined') {
+            window.location.reload();
+          }
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen dark:bg-[#08090a] bg-[#F8FAFC] text-slate-900 dark:text-white flex selection:bg-[#88c958] selection:text-[#08090a] font-sans transition-colors duration-200">
