@@ -91,6 +91,11 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
   const givenByName = item.givenBy || item.managerName;
   const managerEmail = item.managerEmail;
 
+  const isSelfAssigned = Boolean(
+    (assigneeEmail && managerEmail && assigneeEmail.toLowerCase().trim() === managerEmail.toLowerCase().trim()) ||
+    (assigneeName && givenByName && givenByName !== 'Unassigned' && givenByName !== 'Project Manager' && assigneeName.toLowerCase().trim() === givenByName.toLowerCase().trim())
+  );
+
   const assigneeTooltip = assigneeEmail
     ? `Assigned to: ${assigneeName} (${assigneeEmail})`
     : `Assigned to: ${assigneeName}`;
@@ -101,7 +106,9 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
       : `Assigned by: ${givenByName}`
     : '';
 
-  const fullTooltip = [givenByTooltip, assigneeTooltip].filter(Boolean).join('\n');
+  const fullTooltip = isSelfAssigned
+    ? `Self-assigned by ${assigneeName}${assigneeEmail ? ` (${assigneeEmail})` : ''}`
+    : [givenByTooltip, assigneeTooltip].filter(Boolean).join('\n');
 
   const urgency = React.useMemo(() => {
     if (!item.dueDate) return null;
@@ -258,13 +265,26 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
             {item.assignee?.name && (
               <>
                 <span className="text-slate-300 dark:text-white/20">•</span>
-                <span
-                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30"
-                  title={fullTooltip || assigneeTooltip}
-                >
-                  <User className="w-3.5 h-3.5 shrink-0" />
-                  <span>Assigned to: <strong className="font-extrabold">{assigneeName}</strong></span>
-                </span>
+                {isSelfAssigned ? (
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30 shadow-2xs"
+                    title={fullTooltip}
+                  >
+                    <User className="w-3.5 h-3.5 shrink-0" />
+                    <span>{assigneeName}</span>
+                    <span className="text-[10px] uppercase tracking-wider font-black px-1.5 py-0.5 rounded-md bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a]">
+                      Self-assigned
+                    </span>
+                  </span>
+                ) : (
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30"
+                    title={fullTooltip || assigneeTooltip}
+                  >
+                    <User className="w-3.5 h-3.5 shrink-0" />
+                    <span>Assigned to: <strong className="font-extrabold">{assigneeName}</strong></span>
+                  </span>
+                )}
               </>
             )}
 

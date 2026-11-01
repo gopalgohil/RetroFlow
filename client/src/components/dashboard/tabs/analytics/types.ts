@@ -21,6 +21,7 @@ export interface RetroActionItemDetail {
   dueDate: string | null;
   author: string | null;
   managerName?: string | null;
+  managerEmail?: string | null;
   givenBy?: string | null;
 }
 
@@ -49,6 +50,7 @@ export interface RetroTrendItem {
   completionRate?: number;
   assignees?: RetroAssignee[];
   managerName?: string | null;
+  managerEmail?: string | null;
   manager?: RetroAssignee | null;
   actionItems?: RetroActionItemDetail[];
 }

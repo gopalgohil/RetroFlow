@@ -1995,12 +1995,18 @@ class RetroService {
           (assignedStr && !assignedStr.includes('@') ? assignedStr : null) ||
           (email ? email.split('@')[0] : null);
 
-        if (!name && linkedProject?.members) {
-          const textLower = (c.text || '').toLowerCase();
-          const matchedMember = linkedProject.members.find((m) => {
+        if (linkedProject?.members || linkedProject?.lead) {
+          const candidateMembers = [...(linkedProject.members || [])];
+          if (linkedProject.lead) candidateMembers.push(linkedProject.lead);
+          const matchedMember = candidateMembers.find((m) => {
+            const mEmail = (m.email || '').toLowerCase().trim();
             const mName = (m.name || '').toLowerCase().trim();
-            const mHandle = (m.email || '').split('@')[0].toLowerCase().trim();
-            return (mName && textLower.includes(mName)) || (mHandle && textLower.includes(mHandle));
+            const mHandle = mEmail.split('@')[0];
+            const qName = (name || '').toLowerCase().trim();
+            const qEmail = (email || '').toLowerCase().trim();
+            if (qEmail && mEmail === qEmail) return true;
+            if (qName && (mName === qName || mHandle === qName || mEmail === qName)) return true;
+            return false;
           });
           if (matchedMember) {
             name = matchedMember.name;
@@ -2011,10 +2017,14 @@ class RetroService {
         if (name && name !== 'Unassigned') {
           const key = email || name.toLowerCase();
           if (!assigneesMap.has(key)) {
+            const parts = name.trim().split(/\s+/);
+            const initials = parts.length >= 2
+              ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+              : name.slice(0, 2).toUpperCase();
             assigneesMap.set(key, {
               name,
               email: email || null,
-              avatar: name.slice(0, 2).toUpperCase(),
+              avatar: initials,
             });
           }
         }
@@ -2054,16 +2064,22 @@ class RetroService {
           matchedSprintItem?.assignee?.email ||
           (assignedStr.includes('@') ? assignedStr : null);
 
-        if (!assignedName && linkedProject?.members) {
-          const textLower = (c.text || '').toLowerCase();
-          const matchedMember = linkedProject.members.find((m) => {
+        if (linkedProject?.members || linkedProject?.lead) {
+          const candidateMembers = [...(linkedProject.members || [])];
+          if (linkedProject.lead) candidateMembers.push(linkedProject.lead);
+          const matchedMember = candidateMembers.find((m) => {
+            const mEmail = (m.email || '').toLowerCase().trim();
             const mName = (m.name || '').toLowerCase().trim();
-            const mHandle = (m.email || '').split('@')[0].toLowerCase().trim();
-            return (mName && textLower.includes(mName)) || (mHandle && textLower.includes(mHandle));
+            const mHandle = mEmail.split('@')[0];
+            const qName = (assignedName || '').toLowerCase().trim();
+            const qEmail = (assignedEmail || '').toLowerCase().trim();
+            if (qEmail && mEmail === qEmail) return true;
+            if (qName && (mName === qName || mHandle === qName || mEmail === qName)) return true;
+            return false;
           });
           if (matchedMember) {
             assignedName = matchedMember.name;
-            assignedEmail = matchedMember.email;
+            assignedEmail = (matchedMember.email || '').toLowerCase().trim();
           }
         }
 
@@ -2094,6 +2110,7 @@ class RetroService {
           author: c.author || null,
           givenBy: dynamicManagerName,
           managerName: dynamicManagerName,
+          managerEmail: dynamicManagerEmail,
         };
       });
 
@@ -2122,10 +2139,16 @@ class RetroService {
         completionRate,
         assignees: Array.from(assigneesMap.values()),
         managerName: dynamicManagerName,
+        managerEmail: dynamicManagerEmail,
         manager: {
           name: dynamicManagerName,
           email: dynamicManagerEmail,
-          avatar: dynamicManagerName.slice(0, 2).toUpperCase(),
+          avatar: (() => {
+            const parts = (dynamicManagerName || '').trim().split(/\s+/);
+            return parts.length >= 2
+              ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+              : (dynamicManagerName || 'PM').slice(0, 2).toUpperCase();
+          })(),
         },
         actionItems: itemsList,
       };

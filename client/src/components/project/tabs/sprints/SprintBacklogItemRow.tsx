@@ -107,6 +107,11 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
     const assigneeDisplayName = item.assignee?.name;
     const managerEmail = item.managerEmail;
 
+    const isSelfAssigned = Boolean(
+      (assigneeEmail && managerEmail && assigneeEmail.toLowerCase().trim() === managerEmail.toLowerCase().trim()) ||
+      (assigneeDisplayName && givenByName && givenByName !== 'Project Manager' && assigneeDisplayName.toLowerCase().trim() === givenByName.toLowerCase().trim())
+    );
+
     const assigneeTooltip = assigneeEmail
       ? `Assigned to: ${assigneeDisplayName} (${assigneeEmail})`
       : `Assigned to: ${assigneeDisplayName}`;
@@ -117,7 +122,9 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
         : `Assigned by: ${givenByName}`
       : '';
 
-    const fullTooltip = [givenByTooltip, assigneeTooltip].filter(Boolean).join('\n');
+    const fullTooltip = isSelfAssigned
+      ? `Self-assigned by ${assigneeDisplayName}${assigneeEmail ? ` (${assigneeEmail})` : ''}`
+      : [givenByTooltip, assigneeTooltip].filter(Boolean).join('\n');
 
     return (
       <div className="group p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
@@ -265,7 +272,14 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
           )}
 
           <div className="flex items-center shrink-0 select-none">
-            {givenByName && item.assignee?.name ? (
+            {isSelfAssigned && item.assignee?.name ? (
+              <div
+                className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015] cursor-pointer hover:scale-105 transition-all"
+                title={fullTooltip}
+              >
+                {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+              </div>
+            ) : givenByName && item.assignee?.name ? (
               <div
                 className="flex items-center -space-x-3.5 group/merged"
                 title={fullTooltip}
