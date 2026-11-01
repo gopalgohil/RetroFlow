@@ -29,10 +29,6 @@ export interface RetroHeaderProps {
   onReopenSession?: () => void;
 }
 
-/**
- * Reusable Session Header Component
- * Provides clean role-based navigation, live status indicators, and facilitator controls.
- */
 export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader({
   title,
   description,
@@ -68,9 +64,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#08090a]/95 backdrop-blur-xl border-b border-slate-200/90 dark:border-white/[0.08] px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
-      {/* Left: Role-based Navigation + Session Identity */}
       <div className="flex items-center gap-2.5 sm:gap-3.5">
-        {/* Smart Back button: ONLY visible for registered workspace team members */}
         {!isGuest && (
           <button
             type="button"
@@ -85,7 +79,6 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           </button>
         )}
 
-        {/* Brand Logo: Clickable Link for registered members; Static non-clickable badge for external guests */}
         {!isGuest ? (
           <Link
             href="/dashboard?tab=sessions"
@@ -137,9 +130,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
         </div>
       </div>
 
-      {/* Right: Status Tracker, Facilitator Pacing & Invite */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Facilitator Card Reveal Toggle */}
         {isFacilitator && revealMode && (
           <button
             onClick={onToggleReveal}
@@ -154,7 +145,6 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           </button>
         )}
 
-        {/* Current Participant/Facilitator Role Badge */}
         <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#12151c] text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-white/[0.08]">
           <span className="w-2 h-2 rounded-full bg-[#5cb028] dark:bg-[#88c958] shrink-0" />
           <span
@@ -182,10 +172,8 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           </span>
         </div>
 
-        {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Invite Teammates Action (Restricted: Admin & Manager / Facilitator only) */}
         {isFacilitator && (
           <button
             onClick={onOpenInvite}
@@ -196,7 +184,6 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           </button>
         )}
 
-        {/* Facilitator End Session & Export Action */}
         {isFacilitator && onEndSession && !isClosed && (
           <button
             onClick={onEndSession}
@@ -208,7 +195,6 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
           </button>
         )}
 
-        {/* When Session is Completed */}
         {isClosed && (
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-300 text-xs font-bold">

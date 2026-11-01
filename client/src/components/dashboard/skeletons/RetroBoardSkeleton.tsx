@@ -3,18 +3,10 @@
 import React from 'react';
 import Image from 'next/image';
 
-/**
- * RetroBoardSkeleton:
- * Matches the Live Retrospective Session Board:
- * - Header with back arrow, sprint title, status pill, votes counter, and action buttons
- * - Horizontal columns canvas with column headers, sticky cards, and add card buttons
- */
 export const RetroBoardSkeleton: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex flex-col font-sans">
-      {/* Top Header Skeleton: Real stable Logo badge, pulse ONLY the variable text lines */}
       <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#08090a]/95 backdrop-blur-xl border-b border-slate-200/90 dark:border-white/[0.08] px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 shadow-xs transition-colors duration-200">
-        {/* Left: Real Logo badge (Rock-solid, NEVER pulses or disappears on reload) + Title Skeleton */}
         <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
           <div
             title="RetroFlow Retrospective Sessions"
@@ -40,7 +32,6 @@ export const RetroBoardSkeleton: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Badges & Buttons */}
         <div className="flex items-center gap-3 animate-pulse">
           <div className="hidden sm:block h-8 w-36 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/20 border border-[#cdeac0] dark:border-[#88c958]/30" />
           <div className="hidden md:block h-8 w-32 rounded-xl bg-slate-100 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08]" />
@@ -48,7 +39,6 @@ export const RetroBoardSkeleton: React.FC = () => {
         </div>
       </header>
 
-      {/* Columns Board Canvas Skeleton */}
       <main className="flex-1 p-3 sm:p-4 md:p-5 overflow-x-auto w-full">
         <div className="flex gap-3 sm:gap-4 items-start w-full min-w-max md:min-w-0 pb-6">
           {[
@@ -62,7 +52,6 @@ export const RetroBoardSkeleton: React.FC = () => {
               key={idx}
               className="flex-1 min-w-[220px] rounded-2xl bg-white/95 dark:bg-[#0e1015] backdrop-blur-sm border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col overflow-hidden transition-all"
             >
-              {/* Column Top Header */}
               <div
                 style={{ backgroundColor: `${col.color}15`, borderBottomColor: `${col.color}30` }}
                 className="px-3 py-2.5 border-b space-y-1"
@@ -80,7 +69,6 @@ export const RetroBoardSkeleton: React.FC = () => {
                 <div className="h-2 w-32 rounded bg-slate-200/70 dark:bg-[#141720] ml-8" />
               </div>
 
-              {/* Cards List Skeleton */}
               <div className="p-2.5 space-y-2 min-h-[220px]">
                 {Array.from({ length: col.cardCount }).map((_, cIdx) => (
                   <div
@@ -100,7 +88,6 @@ export const RetroBoardSkeleton: React.FC = () => {
                 ))}
               </div>
 
-              {/* Add Note Button Skeleton */}
               <div className="p-3.5 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50/50 dark:bg-[#12151c]/60">
                 <div className="h-9 w-full rounded-xl bg-slate-200/80 dark:bg-[#141720]" />
               </div>

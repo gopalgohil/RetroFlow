@@ -13,9 +13,6 @@ export interface TabSkeletonProps {
   isAdmin?: boolean;
 }
 
-/**
- * Dynamically renders the component-matched skeleton loader based on the active tab
- */
 export const TabSkeleton: React.FC<TabSkeletonProps> = ({ tab, isAdmin = false }) => {
   switch (tab) {
     case 'analytics':

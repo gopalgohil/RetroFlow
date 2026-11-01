@@ -73,9 +73,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     resetExportState,
   } = useRetroProjectIntegration();
 
-  // Filter cards strictly belonging to Action Items topic(s) or explicitly designated action items
   const actionCards = useMemo(() => {
-    // 1. Identify all topicIds that belong to Action Items columns
     const actionTopicIds = new Set<string>();
     (topics || []).forEach((t) => {
       const titleLower = (t.title || '').toLowerCase();
@@ -88,7 +86,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       }
     });
 
-    // 2. Strict filtering: Only include cards from Action Items topic(s) or explicitly prefixed
     return cards.filter((c) => {
       if (c.topicId && actionTopicIds.has(c.topicId)) {
         return true;
@@ -111,17 +108,13 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [selectedSprintId, setSelectedSprintId] = useState<string>('');
 
-  // Selected item IDs (multi-select checkboxes)
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
 
-  // Per-item configuration (assignee, priority)
   const [itemConfigs, setItemConfigs] = useState<Record<string, ItemConfig>>({});
 
-  // Auto-select linked project & linked individual sprint
   useEffect(() => {
     if (projects.length === 0) return;
 
-    // 1. Resolve target project
     let targetProj = projects[0];
     if (projectId || projectKey) {
       const matched = projects.find(
@@ -133,15 +126,12 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     }
     setSelectedProjectId(targetProj.id);
 
-    // 2. Resolve individual target sprint
     let targetSprint = null;
 
-    // A. Explicit sprintId
     if (sprintId) {
       targetSprint = targetProj.sprints?.find((s) => s.id === sprintId);
     }
 
-    // B. Matching sprintName (e.g. "Sprint 2")
     if (!targetSprint && sprintName) {
       const match = sprintName.match(/\d+/);
       const sprintNum = match ? parseInt(match[0], 10) : null;
@@ -152,7 +142,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       );
     }
 
-    // C. Parse from retroTitle (e.g. "Sprint 2 Retrospective")
     if (!targetSprint && retroTitle) {
       const match = retroTitle.match(/sprint\s*(\d+)/i);
       if (match) {
@@ -165,7 +154,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       }
     }
 
-    // D. Fallback to suggested or first sprint
     if (!targetSprint) {
       targetSprint = getSuggestedSprint(targetProj.id) || targetProj.sprints?.[0] || null;
     }
@@ -194,7 +182,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     return list;
   }, [selectedProject]);
 
-  // Initialize selected card IDs and default item configs when modal opens or cards change
   const unassignedActionCards = useMemo(() => {
     return actionCards.filter(
       (c) => !(c.assignedTo?.name || c.assignedSprintName || c.isExportedToActionItems)
@@ -203,7 +190,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
 
   useEffect(() => {
     if (actionCards.length > 0) {
-      // By default, select ONLY unassigned action items; do NOT auto-select already assigned items
       const ids = unassignedActionCards.map((c) => c.id);
       setSelectedCardIds(ids);
 
@@ -286,7 +272,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     };
   }, [isSprintDropdownOpen]);
 
-  // Toggle single card selection (disallow toggling already assigned cards)
   const handleToggleCard = (cardId: string) => {
     const card = actionCards.find((c) => c.id === cardId);
     if (card?.assignedTo?.name || card?.assignedSprintName || card?.isExportedToActionItems) {
@@ -297,7 +282,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     );
   };
 
-  // Toggle select all / deselect all (only targets unassigned action cards)
   const handleToggleSelectAll = () => {
     const unassignedIds = unassignedActionCards.map((c) => c.id);
     if (selectedCardIds.length === unassignedIds.length) {
@@ -307,7 +291,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     }
   };
 
-  // Update config for a specific card
   const handleUpdateItemConfig = (
     cardId: string,
     updates: Partial<ItemConfig>
@@ -350,13 +333,11 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       return;
     }
 
-    // Tier 1 Guard: Cannot complete empty board
     if (mode === 'end_and_export' && isEmptyBoard) {
       alert('Cannot complete an empty retrospective session. No feedback cards have been submitted yet.');
       return;
     }
 
-    // Tier 2 Guard: In end_and_export mode with 0 items selected (or no action cards exist)
     if (mode === 'end_and_export' && selectedCardIds.length === 0) {
       if (!showNoActionConfirm) {
         setShowNoActionConfirm(true);
@@ -370,7 +351,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     const sprintIdToUse =
       selectedSprintId || suggestedSprint?.id || selectedProject.sprints[0]?.id;
 
-    // Filter only the selected action cards and attach user-chosen configurations
     const itemsToExport = actionCards
       .filter((c) => selectedCardIds.includes(c.id))
       .map((c) => {
@@ -400,7 +380,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
         };
       });
 
-    // Validate bounds for due dates against sprint start and end dates
     if (sprintMinDate && sprintMaxDate) {
       const sStartMs = new Date(sprintMinDate).getTime();
       const sEndMs = new Date(sprintMaxDate).getTime();
@@ -429,7 +408,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       actionCards: itemsToExport,
     });
 
-    // Mark exported cards in-place so UI shows the locked badge instantly
     const targetSprintObj = selectedProject.sprints?.find((s) => s.id === sprintIdToUse);
     itemsToExport.forEach((it) => {
       const originalCard = cards.find((c) => c.id === it.id);
@@ -590,7 +568,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       footer={renderFooter()}
     >
       {isEmptyBoard && mode === 'end_and_export' ? (
-        /* Clean & Minimal Empty Board Alert */
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5">
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-center shrink-0">
@@ -615,7 +592,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
           </button>
         </div>
       ) : showNoActionConfirm && mode === 'end_and_export' ? (
-        /* Clean & Minimal No Action Items Confirmation */
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5">
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-center shrink-0">
@@ -640,7 +616,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
           </button>
         </div>
       ) : isAnySuccess ? (
-        /* Clean & Minimal Success State */
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
@@ -672,7 +647,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
           </button>
         </div>
       ) : (
-        /* Normal Export & Configuration State */
         <div className="space-y-5">
           {!canExport && (
             <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 text-xs flex items-start gap-2.5">
@@ -685,9 +659,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
               </div>
             </div>
           )}
-            {/* Target Project & Sprint Selectors */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/90 dark:border-white/[0.08]">
-              {/* Destination Project Selector */}
               <div className="space-y-1">
                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                   Target Project
@@ -717,13 +689,11 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                 </div>
               </div>
 
-              {/* Destination Sprint Selector */}
               <div className="space-y-1 relative" ref={sprintDropdownRef}>
                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                   Target Sprint
                 </label>
 
-                {/* Custom Sprint Dropdown Trigger */}
                 <button
                   type="button"
                   onClick={() => setIsSprintDropdownOpen((prev) => !prev)}
@@ -761,7 +731,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                   />
                 </button>
 
-                {/* Custom Sprint Dropdown Popover */}
                 {isSprintDropdownOpen && (
                   <div className="absolute z-50 top-full left-0 right-0 sm:right-0 sm:left-auto sm:min-w-[340px] w-full mt-1.5 bg-white dark:bg-[#161a23] border border-slate-200 dark:border-white/[0.1] rounded-xl shadow-2xl p-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                     <div className="max-h-[220px] overflow-y-auto space-y-1 pr-0.5 overscroll-contain">
@@ -834,7 +803,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                   </span>
                                 </div>
 
-                                {/* Full Sprint Details ("sabhi bat dikhao") */}
                                 <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                   {sp.startDate && sp.endDate ? (
                                     <span>
@@ -867,7 +835,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
               </div>
             </div>
 
-            {/* Action Items Interactive Checklist */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
@@ -890,7 +857,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                 )}
               </div>
 
-              {/* Scrollable list of items */}
               <div className="max-h-64 overflow-y-auto space-y-2 p-1.5 border border-slate-200 dark:border-white/[0.08] rounded-2xl bg-white dark:bg-[#0e1015]">
                 {actionCards.length === 0 ? (
                   <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500 space-y-1">
@@ -925,7 +891,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                             : 'bg-slate-50/50 dark:bg-[#12151c]/40 border-slate-200/70 dark:border-white/[0.05]'
                         }`}
                       >
-                        {/* Top: Checkbox + Card Text + Already Assigned Tag */}
                         <div className="flex items-start gap-3">
                           <input
                             type="checkbox"
@@ -964,10 +929,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                           </div>
                         </div>
 
-                        {/* Bottom: Assignee & Priority Selector (Available only when selected and NOT already assigned) */}
                         {isSelected && !isAlreadyAssigned && (
                           <div className="flex flex-wrap items-center gap-2 pl-7 pt-1 border-t border-[#cdeac0]/80 dark:border-white/[0.08]">
-                            {/* Assignee Selector */}
                             <div className="flex items-center gap-1.5">
                               <User className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                               <select
@@ -988,7 +951,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                               </select>
                             </div>
 
-                            {/* Priority Selector */}
                             <div className="flex items-center gap-1.5">
                               <select
                                 value={cfg.priority}
@@ -1007,7 +969,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                               </select>
                             </div>
 
-                            {/* Due Date Picker with bounds validation and clear 'Due:' label */}
                             <div
                               className="flex items-center gap-1.5"
                               title={

@@ -23,11 +23,9 @@ export const AuthShowcase: React.FC<AuthShowcaseProps> = ({
 }) => {
   return (
     <div className="relative flex flex-col justify-between h-full w-full bg-[#f4f9f0] dark:bg-[#08090a] p-8 sm:p-12 lg:p-14 select-none overflow-hidden">
-      {/* Background ambient lighting */}
       <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#88c958]/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-emerald-200/40 dark:bg-[#88c958]/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Top Brand Section */}
       <div className="relative z-10 space-y-1">
         <Link href="/" className="inline-flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-xl bg-[#88c958] flex items-center justify-center text-[#08090a] shadow-md shadow-[#88c958]/25 group-hover:scale-105 transition-transform font-bold">
@@ -56,7 +54,6 @@ export const AuthShowcase: React.FC<AuthShowcaseProps> = ({
         </p>
       </div>
 
-      {/* Middle Illustration Showcase Card */}
       <div className="relative z-10 my-auto py-4">
         <div className="w-full max-w-lg mx-auto rounded-2xl bg-white/95 dark:bg-[#0e1015] backdrop-blur-sm border border-slate-200/75 dark:border-white/[0.08] shadow-lg shadow-slate-900/5 p-6 sm:p-8 flex flex-col items-center text-center">
           <div className="w-full max-w-[400px] flex items-center justify-center">

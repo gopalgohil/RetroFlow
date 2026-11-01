@@ -9,17 +9,12 @@ class CronService {
     this.isRunning = false;
   }
 
-  /**
-   * Helper to calculate start, end and display name for a given month
-   */
   calculateMonthBounds(targetDate = new Date()) {
     const year = targetDate.getFullYear();
-    const month = targetDate.getMonth(); // 0-indexed (0 = Jan, 9 = Oct, 10 = Nov)
+    const month = targetDate.getMonth(); 
 
-    // First millisecond of the month
     const monthStart = new Date(year, month, 1, 0, 0, 0, 0);
 
-    // Last millisecond of the month (Day 0 of next month is the last day of this month)
     const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
 
     const monthName = monthStart.toLocaleString('en-US', {
@@ -39,12 +34,8 @@ class CronService {
     };
   }
 
-  /**
-   * Step 1: Mark expired active automated retrospectives as completed
-   */
   async closeExpiredMonthlyRetros(now = new Date()) {
     try {
-      // Find all active automated retros whose endDate has passed
       const expiredBoards = await RetroBoard.find({
         status: 'active',
         isMonthlyAuto: true,
@@ -58,13 +49,11 @@ class CronService {
       const expiredIds = expiredBoards.map((b) => b._id);
       const expiredIdStrings = expiredBoards.map((b) => b._id.toString());
 
-      // Update RetroBoard documents
       const updateResult = await RetroBoard.updateMany(
         { _id: { $in: expiredIds } },
         { $set: { status: 'completed' } }
       );
 
-      // Keep Project.retrospectives subdocument link in sync
       await Project.updateMany(
         { 'retrospectives.id': { $in: expiredIdStrings } },
         { $set: { 'retrospectives.$[elem].status': 'completed' } },
@@ -82,15 +71,11 @@ class CronService {
     }
   }
 
-  /**
-   * Step 2: Auto-create new monthly retrospective board for eligible projects
-   */
   async createMonthlyRetrosForEligibleProjects(targetDate = new Date(), io = null) {
     const { monthStart, monthEnd, monthName } = this.calculateMonthBounds(targetDate);
     const createdRetros = [];
 
     try {
-      // Find all active projects where automated monthly retros are enabled (default is true)
       const eligibleProjects = await Project.find({
         isArchived: { $ne: true },
         autoMonthlyRetro: { $ne: false },
@@ -102,7 +87,6 @@ class CronService {
 
       for (const project of eligibleProjects) {
         try {
-          // Idempotency Check: Don't duplicate if a monthly retro already exists for this month
           const existingMonthlyRetro = await RetroBoard.findOne({
             projectId: project._id,
             isMonthlyAuto: true,
@@ -118,7 +102,6 @@ class CronService {
 
           const retroTitle = `${project.name} - ${monthName} Retrospective`;
 
-          // Also check by title to avoid any edge duplicate
           const existingByTitle = await RetroBoard.findOne({
             projectId: project._id,
             title: retroTitle,
@@ -131,12 +114,10 @@ class CronService {
             continue;
           }
 
-          // Whitelist all current project members
           const approvedMembers = (project.members || [])
             .map((m) => m.email?.toLowerCase().trim())
             .filter(Boolean);
 
-          // Find active or upcoming sprint linkage
           const activeSprint =
             project.sprints?.find((s) => s.status === 'active') ||
             project.sprints?.[0] ||
@@ -169,7 +150,6 @@ class CronService {
             },
           ];
 
-          // Create the official RetroBoard in MongoDB
           const newRetro = await RetroBoard.create({
             title: retroTitle,
             description: `Automated monthly retrospective session for ${monthName}.`,
@@ -190,7 +170,6 @@ class CronService {
             createdBy: project.createdBy || null,
           });
 
-          // Link retro inside project.retrospectives
           project.retrospectives.unshift({
             id: newRetro._id.toString(),
             shareToken: newRetro.shareToken,
@@ -217,7 +196,6 @@ class CronService {
             `[MonthlyRetroCron] ✅ Successfully created automated retro "${newRetro.title}" for ${project.key}.`
           );
 
-          // Optional Socket.io broadcast for instant UI refresh
           if (io) {
             io.emit('project:retro_created', {
               projectId: project._id.toString(),
@@ -246,11 +224,6 @@ class CronService {
     }
   }
 
-  /**
-   * Complete orchestration cycle:
-   * 1. Close expired past month retros
-   * 2. Provision new month retros for active projects
-   */
   async runMonthlyRetroJob(io = null, targetDate = new Date()) {
     if (this.isRunning) {
       console.log('[MonthlyRetroCron] Job is already in progress. Skipping concurrent run.');
@@ -274,17 +247,11 @@ class CronService {
     }
   }
 
-  /**
-   * Initialize and arm the cron scheduler
-   * Pattern: '1 0 1 * *' (At 00:01 on day 1 of every month)
-   */
   initMonthlyRetroCron(io = null) {
-    // Run an initial sweep to complete any expired retros on server boot
     this.closeExpiredMonthlyRetros().catch((e) =>
       console.warn('[MonthlyRetroCron] Boot-time sweep warning:', e.message)
     );
 
-    // Schedule monthly job at 12:01 AM on the 1st of every month
     const cronSchedule = '1 0 1 * *';
 
     this.cronTask = cron.schedule(
@@ -301,9 +268,6 @@ class CronService {
     console.log(`[CronService] 🛡️ Monthly Auto-Retro Cron armed. Rule: "${cronSchedule}" (1st of every month at 00:01).`);
   }
 
-  /**
-   * Stop the scheduled cron task if needed
-   */
   stopCron() {
     if (this.cronTask) {
       this.cronTask.stop();

@@ -25,15 +25,12 @@ interface ProjectSwitcherProps {
 
 const getProjectManager = (proj: Project | null | undefined) => {
   if (!proj) return null;
-  // 1. Explicit Manager member
   const managerMember = proj.members?.find((m) => (m.role || '').toLowerCase() === 'manager');
   if (managerMember?.name) return { name: managerMember.name, role: 'Manager' };
 
-  // 2. Project Lead member
   const leadMember = proj.members?.find((m) => (m.role || '').toLowerCase().includes('lead'));
   if (leadMember?.name) return { name: leadMember.name, role: 'Lead' };
 
-  // 3. Fall back to proj.lead
   if (proj.lead?.name) return { name: proj.lead.name, role: 'Lead' };
 
   return null;
@@ -50,16 +47,13 @@ const isUserMemberOfProject = (
   if (userRole === 'admin') return true;
   if (!userEmail && !userId) return false;
 
-  // 1. Check if user is the assigned Project Lead
   if (userEmail && proj.lead?.email?.toLowerCase().trim() === userEmail) return true;
 
-  // 2. Check if user is the Project Creator
   const creatorId = typeof proj.createdBy === 'object' ? (proj.createdBy as any)?._id || (proj.createdBy as any)?.id : proj.createdBy;
   const creatorEmail = typeof proj.createdBy === 'object' ? (proj.createdBy as any)?.email?.toLowerCase().trim() : null;
   if (userId && creatorId && String(creatorId) === String(userId)) return true;
   if (userEmail && creatorEmail && creatorEmail === userEmail) return true;
 
-  // 3. Check if user is an assigned team member
   return (proj.members || []).some((m) => (m.email || '').toLowerCase().trim() === userEmail);
 };
 
@@ -74,7 +68,6 @@ const getInitialActiveProject = (): Project | null => {
     const userRaw = localStorage.getItem('retroflow_user');
     const user = userRaw ? JSON.parse(userRaw) : null;
 
-    // 1. Direct active project cache
     const saved = localStorage.getItem(STORAGE_CACHED_ACTIVE_PROJ);
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -83,7 +76,6 @@ const getInitialActiveProject = (): Project | null => {
       }
     }
 
-    // 2. Check active project ID and match session/local cache
     const storedId = localStorage.getItem(STORAGE_ACTIVE_PROJ_ID);
     if (storedId) {
       const byId =
@@ -97,7 +89,6 @@ const getInitialActiveProject = (): Project | null => {
       }
     }
 
-    // 3. Fallback to first project in cached project list
     const savedList = localStorage.getItem(STORAGE_CACHED_PROJS_LIST);
     if (savedList) {
       const parsedList = JSON.parse(savedList);
@@ -185,7 +176,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync storage & cross-tab events
   useEffect(() => {
     const syncStorage = () => {
       try {
@@ -220,14 +210,12 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     };
   }, []);
 
-  // Active project resolution
   const resolvedProjectId =
     currentProjectId ||
     (params?.projectId as string) ||
     activeStoredProjectId ||
     '';
 
-  // Admin + Managers permission check
   const effectiveUser = user || currentUser;
   const userEmail = effectiveUser?.email?.toLowerCase().trim();
   const userRole = (effectiveUser?.role || '').toLowerCase();
@@ -240,7 +228,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     userRole.includes('manager');
   const canCreateProject = isManager;
 
-  // Strict membership filter: developers only see projects they are assigned to
   const accessibleProjects = React.useMemo(() => {
     if (isAdmin) return projects;
     return projects.filter((p) => isUserMemberOfProject(p, effectiveUser));
@@ -295,7 +282,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
   const activeManager = getProjectManager(activeProject);
 
-  // Background sync with live REST API
   useEffect(() => {
     let isMounted = true;
     ProjectApiService.getProjects(false)
@@ -305,7 +291,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
         setProjects(validList);
 
         if (validList.length === 0) {
-          // User has NO assigned projects!
           setCachedActiveProject(null);
           setActiveStoredProjectId(null);
           try {
@@ -342,7 +327,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     };
   }, [resolvedProjectId]);
 
-  // Cache whenever activeProject updates
   useEffect(() => {
     if (activeProject && typeof window !== 'undefined' && isUserMemberOfProject(activeProject, effectiveUser)) {
       try {
@@ -355,7 +339,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     }
   }, [activeProject, effectiveUser]);
 
-  // Click outside listener
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -446,7 +429,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   return (
     <>
       <div className={`relative ${className}`} ref={containerRef}>
-        {/* Switcher Trigger Button */}
         <button
           type="button"
           suppressHydrationWarning
@@ -458,7 +440,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
           }`}
           title={activeProject ? `Active Project: ${activeProject.name}` : 'Select agile project'}
         >
-          {/* Project Avatar or Neutral Agile Icon */}
           <div suppressHydrationWarning className="shrink-0">
             {activeProject ? (
               <UserAvatar
@@ -499,10 +480,8 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
           />
         </button>
 
-        {/* Dropdown Popover */}
         {isOpen && (
           <div className="absolute left-0 mt-2 w-80 sm:w-88 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-2xl dark:shadow-black/70 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            {/* Header with Search */}
             <div className="p-3 border-b border-slate-100 dark:border-white/[0.08] bg-slate-50/70 dark:bg-[#12151c]/70 space-y-2">
               <div className="flex items-center justify-between px-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -533,7 +512,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
               </div>
             </div>
 
-            {/* List of Projects */}
             <div className="p-1.5 max-h-64 overflow-y-auto space-y-1">
               {filteredProjects.length === 0 ? (
                 <div className="py-7 px-4 text-center space-y-2">
@@ -599,7 +577,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
               )}
             </div>
 
-            {/* Bottom Footer Action: + New Project CTA (Admin & Managers only) */}
             {canCreateProject && (
               <div className="p-2 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50/50 dark:bg-[#12151c]/50 flex items-center justify-between">
                 <button
@@ -619,7 +596,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
         )}
       </div>
 
-      {/* Embedded Create Project Modal */}
       <CreateProjectModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}

@@ -12,10 +12,6 @@ export interface OverviewContributorsProps {
   onViewTeam: () => void;
 }
 
-/**
- * OverviewContributors:
- * Quick overview widget for project contributors and roles.
- */
 export const OverviewContributors: React.FC<OverviewContributorsProps> = ({
   members = [],
   projectKey,

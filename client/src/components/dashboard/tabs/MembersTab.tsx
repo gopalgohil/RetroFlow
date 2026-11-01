@@ -87,7 +87,6 @@ const MemberRoleDropdown: React.FC<MemberRoleDropdownProps> = ({
     };
   }, [isOpen]);
 
-  // Open upward if near bottom of table
   const openUpward = totalRows > 3 && rowIndex >= totalRows - 2;
 
   return (
@@ -153,14 +152,6 @@ const MemberRoleDropdown: React.FC<MemberRoleDropdownProps> = ({
   );
 };
 
-/**
- * Enterprise-Grade MembersTab Component
- * Features:
- * - Server-side / Backend pagination with limit, page numbers, and item ranges
- * - Live server-side member search by name or email
- * - Per-page selector (5, 10, 20 items per page)
- * - Quick developer whitelisting and contributor status tags
- */
 export const MembersTab: React.FC<MembersTabProps> = ({
   members,
   pendingRequests = [],
@@ -203,14 +194,10 @@ export const MembersTab: React.FC<MembersTabProps> = ({
     }
   };
 
-  // Sync local search when external prop changes
   useEffect(() => {
     setLocalSearch(searchQuery);
   }, [searchQuery]);
 
-  // Debounce search query changes:
-  // Requires at least 3 letters before triggering search.
-  // When removing characters (< 3), only fires a single reset if a search was previously active.
   useEffect(() => {
     if (!onSearchChange) return;
     const trimmed = debouncedSearch.trim();
@@ -220,14 +207,12 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         onSearchChange(trimmed);
       }
     } else {
-      // 0, 1, or 2 characters: only trigger a reset if search was previously active
       if (searchQuery !== '') {
         onSearchChange('');
       }
     }
   }, [debouncedSearch, searchQuery, onSearchChange]);
 
-  // Instant search on Enter key press
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -251,12 +236,10 @@ export const MembersTab: React.FC<MembersTabProps> = ({
     }
   };
 
-  // Show table-only skeleton when actively loading or when user has typed 3+ letters and debouncing is in flight
   const trimmedLocal = localSearch.trim();
   const isSearchDebouncing = trimmedLocal.length >= 3 && trimmedLocal !== searchQuery;
   const showTableSkeleton = isLoading || isSearchDebouncing;
 
-  // Pagination calculations
   const totalItems = pagination?.totalItems ?? members.length;
   const totalPages = pagination?.totalPages ?? Math.max(1, Math.ceil(totalItems / currentLimit));
   const activePage = pagination?.page ?? currentPage;
@@ -266,17 +249,14 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   const startRange = totalItems === 0 ? 0 : (activePage - 1) * currentLimit + 1;
   const endRange = Math.min(activePage * currentLimit, totalItems);
 
-  // Generate page numbers for navigation (e.g. 1, 2, 3...)
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  // Unified Full-Tab Skeleton Loader: If actively loading and not searching/debouncing
   if (isLoading && !searchQuery && !localSearch.trim() && currentPage === 1) {
     return <MembersSkeleton isAdmin={isAdmin} />;
   }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/[0.08] pb-4">
         <div>
           <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
@@ -291,22 +271,18 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         </div>
       </div>
 
-      {/* Members Roster List Card */}
       <div className="rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] shadow-xs overflow-hidden">
-        {/* Card Header with Counter and Search */}
         <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <UserCheck className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Team Directory & Collaborators</h3>
           </div>
 
-          {/* Right Section: Simple Counter Text & Live Search Bar */}
           <div className="flex items-center justify-between sm:justify-end gap-3.5 w-full sm:w-auto">
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
               {totalItems} Total Contributor{totalItems !== 1 ? 's' : ''}
             </span>
 
-            {/* Live Search Bar */}
             <div className="relative w-full sm:w-64">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
               {showTableSkeleton ? (
@@ -337,7 +313,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
           </div>
         </div>
 
-        {/* Members Table */}
         <div className="overflow-x-auto min-h-[300px] pb-12 sm:pb-6">
           <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
             <thead className="bg-slate-50/80 dark:bg-[#12151c]/70 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-white/[0.08]">
@@ -404,7 +379,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                       key={m.id || m.email}
                       className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
                     >
-                      {/* 1. Member Name (with avatar & online status) */}
                       <td className="px-6 py-4">
                         <div
                           onClick={() => setSelectedMember(m)}
@@ -445,7 +419,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                         </div>
                       </td>
 
-                      {/* 2. Assigned Projects (Project Count & Themed Hover Popover) */}
                       <td className="px-6 py-4">
                         {typeof m.projectsCount === 'number' && m.projectsCount > 0 ? (
                           <div className="relative group inline-block hover:z-50">
@@ -454,13 +427,11 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               <span>{m.projectsCount} {m.projectsCount === 1 ? 'Project' : 'Projects'}</span>
                             </span>
 
-                            {/* RetroFlow Themed Floating Popover */}
                             <div
                               className={`absolute left-0 ${
                                 index >= 2 ? 'bottom-full mb-2.5' : 'top-full mt-2.5'
                               } z-50 w-64 bg-white/95 dark:bg-[#0e1015]/95 backdrop-blur-xl border border-slate-200/90 dark:border-white/[0.08] rounded-2xl shadow-xl shadow-black/40 p-3.5 pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out`}
                             >
-                              {/* Popover Header */}
                               <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-white/[0.08]">
                                 <div className="flex items-center gap-1.5">
                                   <div className="w-5 h-5 rounded-md bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 flex items-center justify-center text-[#3d8318] dark:text-[#88c958] shrink-0">
@@ -475,7 +446,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                                 </span>
                               </div>
 
-                              {/* Project List */}
                               <div className="pt-2 space-y-1.5 max-h-48 overflow-y-auto pr-0.5">
                                 {m.projectNames && m.projectNames.length > 0 ? (
                                   m.projectNames.map((pName, pIdx) => (
@@ -496,7 +466,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                                 )}
                               </div>
 
-                              {/* Caret Arrow */}
                               {index >= 2 ? (
                                 <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-white dark:bg-[#0e1015] border-r border-b border-slate-200/90 dark:border-white/[0.08] rotate-45" />
                               ) : (
@@ -511,7 +480,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                         )}
                       </td>
 
-                      {/* 3. Project Role (Interactive Dropdown for Admin, permanent ADMIN badge for Owner/Self-Admin) */}
                       <td className="px-6 py-4">
                         {isPrimaryOwner || (isSelf && isAdmin) ? (
                           <div className="inline-flex items-center" title="Admin role is permanent">
@@ -531,7 +499,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                         )}
                       </td>
 
-                      {/* 4. Status */}
                       <td className="px-6 py-4">
                         {m.status === 'pending' ? (
                           <span className="inline-flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-semibold text-[11px] bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-500/30">
@@ -551,12 +518,10 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                         )}
                       </td>
 
-                      {/* 5. Activity */}
                       <td className="px-6 py-4 text-right">
                         <span className="text-slate-400 dark:text-slate-500 text-[11px] font-mono">Synced</span>
                       </td>
 
-                      {/* 6. Actions */}
                       {isAdmin && (
                         <td className="px-6 py-4 text-right">
                           {isPrimaryOwner || isSelf ? (
@@ -625,10 +590,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({
           </table>
         </div>
 
-        {/* Enterprise Backend Pagination Footer */}
         {totalItems > 0 && (
           <div className="p-4 sm:px-6 bg-slate-50/80 dark:bg-[#12151c]/70 border-t border-slate-100 dark:border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            {/* Left: Range & Limit Selector */}
             <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
               <span>
                 Showing <strong className="text-slate-800 dark:text-slate-200">{startRange}</strong> to{' '}
@@ -652,10 +615,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               )}
             </div>
 
-            {/* Right: Page Navigation Controls */}
             {totalPages > 1 && onPageChange && (
               <div className="flex items-center gap-1">
-                {/* Previous Button */}
                 <button
                   type="button"
                   onClick={() => onPageChange(activePage - 1)}
@@ -666,7 +627,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                   <span className="hidden sm:inline">Prev</span>
                 </button>
 
-                {/* Page Number Pills */}
                 {pageNumbers.map((p) => (
                   <button
                     key={p}
@@ -683,7 +643,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                   </button>
                 ))}
 
-                {/* Next Button */}
                 <button
                   type="button"
                   onClick={() => onPageChange(activePage + 1)}
@@ -699,7 +658,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         )}
       </div>
 
-      {/* Remove Member Confirmation Modal */}
       {memberToRemove && (
         <Modal
           isOpen={!!memberToRemove}
@@ -774,7 +732,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         </Modal>
       )}
 
-      {/* Reject Access Request Confirmation Modal */}
       {memberToReject && (
         <Modal
           isOpen={!!memberToReject}
@@ -840,7 +797,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
         </Modal>
       )}
 
-      {/* Detailed Member Profile Modal */}
       <MemberDetailModal
         isOpen={!!selectedMember}
         member={

@@ -46,7 +46,6 @@ export const ProjectGeneralSettings: React.FC<ProjectGeneralSettingsProps> = ({
     setAutoMonthlyRetro(project.autoMonthlyRetro !== false);
   }, [project.name, project.description, project.autoMonthlyRetro]);
 
-  // Compute 1st day of next month (e.g., "November 1, 2026")
   const getNextMonthFirstDay = (): string => {
     const now = new Date();
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
@@ -170,7 +169,6 @@ export const ProjectGeneralSettings: React.FC<ProjectGeneralSettingsProps> = ({
             />
           </div>
 
-          {/* Automated Monthly Retrospective Configuration Card */}
           <div className="rounded-2xl border border-slate-200/90 dark:border-white/[0.08] bg-slate-50/70 dark:bg-[#12151c]/70 p-4 space-y-3 transition-all">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
@@ -196,7 +194,6 @@ export const ProjectGeneralSettings: React.FC<ProjectGeneralSettingsProps> = ({
               />
             </div>
 
-            {/* Information preview */}
             {autoMonthlyRetro ? (
               <div className="p-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/60 text-blue-900 dark:text-blue-300 text-xs flex items-start gap-2.5">
                 <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
@@ -264,7 +261,6 @@ export const ProjectGeneralSettings: React.FC<ProjectGeneralSettingsProps> = ({
         )}
       </form>
 
-      {/* Industry Standard Floating Toast Notification */}
       {showToast && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3.5 bg-white dark:bg-[#12151c] text-slate-900 dark:text-white px-4 py-3.5 rounded-2xl shadow-2xl border border-emerald-500/30 dark:border-emerald-500/40 backdrop-blur-md animate-in slide-in-from-bottom-5 fade-in duration-300">
           <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">

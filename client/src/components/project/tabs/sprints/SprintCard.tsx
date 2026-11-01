@@ -42,11 +42,6 @@ export interface SprintCardProps {
   onDeleteItem?: (sprintId: string, itemId: string) => Promise<void> | void;
 }
 
-/**
- * SprintCard:
- * Self-contained Sprint Header card with progress metrics, action buttons,
- * and integrated expandable Backlog items drawer.
- */
 export const SprintCard: React.FC<SprintCardProps> = ({
   projectId,
   sprint,
@@ -81,7 +76,6 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on click outside
   useEffect(() => {
     if (!isMenuOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
@@ -103,10 +97,8 @@ export const SprintCard: React.FC<SprintCardProps> = ({
           : 'border-slate-200/90 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.15]'
       }`}
     >
-      {/* Sprint Summary Header */}
       <div className="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-start gap-4">
-          {/* Number Badge */}
           <div
             className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-2xs ${
               sprint.status === 'active'
@@ -131,7 +123,6 @@ export const SprintCard: React.FC<SprintCardProps> = ({
               {sprint.goal || 'Sprint deliverables and retrospective action items.'}
             </p>
 
-            {/* Dates and Countdown with Edit Action */}
             <div className="flex items-center gap-3 pt-1 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
               <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#12151c] px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-white/[0.06]">
                 <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -160,9 +151,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
           </div>
         </div>
 
-        {/* Right Side: Progress Bar + Sprint Action Buttons */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:gap-6 self-end lg:self-center w-full lg:w-auto justify-between lg:justify-end">
-          {/* Story Points Progress */}
           <div className="w-full sm:w-48 space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-slate-400 font-medium">Progress</span>
@@ -176,7 +165,6 @@ export const SprintCard: React.FC<SprintCardProps> = ({
             />
           </div>
 
-          {/* Actions: Complete & Expand Drawer Toggle */}
           <div className="flex items-center gap-2">
             {canManageProject && sprint.status !== 'completed' && (
               <button
@@ -209,7 +197,6 @@ export const SprintCard: React.FC<SprintCardProps> = ({
               </div>
             )}
 
-            {/* Three Dots Options Menu */}
             {canManageProject && (
               <div ref={menuRef} className="relative">
                 <button
@@ -271,7 +258,6 @@ export const SprintCard: React.FC<SprintCardProps> = ({
         </div>
       </div>
 
-      {/* Backlog Items Drawer */}
       {isExpanded && (
         <SprintBacklogDrawer
           projectId={projectId}

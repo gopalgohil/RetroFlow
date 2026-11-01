@@ -4,14 +4,8 @@ const ADMIN_ROLES = new Set(['admin', 'workspace admin', 'superadmin', 'super_ad
 const MANAGER_ROLES = new Set(['manager', 'project manager', 'scrum master']);
 const LEAD_ROLES = new Set(['project lead', 'team lead', 'tech lead', 'lead']);
 
-/**
- * Normalizes any role string to lowercase and trimmed format
- */
 export const normalizeRole = (role) => (role || '').toString().toLowerCase().trim();
 
-/**
- * Verifies if user holds Workspace Administrator privileges
- */
 export const isAdminUser = (user) => {
   if (!user) return false;
   const email = (user.email || '').toString().toLowerCase().trim();
@@ -25,9 +19,6 @@ export const isAdminUser = (user) => {
   );
 };
 
-/**
- * Verifies if user holds Manager privileges or higher
- */
 export const isManagerUser = (user) => {
   if (!user) return false;
   if (isAdminUser(user)) return true;
@@ -41,9 +32,6 @@ export const isManagerUser = (user) => {
   );
 };
 
-/**
- * Verifies if user holds Project Lead / Manager privileges or higher
- */
 export const isLeadOrManagerUser = (user) => {
   if (!user) return false;
   if (isManagerUser(user)) return true;

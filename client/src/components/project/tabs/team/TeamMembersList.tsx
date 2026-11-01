@@ -20,10 +20,8 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
   onInviteClick,
   onProjectUpdated,
 }) => {
-  // Role Update state
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
 
-  // Clean Admin-Panel Style Remove Member modal state
   const [memberToRemove, setMemberToRemove] = useState<Project['members'][0] | null>(null);
   const [isRemovingMember, setIsRemovingMember] = useState(false);
   const [memberRemovedNotice, setMemberRemovedNotice] = useState<string | null>(null);
@@ -87,7 +85,6 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
 
   return (
     <div className="bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl shadow-xs overflow-hidden">
-      {/* Table Header & Invite Trigger */}
       <div className="p-6 border-b border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
@@ -132,7 +129,6 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
         </div>
       )}
 
-      {/* Members Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
           <thead className="bg-slate-50/80 dark:bg-[#12151c] text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-white/[0.08]">
@@ -249,7 +245,6 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
         </table>
       </div>
 
-      {/* Clean Admin-Panel Style Remove Member Confirmation Modal */}
       {memberToRemove && (
         <Modal
           isOpen={!!memberToRemove}
@@ -314,7 +309,6 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
         </Modal>
       )}
 
-      {/* Modern Floating Toast Notification */}
       {memberRemovedNotice && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-white dark:bg-[#12151c] text-slate-900 dark:text-white px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/30 dark:border-emerald-500/40 backdrop-blur-md animate-in slide-in-from-bottom-5 fade-in duration-300">
           <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">

@@ -30,14 +30,11 @@ interface DashboardClientProps {
 function DashboardContent({ initialUser }: DashboardClientProps) {
   const router = useRouter();
 
-  // Tab routing & history synchronization hook
   const { activeTab, switchTab, isTransitioning } = useDashboardTabs();
 
-  // Search & Mobile UI state
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Business logic & REST API data hook
   const {
     user,
     toastMessage,
@@ -369,7 +366,6 @@ function DashboardContent({ initialUser }: DashboardClientProps) {
 
   return (
     <div className="min-h-screen dark:bg-[#08090a] bg-[#F8FAFC] text-slate-900 dark:text-white flex selection:bg-[#88c958] selection:text-[#08090a] font-sans transition-colors duration-200">
-      {/* Left Navigation Sidebar */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={switchTab}
@@ -383,9 +379,7 @@ function DashboardContent({ initialUser }: DashboardClientProps) {
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      {/* Main Workspace Area */}
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
-        {/* Top Sticky Header */}
         <DashboardHeader
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -400,7 +394,6 @@ function DashboardContent({ initialUser }: DashboardClientProps) {
           isSessionsTab={activeTab === 'sessions'}
         />
 
-        {/* Dynamic View Body with Component Skeletons */}
         <main className="flex-1 px-3.5 sm:px-5 lg:px-6 xl:px-6 2xl:px-8 py-5 sm:py-6 lg:py-8 w-full space-y-6 sm:space-y-8">
           {isCurrentTabLoading ? (
             <TabSkeleton tab={activeTab} isAdmin={isAdmin} />
@@ -513,7 +506,6 @@ function DashboardContent({ initialUser }: DashboardClientProps) {
         </main>
       </div>
 
-      {/* Shared Customize Retro Modal */}
       <CustomizeRetroModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -521,14 +513,12 @@ function DashboardContent({ initialUser }: DashboardClientProps) {
         initialData={editingSession}
       />
 
-      {/* Role-Specific Welcome Toast */}
       <WelcomeToast
         user={activeUser}
         isOpen={showWelcomeToast}
         onClose={handleCloseWelcomeToast}
       />
 
-      {/* Global Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 p-4 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-2xl flex items-center gap-2 border border-slate-800 animate-in slide-in-from-bottom-5">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -597,7 +587,6 @@ function DashboardFallback({ initialUser }: DashboardClientProps) {
     return <WaitingForApprovalView user={activeUser} />;
   }
 
-  // If approved user, render real skeleton
   if (user?.email) {
     return (
       <div className="min-h-screen dark:bg-[#08090a] bg-[#F8FAFC] text-slate-900 dark:text-white flex selection:bg-[#88c958] selection:text-[#08090a] font-sans transition-colors duration-200">
@@ -624,7 +613,6 @@ function DashboardFallback({ initialUser }: DashboardClientProps) {
     );
   }
 
-  // If user is completely unknown, show neutral layout skeleton (never mock user!)
   return <DashboardLayoutSkeleton />;
 }
 

@@ -12,10 +12,6 @@ export interface OverviewRecentRetrosProps {
   onViewAll: () => void;
 }
 
-/**
- * OverviewRecentRetros:
- * Quick sprint retrospectives summary list with link badges.
- */
 export const OverviewRecentRetros: React.FC<OverviewRecentRetrosProps> = ({
   retrospectives = [],
   onViewAll,

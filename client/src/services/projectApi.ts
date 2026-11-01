@@ -1,8 +1,3 @@
-/**
- * @file projectApi.ts
- * @description Industry-standard Frontend API Service for Project Management
- * Triggers real HTTP REST API requests observable in the browser DevTools Network Tab.
- */
 
 import { api, ENDPOINTS } from '@/lib/api';
 import { Project, Sprint, CreateProjectPayload, ProjectMemberRole, EnrichedActionItem, BacklogItem, ProjectRetroLink } from '@/types/project';
@@ -25,7 +20,7 @@ export interface PaginatedProjectsResponse {
 export class MembersApiService {
   private static inFlightMembersPromise: Promise<any[]> | null = null;
   private static cachedMembers: { data: any[]; timestamp: number } | null = null;
-  private static readonly CACHE_TTL_MS = 20000; // 20s cache
+  private static readonly CACHE_TTL_MS = 20000; 
 
   public static clearMembersCache(): void {
     this.inFlightMembersPromise = null;
@@ -75,11 +70,6 @@ export class ProjectApiService {
     this.cachedProjectById.clear();
   }
 
-  /**
-   * Fetch all agile projects (RBAC filtered) with single-flight request deduplication
-   * Prevents simultaneous components (e.g. ProjectSwitcher) from sending duplicate HTTP requests
-   * GET /api/projects?all=true
-   */
   static async getProjects(forceRefresh = false): Promise<Project[]> {
     const now = Date.now();
     if (!forceRefresh && this.cachedProjects && now - this.cachedProjects.timestamp < this.CACHE_TTL_MS) {
@@ -104,10 +94,6 @@ export class ProjectApiService {
     return this.inFlightProjectsPromise;
   }
 
-  /**
-   * Fetch paginated projects with dynamic filters and industry-standard pagination metadata
-   * GET /api/projects?page=X&limit=Y&filter=Z
-   */
   static async getPaginatedProjects(options?: {
     page?: number;
     limit?: number;
@@ -159,11 +145,6 @@ export class ProjectApiService {
     };
   }
 
-  /**
-   * Fetch single project by ID or key (e.g. 'PGI' or 'proj-pgi')
-   * Includes in-flight request deduplication and 5-second micro-cache
-   * GET /api/projects/:id
-   */
   static async getProjectById(idOrKey: string, forceRefresh = false): Promise<Project> {
     const cleanKey = (idOrKey || '').toLowerCase().trim();
     const now = Date.now();
@@ -191,10 +172,6 @@ export class ProjectApiService {
     return promise;
   }
 
-  /**
-   * Create new project
-   * POST /api/projects
-   */
   static async createProject(payload: CreateProjectPayload): Promise<Project> {
     this.clearProjectsCache();
     const res = await api.post<any>(ENDPOINTS.PROJECTS, payload);
@@ -202,10 +179,6 @@ export class ProjectApiService {
     return res?.data || res;
   }
 
-  /**
-   * Update project configuration
-   * PUT /api/projects/:id
-   */
   static async updateProject(
     idOrKey: string,
     payload: Partial<{
@@ -225,10 +198,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Start an upcoming sprint
-   * POST /api/projects/:id/sprints/:sprintId/start
-   */
   static async startSprint(projectId: string, sprintId: string): Promise<Project> {
     const res = await api.post<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/sprints/${sprintId}/start`
@@ -236,10 +205,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Complete an active sprint
-   * POST /api/projects/:id/sprints/:sprintId/complete
-   */
   static async completeSprint(projectId: string, sprintId: string): Promise<Project> {
     const res = await api.post<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/sprints/${sprintId}/complete`
@@ -247,10 +212,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Update status of an individual backlog item / action item in a sprint
-   * PATCH /api/projects/:id/sprints/:sprintId/items/:itemId/status
-   */
   static async updateSprintItemStatus(
     projectId: string,
     sprintId: string,
@@ -265,9 +226,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Update due date of an individual backlog item in a sprint
-   */
   static async updateSprintItemDueDate(
     projectId: string,
     sprintId: string,
@@ -277,10 +235,6 @@ export class ProjectApiService {
     return this.updateSprintItemStatus(projectId, sprintId, itemId, { dueDate });
   }
 
-  /**
-   * Delete an individual backlog item / action item from a sprint
-   * DELETE /api/projects/:id/sprints/:sprintId/items/:itemId
-   */
   static async deleteSprintItem(
     projectId: string,
     sprintId: string,
@@ -292,10 +246,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Delete an entire sprint (Admin / Manager only)
-   * DELETE /api/projects/:id/sprints/:sprintId
-   */
   static async deleteSprint(projectId: string, sprintId: string): Promise<Project> {
     const res = await api.delete<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/sprints/${sprintId}`
@@ -303,10 +253,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Fetch paginated sprint backlog items & action items
-   * GET /api/projects/:id/sprints/:sprintId/items?page=X&limit=Y
-   */
   static async getSprintItems(
     projectId: string,
     sprintId: string,
@@ -319,10 +265,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Fetch paginated project sprints
-   * GET /api/projects/:id/sprints?page=X&limit=Y&status=Z
-   */
   static async getProjectSprints(
     projectId: string,
     options?: { page?: number; limit?: number; status?: string; search?: string }
@@ -341,10 +283,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Fetch paginated project retrospectives
-   * GET /api/projects/:id/retros?page=X&limit=Y&search=Z
-   */
   static async getProjectRetros(
     projectId: string,
     options?: { page?: number; limit?: number; search?: string }
@@ -375,10 +313,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Update custom dates and goal of an individual sprint
-   * PATCH /api/projects/:id/sprints/:sprintId/dates
-   */
   static async updateSprintDates(
     projectId: string,
     sprintId: string,
@@ -391,10 +325,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Add a team member with role
-   * POST /api/projects/:id/members
-   */
   static async addMember(
     projectId: string,
     member: { name: string; email: string; role: ProjectMemberRole }
@@ -406,10 +336,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Remove a team member from project
-   * DELETE /api/projects/:id/members/:memberId
-   */
   static async removeMember(projectId: string, memberId: string): Promise<Project> {
     const res = await api.delete<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/members/${memberId}`
@@ -417,10 +343,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Update a team member's role in project
-   * PATCH /api/projects/:id/members/:memberId/role
-   */
   static async updateMemberRole(
     projectId: string,
     memberIdOrEmail: string,
@@ -433,10 +355,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Export action items from retro directly into sprint backlog
-   * POST /api/projects/:id/export-action-items
-   */
   static async exportActionItems(
     projectId: string,
     sprintId: string,
@@ -460,10 +378,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Archive or restore project (Soft Delete)
-   * POST /api/projects/:id/archive
-   */
   static async archiveProject(idOrKey: string, isArchived: boolean = true): Promise<Project> {
     const res = await api.post<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${idOrKey}/archive`,
@@ -472,10 +386,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Permanently delete project (Hard Delete - Danger Zone)
-   * DELETE /api/projects/:id
-   */
   static async deleteProject(idOrKey: string): Promise<{
     deletedProjectId: string;
     deletedKey: string;
@@ -495,10 +405,6 @@ export class ProjectApiService {
     return res?.data || res;
   }
 
-  /**
-   * Delete a retrospective session linked to a project
-   * DELETE /api/projects/:id/retros/:retroId
-   */
   static async deleteProjectRetro(projectId: string, retroId: string): Promise<Project> {
     const res = await api.delete<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/retros/${retroId}`
@@ -506,10 +412,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Update retrospective session details linked to a project
-   * PATCH /api/projects/:id/retros/:retroId
-   */
   static async updateProjectRetro(
     projectId: string,
     retroId: string,
@@ -522,10 +424,6 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Send project invitation emails to selected or external members
-   * POST /api/projects/:id/invite
-   */
   static async inviteMembers(
     projectId: string,
     emails: string[],
@@ -556,19 +454,11 @@ export class ProjectApiService {
     return res.data;
   }
 
-  /**
-   * Verify an encrypted project magic invite token and activate genuine developer session
-   * POST /api/projects/:id/verify-magic-invite
-   */
   static async verifyMagicInvite(projectId: string, token: string): Promise<any> {
     const res = await api.post<any>(`${ENDPOINTS.PROJECTS}/${projectId}/verify-magic-invite`, { token });
     return res.data;
   }
 
-  /**
-   * Fetch action items assigned to the current user (or all team items if requested by Admin/Manager)
-   * GET /api/projects/my/action-items
-   */
   static async getMyActionItems(
     options: {
       all?: boolean;
@@ -600,10 +490,6 @@ export class ProjectApiService {
     return res.data || [];
   }
 
-  /**
-   * Update status of an individual action item
-   * PATCH /api/projects/my/action-items/:itemId/status
-   */
   static async updateActionItemStatus(
     itemId: string,
     status: 'todo' | 'in_progress' | 'done',

@@ -10,13 +10,8 @@ export interface ParticipantNameModalProps {
   verifiedEmail?: string | null;
 }
 
-/**
- * Clean Modal dialog prompting guest developers to provide their display name & work email
- * Supports Solution 1: Instant No-Password Access & Auto-Identity Activation
- */
 export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
   function ParticipantNameModal({ isOpen, onJoin, verifiedEmail }) {
-    // Derive initial suggestion from email prefix if available
     const initialSuggestion = verifiedEmail
       ? verifiedEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
       : '';
@@ -76,7 +71,6 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
             </div>
           </div>
 
-          {/* Verified Invitation Pill (if invited via magic token) */}
           {verifiedEmail ? (
             <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 rounded-xl flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
@@ -111,7 +105,6 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
               />
             </div>
 
-            {/* Email Field - enables instant Project Dashboard & Role mapping */}
             {!verifiedEmail && (
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
@@ -132,7 +125,6 @@ export const ParticipantNameModal: React.FC<ParticipantNameModalProps> = memo(
               </div>
             )}
 
-            {/* Email Verification Error Alert */}
             {joinError && (
               <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl text-rose-700 dark:text-rose-300 text-xs font-medium flex items-start gap-2 animate-in fade-in">
                 <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />

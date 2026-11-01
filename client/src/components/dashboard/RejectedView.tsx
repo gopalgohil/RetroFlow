@@ -56,11 +56,9 @@ export function RejectedView({ user, onLogout, onRegisterAgain }: RejectedViewPr
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF1F2] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 flex flex-col justify-between selection:bg-rose-500 selection:text-white relative overflow-hidden font-sans">
-      {/* Ambient Glow */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-200/30 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Top Header */}
       <header className="px-6 py-4 border-b border-slate-200/80 bg-white/70 backdrop-blur-md flex items-center justify-between relative z-10 shadow-2xs">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center">
@@ -91,7 +89,6 @@ export function RejectedView({ user, onLogout, onRegisterAgain }: RejectedViewPr
         </div>
       </header>
 
-      {/* Center Content Card */}
       <main className="flex-1 flex items-center justify-center p-6 relative z-10">
         <div className="max-w-xl w-full rounded-3xl bg-white border border-slate-200/90 p-8 sm:p-10 shadow-xl space-y-6 text-center animate-in zoom-in-95 duration-200">
           <div className="relative mx-auto w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shadow-xs">

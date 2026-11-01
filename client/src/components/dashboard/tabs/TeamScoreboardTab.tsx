@@ -28,7 +28,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTier, setSelectedTier] = useState<string>('all');
 
-  // Rating Modal state
   const [ratingMember, setRatingMember] = useState<MemberScorecardItem | null>(null);
   const [ratings, setRatings] = useState<{
     quality: number;
@@ -62,7 +61,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
     fetchScoreboard();
   }, [fetchScoreboard]);
 
-  // Live dynamic calculation for rating modal
   const liveOverallScore = useMemo(() => {
     const q = ratings.quality * 0.35;
     const t = ratings.timeliness * 0.25;
@@ -110,7 +108,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
     }
   };
 
-  // Filter members
   const filteredMembers = useMemo(() => {
     const list = data?.members || [];
     return list.filter((m) => {
@@ -190,7 +187,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* 1. Header Banner */}
       <div className="p-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
@@ -229,9 +225,7 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
         </div>
       )}
 
-      {/* 2. KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Team Avg Rating */}
         <div className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold">
             <span>Team Average Rating</span>
@@ -246,7 +240,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
           {data?.kpis.teamAverageScore ? renderStars(data.kpis.teamAverageScore) : null}
         </div>
 
-        {/* Top Performer */}
         <div className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold">
             <span>Top Performer 🏆</span>
@@ -262,7 +255,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
           </div>
         </div>
 
-        {/* Members Rated */}
         <div className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold">
             <span>Members Rated</span>
@@ -278,7 +270,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
           </div>
         </div>
 
-        {/* Strongest Category */}
         <div className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold">
             <span>Strongest Category</span>
@@ -293,7 +284,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
         </div>
       </div>
 
-      {/* 3. Search & Filter Bar */}
       <div className="p-4 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -330,7 +320,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
         </div>
       </div>
 
-      {/* 4. Scoreboard Roster Cards */}
       {isLoading ? (
         <div className="p-12 text-center text-xs text-slate-400">Loading team scoreboard...</div>
       ) : filteredMembers.length === 0 ? (
@@ -344,7 +333,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
               key={member.memberId || member.email}
               className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-slate-300 dark:hover:border-white/[0.15] transition-all flex flex-col justify-between gap-4"
             >
-              {/* Member Info & Overall Stars */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3.5 min-w-0 flex-1">
                   <div className="relative shrink-0">
@@ -378,7 +366,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
                   </div>
                 </div>
 
-                {/* Score Pill */}
                 <div className="text-right shrink-0">
                   <div className="flex items-baseline justify-end gap-1">
                     <span className="text-xl font-black text-slate-900 dark:text-white">
@@ -393,7 +380,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
                 </div>
               </div>
 
-              {/* 4 Weighted Breakdown Bars */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
                 <div>
                   <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-0.5">
@@ -460,7 +446,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
                 </div>
               </div>
 
-              {/* Latest Feedback & Rate Button */}
               <div className="flex items-center justify-between gap-3 pt-2">
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 italic truncate max-w-[260px]">
                   {member.latestFeedback ? `"${member.latestFeedback}"` : 'No written feedback yet'}
@@ -480,7 +465,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
         </div>
       )}
 
-      {/* 5. On-Demand Rating Modal */}
       {ratingMember && (
         <Modal
           isOpen={Boolean(ratingMember)}
@@ -511,7 +495,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
           }
         >
           <div className="space-y-5">
-            {/* Live Calculation Preview Banner */}
             <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-bold text-amber-800 dark:text-amber-300 block">
@@ -531,9 +514,7 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
               </div>
             </div>
 
-            {/* 4 Criteria Star Inputs */}
             <div className="space-y-4">
-              {/* Quality */}
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] flex items-center justify-between">
                 <div>
                   <h5 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -566,7 +547,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
                 </div>
               </div>
 
-              {/* Timeliness */}
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] flex items-center justify-between">
                 <div>
                   <h5 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -599,7 +579,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
                 </div>
               </div>
 
-              {/* Communication */}
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] flex items-center justify-between">
                 <div>
                   <h5 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -632,7 +611,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
                 </div>
               </div>
 
-              {/* Collaboration */}
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] flex items-center justify-between">
                 <div>
                   <h5 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -666,7 +644,6 @@ export const TeamScoreboardTab: React.FC<TeamScoreboardTabProps> = ({ isAdmin = 
               </div>
             </div>
 
-            {/* Written Feedback */}
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                 Performance Feedback / Commendation (Optional)

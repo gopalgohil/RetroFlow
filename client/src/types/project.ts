@@ -1,7 +1,3 @@
-/**
- * @file project.ts
- * @description TypeScript interface definitions for RetroFlow Pro Project Management Module
- */
 
 export type ProjectType = 'scrum' | 'kanban';
 export type SprintCadence = '1_week' | '2_weeks' | '3_weeks' | 'custom';
@@ -20,7 +16,7 @@ export interface ProjectMember {
 export interface BacklogItem {
   id: string;
   projectId?: string | null;
-  sprintId?: string | null; // null means in project backlog
+  sprintId?: string | null; 
   title: string;
   description?: string;
   type: 'story' | 'task' | 'bug' | 'action_item';

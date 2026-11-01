@@ -88,7 +88,6 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
   return (
     <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3.5">
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-        {/* Search Box */}
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -108,9 +107,7 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
           )}
         </div>
 
-        {/* Filter Dropdowns */}
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Project Filter */}
           <div className="relative" ref={projectRef}>
             <button
               type="button"
@@ -176,7 +173,6 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
             )}
           </div>
 
-          {/* Priority Filter */}
           <div className="relative" ref={priorityRef}>
             <button
               type="button"
@@ -237,7 +233,6 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
         </div>
       </div>
 
-      {/* Status Filter Tabs Strip */}
       <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/[0.08] overflow-x-auto">
         {[
           { id: 'all', label: 'All Items', count: counts.total },

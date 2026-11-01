@@ -1,21 +1,6 @@
 import env from '../config/env.js';
 
-/**
- * Brevo (Sendinblue) Transactional Email Service
- * Communicates via standard HTTPS REST API (Port 443) - 100% reliable on Render & Cloud platforms.
- */
 class EmailService {
-  /**
-   * Sends transactional email
-   * @param {Object} options
-   * @param {string} options.to - Recipient email
-   * @param {string} options.subject - Email subject
-   * @param {string} options.htmlContent - HTML body content
-   * @returns {Promise<Object>}
-  /**
-   * Helper to strip HTML tags and generate a clean plain-text fallback
-   * Critical for email deliverability: multipart/alternative reduces spam scores significantly
-   */
   _htmlToPlainText(html) {
     if (!html) return '';
     return html
@@ -35,21 +20,11 @@ class EmailService {
       .trim();
   }
 
-  /**
-   * Sends transactional email
-   * @param {Object} options
-   * @param {string} options.to - Recipient email
-   * @param {string} options.subject - Email subject
-   * @param {string} options.htmlContent - HTML body content
-   * @param {string} [options.textContent] - Optional plain text alternative
-   * @returns {Promise<Object>}
-   */
   async sendEmail({ to, subject, htmlContent, textContent }) {
     const apiKey = env.BREVO_API_KEY || process.env.BREVO_API_KEY;
     const senderEmail = env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || 'gopalgohel249@gmail.com';
     const senderName = env.BREVO_SENDER_NAME || process.env.BREVO_SENDER_NAME || 'Digiflux';
 
-    // Development fallback simulation if API key is not yet set
     if (!apiKey || apiKey === 'your_brevo_api_key_here') {
       console.warn('\n======================================================');
       console.warn('⚠️ [Brevo Simulation] BREVO_API_KEY is not configured in server/.env');
@@ -95,10 +70,6 @@ class EmailService {
     }
   }
 
-  /**
-   * Helper to wrap template contents in a robust mobile-first email layout
-   * Designed with Digiflux Light Mode theme: crisp whites, slate tones, and signature leaf-green accents
-   */
   _wrapEmail({ title, preheader, bodyHtml }) {
     const previewText = preheader || 'Your verification code for Digiflux';
     return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -222,10 +193,6 @@ class EmailService {
 </html>`;
   }
 
-  /**
-   * Generates a modern responsive HTML template for OTP verification emails
-   * Features green dotted/dashed border matching website light mode
-   */
   getOtpTemplate(otpCode, recipientName = 'Agile Teammate') {
     const bodyHtml = `
       <h1 class="main-heading" style="font-size: 20px; line-height: 26px; font-weight: 800; color: #0f172a; margin: 0 0 10px 0;">
@@ -260,10 +227,6 @@ class EmailService {
     });
   }
 
-  /**
-   * Generates a modern responsive HTML template for Signup Email Verification
-   * Features green dotted/dashed border matching website light mode
-   */
   getSignupVerificationTemplate(otpCode, recipientName = 'Agile Teammate') {
     const bodyHtml = `
       <h1 class="main-heading" style="font-size: 20px; line-height: 26px; font-weight: 800; color: #0f172a; margin: 0 0 10px 0;">
@@ -298,10 +261,6 @@ class EmailService {
     });
   }
 
-  /**
-   * Generates a modern responsive HTML template for Retrospective Invitations
-   * Features Digiflux leaf-green light mode colors
-   */
   getRetroInvitationTemplate({
     retroTitle,
     inviteUrl,
@@ -420,10 +379,6 @@ class EmailService {
     });
   }
 
-  /**
-   * Project Invitation Email Template
-   * Features Digiflux leaf-green light mode colors
-   */
   getProjectInvitationTemplate({
     projectName,
     projectKey,
@@ -508,9 +463,6 @@ class EmailService {
     });
   }
 
-  /**
-   * Admin Notification: New user registered and awaiting approval
-   */
   getAdminNewUserPendingTemplate({ userName, userEmail, registeredAt, reviewUrl }) {
     const formattedDate = registeredAt || new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
     const bodyHtml = `
@@ -572,9 +524,6 @@ class EmailService {
     });
   }
 
-  /**
-   * User Notification: Account has been approved by administrator
-   */
   getUserAccountApprovedTemplate({ userName, userEmail, role = 'Developer', loginUrl }) {
     const bodyHtml = `
       <div style="text-align: center; margin-bottom: 24px;">
@@ -630,9 +579,6 @@ class EmailService {
     });
   }
 
-  /**
-   * User Notification: Registration request was rejected by administrator
-   */
   getUserAccountRejectedTemplate({ userName, userEmail, contactEmail }) {
     const supportEmail = contactEmail || 'support@digiflux.io';
     const bodyHtml = `
@@ -669,9 +615,6 @@ class EmailService {
     });
   }
 
-  /**
-   * User Notification: Welcome to Digiflux upon successful email verification / registration
-   */
   getUserWelcomeTemplate({ userName, userEmail, dashboardUrl }) {
     const url = dashboardUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
     const bodyHtml = `
@@ -732,9 +675,6 @@ class EmailService {
     });
   }
 
-  /**
-   * Dispatches welcome notification to newly verified user
-   */
   async notifyUserWelcome({ user, dashboardUrl }) {
     try {
       const url = dashboardUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
@@ -754,9 +694,6 @@ class EmailService {
     }
   }
 
-  /**
-   * Dispatches pending approval alert to Super Admin email
-   */
   async notifyAdminNewUser({ user, reviewUrl }) {
     try {
       const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalgohel249@gmail.com').toLowerCase().trim();
@@ -778,9 +715,6 @@ class EmailService {
     }
   }
 
-  /**
-   * Dispatches approval notification to user
-   */
   async notifyUserApproved({ user, role, loginUrl }) {
     try {
       const url = loginUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
@@ -801,9 +735,6 @@ class EmailService {
     }
   }
 
-  /**
-   * Dispatches rejection notification to user
-   */
   async notifyUserRejected({ user, contactEmail }) {
     try {
       const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalgohel249@gmail.com').toLowerCase().trim();

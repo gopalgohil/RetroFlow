@@ -30,7 +30,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear field-specific error as user types
     if (fieldErrors[field]) {
       setFieldErrors((prev) => {
         const updated = { ...prev };
@@ -46,7 +45,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
     setFieldErrors({});
     setGeneralError(null);
 
-    // Run Zod Schema Validation
     const validationResult = signupSchema.safeParse(formData);
 
     if (!validationResult.success) {
@@ -66,7 +64,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
       if (onSubmit) {
         await onSubmit(validationResult.data);
       } else {
-        // Send request to backend via clean Universal API Client
         await api.post(ENDPOINTS.AUTH.REGISTER, {
           name: validationResult.data.fullName,
           email: validationResult.data.email,
@@ -75,7 +72,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
 
         setIsSuccess(true);
 
-        // Transition immediately to the OTP email verification form
         setTimeout(() => {
           router.push(`/verify-email?email=${encodeURIComponent(validationResult.data.email)}`);
         }, 1000);
@@ -113,7 +109,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
         googleId: user.uid,
       });
 
-      // Clear any previous user's cached project info
       try {
         localStorage.removeItem('retroflow_cached_active_project');
         localStorage.removeItem('retroflow_active_project_id');
@@ -162,13 +157,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
 
   return (
     <div className="w-full max-w-md mx-auto space-y-3.5">
-      {/* Reusable Auth Header */}
       <AuthHeader
         title="Create an account"
         subtitle="Start running retrospectives with your team"
       />
 
-      {/* General Alert Banner */}
       {generalError && <Alert variant="error" message={generalError} />}
       {isSuccess && (
         <Alert variant="success">
@@ -180,7 +173,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
         </Alert>
       )}
 
-      {/* Registration Form with Zod Field Validation */}
       <form onSubmit={handleSubmit} className="space-y-2.5" noValidate>
         <Input
           label="Full Name"
@@ -240,7 +232,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
           autoComplete="new-password"
         />
 
-        {/* Terms agreement checkbox with Zod validation */}
         <div className="pt-0.5">
           <Checkbox
             checked={formData.agreedToTerms}
@@ -262,7 +253,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
           />
         </div>
 
-        {/* Reusable Action Button */}
         <Button
           type="submit"
           variant="primary"
@@ -273,10 +263,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
         </Button>
       </form>
 
-      {/* Reusable Divider */}
       <AuthDivider label="Or continue with" className="my-2" />
 
-      {/* Reusable Google OAuth Button moved to bottom */}
       <SocialButton
         provider="google"
         label="Sign up with Google"
@@ -285,7 +273,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
         className="py-2"
       />
 
-      {/* Reusable Auth Footer Link */}
       <AuthFooterLink
         prompt="Already have an account?"
         actionText="Sign in"

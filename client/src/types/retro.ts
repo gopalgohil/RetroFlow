@@ -1,7 +1,3 @@
-/**
- * @file retro.ts
- * @description TypeScript interface definitions for Retrospective Sessions & Topics
- */
 
 export interface RetroTopic {
   topicId: string;

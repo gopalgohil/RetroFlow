@@ -53,10 +53,6 @@ export interface RetroColumnProps {
   isClosed?: boolean;
 }
 
-/**
- * Reusable Retrospective Topic Column
- * Handles card grouping, column headers, and inline feedback contribution.
- */
 export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn({
   topic,
   cards,
@@ -204,7 +200,6 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         if (parsed.topicId) sourceTopicId = parsed.topicId;
       }
     } catch {
-      // fallback
     }
 
     if (!sourceCardId) {
@@ -212,9 +207,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
       return;
     }
 
-    // Cross-column drop into this column:
     if (sourceTopicId !== topic.topicId) {
-      // If target column is Action Items and user is NOT Admin/Manager: reject!
       if (isActionColumn && !canManageActionItems) {
         handleCardDragEnd();
         return;
@@ -224,7 +217,6 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
       return;
     }
 
-    // Same-column reordering:
     if (sourceCardId === targetCardId) {
       handleCardDragEnd();
       return;
@@ -303,7 +295,6 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 
   return (
     <div className="flex-1 min-w-[220px] rounded-2xl bg-white/95 dark:bg-[#0e1015] backdrop-blur-sm border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col overflow-hidden transition-all">
-      {/* Column Top Accent Header */}
       <div
         style={{
           backgroundColor: `${topic.color}15`,
@@ -348,7 +339,6 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         )}
       </div>
 
-      {/* Sticky Cards Scrollable List with Column-level Drop Zone */}
       <div
         onDragOver={handleColumnDragOver}
         onDragLeave={handleColumnDragLeave}
@@ -396,7 +386,6 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
           </div>
         )}
 
-        {/* Inline Add Card Input Form */}
         {isInputOpen && canAddCard && (
           <div className="p-2.5 rounded-xl bg-white dark:bg-[#12151c] border-2 border-[#88c958] shadow-sm space-y-2 animate-in fade-in duration-150">
             <textarea
@@ -435,7 +424,6 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         )}
       </div>
 
-      {/* Bottom Column "+ Add Card" Trigger or Locked State */}
       {!isClosed && (
         <div className="p-2 border-t border-slate-100 dark:border-white/[0.08] bg-white dark:bg-[#0e1015]">
           {canAddCard ? (

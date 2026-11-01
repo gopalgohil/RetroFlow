@@ -37,7 +37,6 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
   const isPrimaryOwner = Boolean(member.isPrimaryLead || (member as any).isPrimaryOwner);
   const isSelf = emailLower === currentEmail?.toLowerCase().trim();
 
-  // Format joined date nicely
   const formatJoinedDate = (dateStr?: string) => {
     if (!dateStr) return 'Recently joined';
     try {
@@ -71,7 +70,6 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
       showCloseButton={false}
     >
       <div className="space-y-5">
-        {/* 1. Member Identity Card */}
         <div className="relative flex items-center gap-3.5 p-4 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08]">
           <UserAvatar
             name={member.name || member.email}
@@ -113,9 +111,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
           </button>
         </div>
 
-        {/* 2. Key Metadata Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Email Card with 1-click Copy */}
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
@@ -146,7 +142,6 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
             </p>
           </div>
 
-          {/* Joined Date Card */}
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
               <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
@@ -157,7 +152,6 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
             </p>
           </div>
 
-          {/* Workspace Status Card */}
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
               <ShieldCheck className="w-3 h-3 text-slate-400 dark:text-slate-500" />
@@ -181,7 +175,6 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Project Role / Assigned Role */}
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
               <Briefcase className="w-3 h-3 text-slate-400 dark:text-slate-500" />
@@ -197,7 +190,6 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
           </div>
         </div>
 
-        {/* 3. Assigned Projects Section */}
         <div className="space-y-2.5 pt-1">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
@@ -230,7 +222,6 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
           )}
         </div>
 
-        {/* 4. Footer Close Button */}
         <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-end">
           <button
             type="button"

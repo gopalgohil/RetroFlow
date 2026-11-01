@@ -44,7 +44,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [currentLimit, setCurrentLimit] = useState<number>(10);
 
-  // Toggle accordion expansion for a retro row
   const toggleRowExpansion = (id: string) => {
     setExpandedRetroIds((prev) => {
       const next = new Set(prev);
@@ -54,7 +53,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
     });
   };
 
-  // Expand / Collapse all (only for retros with items)
   const toggleExpandAll = () => {
     const expandableRetros = filteredRetros.filter((r) => {
       const items = r.actionItems || [];
@@ -72,10 +70,8 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
     }
   };
 
-  // Filtered & Sorted retros list
   const filteredRetros = useMemo(() => {
     let result = retros.filter((r) => {
-      // 1. Search Query
       const query = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !query ||
@@ -92,7 +88,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
 
       if (!matchesSearch) return false;
 
-      // 2. Status Filter
       const total = r.totalTasks ?? r.actionItemsCount ?? 0;
       const completed = r.completedTasks ?? 0;
       const pending = r.pendingTasks ?? total - completed;
@@ -104,7 +99,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
       return true;
     });
 
-    // Sort result
     return result.sort((a, b) => {
       const dateA = new Date(a.date).getTime() || 0;
       const dateB = new Date(b.date).getTime() || 0;
@@ -127,12 +121,10 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
     });
   }, [retros, searchQuery, statusFilter, sortBy]);
 
-  // Reset to page 1 on filter/search change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, statusFilter, sortBy, currentLimit]);
 
-  // Pagination metrics
   const totalItems = filteredRetros.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / currentLimit));
   const activePage = Math.min(currentPage, totalPages);
@@ -155,7 +147,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
     }).length;
   }, [filteredRetros]);
 
-  // Status counts for filter pills
   const counts = useMemo(() => {
     let completed = 0;
     let pending = 0;
@@ -214,7 +205,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
 
   return (
     <div className="bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] rounded-3xl shadow-xs overflow-hidden">
-      {/* 1. Table Header Bar & Filter Controls */}
       <div className="p-6 border-b border-slate-100 dark:border-white/[0.06]">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
@@ -229,7 +219,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
             </span>
           </div>
 
-          {/* Search Box & Expand All */}
           <div className="flex items-center gap-3 flex-wrap">
             <div className="relative min-w-[220px] sm:min-w-[260px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -264,7 +253,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
         </div>
       </div>
 
-      {/* 2. Main Retros & Action Items Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -302,7 +290,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                           : 'cursor-default'
                       } ${isExpanded ? 'bg-slate-50/70 dark:bg-white/[0.03]' : ''}`}
                     >
-                      {/* Column 1: Retro Title & Meta ("side retro ka name ayaga") */}
                       <td className="py-4 pl-6 pr-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
@@ -342,7 +329,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                         </div>
                       </td>
 
-                      {/* Column 2: Total Action Items */}
                       <td className="py-4 px-4 text-center">
                         {hasItems ? (
                           <span className="inline-flex items-center justify-center min-w-[32px] px-2.5 py-1 rounded-xl text-xs font-black bg-slate-100 dark:bg-white/[0.06] text-slate-800 dark:text-slate-200">
@@ -353,7 +339,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                         )}
                       </td>
 
-                      {/* Column 3: Completed (Done) Items */}
                       <td className="py-4 px-4 text-center">
                         {hasItems ? (
                           <span
@@ -371,7 +356,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                         )}
                       </td>
 
-                      {/* Column 4: In Progress Items */}
                       <td className="py-4 px-4 text-center">
                         {hasItems ? (
                           <span
@@ -389,7 +373,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                         )}
                       </td>
 
-                      {/* Column 5: Pending (To Do) Items */}
                       <td className="py-4 px-4 text-center">
                         {hasItems ? (
                           <span
@@ -407,7 +390,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                         )}
                       </td>
 
-                      {/* Column 6: Assignees Stack */}
                       <td className="py-4 px-4">
                         {hasItems ? (
                           assignees.length > 0 ? (
@@ -435,7 +417,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                         )}
                       </td>
 
-                      {/* Column 7: Expand Drill-down Button */}
                       <td className="py-4 pl-4 pr-6 text-right">
                         {hasItems ? (
                           <button
@@ -468,7 +449,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                       </td>
                     </tr>
 
-                    {/* Expandable Accordion: Detailed Action Items List for this Retro */}
                     {isExpanded && (
                       <tr className="bg-slate-50/50 dark:bg-white/[0.02]">
                         <td colSpan={7} className="px-6 py-4">
@@ -564,9 +544,7 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                                             </p>
                                           </div>
 
-                                          {/* Attribution: Given by -> Assigned to */}
                                           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 pl-6 text-[10px]">
-                                            {/* Given by */}
                                             <span className="inline-flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/[0.06] px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-white/[0.08]">
                                               <ShieldCheck className="w-3 h-3 text-[#3d8318] dark:text-[#88c958]" />
                                               <span className="text-slate-400 font-normal">Given by:</span>
@@ -575,7 +553,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
 
                                             <span className="text-slate-300 dark:text-white/20">→</span>
 
-                                            {/* Assigned to */}
                                             <span className="inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-white/[0.08] bg-slate-100 dark:bg-white/[0.06]">
                                               <User className="w-3 h-3 text-blue-500" />
                                               <span className="text-slate-400 font-normal">Assigned to:</span>
@@ -615,7 +592,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                                           </div>
                                         </div>
 
-                                        {/* Status Badge */}
                                         <div className="flex flex-col items-end gap-1 shrink-0">
                                           <span
                                             className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
@@ -676,7 +652,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
         </table>
       </div>
 
-      {/* 3. Pagination Footer */}
       <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
         <div className="flex items-center gap-3">
           <span>
@@ -700,7 +675,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
           </div>
         </div>
 
-        {/* Prev / Next controls */}
         {totalPages > 1 && (
           <div className="flex items-center gap-1.5">
             <button

@@ -16,12 +16,10 @@ export default async function DashboardPage() {
     } catch {}
   }
 
-  // 1. If server detects user is rejected
   if (isRejectedCookie || initialUser?.status === 'rejected') {
     return <RejectedView user={initialUser || undefined} />;
   }
 
-  // 2. If server detects user is pending approval
   const isPending = Boolean(
     initialUser?.email &&
     initialUser.role !== 'admin' &&
@@ -33,6 +31,5 @@ export default async function DashboardPage() {
     return <WaitingForApprovalView user={initialUser} />;
   }
 
-  // 3. Render dashboard client for approved users (or initial sync)
   return <DashboardClient initialUser={initialUser} />;
 }

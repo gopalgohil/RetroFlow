@@ -13,10 +13,6 @@ export interface RetrosPaginationProps {
   isLoading?: boolean;
 }
 
-/**
- * RetrosPagination:
- * Pagination footer for project retrospectives.
- */
 export const RetrosPagination: React.FC<RetrosPaginationProps> = ({
   currentPage,
   totalPages,

@@ -10,17 +10,6 @@ interface WelcomeToastProps {
   autoDismissMs?: number;
 }
 
-/**
- * WelcomeToast Component
- * Pure Light-Theme notification matching the reference design:
- * - Crisp white card background
- * - Left vertical emerald accent bar
- * - Floating circular close button on top-left
- * - Circular emerald checkmark icon
- * - Dark emerald title and slate-gray subtitle
- * - Role-specific greetings (Admin vs Member)
- * - Centered at the top of the viewport
- */
 export const WelcomeToast: React.FC<WelcomeToastProps> = ({
   user,
   isOpen,
@@ -87,10 +76,8 @@ export const WelcomeToast: React.FC<WelcomeToastProps> = ({
           : 'opacity-0 -translate-y-3 scale-95 pointer-events-none'
       }`}
     >
-      {/* Toast Card - Crisp Light Theme */}
       <div className="relative flex items-center gap-3 bg-white text-slate-900 border border-slate-200/90 border-l-[5px] border-l-emerald-500 rounded-2xl shadow-xl shadow-slate-900/10 pl-3.5 pr-5 py-2.5 select-none">
         
-        {/* Floating Circular Close Button at Top-Left */}
         <button
           type="button"
           onClick={handleDismiss}
@@ -100,12 +87,10 @@ export const WelcomeToast: React.FC<WelcomeToastProps> = ({
           <X className="w-2.5 h-2.5 stroke-[2.5]" />
         </button>
 
-        {/* Circular Green Checkmark Badge */}
         <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs shadow-emerald-500/30">
           <Check className="w-3.5 h-3.5 stroke-[3]" />
         </div>
 
-        {/* Text Content */}
         <div className="flex flex-col min-w-0 pr-1">
           <div className="flex items-center gap-1.5 leading-tight">
             <span className="font-bold text-xs sm:text-[13px] text-emerald-950 tracking-tight">
@@ -125,7 +110,6 @@ export const WelcomeToast: React.FC<WelcomeToastProps> = ({
           </p>
         </div>
 
-        {/* Subtle Animated Countdown Bar */}
         <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-slate-100 rounded-b-2xl overflow-hidden">
           <div
             className={`h-full ${

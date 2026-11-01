@@ -22,15 +22,6 @@ const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettingsData = {
   enableSlackNotifications: false,
 };
 
-/**
- * Custom Hook: useDashboardData
- * Senior-level business logic hook encapsulating:
- * - Authentication & profile session
- * - Retrospectives CRUD lifecycle (GET, POST, PUT, DELETE /api/retros)
- * - Team members & whitelist roster (GET, POST /api/members)
- * - Workspace preferences (GET, PUT /api/settings)
- * - Toast feedback messages
- */
 const DEFAULT_WORKSPACE_USER = {
   name: '',
   email: '',
@@ -42,7 +33,6 @@ const DEFAULT_WORKSPACE_USER = {
 export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   const router = useRouter();
 
-  // 1. User Authentication State - initialized synchronously from localStorage to prevent auth flicker
   const [user, setUser] = useState<{
     name: string;
     email: string;
@@ -77,7 +67,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     setTimeout(() => setToastMessage(null), 3000);
   }, []);
 
-  // Check auth session & sync profile
   useEffect(() => {
     const token = localStorage.getItem('retroflow_token');
     const isRejectedFlag = localStorage.getItem('retroflow_rejected') === 'true';
@@ -99,7 +88,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       } catch {}
     }
 
-    // Sync live profile from backend once on initial mount
     const syncProfile = () => {
       api
         .get(ENDPOINTS.AUTH.ME)
@@ -143,13 +131,11 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     }
   }, [router]);
 
-  // 2. Retrospective Sessions State & Actions
   const [sessions, setSessions] = useState<RetroBoard[]>([]);
   const [isSessionsLoading, setIsSessionsLoading] = useState(true);
   const sessionsAbortRef = useRef<AbortController | null>(null);
 
   const fetchSessions = useCallback(async () => {
-    // Abort previous in-flight request if still running
     if (sessionsAbortRef.current) {
       sessionsAbortRef.current.abort();
     }
@@ -271,7 +257,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [showToast]
   );
 
-  // 3. Team Members & Whitelist State & Actions
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [pendingRequests, setPendingRequests] = useState<TeamMember[]>([]);
   const [membersPagination, setMembersPagination] = useState<PaginationMeta>({
@@ -303,7 +288,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       searchOverride?: string,
       minDelayMs: number = 0
     ) => {
-      // Abort any existing in-flight request
       if (membersAbortRef.current) {
         membersAbortRef.current.abort();
       }
@@ -449,7 +433,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       const cleanEmail = email.toLowerCase().trim();
       removedMemberEmailsRef.current.add(cleanEmail);
 
-      // 1. Instant optimistic UI update so contributor disappears immediately
       setMembers((prev) => prev.filter((m) => m.email.toLowerCase().trim() !== cleanEmail));
       setPendingRequests((prev) => prev.filter((m) => m.email.toLowerCase().trim() !== cleanEmail));
       setMembersPagination((prev) => {
@@ -482,7 +465,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       const emailSet = new Set(cleanList);
       cleanList.forEach((e) => removedMemberEmailsRef.current.add(e));
 
-      // Instant optimistic UI update
       setMembers((prev) => prev.filter((m) => !emailSet.has(m.email.toLowerCase().trim())));
       setPendingRequests((prev) => prev.filter((m) => !emailSet.has(m.email.toLowerCase().trim())));
       setMembersPagination((prev) => {
@@ -543,7 +525,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     async (email: string, role: string = 'Developer') => {
       const cleanEmail = email.toLowerCase().trim();
 
-      // 1. Optimistic UI update immediately so user doesn't need to refresh
       setMembers((prev) =>
         prev.map((m) =>
           m.email.toLowerCase().trim() === cleanEmail
@@ -579,7 +560,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       const cleanEmail = email.toLowerCase().trim();
       removedMemberEmailsRef.current.add(cleanEmail);
 
-      // 1. Optimistic UI update immediately
       setMembers((prev) =>
         prev.filter((m) => m.email.toLowerCase().trim() !== cleanEmail)
       );
@@ -610,7 +590,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [fetchMembers, membersPage, membersLimit, membersSearch, showToast]
   );
 
-  // 4. Workspace Settings State & Actions
   const [settings, setSettings] = useState<WorkspaceSettingsData>(DEFAULT_WORKSPACE_SETTINGS);
   const [isSettingsLoading, setIsSettingsLoading] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
@@ -648,7 +627,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [showToast]
   );
 
-  // 5. Automatic Tab Data Fetching Trigger
   useEffect(() => {
     if (activeTab === 'sessions') {
       fetchSessions();
@@ -657,7 +635,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     }
   }, [activeTab, fetchSessions, fetchMembers]);
 
-  // 6. Cleanup active abort controllers on unmount
   useEffect(() => {
     return () => {
       sessionsAbortRef.current?.abort();
@@ -670,7 +647,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     isAuthReady,
     toastMessage,
     showToast,
-    // Sessions
     sessions,
     isSessionsLoading,
     fetchSessions,
@@ -678,7 +654,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     toggleSessionStatus,
     saveSession,
     activeSessionsCount: sessions.filter((s) => s.status === 'active').length,
-    // Members
     members,
     pendingRequests,
     membersPagination,
@@ -696,7 +671,6 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     updateMemberRole,
     approveMember,
     rejectMember,
-    // Settings
     settings,
     isSettingsLoading,
     isSavingSettings,

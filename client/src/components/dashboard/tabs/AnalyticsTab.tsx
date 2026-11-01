@@ -17,11 +17,6 @@ export interface AnalyticsTabProps {
   isManager?: boolean;
 }
 
-/**
- * AnalyticsTab Component
- * Senior orchestrator component coordinating data fetching, project & year filtering,
- * and passing dynamic props down to modular, single-responsibility child components.
- */
 export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
   user,
   isAdmin = false,
@@ -68,12 +63,10 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
     fetchAnalytics(selectedProjectId, selectedYear);
   }, [selectedProjectId, selectedYear, fetchAnalytics]);
 
-  // 1. Initial loading state before data is fetched - render full skeleton matching layout
   if (isLoading && !data) {
     return <AnalyticsSkeleton showHeader={true} />;
   }
 
-  // 2. Initial error state if initial fetch fails without any data
   if (errorMessage && !data) {
     return (
       <div className="space-y-8 animate-in fade-in duration-300">
@@ -98,7 +91,6 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      {/* 1. Header Toolbar with Dynamic Multi-Project & Year Selector & Refresh */}
       <AnalyticsHeader
         projects={data?.projects || []}
         selectedProjectId={selectedProjectId}
@@ -112,7 +104,6 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
         isAdmin={isAdmin}
       />
 
-      {/* Error Alert with Retry */}
       {errorMessage && (
         <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-900 dark:text-rose-200 text-xs font-medium flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
@@ -129,10 +120,8 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
         </div>
       )}
 
-      {/* Loading Skeleton when re-filtering project or year */}
       {isLoading && <AnalyticsSkeleton showHeader={false} />}
 
-      {/* Loaded Content */}
       {!isLoading && data && !isAdmin && (data.noProjectsAssigned || data.projects?.length === 0) ? (
         <div className="p-12 text-center rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-4 max-w-lg mx-auto">
           <div className="w-14 h-14 mx-auto rounded-2xl bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shadow-2xs">
@@ -147,7 +136,6 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
         </div>
       ) : !isLoading && data ? (
         <>
-          {/* Annual Retrospective & Commitments 12-Month Bar Chart */}
           <AnalyticsMonthlyBarChart
             monthlyTrends={data.monthlyTrends}
             selectedYear={data.selectedYear || selectedYear}
@@ -155,7 +143,6 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({
             yearSummary={data.yearSummary}
           />
 
-          {/* 4. Retros & Action Items Deliverables Table */}
           <AnalyticsRetroActionTable
             retros={data.retroActionAnalytics || data.retroTrends || []}
             selectedYear={data.selectedYear || selectedYear}

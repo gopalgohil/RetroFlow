@@ -94,7 +94,6 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
       setEmail('');
       if (onInviteSent) onInviteSent(trimmedEmail);
 
-      // Auto dismiss success note after 4 seconds
       setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to dispatch invitation email. Please try again.');
@@ -106,7 +105,6 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="relative w-full max-w-lg bg-white dark:bg-[#0e1015] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/[0.08] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
-        {/* Header */}
         <div className="px-6 py-5 border-b border-slate-100 dark:border-white/[0.08] flex items-start justify-between bg-gradient-to-r from-[#eaf5e3]/50 via-white to-slate-50 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#12151c]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] flex items-center justify-center shadow-md shadow-[#5cb028]/20 dark:shadow-[#88c958]/20 shrink-0 font-bold">
@@ -130,9 +128,7 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
           </button>
         </div>
 
-        {/* Content Body */}
         <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-          {/* Target Retrospective Session Summary Card */}
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] flex items-center justify-between gap-3">
             <div className="space-y-0.5 min-w-0">
               <span className="text-[10px] font-black uppercase tracking-wider text-[#3d8318] dark:text-[#88c958]">
@@ -150,7 +146,6 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
             </span>
           </div>
 
-          {/* Section 1: Send Direct Email */}
           <form onSubmit={handleSendEmail} className="space-y-3.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-900 dark:text-slate-200 flex items-center gap-1.5">
@@ -171,7 +166,6 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
               />
             </div>
 
-            {/* Error Message */}
             {errorMessage && (
               <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
@@ -179,7 +173,6 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
               </div>
             )}
 
-            {/* Success Message */}
             {successMessage && (
               <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-[#88c958]/15 border border-emerald-200 dark:border-[#88c958]/30 text-emerald-700 dark:text-[#88c958] text-xs flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-[#88c958]" />
@@ -187,7 +180,6 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
               </div>
             )}
 
-            {/* 1-Click Magic Link Box */}
             {magicLink && (
               <div className="p-3.5 bg-[#eaf5e3]/80 dark:bg-[#88c958]/10 border border-[#cdeac0] dark:border-[#88c958]/30 rounded-xl space-y-2.5 animate-in fade-in">
                 <div className="flex items-center justify-between">
@@ -234,7 +226,6 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
               </div>
             )}
 
-            {/* Send Invitation Button */}
             <button
               type="submit"
               disabled={isSending || !email.trim()}
@@ -256,7 +247,6 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
 
           <div className="h-px bg-slate-100 dark:bg-white/[0.08]" />
 
-          {/* Section 2: Direct URL Copy Box */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-900 dark:text-slate-200 flex items-center gap-1.5">
               <Link2 className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
@@ -298,7 +288,6 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-3.5 bg-slate-50 dark:bg-[#12151c]/70 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-end">
           <button
             type="button"

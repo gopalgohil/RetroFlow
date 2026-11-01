@@ -63,7 +63,6 @@ export const SessionList: React.FC<SessionListProps> = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [invitingSession, setInvitingSession] = useState<RetroBoard | null>(null);
 
-  // Close project dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -81,12 +80,10 @@ export const SessionList: React.FC<SessionListProps> = ({
     };
   }, [isProjectDropdownOpen]);
 
-  // Debounced Search state (300ms industry standard)
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const debouncedSearch = useDebounce(localSearch, 300);
   const prevPropSearchRef = useRef(searchQuery);
 
-  // Sync if external prop updates independently (e.g. cleared from outside)
   useEffect(() => {
     if (prevPropSearchRef.current !== searchQuery) {
       prevPropSearchRef.current = searchQuery;
@@ -96,7 +93,6 @@ export const SessionList: React.FC<SessionListProps> = ({
     }
   }, [searchQuery, localSearch]);
 
-  // Trigger backend search query on debounced value
   useEffect(() => {
     if (!onSearchChange) return;
     const trimmed = debouncedSearch.trim();
@@ -116,7 +112,6 @@ export const SessionList: React.FC<SessionListProps> = ({
     }
   };
 
-  // Map project keys to full names when available
   const keyToNameMap = React.useMemo(() => {
     const map: Record<string, string> = {};
     sessions.forEach((s) => {
@@ -138,7 +133,6 @@ export const SessionList: React.FC<SessionListProps> = ({
     return map;
   }, [sessions]);
 
-  // Helper to extract clean project name for a session
   const getSessionProjectName = React.useCallback(
     (s: RetroBoard): string => {
       if (typeof s.projectId === 'object' && (s.projectId as any)?.name) {
@@ -172,7 +166,6 @@ export const SessionList: React.FC<SessionListProps> = ({
     [keyToNameMap]
   );
 
-  // Distinct projects list with retro count
   const projectList = React.useMemo(() => {
     const countsMap = new Map<string, number>();
     sessions.forEach((s) => {
@@ -185,7 +178,6 @@ export const SessionList: React.FC<SessionListProps> = ({
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [sessions, getSessionProjectName]);
 
-  // Project Scoped Sessions (filtered by project before status filter)
   const projectScopedSessions = React.useMemo(() => {
     if (selectedProject === 'all') return sessions;
     return sessions.filter((s) => {
@@ -194,10 +186,8 @@ export const SessionList: React.FC<SessionListProps> = ({
     });
   }, [sessions, selectedProject, getSessionProjectName]);
 
-  // Status & Project Filtered sessions
   const filteredSessions = React.useMemo(() => {
     return projectScopedSessions.filter((s) => {
-      // Status Filter
       if (activeFilter === 'active' && s.status !== 'active') return false;
       if (activeFilter === 'completed' && s.status !== 'completed') return false;
       if (activeFilter === 'upcoming') {
@@ -274,7 +264,6 @@ export const SessionList: React.FC<SessionListProps> = ({
   const isSearching = isSearchDebouncing || isLoading;
   const isCardsLoading = isInitialLoading || isFilterLoading || isPageLoading || isSearchDebouncing;
 
-  // Tab counts (Dynamic and Project-aware)
   const activeCount = React.useMemo(
     () => projectScopedSessions.filter((s) => s.status === 'active').length,
     [projectScopedSessions]
@@ -301,9 +290,7 @@ export const SessionList: React.FC<SessionListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Session Filter Tabs Bar with Search */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 border-b border-slate-200/80 dark:border-white/[0.08] pb-3.5">
-        {/* Left: Filter Pills with Dynamic Count Badges */}
         <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
           {tabs.map((tab) => {
             const isActive = activeFilter === tab.id;
@@ -332,9 +319,7 @@ export const SessionList: React.FC<SessionListProps> = ({
           })}
         </div>
 
-        {/* Right: Debounced Search Bar + Project Dropdown Filter + Total Counter */}
         <div className="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-2.5 sm:gap-3 shrink-0">
-          {/* 300ms Debounced Search Input */}
           <div className="relative w-full sm:w-56 md:w-64">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
               {isSearching ? (
@@ -362,7 +347,6 @@ export const SessionList: React.FC<SessionListProps> = ({
             )}
           </div>
 
-          {/* Project Dropdown Filter (Right Side) */}
           {projectList.length > 0 && (
             <div className="relative shrink-0" ref={projectDropdownRef}>
               <button
@@ -385,15 +369,12 @@ export const SessionList: React.FC<SessionListProps> = ({
                 />
               </button>
 
-              {/* Dropdown Menu */}
               {isProjectDropdownOpen && (
                 <div className="absolute left-0 top-full mt-1.5 w-60 rounded-2xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden flex flex-col">
-                  {/* Fixed Header */}
                   <div className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
                     Filter by Project
                   </div>
 
-                  {/* Pinned "All Projects" Option */}
                   <div className="border-b border-slate-100 dark:border-white/[0.06] shrink-0">
                     <button
                       type="button"
@@ -416,7 +397,6 @@ export const SessionList: React.FC<SessionListProps> = ({
                     </button>
                   </div>
 
-                  {/* Scrollable Project Items List */}
                   <div className="max-h-52 overflow-y-auto overscroll-contain py-0.5 [scrollbar-width:thin] scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
                     {projectList.map((proj) => {
                       const isSelected = selectedProject.toLowerCase() === proj.name.toLowerCase();
@@ -461,12 +441,10 @@ export const SessionList: React.FC<SessionListProps> = ({
         </div>
       </div>
 
-      {/* Loading Skeleton */}
       {isCardsLoading && (
         <SessionCardsSkeleton count={filteredSessions.length > 0 ? Math.min(filteredSessions.length, 6) : 6} />
       )}
 
-      {/* Empty State */}
       {!isCardsLoading && filteredSessions.length === 0 && (
         <div className="p-12 rounded-2xl bg-white dark:bg-[#0e1015] border border-dashed border-slate-300 dark:border-white/[0.08] text-center space-y-4 max-w-lg mx-auto shadow-xl animate-in fade-in duration-150">
           <div className="w-12 h-12 rounded-2xl bg-[#88c958]/15 border border-[#88c958]/30 text-[#88c958] mx-auto flex items-center justify-center font-black text-lg">
@@ -519,7 +497,6 @@ export const SessionList: React.FC<SessionListProps> = ({
         </div>
       )}
 
-      {/* Sessions Grid */}
       {!isCardsLoading && filteredSessions.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4 lg:gap-4.5 2xl:gap-5">
           {paginatedSessions.map((session) => (
@@ -527,7 +504,6 @@ export const SessionList: React.FC<SessionListProps> = ({
               key={session._id}
               className="group relative p-3.5 sm:p-4.5 2xl:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] hover:border-[#88c958]/40 dark:hover:border-[#88c958]/60 hover:shadow-xl dark:hover:shadow-[0_0_24px_rgba(0,0,0,0.8)] transition-all flex flex-col justify-between"
             >
-              {/* Card Top Row: Status badge & Scheduled Date */}
               <div className="flex items-center justify-between gap-2 mb-2.5">
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <span
@@ -556,7 +532,6 @@ export const SessionList: React.FC<SessionListProps> = ({
                 </div>
               </div>
 
-              {/* Title & Description */}
               <div className="space-y-1 mb-3">
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-[#88c958] transition-colors line-clamp-1">
                   {session.title}
@@ -568,7 +543,6 @@ export const SessionList: React.FC<SessionListProps> = ({
                 )}
               </div>
 
-              {/* Agenda Topics / Questions (Image Matching with Dynamic Card Counts) */}
               {(() => {
                 const topicsList =
                   session.topics && session.topics.length > 0
@@ -634,7 +608,6 @@ export const SessionList: React.FC<SessionListProps> = ({
                           }
                         }
 
-                        // Calculate dynamic card count for this topic
                         const cardCount = Array.isArray(session.cards)
                           ? session.cards.filter(
                               (c) =>
@@ -663,10 +636,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                 );
               })()}
 
-
-              {/* Card Footer Actions */}
               <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between gap-2">
-                {/* Left: Launch / Join + Share */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onLaunch(session)}
@@ -688,7 +658,6 @@ export const SessionList: React.FC<SessionListProps> = ({
                   )}
                 </div>
 
-                {/* Right: Quick Action Buttons (Admin Only) */}
                 {isAdmin && (
                   <div className="flex items-center gap-1">
 
@@ -715,19 +684,15 @@ export const SessionList: React.FC<SessionListProps> = ({
         </div>
       )}
 
-      {/* Enterprise Pagination Controls Footer (Active when > 9 retros) */}
       {totalPages > 1 && (
         <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          {/* Left: Range Info */}
           <div className="text-slate-500 dark:text-slate-400">
             Showing <strong className="text-slate-800 dark:text-white">{startIndex + 1}</strong> to{' '}
             <strong className="text-slate-800 dark:text-white">{endIndex}</strong> of{' '}
             <strong className="text-slate-800 dark:text-white">{totalItems}</strong> Retros
           </div>
 
-          {/* Right: Page Navigation Controls */}
           <div className="flex items-center gap-1.5">
-            {/* Previous Button */}
             <button
               type="button"
               onClick={() => handlePageChange(safeCurrentPage - 1)}
@@ -738,7 +703,6 @@ export const SessionList: React.FC<SessionListProps> = ({
               <span>Prev</span>
             </button>
 
-            {/* Page Number Buttons */}
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
@@ -754,7 +718,6 @@ export const SessionList: React.FC<SessionListProps> = ({
               </button>
             ))}
 
-            {/* Next Button */}
             <button
               type="button"
               onClick={() => handlePageChange(safeCurrentPage + 1)}
@@ -768,14 +731,12 @@ export const SessionList: React.FC<SessionListProps> = ({
         </div>
       )}
 
-      {/* Share / Invite Teammates Modal */}
       <ShareInviteModal
         isOpen={Boolean(invitingSession)}
         onClose={() => setInvitingSession(null)}
         session={invitingSession}
       />
 
-      {/* Delete Confirmation Modal */}
       {deletingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full border border-slate-200 shadow-2xl space-y-4">

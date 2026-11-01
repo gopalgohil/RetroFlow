@@ -31,7 +31,6 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   const [selectedWorkspaceMemberEmail, setSelectedWorkspaceMemberEmail] = useState('');
   const [isManualInvite, setIsManualInvite] = useState(false);
 
-  // Load real workspace members when invite modal opens
   useEffect(() => {
     if (!isOpen) return;
     MembersApiService.getWorkspaceMembers()

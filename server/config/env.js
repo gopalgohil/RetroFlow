@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
-// Load .env file
 dotenv.config();
 
 const envSchema = z.object({
@@ -24,7 +23,6 @@ if (!parsedEnv.success) {
     console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
   });
   console.error('\nPlease verify your server/.env file.\n');
-  // Allow running in dev with fallback defaults if MONGODB_URI exists
 }
 
 export const env = parsedEnv.success ? parsedEnv.data : process.env;

@@ -34,7 +34,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [isVerifiedParam, setIsVerifiedParam] = useState(initialVerified);
   const [isResetSuccessParam, setIsResetSuccessParam] = useState(initialReset);
 
-  // Read URL search parameters on client without triggering Next.js Suspense fallback bailout
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -52,7 +51,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       }
     }
   }, [initialEmail]);
-
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -78,7 +76,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     setGeneralError(null);
     setUnverifiedEmail(null);
 
-    // Run Zod validation
     const validationResult = loginSchema.safeParse(formData);
 
     if (!validationResult.success) {
@@ -100,8 +97,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       } else {
         const data = await api.post(ENDPOINTS.AUTH.LOGIN, validationResult.data);
 
-        // Store JWT token and user profile for instant access
-        // Clear any previous user's cached project info
         try {
           localStorage.removeItem('retroflow_cached_active_project');
           localStorage.removeItem('retroflow_active_project_id');
@@ -122,10 +117,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           document.cookie = 'retroflow_rejected=; path=/; max-age=0; SameSite=Lax';
         }
 
-        // Set session flag for role-specific dashboard welcome toast
         sessionStorage.setItem('retroflow_welcome_toast', 'true');
 
-        // 2.2 second delay before navigating to dashboard as requested by user
         setTimeout(() => {
           router.push('/dashboard');
         }, 2200);
@@ -165,7 +158,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         googleId: user.uid,
       });
 
-      // Clear any previous user's cached project info
       try {
         localStorage.removeItem('retroflow_cached_active_project');
         localStorage.removeItem('retroflow_active_project_id');
@@ -209,27 +201,23 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
-      {/* Reusable Auth Header */}
       <AuthHeader
         title="Welcome back"
         subtitle="Enter your credentials to access your workspace"
       />
 
-      {/* Verification Success Alert if redirected after verify */}
       {isVerifiedParam && !generalError && (
         <Alert variant="success">
           🎉 Your email has been verified successfully! Please sign in to access your workspace.
         </Alert>
       )}
 
-      {/* Password Reset Success Alert if redirected after reset */}
       {isResetSuccessParam && (
         <Alert variant="success">
           🎉 Your password has been reset successfully! Please sign in with your new password.
         </Alert>
       )}
 
-      {/* General Error Alert */}
       {generalError && (
         <Alert variant="error">
           <div className="space-y-1">
@@ -248,7 +236,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </Alert>
       )}
 
-      {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <Input
           label="Email"
@@ -274,7 +261,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           autoComplete="current-password"
         />
 
-        {/* Remember me & Forgot password row */}
         <div className="flex items-center justify-between pt-1">
           <Checkbox
             label="Remember me"
@@ -288,7 +274,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               try {
                 sessionStorage.removeItem('retroflow_forgot_password_session');
               } catch {
-                // Storage access fallback
               }
             }}
             className="text-xs sm:text-sm font-semibold text-[#88c958] hover:text-[#96dc63] hover:underline transition-colors"
@@ -297,7 +282,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           </Link>
         </div>
 
-        {/* Reusable Action Button */}
         <Button
           type="submit"
           variant="primary"
@@ -310,10 +294,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </Button>
       </form>
 
-      {/* Reusable Divider */}
       <AuthDivider label="Or continue with" />
 
-      {/* Reusable Google OAuth Button moved to bottom */}
       <SocialButton
         provider="google"
         label="Continue with Google"
@@ -321,7 +303,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         disabled={isLoading}
       />
 
-      {/* Reusable Auth Footer Link */}
       <AuthFooterLink
         prompt="Don't have an account?"
         actionText="Sign up"

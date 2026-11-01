@@ -11,10 +11,6 @@ export interface DeleteRetroModalProps {
   onConfirm: () => void;
 }
 
-/**
- * DeleteRetroModal:
- * Confirmation dialog for permanently deleting a linked retrospective session.
- */
 export const DeleteRetroModal: React.FC<DeleteRetroModalProps> = ({
   retro,
   isDeleting,

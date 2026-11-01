@@ -59,7 +59,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     userRole.includes('manager')
   );
 
-  // Check if role is Project Lead, Developer, QA, or DevOps
   const isProjectLead = Boolean(
     !isManager && (
       userProjectRole === 'project lead' ||
@@ -86,9 +85,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setIsMounted(true);
   }, []);
 
-  // Strictly Workspace Admin and Manager only!
-  // Project Lead, Developer, QA Engineer, and DevOps are explicitly excluded from Team Directory
-  // Guarded by isMounted to guarantee 100% hydration matching between SSR and initial client render
   const canViewMembers =
     isMounted &&
     (propCanViewMembers !== undefined
@@ -134,7 +130,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Mobile Backdrop */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden"
@@ -142,13 +137,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
 
-      {/* Sidebar Container */}
       <aside
         className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white dark:bg-[#08090a] border-r border-slate-200/80 dark:border-white/[0.08] flex flex-col transition-transform duration-300 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Top Header & Brand (Exact h-16 to align seamlessly with DashboardHeader) */}
         <div className="h-16 flex items-center pl-[38px] pr-6 border-b border-slate-200/80 dark:border-white/[0.08] shrink-0">
           <Link
             href="/dashboard"
@@ -171,7 +164,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </Link>
         </div>
 
-        {/* Navigation Items Area */}
         <div className="px-3 pt-12 pb-6 flex-1 overflow-y-auto">
           <nav className="space-y-2">
             {navItems.map((item) => {

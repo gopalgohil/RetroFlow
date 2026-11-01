@@ -27,11 +27,9 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
   selectedProjectName,
   yearSummary,
 }) => {
-  // View mode switcher: 'retros' | 'tasks' | 'completed' | 'rate'
   const [activeMetric, setActiveMetric] = useState<'retros' | 'tasks' | 'completed'>('retros');
   const [hoveredMonth, setHoveredMonth] = useState<MonthlyRetroBarData | null>(null);
 
-  // Compute metric value for each month
   const getMetricValue = (m: MonthlyRetroBarData) => {
     switch (activeMetric) {
       case 'retros':
@@ -45,14 +43,12 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
     }
   };
 
-  // Determine dynamic max scale for Y-axis with nice headroom
   const maxScaleValue = useMemo(() => {
     let max = 4;
     monthlyTrends.forEach((m) => {
       const val = getMetricValue(m);
       if (val > max) max = val;
     });
-    // If max is small (e.g. 1-4), scale up to 4 or 5 for clean intervals
     if (max <= 4) return 4;
     if (max <= 8) return 8;
     if (max <= 12) return 12;
@@ -60,7 +56,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
     return Math.ceil(max * 1.2);
   }, [monthlyTrends, activeMetric]);
 
-  // Generate 4 Y-axis scale ticks (from max down to 0)
   const yAxisTicks = useMemo(() => {
     const t4 = maxScaleValue;
     const t3 = Math.round(maxScaleValue * 0.75);
@@ -70,7 +65,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
     return [t4, t3, t2, t1, t0];
   }, [maxScaleValue]);
 
-  // Aggregate year summary metrics if not provided directly
   const computedYearSummary = useMemo(() => {
     if (yearSummary) return yearSummary;
     let totalRetros = 0;
@@ -94,7 +88,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
     };
   }, [yearSummary, monthlyTrends, selectedYear]);
 
-  // Peak month determination
   const peakMonth = useMemo(() => {
     if (monthlyTrends.length === 0) return null;
     let peak = monthlyTrends[0];
@@ -111,7 +104,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
 
   return (
     <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-6">
-      {/* 1. Header Bar: Title, Project Tag, and Metric Toggle Switch */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-100 dark:border-white/[0.06]">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
@@ -130,7 +122,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
           </p>
         </div>
 
-        {/* Minimalist Pill Switcher */}
         <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/60 dark:border-white/[0.06] self-start md:self-auto">
           <button
             type="button"
@@ -168,13 +159,9 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
         </div>
       </div>
 
-      {/* 2. Clean Minimalist Bar Chart (Matching Image 2 Reference in RetroFlow Green Theme) */}
       <div className="relative pt-6 pb-2">
-        {/* Main Chart Area with Right-side Y-Axis Scale */}
         <div className="relative h-[250px] sm:h-[280px] flex">
-          {/* Chart Columns Area */}
           <div className="relative flex-1 h-full">
-            {/* Horizontal Grid Lines */}
             <div className="absolute inset-0 flex flex-col justify-between pointer-events-none z-0">
               <div className="border-b border-slate-100 dark:border-white/[0.06] w-full" />
               <div className="border-b border-slate-100 dark:border-white/[0.06] w-full" />
@@ -183,14 +170,12 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
               <div className="border-b border-slate-200 dark:border-white/[0.12] w-full" />
             </div>
 
-            {/* 12 Month Bar Columns */}
             <div className="absolute inset-0 grid grid-cols-12 gap-1 sm:gap-2 items-end z-10 px-1 sm:px-2">
               {monthlyTrends.map((monthData, idx) => {
                 const val = getMetricValue(monthData);
                 const isCurrentMonth = selectedYear === currentCalendarYear && idx === currentMonthIndex;
                 const isHovered = hoveredMonth?.monthIndex === idx;
 
-                // Height calculation bounded between 0% and 100%
                 const heightPct = val > 0 ? Math.min(100, Math.round((val / maxScaleValue) * 100)) : 0;
 
                 return (
@@ -200,7 +185,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
                     onMouseLeave={() => setHoveredMonth(null)}
                     className="relative flex flex-col items-center justify-end h-full group cursor-pointer"
                   >
-                    {/* The Clean Solid Bar (Matching Image 2 in Theme Green) */}
                     <div className="w-full flex items-end justify-center h-full">
                       {val > 0 ? (
                         <div
@@ -213,7 +197,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
                             height: `${Math.max(6, heightPct)}%`,
                           }}
                         >
-                          {/* Value tag if tall enough */}
                           {heightPct >= 28 && (
                             <div className="absolute top-2 inset-x-0 flex justify-center">
                               <span className="text-[10px] font-black text-white/95 select-none leading-none">
@@ -223,7 +206,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
                           )}
                         </div>
                       ) : (
-                        /* Subtle zero-indicator marker at base */
                         <div className="w-2.5 sm:w-3.5 h-1 rounded-full bg-slate-200/50 dark:bg-white/[0.06]" />
                       )}
                     </div>
@@ -233,7 +215,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
             </div>
           </div>
 
-          {/* Right Y-Axis Scale Column (Matching Image 2) */}
           <div className="w-8 sm:w-12 h-full flex flex-col justify-between items-end pl-2 sm:pl-3 pb-0 pointer-events-none select-none text-[11px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500">
             {yAxisTicks.map((tickVal, tIdx) => (
               <span key={tIdx} className="translate-y-[-50%] leading-none">
@@ -243,7 +224,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
           </div>
         </div>
 
-        {/* Clean X-Axis Month Labels */}
         <div className="flex pt-3 border-t border-slate-200 dark:border-white/[0.12]">
           <div className="flex-1 grid grid-cols-12 gap-1 sm:gap-2 px-1 sm:px-2">
             {monthlyTrends.map((monthData, idx) => {
@@ -270,12 +250,10 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
               );
             })}
           </div>
-          {/* Spacer to align with right Y-axis */}
           <div className="w-8 sm:w-12" />
         </div>
       </div>
 
-      {/* 3. Interactive Floating Month Details Card */}
       <div className="min-h-[72px] p-4 rounded-2xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] transition-all duration-200">
         {hoveredMonth ? (
           <div className="space-y-2 animate-in fade-in duration-150">
@@ -292,7 +270,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
                 )}
               </div>
 
-              {/* Status Pills */}
               <div className="flex items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
                 <span className="text-[#3d8318] dark:text-[#88c958]">
                   {hoveredMonth.retrosCount} Retros
@@ -312,7 +289,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
               </div>
             </div>
 
-            {/* Sessions list in this hovered month if present */}
             {hoveredMonth.sessions.length > 0 ? (
               <div className="flex flex-wrap items-center gap-2 pt-0.5">
                 <span className="text-[11px] font-bold text-slate-400">Retros:</span>
@@ -345,9 +321,7 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
         )}
       </div>
 
-      {/* 4. Bottom High-Impact Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
-        {/* Metric 1: Year Retros */}
         <div className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.06] flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shrink-0">
             <Layers className="w-4 h-4" />
@@ -360,7 +334,6 @@ export const AnalyticsMonthlyBarChart: React.FC<AnalyticsMonthlyBarChartProps> =
           </div>
         </div>
 
-        {/* Metric 2: Completed vs Pending Action Items */}
         <div className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.06] flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-4 h-4" />

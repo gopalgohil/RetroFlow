@@ -11,9 +11,6 @@ const getToken = (): string | null => {
   );
 };
 
-/**
- * Returns a singleton Socket.io client instance connected to the /retro namespace.
- */
 export const getRetroSocket = (): Socket => {
   if (!socket) {
     const rawUrl =
@@ -55,7 +52,6 @@ export const getRetroSocket = (): Socket => {
       });
     }
   } else {
-    // Keep auth token updated if user logged in or received guest token
     const token = getToken();
     if (token) {
       socket.auth = { token };
@@ -65,9 +61,6 @@ export const getRetroSocket = (): Socket => {
   return socket;
 };
 
-/**
- * Updates the active socket instance auth credentials.
- */
 export const updateRetroSocketAuth = (token: string) => {
   if (socket) {
     socket.auth = { token };
@@ -77,9 +70,6 @@ export const updateRetroSocketAuth = (token: string) => {
   }
 };
 
-/**
- * Disconnects and tears down the active socket instance.
- */
 export const disconnectRetroSocket = () => {
   if (socket) {
     socket.disconnect();

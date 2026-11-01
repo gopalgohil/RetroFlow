@@ -16,10 +16,6 @@ export interface SprintFilterBarProps {
   disabled?: boolean;
 }
 
-/**
- * SprintFilterBar:
- * Segmented filter tabs with category count badges and active indicators.
- */
 export const SprintFilterBar: React.FC<SprintFilterBarProps> = ({
   filter,
   statusCounts,

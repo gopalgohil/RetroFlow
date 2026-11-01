@@ -9,19 +9,11 @@ import emailService from './email.service.js';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 import env from '../config/env.js';
 
-/**
- * Cryptographically hashes an OTP with bcrypt before persisting to MongoDB Atlas.
- * Ensures plaintext OTPs are never stored in the database.
- */
 const hashOtp = async (otp) => {
   const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(otp.toString().trim(), salt);
 };
 
-/**
- * Securely verifies a submitted OTP against the stored database value.
- * Supports salted bcrypt hashes and maintains graceful backwards compatibility.
- */
 const verifyOtp = async (plainOtp, storedOtp) => {
   if (!plainOtp || !storedOtp) return false;
   const trimmed = plainOtp.toString().trim();
@@ -31,47 +23,35 @@ const verifyOtp = async (plainOtp, storedOtp) => {
   return storedOtp === trimmed;
 };
 
-/**
- * Authentication Business Logic Service
- * Completely decoupled from Express HTTP request / response abstractions.
- */
 class AuthService {
-  /**
-   * Registers a new user in unverified state and dispatches verification OTP via Brevo
-   */
   async register({ name, email, password }) {
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Verify existing user
     let user = await User.findOne({ email: normalizedEmail });
 
     if (user && user.isVerified) {
       throw ApiError.conflict('An account with this email address already exists. Please sign in.');
     }
 
-    // Generate secure 6-digit verification OTP using cryptographically strong random integers
     const otp = crypto.randomInt(100000, 1000000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); 
     const hashedOtp = await hashOtp(otp);
 
     if (user && !user.isVerified) {
-      // Re-use existing unverified profile and update credentials
       const isSuper = isSuperAdmin(normalizedEmail);
       user.name = name.trim();
-      user.password = password; // pre-save hook will hash
+      user.password = password; 
       user.status = isSuper ? 'approved' : 'pending';
       user.verificationOtp = hashedOtp;
       user.verificationOtpExpires = otpExpires;
       await user.save();
     } else {
-      // Check if email was pre-approved via Super Admin or retro whitelists
       const isSuper = isSuperAdmin(normalizedEmail);
       const isPreApproved = Boolean(
         isSuper ||
         (await RetroBoard.exists({ approvedMembers: normalizedEmail }))
       );
 
-      // Create new unverified user with status 'pending' (or 'approved' for Super Admin)
       user = await User.create({
         name: name.trim(),
         email: normalizedEmail,
@@ -89,7 +69,6 @@ class AuthService {
 
     console.log(`\n📬 [Signup Verification]: Verification OTP email dispatched to ${user.email} (Valid 10m)\n`);
 
-    // Dispatch verification email via Brevo API
     const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
     await emailService.sendEmail({
       to: user.email,
@@ -105,9 +84,6 @@ class AuthService {
     };
   }
 
-  /**
-   * Verifies the 6-digit OTP code submitted during Signup
-   */
   async verifyEmail({ email, otp }) {
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -133,7 +109,6 @@ class AuthService {
       throw ApiError.badRequest('Verification code has expired. Please request a new code.');
     }
 
-    // Activate user email verification & ensure status is pending
     const isSuper = isSuperAdmin(user.email);
     user.isVerified = true;
     user.status = isSuper ? 'approved' : (user.status || 'pending');
@@ -141,12 +116,10 @@ class AuthService {
     user.verificationOtpExpires = null;
     await user.save();
 
-    // Dispatch Welcome to Digiflux email to the newly verified user
     emailService.notifyUserWelcome({ user }).catch((err) => {
       console.error('[Brevo User Welcome Notification Error]', err.message);
     });
 
-    // Send email notification to Admin that a new user has registered and is waiting for approval
     if (!isSuper) {
       const reviewUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard?tab=members`;
       emailService.notifyAdminNewUser({ user, reviewUrl }).catch((err) => {
@@ -163,9 +136,6 @@ class AuthService {
     };
   }
 
-  /**
-   * Resends a fresh 6-digit verification OTP
-   */
   async resendVerificationOtp(email) {
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -198,15 +168,11 @@ class AuthService {
     };
   }
 
-  /**
-   * Authenticates an existing user (only if email is verified)
-   */
   async login({ email, password }) {
     const normalizedEmail = email.toLowerCase().trim();
 
     let user = await User.findOne({ email: normalizedEmail });
 
-    // If Admin account doesn't exist yet in fresh database, auto-provision Admin account
     if (!user && isSuperAdmin(normalizedEmail)) {
       user = await User.create({
         name: 'Workspace Admin',
@@ -231,7 +197,6 @@ class AuthService {
       }
     }
 
-    // Ensure Admin is always verified and has approved status
     if (isSuperAdmin(normalizedEmail)) {
       if (user.status !== 'approved' || !user.isVerified || user.role !== 'admin' || !user.isApproved) {
         await User.updateOne(
@@ -246,9 +211,7 @@ class AuthService {
       }
     }
 
-    // Block login if email is not verified yet
     if (!user.isVerified) {
-      // Auto-dispatch a fresh OTP so the user can easily verify right away
       const otp = crypto.randomInt(100000, 1000000).toString();
       user.verificationOtp = await hashOtp(otp);
       user.verificationOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
@@ -270,7 +233,6 @@ class AuthService {
       );
     }
 
-    // Block login only if user was explicitly rejected by workspace administrator
     const isSuper = isSuperAdmin(normalizedEmail) || user.role === 'admin';
     const userStatus = user.status || (user.isApproved ? 'approved' : 'pending');
 
@@ -282,7 +244,6 @@ class AuthService {
       );
     }
 
-    // Mark user as having logged in so their verified account now registers in workspace directory/pending requests
     await User.updateOne(
       { _id: user._id },
       { $set: { hasLoggedIn: true, lastLogin: new Date() } }
@@ -315,9 +276,6 @@ class AuthService {
     };
   }
 
-  /**
-   * Generates and dispatches a 6-digit OTP code for password recovery
-   */
   async requestPasswordResetOtp(email) {
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -351,9 +309,6 @@ class AuthService {
     };
   }
 
-  /**
-   * Verifies OTP and resets user password
-   */
   async resetPassword({ email, otp, newPassword }) {
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -382,9 +337,6 @@ class AuthService {
     };
   }
 
-  /**
-   * Retrieves profile of authenticated user with active projects summary
-   */
   async getProfile(userId) {
     const user = await User.findById(userId).select(
       '-password -resetPasswordOtp -resetPasswordExpires -verificationOtp -verificationOtpExpires'
@@ -396,7 +348,6 @@ class AuthService {
     const email = user.email.toLowerCase().trim();
     const isAdmin = user.role === 'admin' || isSuperAdmin(email);
 
-    // Retrieve active projects the user participates in or created
     const userProjects = await Project.find({
       isArchived: { $ne: true },
       $or: [
@@ -425,9 +376,6 @@ class AuthService {
     };
   }
 
-  /**
-   * Updates user profile (e.g. name)
-   */
   async updateProfile(userId, { name }) {
     if (!name || !name.trim()) {
       throw ApiError.badRequest('Full name is required.');
@@ -442,9 +390,6 @@ class AuthService {
     return this.getProfile(userId);
   }
 
-  /**
-   * Updates password verifying current password first
-   */
   async changePassword(userId, { currentPassword, newPassword, email }) {
     if (!currentPassword || !newPassword) {
       throw ApiError.badRequest('Current password and new password are required.');
@@ -475,9 +420,6 @@ class AuthService {
     return { success: true, message: 'Password updated successfully.' };
   }
 
-  /**
-   * Authenticates or registers a user via Google Auth
-   */
   async googleAuth({ email, name, avatar, googleId }) {
     if (!email) {
       throw ApiError.badRequest('Email is required for Google authentication.');
@@ -493,7 +435,6 @@ class AuthService {
     let isNewUser = false;
 
     if (user) {
-      // Update existing user with Google attributes and ensure verified
       let needsSave = false;
       if (!user.googleId && googleId) {
         user.googleId = googleId;
@@ -518,7 +459,6 @@ class AuthService {
       user.lastLogin = new Date();
       await user.save();
     } else {
-      // Auto-approve if Admin or invited in retro boards
       isNewUser = true;
       const isPreApproved = Boolean(
         isAdmin ||
@@ -541,7 +481,6 @@ class AuthService {
       });
       console.log(`\n🎉 [Google Account Initialized] ${user.name} (${user.email}) registered via Google Auth.\n`);
 
-      // Dispatch Welcome to Digiflux email and admin notification for new user registered with Google
       if (!isAdmin) {
         emailService.notifyUserWelcome({ user }).catch((err) => {
           console.error('[Brevo User Welcome Notification Error]', err.message);
@@ -554,7 +493,6 @@ class AuthService {
       }
     }
 
-    // Block login only if explicitly rejected
     const isSuper = isAdmin || user.role === 'admin';
     const userStatus = user.status || (user.isApproved ? 'approved' : 'pending');
 

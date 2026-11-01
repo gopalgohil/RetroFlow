@@ -37,13 +37,11 @@ export function useActionItems({
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [toastFeedback, setToastFeedback] = useState<string | null>(null);
 
-  // Keep a stable ref to callback to eliminate infinite re-render fetch loops
   const onActionItemsCountChangeRef = useRef(onActionItemsCountChange);
   useEffect(() => {
     onActionItemsCountChangeRef.current = onActionItemsCountChange;
   }, [onActionItemsCountChange]);
 
-  // Filter & Search states (Enterprise backend search with 300ms debounce)
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
   const isSearching = searchQuery.trim() !== debouncedSearch.trim();
@@ -53,10 +51,8 @@ export function useActionItems({
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'newest'>('newest');
 
-  // Smart Default: Admin / Manager defaults to true (All Team Items), regular dev defaults to false (My Action Items)
   const [viewAllTeam, setViewAllTeam] = useState<boolean>(() => isElevatedRole);
 
-  // Auto-sync if user role hydrates asynchronously
   const hasHydratedRoleRef = useRef(false);
   useEffect(() => {
     if (!hasHydratedRoleRef.current && isElevatedRole) {
@@ -70,7 +66,6 @@ export function useActionItems({
     setTimeout(() => setToastFeedback(null), 3000);
   }, []);
 
-  // 2. Fetch action items directly via backend search API & team toggle
   const loadActionItems = useCallback(async () => {
     setIsLoading(true);
     const startTime = Date.now();
@@ -81,7 +76,6 @@ export function useActionItems({
         search: trimmedSearch ? trimmedSearch : undefined,
       });
       setItems(data || []);
-      // If no search filter is active, update base items for persistent overall KPI metrics
       if (!trimmedSearch) {
         setBaseItems(data || []);
       }
@@ -101,13 +95,11 @@ export function useActionItems({
     loadActionItems();
   }, [loadActionItems]);
 
-  // Synchronize open action items count with parent cleanly in post-render effect
   useEffect(() => {
     const openCount = items.filter((it) => it.status !== 'done').length;
     onActionItemsCountChangeRef.current?.(openCount);
   }, [items]);
 
-  // 3. Status update
   const handleStatusChange = useCallback(
     async (
       item: EnrichedActionItem,
@@ -115,7 +107,6 @@ export function useActionItems({
     ) => {
       if (item.status === newStatus || updatingItemId === item.id) return;
 
-      // Strict Role Check: Developer, QA, Project Leader, DevOps cannot mark items as Done
       if (newStatus === 'done' && !canMarkDone) {
         notify('Only Workspace Admin or Manager can mark action items as Done.');
         return;
@@ -124,7 +115,6 @@ export function useActionItems({
       const prevStatus = item.status;
       setUpdatingItemId(item.id);
 
-      // Optimistic update
       setItems((prev) =>
         prev.map((i) => (i.id === item.id ? { ...i, status: newStatus } : i))
       );
@@ -180,7 +170,6 @@ export function useActionItems({
     [handleStatusChange, canMarkDone]
   );
 
-  // 1. Scoped source items for KPI Metrics (Scoped to the selected project, or all projects if 'all')
   const projectScopedBaseItems = useMemo(() => {
     const source = baseItems.length > 0 ? baseItems : items;
     if (selectedProject === 'all') return source;
@@ -192,7 +181,6 @@ export function useActionItems({
     );
   }, [baseItems, items, selectedProject]);
 
-  // Derived KPI Metrics (Maintains accurate project/global health)
   const metrics = useMemo(() => {
     const total = projectScopedBaseItems.length;
     const todo = projectScopedBaseItems.filter((i) => i.status === 'todo').length;
@@ -202,7 +190,6 @@ export function useActionItems({
     return { total, todo, inProgress, done, completionRate };
   }, [projectScopedBaseItems]);
 
-  // Status Filter tabs counts (Scoped to selected project, priority, and search results)
   const statusCounts = useMemo(() => {
     let source = debouncedSearch.trim() ? items : projectScopedBaseItems;
     if (debouncedSearch.trim() && selectedProject !== 'all') {
@@ -223,7 +210,6 @@ export function useActionItems({
     return { total, todo, inProgress, done };
   }, [debouncedSearch, items, projectScopedBaseItems, selectedProject, selectedPriority]);
 
-  // Project selector options derived from active base items so options don't vanish during search
   const projectOptions = useMemo(() => {
     const source = baseItems.length > 0 ? baseItems : items;
     const map = new Map<string, { id: string; key: string; name: string }>();
@@ -239,7 +225,6 @@ export function useActionItems({
     return Array.from(map.values());
   }, [baseItems, items]);
 
-  // Filtered & Sorted items (search query is executed directly by the backend API)
   const filteredItems = useMemo(() => {
     let result = [...items];
 

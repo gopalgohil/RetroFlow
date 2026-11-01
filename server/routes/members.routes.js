@@ -6,18 +6,8 @@ import { whitelistMemberSchema, updateMemberRoleSchema } from '../validations/me
 
 const router = Router();
 
-/**
- * @route   GET /api/members
- * @desc    Get all workspace members and whitelisted emails
- * @access  Private (Authenticated facilitator/member)
- */
 router.get('/', protect, membersController.getMembers);
 
-/**
- * @route   POST /api/members
- * @desc    Whitelist developer email to workspace
- * @access  Private (Authenticated facilitator)
- */
 router.post(
   '/',
   protect,
@@ -31,11 +21,6 @@ router.post(
   membersController.addWhitelistMember
 );
 
-/**
- * @route   PATCH /api/members/:email/role
- * @desc    Update a member's project role in workspace
- * @access  Private (Authenticated facilitator)
- */
 router.patch(
   '/:email/role',
   protect,
@@ -43,22 +28,12 @@ router.patch(
   membersController.updateMemberRole
 );
 
-/**
- * @route   POST /api/members/bulk-remove
- * @desc    Bulk remove members from workspace
- * @access  Private (Admin only)
- */
 router.post(
   '/bulk-remove',
   protect,
   membersController.bulkRemoveMembers
 );
 
-/**
- * @route   DELETE /api/members/:email
- * @desc    Remove developer email from workspace whitelist
- * @access  Private (Authenticated facilitator)
- */
 router.delete(
   '/:email',
   protect,
@@ -70,13 +45,6 @@ router.delete(
   membersController.removeWhitelistMember
 );
 
-/**
- * @route   PATCH /api/members/:email/approve
- * @route   POST  /api/members/:email/approve
- * @route   POST  /api/members/approve
- * @desc    Approve a pending developer access request
- * @access  Private (Admin only)
- */
 router.patch(
   '/:email/approve',
   protect,
@@ -93,14 +61,6 @@ router.post(
   membersController.approveMember
 );
 
-/**
- * @route   DELETE /api/members/:email/reject
- * @route   PATCH  /api/members/:email/reject
- * @route   POST   /api/members/:email/reject
- * @route   POST   /api/members/reject
- * @desc    Reject a pending developer access request
- * @access  Private (Admin only)
- */
 router.delete(
   '/:email/reject',
   protect,

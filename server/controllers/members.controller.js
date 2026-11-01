@@ -4,15 +4,7 @@ import { ApiError } from '../utils/ApiError.js';
 import membersService from '../services/members.service.js';
 import { isSuperAdmin } from '../config/admin.config.js';
 
-/**
- * Members Controller
- * Thin HTTP adapter mapping requests to MembersService
- */
 class MembersController {
-  /**
-   * Get team members and whitelist roster
-   * GET /api/members
-   */
   getMembers = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -24,7 +16,6 @@ class MembersController {
       search,
     });
 
-    // Disable browser caching to ensure instant updates on role/approval changes
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
 
     return ApiResponse.ok(
@@ -34,10 +25,6 @@ class MembersController {
     );
   });
 
-  /**
-   * Add a developer email to workspace whitelist
-   * POST /api/members
-   */
   addWhitelistMember = asyncHandler(async (req, res) => {
     const result = await membersService.whitelistDeveloper(req.user._id, req.body.email);
     return ApiResponse.ok(
@@ -47,10 +34,6 @@ class MembersController {
     );
   });
 
-  /**
-   * Remove a developer email from workspace whitelist
-   * DELETE /api/members/:email
-   */
   removeWhitelistMember = asyncHandler(async (req, res) => {
     const result = await membersService.removeWhitelistMember(req.user._id, req.params.email);
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -61,10 +44,6 @@ class MembersController {
     );
   });
 
-  /**
-   * Bulk remove members from workspace
-   * POST /api/members/bulk-remove
-   */
   bulkRemoveMembers = asyncHandler(async (req, res) => {
     const { emails } = req.body || {};
     if (!Array.isArray(emails) || emails.length === 0) {
@@ -84,10 +63,6 @@ class MembersController {
     );
   });
 
-  /**
-   * Update a member's role
-   * PATCH /api/members/:email/role
-   */
   updateMemberRole = asyncHandler(async (req, res) => {
     const result = await membersService.updateMemberRole(
       req.user._id,
@@ -102,11 +77,6 @@ class MembersController {
     );
   });
 
-  /**
-   * Approve a pending developer access request
-   * PATCH /api/members/:email/approve
-   * POST  /api/members/approve
-   */
   approveMember = asyncHandler(async (req, res) => {
     const isAdmin =
       req.user.role === 'admin' ||
@@ -134,11 +104,6 @@ class MembersController {
     );
   });
 
-  /**
-   * Reject a pending developer access request
-   * DELETE /api/members/:email/reject
-   * POST   /api/members/reject
-   */
   rejectMember = asyncHandler(async (req, res) => {
     const isAdmin =
       req.user.role === 'admin' ||
@@ -164,7 +129,6 @@ class MembersController {
     );
   });
 }
-
 
 export const membersController = new MembersController();
 export default membersController;

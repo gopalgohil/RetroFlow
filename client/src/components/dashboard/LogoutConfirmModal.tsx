@@ -10,17 +10,11 @@ interface LogoutConfirmModalProps {
   user?: { name?: string; email?: string; role?: string } | null;
 }
 
-/**
- * LogoutConfirmModal Component
- * Simple, clean white-theme confirmation modal for signing out.
- * Uncluttered layout without extra profile boxes.
- */
 export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
 }) => {
-  // ESC key listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -40,16 +34,13 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
       aria-labelledby="logout-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
     >
-      {/* Click outside to dismiss */}
       <div
         className="absolute inset-0"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Modal Card */}
       <div className="relative w-full max-w-md bg-white dark:bg-[#0e1015] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/[0.08] overflow-hidden flex flex-col z-10 animate-in zoom-in-95 duration-150">
-        {/* Header */}
         <div className="px-6 py-5 border-b border-slate-100 dark:border-white/[0.08] flex items-start justify-between bg-gradient-to-r from-slate-50/80 via-white to-slate-50/50 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#12151c]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-xs shrink-0">
@@ -78,14 +69,12 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
           </button>
         </div>
 
-        {/* Modal Body - Simple Message */}
         <div className="px-6 py-5 bg-white dark:bg-[#0e1015]">
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             Are you sure you want to log out? You will need to enter your credentials again to access your retrospective boards.
           </p>
         </div>
 
-        {/* Modal Footer Actions */}
         <div className="px-6 py-4 bg-slate-50/70 dark:bg-[#12151c]/70 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-end gap-3">
           <button
             type="button"

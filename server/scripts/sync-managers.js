@@ -7,7 +7,6 @@ async function run() {
   const User = mongoose.model('User', new mongoose.Schema({ name: String, email: String, role: String, projectRole: String }));
   const Project = mongoose.model('Project', new mongoose.Schema({ name: String, key: String, lead: Object, members: Array }));
 
-  // Find all projects
   const projects = await Project.find({}).lean();
   const managerEmails = new Set();
 
@@ -34,7 +33,6 @@ async function run() {
     console.log(`Updated user ${email}:`, res);
   }
 
-  // Also ensure admin has Manager projectRole
   const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalgohel249@gmail.com').toLowerCase().trim();
   await User.updateOne(
     { email: adminEmail },

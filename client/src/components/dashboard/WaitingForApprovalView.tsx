@@ -29,7 +29,6 @@ export function WaitingForApprovalView({
   const [internalMessage, setInternalMessage] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState(initialUser);
 
-  // Sync from localStorage if available
   useEffect(() => {
     try {
       const saved = localStorage.getItem('retroflow_user');
@@ -37,7 +36,6 @@ export function WaitingForApprovalView({
         const parsed = JSON.parse(saved);
         if (parsed?.email) {
           setCurrentUser(parsed);
-          // Ensure cookie is synced for seamless reloads
           document.cookie = `retroflow_user=${encodeURIComponent(saved)}; path=/; max-age=2592000; SameSite=Lax`;
         }
       }
@@ -105,7 +103,6 @@ export function WaitingForApprovalView({
     }
   };
 
-  // Background check on mount to auto-detect approval
   useEffect(() => {
     api
       .get(ENDPOINTS.AUTH.ME)
@@ -134,10 +131,8 @@ export function WaitingForApprovalView({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex flex-col justify-between selection:bg-[#5cb028] selection:text-white relative overflow-hidden font-sans">
-      {/* Subtle Ambient Background */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[550px] h-[280px] bg-gradient-to-b from-[#88c958]/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none" />
 
-      {/* Minimal Top Header */}
       <header className="px-6 sm:px-10 py-4 border-b border-slate-200/80 dark:border-white/[0.08] bg-white/70 dark:bg-[#0e1015]/70 backdrop-blur-md flex items-center justify-between relative z-10">
         <Link href="/dashboard" className="flex items-center select-none">
           <Image
@@ -161,15 +156,12 @@ export function WaitingForApprovalView({
         </button>
       </header>
 
-      {/* Clean Center Content Card */}
       <main className="flex-1 flex items-center justify-center p-6 relative z-10">
         <div className="max-w-xl w-full rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] p-8 sm:p-12 shadow-2xl dark:shadow-2xl space-y-7 text-center animate-in zoom-in-95 duration-200">
-          {/* Elegant Minimal Icon */}
           <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-xs">
             <Clock className="w-8 h-8 sm:w-10 sm:h-10" />
           </div>
 
-          {/* Typography */}
           <div className="space-y-2.5">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               Waiting for Approval
@@ -179,7 +171,6 @@ export function WaitingForApprovalView({
             </p>
           </div>
 
-          {/* Clean Account Status Badge */}
           <div className="px-5 py-4 rounded-2xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.06] flex items-center justify-between gap-4 text-left shadow-2xs">
             <div className="min-w-0">
               <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Signed in as</p>
@@ -191,7 +182,6 @@ export function WaitingForApprovalView({
             </span>
           </div>
 
-          {/* Status Feedback Notice */}
           {message && (
             <div
               className={`p-3.5 rounded-2xl text-xs sm:text-sm font-medium border animate-in fade-in duration-150 ${
@@ -204,7 +194,6 @@ export function WaitingForApprovalView({
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="space-y-3 pt-1">
             <button
               type="button"
@@ -225,7 +214,6 @@ export function WaitingForApprovalView({
             </button>
           </div>
 
-          {/* Support info */}
           <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-500 pt-3 border-t border-slate-100 dark:border-white/[0.06]">
             Need immediate access? Contact{' '}
             <a href={`mailto:${WORKSPACE_SUPPORT_EMAIL}`} className="text-[#5cb028] dark:text-[#88c958] hover:underline font-semibold">
@@ -235,12 +223,10 @@ export function WaitingForApprovalView({
         </div>
       </main>
 
-      {/* Minimal Footer */}
       <footer className="py-5 text-center text-xs text-slate-400 dark:text-slate-600 relative z-10">
         RetroFlow &bull; Enterprise Agile Retrospectives
       </footer>
 
-      {/* Logout Confirmation Modal */}
       <LogoutConfirmModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}

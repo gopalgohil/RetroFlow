@@ -10,13 +10,6 @@ import { generateToken } from '../utils/token.js';
 import { ApiError } from '../utils/ApiError.js';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 
-
-
-/**
- * Senior Developer Grade Assignee Matching
- * Prevents loose substring false-positives (e.g. 'Raj' matching 'Rajesh').
- * Prioritizes exact email match, exact name match, word token match, and @handle match.
- */
 function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, contextText = '') {
   const tEmail = (targetEmail || '').toLowerCase().trim();
   const tName = (targetName || '').toLowerCase().trim();
@@ -25,10 +18,8 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
   const aEmail = (assigneeEmail || '').toLowerCase().trim();
   const aName = (assigneeName || '').toLowerCase().trim();
 
-  // 1. Exact Email Match (Gold Standard)
   if (aEmail && tEmail && aEmail === tEmail) return true;
 
-  // 2. Exact Username / Handle Match (e.g. "gopalg" <-> "gopalg@digiflux.io")
   const tHandle = tEmail.includes('@') ? tEmail.split('@')[0] : tEmail;
   const aHandle = aEmail.includes('@') ? aEmail.split('@')[0] : aEmail;
 
@@ -36,10 +27,8 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
   if (aName && tHandle && aName === tHandle) return true;
   if (tName && aHandle && tName === aHandle) return true;
 
-  // 3. Exact Full Name Match (Case-insensitive)
   if (aName && tName && aName === tName) return true;
 
-  // 4. Word Token Match for Multi-Word Names (e.g. "Jay Sadhu" matches "Jay Sadhu")
   const aWords = aName.split(/\s+/).filter(Boolean);
   const tWords = tName.split(/\s+/).filter(Boolean);
   if (aWords.length >= 2 && tWords.length >= 2) {
@@ -49,7 +38,6 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
     }
   }
 
-  // 5. Explicit @handle mention in text (e.g. "@gopalg" or "@vikasr")
   if (contextText) {
     const textLower = contextText.toLowerCase();
     if (tHandle && (textLower.includes(`@${tHandle}`) || textLower.includes(`@ ${tHandle}`))) {
@@ -64,15 +52,6 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
 }
 
 class ProjectService {
-  /**
-   * Retrieve projects with Enterprise RBAC filtering and high-performance server-side pagination
-   * - Admin: ALWAYS has visibility across all workspace projects
-   * - Regular Member/Developer: Strictly scoped to projects where user is Lead, Member, or Creator
-   * - Pagination: Standard limit (default 6), skip, total count, and tab counts ('all' vs 'managed')
-   * - Optimizations:
-   *   1. Concurrent Promise.all execution for counts and paginated document retrieval
-   *   2. Retrospective metrics sync executed strictly on paginated result slice (O(limit) vs O(N))
-   */
   async getAllProjects(currentUser = null, options = {}) {
 
     const {
@@ -86,13 +65,11 @@ class ProjectService {
     const userEmail = currentUser?.email?.toLowerCase().trim();
     const userRole = (currentUser?.role || '').toLowerCase();
 
-    // 1. Enterprise RBAC Check
     const isAdmin = Boolean(
       currentUser &&
       (userRole === 'admin' || isSuperAdmin(userEmail))
     );
 
-    // 2. Base Accessible Query Construction
     let baseQuery = { isArchived: { $ne: true } };
 
     if (!isAdmin && userEmail) {
@@ -106,7 +83,6 @@ class ProjectService {
       };
     }
 
-    // 3. Managed Query Construction (projects where user is Lead or Manager role)
     let managedQuery = {
       isArchived: { $ne: true },
     };
@@ -128,7 +104,6 @@ class ProjectService {
       };
     }
 
-    // For regular members, managed query must also intersect with their base accessible scope
     if (!isAdmin && userEmail) {
       managedQuery = {
         $and: [
@@ -150,7 +125,6 @@ class ProjectService {
       };
     }
 
-    // 3.5 Archived Query Construction
     let archivedQuery = { isArchived: true };
     if (!isAdmin && userEmail) {
       archivedQuery = {
@@ -163,10 +137,8 @@ class ProjectService {
       };
     }
 
-    // 4. Select Target Query based on filter
     let targetQuery = filter === 'archived' ? archivedQuery : filter === 'managed' ? managedQuery : baseQuery;
 
-    // 5. Apply Search Filter if specified
     if (search && typeof search === 'string' && search.trim()) {
       const sanitized = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const searchRegex = new RegExp(sanitized, 'i');
@@ -185,13 +157,11 @@ class ProjectService {
       };
     }
 
-    // 6. Enterprise Pagination Calculations
     const isAll = all === true || all === 'true' || String(limit).toLowerCase() === 'all' || Number(limit) === 0;
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = isAll ? 1000 : Math.min(50, Math.max(1, parseInt(limit, 10) || 6));
     const skip = (pageNum - 1) * limitNum;
 
-    // 7. Concurrent Execution for High-Performance Sub-millisecond Execution
     const [allCount, managedCount, archivedCount, totalItems, rawProjects] = await Promise.all([
       Project.countDocuments(baseQuery),
       Project.countDocuments(managedQuery),
@@ -202,7 +172,6 @@ class ProjectService {
         : Project.find(targetQuery).sort({ createdAt: -1 }).skip(skip).limit(limitNum),
     ]);
 
-    // 8. Sync live metrics strictly on the paginated slice
     const syncedProjects = await Promise.all(
       rawProjects.map(async (p) => {
         await this.syncProjectRetrospectives(p);
@@ -236,9 +205,6 @@ class ProjectService {
     };
   }
 
-  /**
-   * Dynamically sync real-time card and action item metrics from live RetroBoard collection
-   */
   async syncProjectRetrospectives(project) {
     if (!project || !project.retrospectives || project.retrospectives.length === 0) {
       return project;
@@ -266,7 +232,6 @@ class ProjectService {
       let hasChanges = false;
       project.sprints = Array.isArray(project.sprints) ? project.sprints : [];
 
-      // Automatically prune orphaned retrospectives (retrospectives deleted from RetroBoard collection)
       const prevRetroCount = project.retrospectives.length;
       project.retrospectives = project.retrospectives.filter((retroItem) => {
         const liveBoard = boardMap.get(retroItem.shareToken) || boardMap.get(retroItem.id);
@@ -319,7 +284,6 @@ class ProjectService {
             hasChanges = true;
           }
 
-          // 1. Ensure a sprint exists for this linked retrospective
           let sprintNum = 1;
           const sMatch = (retroItem.sprintName || retroItem.title || '').match(/\d+/);
           if (sMatch) sprintNum = parseInt(sMatch[0], 10);
@@ -348,7 +312,6 @@ class ProjectService {
             hasChanges = true;
           }
 
-          // 2. Synchronize action items from live retro board into the sprint backlog dynamically
           sprint.items = sprint.items || [];
           let sprintItemsChanged = false;
 
@@ -357,7 +320,6 @@ class ProjectService {
             actionCards.map((c) => (c.text || '').toLowerCase().trim()).filter(Boolean)
           );
 
-          // 2a. Prune items that belong to this retro but are no longer active action items (e.g. deleted or moved to another column)
           const prevCount = sprint.items.length;
           sprint.items = sprint.items.filter((it) => {
             const isFromThisRetro = Boolean(
@@ -368,7 +330,6 @@ class ProjectService {
                   (liveBoard.shareToken && it.sourceRetroId === liveBoard.shareToken))
             );
 
-            // If it belongs to a different retro or is a standalone sprint item, retain it
             if (!isFromThisRetro) return true;
 
             const cleanId = (it.id || '').replace(/^act-/, '');
@@ -386,7 +347,6 @@ class ProjectService {
             sprintItemsChanged = true;
           }
 
-          // 2b. Add or update active action cards from live retro board
           for (const card of actionCards) {
             const cardTitle = (card.text || '').trim();
             if (!cardTitle) continue;
@@ -403,7 +363,6 @@ class ProjectService {
                   it.title.toLowerCase().trim() === cardTitle.toLowerCase())
             );
 
-            // Prioritize explicit card.assignedTo first, then @mention, then card.author
             let assigneeName = card.assignedTo?.name || card.author || 'Assigned Member';
             let assigneeEmail = card.assignedTo?.email || card.authorEmail || undefined;
             const mentionMatch = cardTitle.match(/@([a-zA-Z0-9._-]+)/);
@@ -422,7 +381,6 @@ class ProjectService {
               }
             }
 
-            // Cross-reference against project.members and project.lead to resolve full display name
             const candidateMembers = [...(project.members || [])];
             if (project.lead) candidateMembers.push(project.lead);
 
@@ -551,9 +509,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Sync a specific retro board's live metrics across all parent projects
-   */
   async syncRetroBoardToProjects(shareTokenOrId, retroNamespace = null) {
     if (!shareTokenOrId) return null;
     try {
@@ -611,7 +566,6 @@ class ProjectService {
         ).catch(() => {});
       }
 
-      // Live-sync project sprints and backlog items
       try {
         const matchingProjects = await Project.find({
           $or: [
@@ -645,9 +599,6 @@ class ProjectService {
     }
   }
 
-  /**
-   * Find project by MongoDB _id, custom id, or key with zero-trust RBAC access check
-   */
   async getProjectByIdOrKey(idOrKey, currentUser = null) {
     if (!idOrKey) return null;
 
@@ -662,10 +613,8 @@ class ProjectService {
 
     if (!project) return null;
 
-    // Dynamically calculate and sync live retrospective counts before checking permissions
     await this.syncProjectRetrospectives(project);
 
-    // Ensure all sprint items have givenBy and managerName populated
     if (project.sprints && Array.isArray(project.sprints)) {
       const projectManager =
         project.members?.find(
@@ -697,7 +646,6 @@ class ProjectService {
       });
     }
 
-    // Admin has unrestricted master access to all projects
     const isAdmin = Boolean(
       currentUser &&
       (currentUser.role?.toLowerCase() === 'admin' ||
@@ -714,7 +662,6 @@ class ProjectService {
       throw error;
     }
 
-    // RBAC Authorization enforcement strictly for non-admin members
     const email = currentUser.email?.toLowerCase().trim();
     const isLead = project.lead?.email?.toLowerCase().trim() === email;
     const isMember = project.members?.some((m) => m.email?.toLowerCase().trim() === email);
@@ -730,9 +677,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Helper to verify if currentUser has Manager, Project Lead, or Admin authority in THIS project
-   */
   assertCanManage(project, currentUser) {
     if (!currentUser) {
       const error = new Error('Access Denied: You must be logged in as a Manager, Project Lead, or Workspace Admin.');
@@ -751,9 +695,6 @@ class ProjectService {
     const isCreator = currentUser._id && project.createdBy?.toString() === currentUser._id.toString();
     const memberRecord = project.members?.find((m) => m.email?.toLowerCase().trim() === email);
 
-    // Project-specific role check:
-    // User must be designated lead, creator, or assigned Manager/Lead in THIS specific project.
-    // A user with "Manager" in workspace but "Developer" in this project must NOT have management rights here.
     const projectRole = (memberRecord?.role || '').toLowerCase();
     const isProjectManager = projectRole === 'manager' || projectRole.includes('manager');
     const isProjectLead = projectRole === 'project lead' || projectRole.includes('lead');
@@ -765,9 +706,6 @@ class ProjectService {
     }
   }
 
-  /**
-   * Create a new project with Initial Sprint
-   */
   async createProject(payload, userId = null) {
     const key = payload.key.toUpperCase().trim();
     const existing = await Project.findOne({ key });
@@ -799,7 +737,6 @@ class ProjectService {
       'PL';
     const leadId = payload.lead?.id || `lead-${Date.now()}`;
 
-    // Filter out if lead email is already in payload.members to avoid duplicate entries
     const otherMembers = (payload.members || []).filter(
       (m) => m.email?.toLowerCase().trim() !== leadEmail
     );
@@ -830,7 +767,6 @@ class ProjectService {
       })),
     ];
 
-    // Ensure creating manager is always recorded as a member if not already lead/member
     if (
       creatorEmail &&
       creatorEmail !== leadEmail &&
@@ -868,7 +804,6 @@ class ProjectService {
       createdBy: validUserId || (mongoose.Types.ObjectId.isValid(userId) ? userId : null),
     });
 
-    // Synchronize global projectRole in User collection for any assigned Managers/Leads
     try {
       const managerEmails = members
         .filter((m) => {
@@ -891,9 +826,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Update project configuration
-   */
   async updateProject(idOrKey, payload, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -911,9 +843,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Start an upcoming sprint (marks current active as completed)
-   */
   async startSprint(idOrKey, sprintId, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -938,9 +867,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Complete an active sprint
-   */
   async completeSprint(idOrKey, sprintId, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -963,9 +889,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Update status of an individual backlog item / action item in a sprint
-   */
   async updateSprintItemStatus(idOrKey, sprintId, itemId, payload, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -981,8 +904,6 @@ class ProjectService {
     const status = typeof payload === 'string' ? payload : payload?.status;
     const dueDate = typeof payload === 'object' ? payload?.dueDate : undefined;
 
-    // RBAC & Assignee validation:
-    // Only assigned developer or manager can update status; only manager can mark as done.
     if (currentUser && status) {
       let isManager = false;
       try {
@@ -1069,7 +990,6 @@ class ProjectService {
 
     item.updatedAt = new Date();
 
-    // Bi-directional Sync: Synchronize matching card in RetroBoard if linked
     if (item.sourceRetroId && status) {
       try {
         const retroQuery = mongoose.isValidObjectId(item.sourceRetroId)
@@ -1094,12 +1014,10 @@ class ProjectService {
       }
     }
 
-    // Dynamically recalculate completedStoryPoints for this sprint based on completed items
     sprint.completedStoryPoints = sprint.items
       .filter((i) => i.status === 'done')
       .reduce((acc, i) => acc + (i.storyPoints || 0), 0);
 
-    // If totalStoryPoints is 0, sum all items
     if (!sprint.totalStoryPoints || sprint.totalStoryPoints === 0) {
       sprint.totalStoryPoints = sprint.items.reduce((acc, i) => acc + (i.storyPoints || 0), 0);
     }
@@ -1108,10 +1026,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Delete an individual backlog item / action item from a sprint
-   * Recalculates total and completed story points, and removes matching card from retro if applicable
-   */
   async deleteSprintItem(idOrKey, sprintId, itemId, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -1127,7 +1041,6 @@ class ProjectService {
 
     const [deletedItem] = sprint.items.splice(itemIndex, 1);
 
-    // Dynamically recalculate completed and total story points for this sprint
     sprint.completedStoryPoints = sprint.items
       .filter((i) => i.status === 'done')
       .reduce((acc, i) => acc + (typeof i.storyPoints === 'number' ? i.storyPoints : 3), 0);
@@ -1139,9 +1052,6 @@ class ProjectService {
 
     await project.save();
 
-    // If item originated from a retrospective, preserve the card in the retro session
-    // (historical meeting record remains intact), but mark isSprintRemoved: true
-    // so it does not appear as an active work item in the developer's "Action Items" dashboard.
     if (deletedItem.sourceRetroId || deletedItem.title) {
       try {
         const retroQuery = deletedItem.sourceRetroId
@@ -1179,10 +1089,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Delete an entire sprint from the project
-   * Restricted strictly to Admins and Managers
-   */
   async deleteSprint(idOrKey, sprintId, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -1217,7 +1123,6 @@ class ProjectService {
 
     const [deletedSprint] = project.sprints.splice(sprintIndex, 1);
 
-    // If deleted sprint was active, set next available upcoming sprint to active
     if (deletedSprint.status === 'active') {
       const nextSprint = project.sprints.find((s) => s.status === 'upcoming');
       if (nextSprint) {
@@ -1229,10 +1134,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Get paginated backlog items & action items for an individual sprint
-   * Industry-standard pagination metadata (page, limit=10, totalItems, totalPages, hasNextPage, hasPrevPage)
-   */
   async getSprintItems(
     idOrKey,
     sprintId,
@@ -1272,12 +1173,10 @@ class ProjectService {
         })
       : [];
 
-    // Optional status filtering ('todo' | 'in_progress' | 'done')
     if (status && status !== 'all') {
       items = items.filter((it) => it.status === status);
     }
 
-    // Optional search filtering
     if (search && search.trim()) {
       const q = search.toLowerCase().trim();
       items = items.filter(
@@ -1309,10 +1208,6 @@ class ProjectService {
     };
   }
 
-  /**
-   * Industry-Standard Project Sprints Pagination & Retrieval
-   * Supports page, limit (default 10), status filter ('all' | 'active' | 'upcoming' | 'completed'), and search
-   */
   async getProjectSprints(
     idOrKey,
     { page = 1, limit = 10, status = 'all', search = '' } = {},
@@ -1332,12 +1227,10 @@ class ProjectService {
 
     let filtered = allSprints;
 
-    // Filter by status if specified
     if (status && status !== 'all') {
       filtered = filtered.filter((s) => s.status === status);
     }
 
-    // Filter by search query if provided
     if (search && search.trim()) {
       const q = search.toLowerCase().trim();
       filtered = filtered.filter(
@@ -1369,10 +1262,6 @@ class ProjectService {
     };
   }
 
-  /**
-   * Industry-Standard Project Retrospectives Pagination & Retrieval
-   * Supports page, limit (default 9), search, and synchronization of latest retro metrics
-   */
   async getProjectRetros(
     idOrKey,
     { page = 1, limit = 9, search = '' } = {},
@@ -1381,14 +1270,12 @@ class ProjectService {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
 
-    // Ensure latest cards/actionItems counters are synchronized
     await this.syncProjectRetrospectives(project);
 
     const allRetros = Array.isArray(project.retrospectives) ? [...project.retrospectives] : [];
 
     let filtered = allRetros;
 
-    // Filter by search query if provided
     if (search && search.trim()) {
       const q = search.toLowerCase().trim();
       filtered = filtered.filter(
@@ -1419,9 +1306,6 @@ class ProjectService {
     };
   }
 
-  /**
-   * Update custom start/end dates and goal of an individual sprint
-   */
   async updateSprintDates(idOrKey, sprintId, { startDate, endDate, goal, name }, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -1454,7 +1338,6 @@ class ProjectService {
     if (goal !== undefined) sprint.goal = goal;
     if (name !== undefined) sprint.name = name;
 
-    // Calculate days remaining from today till endDate
     const nowMs = Date.now();
     const diffDays = Math.ceil((endMs - nowMs) / 86400000);
     sprint.daysLeft = Math.max(0, diffDays);
@@ -1463,9 +1346,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Add a team member with role
-   */
   async addMember(idOrKey, memberData, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -1495,7 +1375,6 @@ class ProjectService {
 
     await project.save();
 
-    // Automatically synchronize new member into approvedMembers for all retros of this project
     try {
       await RetroBoard.updateMany(
         { projectId: project._id },
@@ -1517,9 +1396,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Remove a team member from the project
-   */
   async removeMember(idOrKey, memberIdOrEmail, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -1536,7 +1412,6 @@ class ProjectService {
 
     const memberToRemove = project.members[memberIndex];
 
-    // Prevent removing designated primary Project Lead
     if (project.lead?.email?.toLowerCase() === memberToRemove.email.toLowerCase()) {
       throw new Error('Cannot remove the designated Project Lead from the project.');
     }
@@ -1544,7 +1419,6 @@ class ProjectService {
     project.members.splice(memberIndex, 1);
     await project.save();
 
-    // Synchronize removal from approvedMembers in project retros
     try {
       await RetroBoard.updateMany(
         { projectId: project._id },
@@ -1557,9 +1431,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Update a team member's role in the project
-   */
   async updateMemberRole(idOrKey, memberIdOrEmail, newRole, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -1593,19 +1464,14 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Export action items from a retrospective into the sprint backlog
-   */
   async exportActionItems(idOrKey, sprintId, items, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
     this.assertCanManage(project, currentUser);
 
-    // Locate target sprint or determine from retro context
     let sprint = project.sprints.find((s) => s.id === sprintId);
 
     if (!sprint) {
-      // Deduce sprint number from sourceRetroTitle or sourceRetroId
       let sprintNum = null;
       const sourceTitle = items[0]?.sourceRetroTitle || '';
       const match = sourceTitle.match(/sprint\s*(\d+)/i);
@@ -1683,7 +1549,6 @@ class ProjectService {
       let resolvedEmail = item.assignee?.email ? item.assignee.email.toLowerCase().trim() : undefined;
       let resolvedAvatar = item.assignee?.avatar;
 
-      // Auto-resolve email and canonical member details from project members and lead
       if (resolvedName || resolvedEmail) {
         const candidateMembers = [...(project.members || [])];
         if (project.lead) candidateMembers.push(project.lead);
@@ -1791,7 +1656,6 @@ class ProjectService {
       .filter((it) => it.status === 'done')
       .reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
 
-    // Mark retro link as exported and session as completed if retro link exists
     if (items[0]?.sourceRetroId) {
       project.retrospectives = project.retrospectives.map((r) => {
         if (r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId) {
@@ -1801,7 +1665,6 @@ class ProjectService {
         return r;
       });
 
-      // Also sync RetroBoard document status to 'completed'
       try {
         const retroIdentifier = items[0].sourceRetroId;
         const retroQuery = mongoose.Types.ObjectId.isValid(retroIdentifier)
@@ -1840,9 +1703,6 @@ class ProjectService {
     };
   }
 
-  /**
-   * Retrieve action items assigned to the current user (or all team items if requested by Admin/Manager)
-   */
   async getMyActionItems(currentUser = null, options = {}) {
     const userEmail = currentUser?.email?.toLowerCase().trim();
     const userName = currentUser?.name?.toLowerCase().trim();
@@ -1869,7 +1729,6 @@ class ProjectService {
 
     const fetchAll = (options.all === true || options.all === 'true') && isManager;
 
-    // 1. Fetch accessible projects (only projects where user is lead, member, or creator)
     let projectQuery = {};
     if (!isAdmin && userEmail) {
       projectQuery = {
@@ -1886,13 +1745,11 @@ class ProjectService {
     const seenCardIds = new Set();
     const normalizeKey = (str) => (str ? str.toString().toLowerCase().trim() : '');
 
-    // Collect action items from project sprints
     for (const proj of projects) {
       const sprints = proj.sprints || [];
       for (const sprint of sprints) {
         const items = sprint.items || [];
         for (const item of items) {
-          // If not fetching all, strictly filter by assigned user email or name
           if (!fetchAll) {
             if (!userEmail && !userName) continue;
 
@@ -1979,14 +1836,12 @@ class ProjectService {
       }
     }
 
-    // 2. Collect direct action cards from accessible Retrospective Sessions (Action Items topic)
     let retroQuery = {};
     if (!isAdmin && userEmail) {
       const projectIds = projects.map((p) => p._id);
       const projectKeys = projects.map((p) => p.key).filter(Boolean);
 
       if (fetchAll) {
-        // Manager's "All Team Items": Only retros belonging to manager's accessible projects
         retroQuery = {
           $or: [
             { projectId: { $in: projectIds } },
@@ -1995,7 +1850,6 @@ class ProjectService {
           ],
         };
       } else {
-        // "My Action Items": Retros where user is approved, attendee, author, creator, or member of associated project
         retroQuery = {
           $or: [
             { approvedMembers: { $in: [userEmail, new RegExp(`^${userEmail}$`, 'i')] } },
@@ -2023,7 +1877,6 @@ class ProjectService {
       );
 
       for (const card of matchingCards) {
-        // Skip cards that were removed from the sprint backlog
         if (card.isSprintRemoved) {
           continue;
         }
@@ -2033,7 +1886,6 @@ class ProjectService {
         const retroIdNorm = normalizeKey(retro._id.toString());
         const retroShareNorm = normalizeKey(retro.shareToken);
 
-        // Prevent duplicate if already exported to a sprint backlog (case-insensitive & robust)
         if (
           seenCardIds.has(cardIdNorm) ||
           seenCardIds.has(`${retroIdNorm}-${cardTextNorm}`) ||
@@ -2048,12 +1900,10 @@ class ProjectService {
             (retro.projectKey && p.key?.toUpperCase() === retro.projectKey.toUpperCase())
         );
 
-        // Non-admin members can only access action items belonging to their accessible projects or standalone retros
         if (!isAdmin && (retro.projectId || retro.projectKey) && !matchingProject && (!currentUser?._id || retro.createdBy?.toString() !== currentUser._id.toString())) {
           continue;
         }
 
-        // Intelligent Assignee Resolution: Prioritize card.assignedTo, then @mention, then card.author
         let directAssigneeName = card.assignedTo?.name || card.author || 'Assigned Member';
         let directAssigneeEmail = card.assignedTo?.email || card.authorEmail || undefined;
 
@@ -2153,7 +2003,6 @@ class ProjectService {
       }
     }
 
-    // Filter by options if provided
     let filtered = actionItems;
     if (options.projectId && options.projectId !== 'all') {
       const pid = options.projectId.toString().toLowerCase();
@@ -2189,12 +2038,10 @@ class ProjectService {
       );
     }
 
-    // Sort by createdAt descending
     filtered.sort(
       (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
     );
 
-    // Optional server-side pagination
     if (options.page || options.limit) {
       const totalItems = filtered.length;
       const pageNum = Math.max(1, parseInt(options.page, 10) || 1);
@@ -2219,10 +2066,6 @@ class ProjectService {
     return filtered;
   }
 
-  /**
-   * Update the status of an action item (whether in sprint backlog or direct retro card)
-   * Engineered with Full Bi-directional synchronization between Sprints and Retro Boards.
-   */
   async updateActionItemStatus(itemId, status, currentUser = null) {
     if (!['todo', 'in_progress', 'done'].includes(status)) {
       throw new Error(`Invalid status "${status}". Allowed: todo, in_progress, done`);
@@ -2250,7 +2093,6 @@ class ProjectService {
 
     const normStatus = status;
 
-    // 1. Search in Project Sprints
     const project = await Project.findOne({ 'sprints.items.id': itemId });
     if (project) {
       for (const sprint of project.sprints) {
@@ -2259,13 +2101,11 @@ class ProjectService {
           item.status = normStatus;
           item.completedAt = normStatus === 'done' ? new Date() : null;
 
-          // Safe numeric story points recalculation
           sprint.completedStoryPoints = sprint.items
             .filter((i) => i.status === 'done')
             .reduce((acc, i) => acc + (Number(i.storyPoints) || 0), 0);
           await project.save();
 
-          // Bi-directional Sync: Synchronize matching card in RetroBoard if linked
           if (item.sourceRetroId) {
             try {
               const retroQuery = mongoose.isValidObjectId(item.sourceRetroId)
@@ -2295,7 +2135,6 @@ class ProjectService {
       }
     }
 
-    // 2. Search in RetroBoard cards
     const retroQueryConditions = [
       { 'cards.cardId': itemId },
       { 'cards.id': itemId },
@@ -2316,7 +2155,6 @@ class ProjectService {
         card.updatedAt = new Date();
         await retro.save();
 
-        // Bi-directional Sync: Synchronize matching item in Project sprint backlog
         try {
           const normText = (card.text || '').toLowerCase().trim();
           const linkedProject = await Project.findOne({
@@ -2358,9 +2196,6 @@ class ProjectService {
     throw new Error(`Action item with ID "${itemId}" not found.`);
   }
 
-  /**
-   * Archive / Restore project (Soft Delete)
-   */
   async archiveProject(idOrKey, isArchived = true, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -2374,9 +2209,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Permanently delete project (Hard Delete - Danger Zone)
-   */
   async deleteProject(idOrKey, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -2394,7 +2226,6 @@ class ProjectService {
       )
     );
 
-    // Only Workspace Admins or members explicitly assigned as Manager in this project can delete
     const isProjectManager = isProjectMemberManager || (project.lead?.email?.toLowerCase()?.trim() === email);
 
     if (!isAdmin && !isProjectManager) {
@@ -2415,7 +2246,6 @@ class ProjectService {
 
     await Project.deleteOne({ _id: project._id });
 
-    // Cascade delete associated RetroBoards to prevent orphaned sessions
     try {
       await RetroBoard.deleteMany({
         $or: [
@@ -2427,7 +2257,6 @@ class ProjectService {
       console.warn('[deleteProject] Failed to cascade delete RetroBoards:', cascadeErr);
     }
 
-    // Locate the next available project if any remain
     const nextProject = await Project.findOne().sort({ createdAt: -1 });
 
     return {
@@ -2438,9 +2267,6 @@ class ProjectService {
     };
   }
 
-  /**
-   * Delete a retrospective session linked to a project
-   */
   async deleteProjectRetro(idOrKey, retroIdOrToken, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -2457,7 +2283,6 @@ class ProjectService {
 
     await project.save();
 
-    // Also clean up from RetroBoard collection if exists
     try {
       await RetroBoard.deleteOne({
         $or: [{ _id: retroIdOrToken }, { shareToken: retroIdOrToken }],
@@ -2467,9 +2292,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Update retrospective session details (title, scheduledDate, sprintName) in project
-   */
   async updateProjectRetro(idOrKey, retroIdOrToken, payload, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -2492,7 +2314,6 @@ class ProjectService {
 
     await project.save();
 
-    // Also update RetroBoard document if present
     try {
       const updateFields = {
         title: retro.title,
@@ -2512,9 +2333,6 @@ class ProjectService {
     return project;
   }
 
-  /**
-   * Send project invitation emails to selected or external members
-   */
   async inviteMembers(idOrKey, { emails, message }, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
@@ -2528,12 +2346,10 @@ class ProjectService {
     const results = [];
     for (const email of emails) {
       const normalizedEmail = email.trim().toLowerCase();
-      // Find member role if already assigned in project
       const member = project.members?.find((m) => m.email?.toLowerCase() === normalizedEmail);
       const role = member?.role || 'Developer';
       const memberName = member?.name || normalizedEmail.split('@')[0];
 
-      // Generate secure 7-day magic token for 1-click entry
       const magicToken = jwt.sign(
         {
           email: normalizedEmail,
@@ -2582,9 +2398,6 @@ class ProjectService {
     };
   }
 
-  /**
-   * Verify an encrypted project magic invite token and return genuine session JWT for invited developer
-   */
   async verifyMagicInvite(projectIdOrKey, magicToken) {
     if (!magicToken) {
       throw ApiError.badRequest('Magic invite token is required');

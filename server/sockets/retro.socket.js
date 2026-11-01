@@ -7,7 +7,6 @@ import retroService from '../services/retro.service.js';
 import { isSuperAdmin } from '../config/admin.config.js';
 import { verifyToken } from '../utils/token.js';
 
-// Zod Validation Schemas for Socket.io Events
 const joinRetroSchema = z.object({
   shareToken: z.string().min(1, 'Missing shareToken'),
   token: z.string().optional(),
@@ -67,7 +66,6 @@ const cardVoteSchema = z.object({
   token: z.string().optional(),
 });
 
-// Sliding-window rate limiter per socket connection (Protects against DoS / event spam)
 function checkSocketRateLimit(socket, maxEvents = 30, windowMs = 1000) {
   const now = Date.now();
   if (!socket._rateLimitState || now > socket._rateLimitState.resetAt) {
@@ -78,15 +76,10 @@ function checkSocketRateLimit(socket, maxEvents = 30, windowMs = 1000) {
   return socket._rateLimitState.count <= maxEvents;
 }
 
-/**
- * Socket.io Real-Time Retrospective Collaboration Controller
- * Handles instant synchronized card operations across distributed team sessions
- */
 export function initRetroSocket(io) {
   const retroNamespace = io.of('/retro');
 
-  // Socket JWT Authentication Middleware
-  retroNamespace.use((socket, next) => {
+  retroNamespace.use(async (socket, next) => {
     try {
       const token =
         socket.handshake.auth?.token ||
@@ -117,7 +110,6 @@ export function initRetroSocket(io) {
             };
           }
         } catch (tokenErr) {
-          // Allow connection as guest/unauthenticated
         }
       }
       next();
@@ -130,7 +122,6 @@ export function initRetroSocket(io) {
     let currentShareToken = null;
     let currentUser = null;
 
-    // Per-connection packet rate limiter
     socket.use(([event, ...args], next) => {
       if (!checkSocketRateLimit(socket, 30, 1000)) {
         console.warn(`[Socket Security] Rate limit exceeded on socket ${socket.id} for event: ${event}`);
@@ -139,9 +130,7 @@ export function initRetroSocket(io) {
       next();
     });
 
-    // Identity verification helper (Supports JWT, socket handshake, and session participant identity)
     function getAuthenticatedUser(payload) {
-      // 1. If payload or handshake contains a signed JWT token, verify it
       const tokenCandidate = payload?.token || socket.handshake.auth?.token;
       if (tokenCandidate) {
         try {
@@ -164,7 +153,6 @@ export function initRetroSocket(io) {
         } catch (e) {}
       }
 
-      // 2. Return user from connection or previous join
       if (socket.user && (socket.user.email || socket.user.name)) {
         return socket.user;
       }
@@ -173,7 +161,6 @@ export function initRetroSocket(io) {
         return currentUser;
       }
 
-      // 3. Fallback to payload author / email / role if provided
       if (payload?.author || payload?.authorEmail) {
         return {
           name: (payload.author || 'Teammate').trim(),
@@ -186,7 +173,6 @@ export function initRetroSocket(io) {
       return null;
     }
 
-    // 1. Join Retrospective Room
     socket.on('join:retro', async (payload, callback) => {
       try {
         const parsed = joinRetroSchema.safeParse(payload);
@@ -200,7 +186,6 @@ export function initRetroSocket(io) {
         currentShareToken = shareToken;
         const verifiedUser = getAuthenticatedUser(payload);
         if (verifiedUser) {
-          // If verifiedUser has no email but user payload provided email, enrich it
           if (!verifiedUser.email && user?.email) {
             verifiedUser.email = user.email.toLowerCase().trim();
           }
@@ -224,7 +209,6 @@ export function initRetroSocket(io) {
         const roomName = `retro:${shareToken}`;
         socket.join(roomName);
 
-        // Fetch latest session cards from MongoDB
         const session = await RetroBoard.findOne({ shareToken }).lean();
 
         if (callback) {
@@ -235,13 +219,11 @@ export function initRetroSocket(io) {
           });
         }
 
-        // Notify room of participant joining
         socket.to(roomName).emit('participant:joined', {
           user: currentUser,
           timestamp: new Date(),
         });
 
-        // Atomic non-blocking attendee recording (prevents race condition document overwrites)
         const participantEmail = currentUser?.email?.toLowerCase()?.trim();
         if (participantEmail) {
           RetroBoard.updateOne(
@@ -279,7 +261,6 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 2. Add Sticky Card
     socket.on('card:add', async (payload, callback) => {
       try {
         const parsed = cardAddSchema.safeParse(payload);
@@ -292,7 +273,6 @@ export function initRetroSocket(io) {
 
         const authUser = getAuthenticatedUser(payload);
         let authorName = (authUser?.name || payload?.author || currentUser?.name || 'Developer').trim();
-        // Strict: If authenticated, lock authorEmail to verified email (cannot spoof authorEmail)
         const authorEmail = authUser?.email
           ? authUser.email.toLowerCase().trim()
           : (payload?.authorEmail || '').toLowerCase().trim();
@@ -328,10 +308,8 @@ export function initRetroSocket(io) {
         }
 
         const roomName = `retro:${shareToken}`;
-        // Broadcast to ALL sockets in the room (including sender)
         retroNamespace.to(roomName).emit('card:created', newCard);
 
-        // Dynamically sync real-time card and action item counts to parent projects
         projectService.syncRetroBoardToProjects(shareToken, retroNamespace).catch(() => {});
 
         if (callback) callback({ success: true, card: newCard });
@@ -341,7 +319,6 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 3. Edit Sticky Card (Author Only - Cryptographically Verified Guard)
     socket.on('card:edit', async (payload, callback) => {
       try {
         const parsed = cardEditSchema.safeParse(payload);
@@ -360,7 +337,6 @@ export function initRetroSocket(io) {
           return;
         }
 
-        // Verify that the user is the original author of the card
         const existingBoard = await RetroBoard.findOne(
           { shareToken, 'cards.cardId': cardId },
           { 'cards.$': 1 }
@@ -426,14 +402,12 @@ export function initRetroSocket(io) {
       }
     });
 
-    // Helper: Verify if user has Workspace Admin or Manager permissions for the retro session
     function checkAdminOrManager(board, requester) {
       if (!requester) return false;
       const requesterEmail = (requester?.email || '').toLowerCase().trim();
       const requesterRole = (requester?.role || '').toLowerCase().trim();
       const requesterProjectRole = (requester?.projectRole || '').toLowerCase().trim();
 
-      // 1. Workspace Admin
       const isWsAdmin =
         requesterRole === 'admin' ||
         requesterRole.includes('admin') ||
@@ -442,7 +416,6 @@ export function initRetroSocket(io) {
 
       if (isWsAdmin) return true;
 
-      // 2. Manager or Lead role
       if (
         requesterRole === 'manager' ||
         requesterRole.includes('lead') ||
@@ -453,7 +426,6 @@ export function initRetroSocket(io) {
         return true;
       }
 
-      // 3. Creator of retro board
       if (board?.createdBy) {
         const createdById =
           typeof board.createdBy === 'object'
@@ -471,7 +443,6 @@ export function initRetroSocket(io) {
         }
       }
 
-      // 4. Linked Project Lead or Manager member
       const linkedProject = (board?.projectId && typeof board.projectId === 'object')
         ? board.projectId
         : ((board?.project && typeof board.project === 'object') ? board.project : null);
@@ -497,7 +468,6 @@ export function initRetroSocket(io) {
       return false;
     }
 
-    // Move Sticky Card between topics/questions (Strictly Admin and Manager only)
     socket.on('card:move', async (payload, callback) => {
       try {
         const parsed = cardMoveSchema.safeParse(payload);
@@ -566,7 +536,6 @@ export function initRetroSocket(io) {
       }
     });
 
-    // Reorder Sticky Cards within a specific topic (Strictly Admin and Manager only)
     socket.on('cards:reorder', async (payload, callback) => {
       try {
         const parsed = cardsReorderSchema.safeParse(payload);
@@ -615,7 +584,6 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 4. Delete Sticky Card (Author or Facilitator/Admin/Manager only)
     socket.on('card:delete', async (payload, callback) => {
       try {
         const parsed = cardDeleteSchema.safeParse(payload);
@@ -682,7 +650,6 @@ export function initRetroSocket(io) {
         const roomName = `retro:${shareToken}`;
         retroNamespace.to(roomName).emit('card:deleted', { cardId });
 
-        // Dynamically sync real-time card and action item counts to parent projects
         projectService.syncRetroBoardToProjects(shareToken, retroNamespace).catch(() => {});
 
         if (callback) callback({ success: true, cardId });
@@ -692,7 +659,6 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 5. Toggle Like / Unlike Sticky Card (Atomic real-time toggle)
     socket.on('card:vote', async (payload, callback) => {
       try {
         const parsed = cardVoteSchema.safeParse(payload);
@@ -708,7 +674,6 @@ export function initRetroSocket(io) {
         const normalizedEmail = (authUser?.email || voterEmail || '').toLowerCase().trim();
         const voterIdentifier = normalizedEmail || voterName;
 
-        // Retrieve current card voters atomically
         const cardDoc = await RetroBoard.findOne(
           { shareToken, 'cards.cardId': cardId },
           { 'cards.$': 1 }
@@ -733,7 +698,6 @@ export function initRetroSocket(io) {
         let hasVoted = false;
 
         if (isAlreadyVoted) {
-          // Atomic UNLIKE: Pull voter and decrement vote count
           const pullCandidates = [voterIdentifier, normalizedEmail, voterName].filter(Boolean);
           updatedBoard = await RetroBoard.findOneAndUpdate(
             { shareToken, 'cards.cardId': cardId },
@@ -745,7 +709,6 @@ export function initRetroSocket(io) {
           );
           hasVoted = false;
         } else {
-          // Atomic LIKE: Add voter uniquely and increment vote count
           updatedBoard = await RetroBoard.findOneAndUpdate(
             { shareToken, 'cards.cardId': cardId },
             {
@@ -788,9 +751,6 @@ export function initRetroSocket(io) {
       }
     });
 
-
-
-    // 6. Session Lifecycle (Facilitator / Manager / Admin End Session)
     socket.on('session:end', async ({ shareToken, retroId }, callback) => {
       try {
         const query = shareToken ? { shareToken } : { _id: retroId };
@@ -877,7 +837,6 @@ export function initRetroSocket(io) {
       }
     });
 
-    // 7. Disconnect
     socket.on('disconnect', () => {
       if (currentShareToken) {
         const roomName = `retro:${currentShareToken}`;

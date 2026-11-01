@@ -56,7 +56,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         onClick ? 'cursor-pointer hover:border-[#88c958]/60 hover:shadow-2xl' : 'hover:border-white/[0.16]'
       } ${className}`}
     >
-      {/* Top Title & Icon */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
           {title}
@@ -68,7 +67,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         </div>
       </div>
 
-      {/* Main Value & Unit / Trend */}
       <div className="flex items-baseline gap-2">
         <span className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">
           {value}
@@ -87,7 +85,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         )}
       </div>
 
-      {/* Optional Progress Bar */}
       {progress && (
         <div className="space-y-1 pt-0.5">
           <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
@@ -103,7 +100,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         </div>
       )}
 
-      {/* Subtitle / Microcopy */}
       {subtitle && (
         <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-normal">{subtitle}</p>
       )}

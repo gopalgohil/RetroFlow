@@ -2,33 +2,25 @@
 
 import React from 'react';
 
-/**
- * ProjectBannerSkeleton:
- * Matches the project detail summary banner and tab navigation strip.
- */
 export const ProjectBannerSkeleton: React.FC<{ activeTab?: string }> = ({ activeTab = 'overview' }) => {
   return (
     <div className="bg-white dark:bg-[#08090a] border-b border-slate-200/80 dark:border-white/[0.08] px-4 sm:px-6 lg:px-8 py-6 animate-pulse">
       <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-start gap-4">
-          {/* Project Key Avatar Skeleton */}
           <div className="w-12 h-12 rounded-2xl bg-[#eaf5e3] dark:bg-[#88c958]/20 shrink-0 border border-[#88c958]/30" />
 
           <div className="space-y-2 flex-1 min-w-0">
-            {/* Title & Badges */}
             <div className="flex flex-wrap items-center gap-2">
               <div className="h-6 w-52 sm:w-72 rounded-lg bg-slate-200 dark:bg-[#141720]" />
               <div className="h-5 w-14 rounded-md bg-slate-100 dark:bg-[#12151c]" />
               <div className="h-5 w-20 rounded-full bg-emerald-100/70 dark:bg-[#88c958]/15" />
             </div>
 
-            {/* Description lines */}
             <div className="space-y-1.5 pt-0.5">
               <div className="h-3.5 w-full max-w-xl rounded bg-slate-100 dark:bg-[#12151c]" />
               <div className="h-3.5 w-3/4 max-w-md rounded bg-slate-100 dark:bg-[#12151c]" />
             </div>
 
-            {/* Sub-meta */}
             <div className="flex items-center gap-3 pt-1">
               <div className="h-3 w-32 rounded bg-slate-200/80 dark:bg-[#141720]" />
               <div className="h-3 w-20 rounded bg-slate-100 dark:bg-[#12151c]" />
@@ -37,7 +29,6 @@ export const ProjectBannerSkeleton: React.FC<{ activeTab?: string }> = ({ active
           </div>
         </div>
 
-        {/* Quick Stats Pill */}
         <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#0e1015] p-2 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shrink-0">
           <div className="px-3 py-1.5 text-center space-y-1">
             <div className="h-2.5 w-10 mx-auto rounded bg-slate-200 dark:bg-[#141720]" />
@@ -51,7 +42,6 @@ export const ProjectBannerSkeleton: React.FC<{ activeTab?: string }> = ({ active
         </div>
       </div>
 
-      {/* Tab Navigation Strip Skeleton */}
       <div className="w-full mt-6 pt-2 border-t border-slate-100 dark:border-white/[0.08] flex items-center gap-2 overflow-x-auto">
         {[
           { id: 'overview', label: 'Overview', width: 'w-24' },
@@ -74,14 +64,9 @@ export const ProjectBannerSkeleton: React.FC<{ activeTab?: string }> = ({ active
   );
 };
 
-/**
- * OverviewTabSkeleton:
- * Matches the Overview tab KPI grid, active sprint highlight, and retros timeline.
- */
 export const OverviewTabSkeleton: React.FC = () => {
   return (
     <div className="space-y-6 animate-pulse">
-      {/* Lead Recognition Banner Skeleton */}
       <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 shadow-xs flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-amber-200/80 dark:bg-amber-900/50 shrink-0" />
@@ -96,7 +81,6 @@ export const OverviewTabSkeleton: React.FC = () => {
         </div>
       </div>
 
-      {/* 4 KPI Metric Cards Grid Skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
           <div
@@ -113,7 +97,6 @@ export const OverviewTabSkeleton: React.FC = () => {
         ))}
       </div>
 
-      {/* Active Sprint Delivery Card Skeleton */}
       <div className="p-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1.5">
@@ -130,7 +113,6 @@ export const OverviewTabSkeleton: React.FC = () => {
         </div>
       </div>
 
-      {/* Retrospectives & Timeline Skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="p-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-4">
           <div className="h-4 w-44 rounded bg-slate-200 dark:bg-[#141720]" />
@@ -153,14 +135,9 @@ export const OverviewTabSkeleton: React.FC = () => {
   );
 };
 
-/**
- * SprintsTabSkeleton:
- * Matches Sprints & Backlog tab.
- */
 export const SprintsTabSkeleton: React.FC = () => {
   return (
     <div className="space-y-6 animate-pulse">
-      {/* Filter Bar */}
       <div className="p-4 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex items-center justify-between gap-4">
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#12151c] p-1 rounded-xl">
           {[1, 2, 3, 4].map((i) => (
@@ -170,7 +147,6 @@ export const SprintsTabSkeleton: React.FC = () => {
         <div className="h-4 w-28 rounded bg-slate-100 dark:bg-[#12151c]" />
       </div>
 
-      {/* Sprints List (2 cards) */}
       <div className="space-y-4">
         {[1, 2].map((i) => (
           <div
@@ -212,14 +188,9 @@ export const SprintsTabSkeleton: React.FC = () => {
   );
 };
 
-/**
- * RetrosTabSkeleton:
- * Matches Retrospectives tab.
- */
 export const RetrosTabSkeleton: React.FC = () => {
   return (
     <div className="space-y-6 animate-pulse">
-      {/* Top Banner */}
       <div className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1.5">
           <div className="h-5 w-48 rounded-lg bg-slate-200 dark:bg-[#141720]" />
@@ -228,7 +199,6 @@ export const RetrosTabSkeleton: React.FC = () => {
         <div className="h-10 w-40 rounded-xl bg-[#cdeac0] dark:bg-[#88c958]/30" />
       </div>
 
-      {/* Retros Grid (3 cards matching 3-column layout) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 lg:gap-4.5 2xl:gap-5">
         {[1, 2, 3].map((i) => (
           <div
@@ -262,14 +232,9 @@ export const RetrosTabSkeleton: React.FC = () => {
   );
 };
 
-/**
- * TeamTabSkeleton:
- * Matches Team & Settings tab.
- */
 export const TeamTabSkeleton: React.FC = () => {
   return (
     <div className="space-y-8 animate-pulse">
-      {/* Section 1: Team Members Directory Card */}
       <div className="p-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs space-y-6">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/[0.08]">
           <div className="space-y-1.5">
@@ -279,7 +244,6 @@ export const TeamTabSkeleton: React.FC = () => {
           <div className="h-9 w-36 rounded-xl bg-[#cdeac0] dark:bg-[#88c958]/30" />
         </div>
 
-        {/* Members Table Rows */}
         <div className="divide-y divide-slate-100 dark:divide-white/[0.08]">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="py-3.5 flex items-center justify-between">
@@ -296,7 +260,6 @@ export const TeamTabSkeleton: React.FC = () => {
         </div>
       </div>
 
-      {/* Section 2: General Configuration Card */}
       <div className="p-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs space-y-5">
         <div className="space-y-1.5 pb-3 border-b border-slate-100 dark:border-white/[0.08]">
           <div className="h-5 w-40 rounded-lg bg-slate-200 dark:bg-[#141720]" />
@@ -319,10 +282,6 @@ export const TeamTabSkeleton: React.FC = () => {
   );
 };
 
-/**
- * Complete ProjectDetailSkeleton component:
- * Renders the banner skeleton and the active tab's specific skeleton.
- */
 export const ProjectDetailSkeleton: React.FC<{
   activeTab?: 'overview' | 'sprints' | 'retros' | 'team';
 }> = ({ activeTab = 'overview' }) => {

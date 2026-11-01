@@ -1,31 +1,18 @@
-/**
- * @file mockProjectData.ts
- * @description Production-ready Data Service for RetroFlow Pro
- * High cohesion, single responsibility data store strictly for Payment Gateway Integration
- */
 
 import { Project, Sprint, BacklogItem, ProjectRetroLink, CreateProjectPayload } from '@/types/project';
 
-// v3 storage key guarantees clean migration in browser without stale dummy projects
 const STORAGE_KEY = 'retroflow_projects_store_v3';
 
 export const MOCK_PROJECT_LEADS = [
   { id: 'lead-1', name: 'Project Lead', email: 'lead@retroflow.io', role: 'Manager' as const, avatar: 'PL' },
 ];
 
-/**
- * Zero Default Hardcoded Projects: Fully dynamic MongoDB Atlas initialization
- */
 export const INITIAL_PROJECTS: Project[] = [];
 
-/**
- * Service to manage project state with localStorage persistence
- */
 export class ProjectDataService {
   private static getStoredProjects(): Project[] {
     if (typeof window === 'undefined') return [];
     try {
-      // Clean up legacy keys
       localStorage.removeItem('retroflow_projects_store');
       localStorage.removeItem('retroflow_projects_store_v2');
       localStorage.removeItem('retroflow_projects_store_v3');
@@ -250,7 +237,6 @@ export class ProjectDataService {
     const project = projects[projIndex];
     project.sprints = (project.sprints || []).filter((s) => s.id !== sprintId);
 
-    // If active sprint was deleted, promote next upcoming sprint to active
     if (!project.sprints.some((s) => s.status === 'active')) {
       const nextUpcoming = project.sprints.find((s) => s.status === 'upcoming');
       if (nextUpcoming) {

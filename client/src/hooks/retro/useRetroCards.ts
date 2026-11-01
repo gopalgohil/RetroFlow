@@ -16,10 +16,6 @@ export interface UseRetroCardsParams {
   setRemainingVotes: React.Dispatch<React.SetStateAction<number>>;
 }
 
-/**
- * Modular Hook: useRetroCards
- * Encapsulates card CRUD actions, optimistic updates, and REST fallbacks
- */
 export function useRetroCards({
   shareToken,
   currentAuthorName,
@@ -48,7 +44,6 @@ export function useRetroCards({
         createdAt: new Date().toISOString(),
       };
 
-      // 1. Instant optimistic insertion for smooth zero-latency UX
       setCards((prev) => [...prev, optimisticCard]);
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
@@ -116,7 +111,6 @@ export function useRetroCards({
       const trimmed = text.trim();
       if (!trimmed || !shareToken) return;
 
-      // Optimistic Update
       setCards((prev) =>
         prev.map((c) => (c.id === cardId ? { ...c, text: trimmed } : c))
       );
@@ -156,7 +150,6 @@ export function useRetroCards({
       if (!shareToken) return;
 
       const previousCards = cardsRef.current;
-      // Optimistic Removal
       setCards((prev) => prev.filter((c) => c.id !== cardId && c.cardId !== cardId));
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
@@ -176,7 +169,6 @@ export function useRetroCards({
           (res: any) => {
             if (res?.error) {
               console.warn('[RetroSession] Failed to delete card:', res.error);
-              // Rollback if server rejected
               setCards(previousCards);
             }
           }
@@ -202,7 +194,6 @@ export function useRetroCards({
         return;
       }
 
-      // Optimistic move in local state
       setCards((prev) =>
         prev.map((c) => (c.id === cardId ? { ...c, topicId: targetTopicId } : c))
       );
@@ -306,7 +297,6 @@ export function useRetroCards({
 
       const willBeVoted = !isCurrentlyVoted;
 
-      // Optimistic Like / Unlike Toggle
       setCards((prev) =>
         prev.map((c) => {
           if (c.id === cardId) {

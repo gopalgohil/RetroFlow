@@ -26,7 +26,6 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
-      {/* Section 1: Team Members Table & Removal Modal */}
       <TeamMembersList
         project={project}
         canManageProject={canManageProject}
@@ -34,7 +33,6 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         onProjectUpdated={onProjectUpdated}
       />
 
-      {/* Section 2: General Project Configuration */}
       <ProjectGeneralSettings
         project={project}
         canManageProject={canManageProject}
@@ -42,7 +40,6 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         onProjectUpdated={onProjectUpdated}
       />
 
-      {/* Section 3: Enterprise Danger Zone */}
       <ProjectDangerZone
         project={project}
         canManageProject={canManageProject}
@@ -50,7 +47,6 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         onProjectUpdated={onProjectUpdated}
       />
 
-      {/* Section 4: Modal for Member Invitation */}
       <InviteMemberModal
         isOpen={isInviteOpen}
         onClose={() => setIsInviteOpen(false)}

@@ -82,7 +82,6 @@ function ProjectDetailContent() {
     setIsClientMounted(true);
   }, []);
 
-  // Dynamically sync live active retrospective sessions count for sidebar
   useEffect(() => {
     let isMounted = true;
     try {
@@ -110,13 +109,11 @@ function ProjectDetailContent() {
     };
   }, []);
 
-  // Profile dropdown & logout confirmation modals state
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const profileDropdownRef = React.useRef<HTMLDivElement>(null);
 
-  // Handle outside click & Escape key to close profile dropdown
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) {
@@ -136,7 +133,6 @@ function ProjectDetailContent() {
     };
   }, []);
 
-  // Sync live profile from backend once on initial mount
   useEffect(() => {
     const syncProfile = () => {
       api
@@ -155,7 +151,6 @@ function ProjectDetailContent() {
     syncProfile();
   }, []);
 
-  // Redirect unapproved members to dashboard where pending approval screen is shown
   useEffect(() => {
     if (
       currentUser &&
@@ -169,7 +164,6 @@ function ProjectDetailContent() {
     }
   }, [currentUser, router]);
 
-  // Logout handler
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('retroflow_token');
@@ -194,7 +188,6 @@ function ProjectDetailContent() {
       }
     } catch { }
 
-    // Check for 1-click project magic invite token in URL
     const inviteParam = searchParams.get('invite');
     if (inviteParam) {
       ProjectApiService.verifyMagicInvite(projectId, inviteParam)
@@ -203,7 +196,6 @@ function ProjectDetailContent() {
             localStorage.setItem('retroflow_token', res.token);
             localStorage.setItem('retroflow_user', JSON.stringify(res.user));
             setCurrentUser(res.user);
-            // Clean up the ?invite= parameter from the URL cleanly
             const currentUrl = new URL(window.location.href);
             currentUrl.searchParams.delete('invite');
             window.history.replaceState(null, '', currentUrl.pathname + currentUrl.search);
@@ -216,7 +208,6 @@ function ProjectDetailContent() {
       const token = localStorage.getItem('retroflow_token');
       const saved = localStorage.getItem('retroflow_user');
       if (!token && !saved) {
-        // Redirect to login if user is not logged in and has no invite link
         router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
         return;
       }
@@ -228,7 +219,6 @@ function ProjectDetailContent() {
     }
   }, [projectId, searchParams, router]);
 
-  // Instant seamless project selection with component-matched skeleton
   const handleSelectProject = (selectedProj: Project) => {
     setIsSwitchingProject(true);
     setAccessDeniedError(null);
@@ -242,13 +232,11 @@ function ProjectDetailContent() {
     }
     router.push(`/projects/${selectedProj.id}?tab=${activeTab}`);
 
-    // Component-matched skeleton smoothly renders while updating project
     setTimeout(() => {
       setProject(selectedProj);
       setIsSwitchingProject(false);
     }, 280);
 
-    // Live background REST API sync
     ProjectApiService.getProjectById(selectedProj.id)
       .then((p) => {
         if (p) {
@@ -269,7 +257,6 @@ function ProjectDetailContent() {
       });
   };
 
-  // Sync tab with URL without ever altering the active projectId
   const handleTabChange = (newTab: 'overview' | 'sprints' | 'retros' | 'team') => {
     if (newTab === activeTab) return;
     setIsTabTransitioning(true);
@@ -286,7 +273,6 @@ function ProjectDetailContent() {
     setIsLoading(true);
     setAccessDeniedError(null);
 
-    // If current project doesn't match URL projectId, check cache or mock first
     if (!project || (project.id !== projectId && project.key?.toLowerCase() !== projectId.toLowerCase())) {
       try {
         const cached = sessionStorage.getItem(`retroflow_cached_project_${projectId}`);
@@ -302,7 +288,6 @@ function ProjectDetailContent() {
       } catch { }
     }
 
-    // Live REST API request -> visible in browser Network tab on initial load
     ProjectApiService.getProjectById(projectId)
       .then((p) => {
         if (isMounted && p) {
@@ -344,7 +329,6 @@ function ProjectDetailContent() {
       })
       .finally(() => {
         if (isMounted) {
-          // Smooth 350ms transition so component-matched skeleton renders cleanly
           setTimeout(() => {
             if (isMounted) {
               setIsLoading(false);
@@ -358,7 +342,6 @@ function ProjectDetailContent() {
     };
   }, [projectId]);
 
-  // Industry-standard event-driven real-time synchronization via WebSockets (Zero HTTP polling)
   useEffect(() => {
     let socket: any = null;
     try {
@@ -409,7 +392,6 @@ function ProjectDetailContent() {
 
   const handleRetroSave = async (payload: CreateRetroPayload) => {
     try {
-      // Calculate dynamic sprint name for this individual retro
       let detectedSprintName = payload.sprintName;
       if (!detectedSprintName && payload.title) {
         const match = payload.title.match(/sprint\s*(\d+)/i);
@@ -420,7 +402,6 @@ function ProjectDetailContent() {
         detectedSprintName = `Sprint ${nextNum}`;
       }
 
-      // Live REST API POST request -> visible in browser Network tab!
       const res = await api.post(ENDPOINTS.RETROS, {
         ...payload,
         projectId: project?.id,
@@ -457,7 +438,6 @@ function ProjectDetailContent() {
         const updatedProject = { ...project, retrospectives: updatedRetros };
         setProject(updatedProject);
 
-        // Sync with live backend Project data so auto-created sprint is loaded immediately
         ProjectApiService.getProjectById(project.id)
           .then((p) => {
             if (p) setProject(p);
@@ -487,24 +467,16 @@ function ProjectDetailContent() {
   const userEmail = activeUser.email?.toLowerCase().trim();
   const userRole = activeUser.role?.toLowerCase().trim();
 
-  // 1. Workspace Administrator (Has master authority over all workspace initiatives)
   const isWorkspaceAdmin = Boolean(userRole === 'admin');
 
-  // 2. Designated Project Lead (from project.lead)
   const isDesignatedLead = Boolean(
     userEmail && project?.lead?.email?.toLowerCase().trim() === userEmail
   );
 
-  // 3. User's specific membership record inside THIS project
   const userMemberRecord = project?.members?.find(
     (m) => m.email?.toLowerCase().trim() === userEmail
   );
 
-  // 4. Project-scoped role priority:
-  // If user is explicitly assigned in project.members, that project role strictly governs!
-  // If user is designated lead, their role is Project Lead.
-  // If user is Workspace Admin, their role is Admin / Manager.
-  // Otherwise default to Developer.
   const projectAssignedRole = userMemberRecord?.role;
 
   const effectiveRole =
@@ -517,18 +489,12 @@ function ProjectDetailContent() {
   const isAssignedProjectLead =
     normalizedProjectRole === 'project lead' || normalizedProjectRole.includes('lead');
 
-  // Check Manager authority IN THIS SPECIFIC PROJECT:
-  // Allowed ONLY for Workspace Admins, members assigned as 'Manager' in this project,
-  // or designated project leads whose role is Manager.
-  // CRITICAL: A user holding a "Manager" title in workspace/other projects MUST NOT have manager authority
-  // in a project where they are assigned as Developer/QA/DevOps.
   const isManager = Boolean(
     isWorkspaceAdmin ||
     isAssignedProjectManager ||
     (isDesignatedLead && !projectAssignedRole)
   );
 
-  // Check Project Lead authority IN THIS SPECIFIC PROJECT:
   const isProjectLead = Boolean(
     !isManager && (
       isDesignatedLead ||
@@ -536,7 +502,6 @@ function ProjectDetailContent() {
     )
   );
 
-  // Check Developer / QA / DevOps in this project:
   const isDevOrQAOrDevOps = Boolean(
     !isWorkspaceAdmin &&
     !isManager &&
@@ -546,19 +511,12 @@ function ProjectDetailContent() {
     )
   );
 
-  // 1. Link sharing (Project link & Retro links)
-  // Admin, Manager, and Project Lead CAN share; Developer, QA, DevOps STRICTLY CANNOT share
   const canShare = Boolean(isClientMounted && (isWorkspaceAdmin || isManager || isProjectLead) && !isDevOrQAOrDevOps);
 
-  // 2. Project deletion (Danger Zone)
-  // Workspace Admin and Project-level Manager ONLY; Project Lead STRICTLY CANNOT delete project
   const canDeleteProject = Boolean(isWorkspaceAdmin || isManager);
 
-  // 3. Retro creation
-  // Admin, Manager, and Project Lead CAN create retro; Developer, QA, DevOps CANNOT
   const canCreateRetro = Boolean((isWorkspaceAdmin || isManager || isProjectLead) && !isDevOrQAOrDevOps);
 
-  // 4. Project management general (sprints, tabs, backlog drag-and-drop)
   const canManageProject = Boolean(isWorkspaceAdmin || isManager || isProjectLead);
 
   const initials = activeUser.name
@@ -587,7 +545,6 @@ function ProjectDetailContent() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex selection:bg-[#88c958] selection:text-[#08090a] font-sans">
-      {/* 1. Left Navigation Sidebar - ALWAYS rendered and persistent */}
       <Sidebar
         activeTab="projects"
         setActiveTab={(t) => {
@@ -601,9 +558,7 @@ function ProjectDetailContent() {
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      {/* 2. Main Content Area */}
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
-        {/* Top Header with Project Switcher - ALWAYS rendered and persistent */}
         <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#08090a]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08] px-4 sm:px-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
@@ -613,7 +568,6 @@ function ProjectDetailContent() {
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Intuitive Project Switcher with instant callback */}
             <ProjectSwitcher
               currentProjectId={projectId}
               currentProject={project}
@@ -622,11 +576,9 @@ function ProjectDetailContent() {
             />
           </div>
 
-          {/* Right Header CTAs */}
           <div className="flex items-center gap-2.5">
             <ThemeToggle />
 
-            {/* User Profile Dropdown Pill */}
             <div className="relative shrink-0" ref={profileDropdownRef}>
               <button
                 type="button"
@@ -635,7 +587,6 @@ function ProjectDetailContent() {
                 aria-haspopup="true"
                 className="flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-2.5 pr-2.5 sm:pr-3 py-1.5 rounded-2xl bg-white dark:bg-[#0e1015] hover:bg-slate-50/90 dark:hover:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] dark:hover:border-white/[0.16] shadow-2xs hover:shadow-xs transition-all cursor-pointer select-none"
               >
-                {/* User Initials Avatar */}
                 <div
                   suppressHydrationWarning
                   className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
@@ -643,7 +594,6 @@ function ProjectDetailContent() {
                   {initials}
                 </div>
 
-                {/* User Name & Role */}
                 <div className="text-left hidden sm:block">
                   <p suppressHydrationWarning className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
                     {activeUser.name || 'User'}
@@ -653,7 +603,6 @@ function ProjectDetailContent() {
                   </p>
                 </div>
 
-                {/* Chevron icon toggles up/down on open */}
                 <ChevronDown
                   className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 ${
                     isProfileDropdownOpen ? 'rotate-180 text-[#5cb028] dark:text-[#88c958]' : ''
@@ -661,10 +610,8 @@ function ProjectDetailContent() {
                 />
               </button>
 
-              {/* Dropdown Menu */}
               {isProfileDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#0e1015] rounded-2xl border border-slate-200/90 dark:border-white/[0.08] shadow-xl shadow-slate-900/10 dark:shadow-black/70 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  {/* Profile Overview Box */}
                   <div className="p-3 bg-slate-50/80 dark:bg-[#12151c] rounded-xl border border-slate-100 dark:border-white/[0.08] mb-1">
                     <div className="flex items-center gap-2.5">
                       <div
@@ -708,9 +655,7 @@ function ProjectDetailContent() {
                     </div>
                   </div>
 
-                  {/* Action items */}
                   <div className="pt-1 space-y-0.5">
-                    {/* My Profile Button */}
                     <button
                       type="button"
                       onClick={() => {
@@ -725,7 +670,6 @@ function ProjectDetailContent() {
 
                     <div className="my-1 h-px bg-slate-100 dark:border-white/[0.08]" />
 
-                    {/* Logout Button */}
                     <button
                       type="button"
                       onClick={() => {
@@ -744,7 +688,6 @@ function ProjectDetailContent() {
           </div>
         </header>
 
-        {/* Content Body Area */}
         {accessDeniedError ? (
           <div className="flex-1 p-6 sm:p-8 flex items-center justify-center min-h-[50vh]">
             <div className="max-w-md w-full p-8 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
@@ -803,7 +746,6 @@ function ProjectDetailContent() {
         ) : (
           <>
 
-            {/* 3. Project Summary Banner */}
             <div className="bg-white dark:bg-[#0e1015] border-b border-slate-200/80 dark:border-white/[0.08] px-4 sm:px-6 lg:px-8 py-6">
               <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
@@ -850,7 +792,6 @@ function ProjectDetailContent() {
                   </div>
                 </div>
 
-                {/* Quick Stats Pill on Banner */}
                 <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#12151c] p-2 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shrink-0">
                   <div className="px-3 py-1.5 text-center">
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold block">Sprints</span>
@@ -866,7 +807,6 @@ function ProjectDetailContent() {
                 </div>
               </div>
 
-              {/* 4. Tab Navigation Strip */}
               <div className="w-full mt-6 pt-2 border-t border-slate-100 dark:border-white/[0.08] flex items-center gap-1 overflow-x-auto">
                 {[
                   { id: 'overview', label: 'Overview', icon: Activity },
@@ -906,7 +846,6 @@ function ProjectDetailContent() {
               </div>
             </div>
 
-            {/* 5. Dynamic Tab View Content */}
             <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full">
               {isTabTransitioning ? (
                 <>
@@ -961,7 +900,6 @@ function ProjectDetailContent() {
         )}
       </div>
 
-      {/* Customize Retro Modal with Project Context & Auto-Invite */}
       <CustomizeRetroModal
         isOpen={isCreateRetroOpen}
         onClose={() => setIsCreateRetroOpen(false)}
@@ -979,7 +917,6 @@ function ProjectDetailContent() {
         }
       />
 
-      {/* My Profile Modal */}
       <MyProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
@@ -987,7 +924,6 @@ function ProjectDetailContent() {
         onUserUpdated={(updated) => setCurrentUser((prev) => ({ ...(prev || {}), ...updated }))}
       />
 
-      {/* Logout Confirmation Modal */}
       <LogoutConfirmModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
@@ -1052,7 +988,6 @@ function ProjectDetailFallback() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex selection:bg-[#88c958] selection:text-[#08090a] font-sans">
-      {/* 1. Real persistent Sidebar - NO skeleton */}
       <Sidebar
         activeTab="projects"
         setActiveTab={() => {}}
@@ -1062,9 +997,7 @@ function ProjectDetailFallback() {
         isOpen={false}
       />
 
-      {/* 2. Main Content Area */}
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
-        {/* Top Header - Real stable layout, matching DashboardHeader and Project page */}
         <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#08090a]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08] px-4 sm:px-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <ProjectSwitcher user={activeUser} />
@@ -1073,7 +1006,6 @@ function ProjectDetailFallback() {
           <div className="flex items-center gap-2.5">
             <ThemeToggle />
 
-            {/* User Profile Pill */}
             <div className="flex items-center gap-2.5 pl-2.5 pr-3 py-1.5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-2xs select-none">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                 {initials}
@@ -1090,7 +1022,6 @@ function ProjectDetailFallback() {
           </div>
         </header>
 
-        {/* 3. ONLY the redirected page content area renders the ProjectDetailSkeleton */}
         <div className="flex-1 overflow-y-auto">
           <ProjectDetailSkeleton activeTab="overview" />
         </div>

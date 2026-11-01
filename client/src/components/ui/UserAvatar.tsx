@@ -24,12 +24,10 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   const [imgError, setImgError] = useState(false);
   const tooltipText = title || email || name;
 
-  // Reset img error if avatar URL changes
   useEffect(() => {
     setImgError(false);
   }, [avatar]);
 
-  // Check if avatar is a valid web image URL
   const isImageUrl = Boolean(
     avatar &&
       typeof avatar === 'string' &&
@@ -40,9 +38,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
         avatar.startsWith('/'))
   );
 
-  // Compute clean 1-2 letter uppercase initials safely (Never render a URL or long hash as text!)
   const initials = useMemo(() => {
-    // If someone explicitly passed a 1-2 letter initial code
     if (
       avatar &&
       typeof avatar === 'string' &&
@@ -54,7 +50,6 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       return avatar.toUpperCase();
     }
 
-    // Derive from name or email
     const cleanName = (name && name.trim()) || '';
     const cleanEmail = (email && email.trim()) || '';
 
@@ -116,7 +111,6 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
         />
       )}
 
-      {/* Floating Tooltip displaying User Email on Hover */}
       {tooltipText && (
         <div className="absolute left-0 bottom-full mb-2 hidden group-hover/avatar:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-[11px] font-semibold shadow-xl shadow-slate-950/25 whitespace-nowrap z-50 pointer-events-none transition-all duration-150 animate-in fade-in zoom-in-95">
           <span>{tooltipText}</span>

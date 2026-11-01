@@ -25,11 +25,6 @@ export interface UseRetroProjectIntegrationReturn {
   resetExportState: () => void;
 }
 
-/**
- * Custom Hook: useRetroProjectIntegration
- * Seamless bridge connecting Agile Retrospective Action Items with Project Sprint Backlogs.
- * Dispatches live HTTP requests to /api/projects/:id/export-action-items
- */
 export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isExporting, setIsExporting] = useState(false);
@@ -37,7 +32,6 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
   const [exportedCount, setExportedCount] = useState(0);
   const [lastExportedSprint, setLastExportedSprint] = useState<Sprint | null>(null);
 
-  // Load real projects from REST API
   const loadProjects = useCallback(async () => {
     try {
       const list = await ProjectApiService.getProjects();
@@ -55,7 +49,6 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
     loadProjects();
   }, [loadProjects, exportSuccess]);
 
-  // Determine suggested target sprint (Next Upcoming Sprint or Active Sprint)
   const getSuggestedSprint = useCallback(
     (projectId: string): Sprint | null => {
       const project = projects.find((p) => p.id === projectId || p.key === projectId);
@@ -72,7 +65,6 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
     [projects]
   );
 
-  // Main Export Dispatcher (Live REST API Call)
   const exportActionItems = useCallback(
     async ({
       projectId,
@@ -102,7 +94,6 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
           sourceRetroTitle: retroTitle,
         }));
 
-        // Real REST API POST request -> visible in browser Network tab!
         const result = await ProjectApiService.exportActionItems(
           projectId,
           sprintId,
@@ -114,10 +105,8 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
         setExportedCount(result.exportedCount);
         setLastExportedSprint(result.targetSprint);
 
-        // Invalidate project cache so project sprint view immediately receives fresh items
         ProjectApiService.clearProjectsCache();
 
-        // Synchronize local cache as well
         ProjectDataService.exportActionItemsToSprint(projectId, sprintId, itemsToExport);
 
         return {
@@ -126,7 +115,6 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
           sprintName: result.targetSprint?.name || 'Sprint Backlog',
         };
       } catch (err) {
-        // Graceful fallback for offline dev
         const fallback = ProjectDataService.exportActionItemsToSprint(
           projectId,
           sprintId,

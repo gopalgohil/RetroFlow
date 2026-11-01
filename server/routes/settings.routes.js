@@ -6,18 +6,8 @@ import { updateSettingsSchema } from '../validations/settings.validation.js';
 
 const router = Router();
 
-/**
- * @route   GET /api/settings
- * @desc    Get workspace preferences and agile rules
- * @access  Private
- */
 router.get('/', protect, settingsController.getSettings);
 
-/**
- * @route   PUT /api/settings
- * @desc    Update workspace preferences
- * @access  Private
- */
 router.put(
   '/',
   protect,

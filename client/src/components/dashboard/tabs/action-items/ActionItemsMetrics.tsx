@@ -16,7 +16,6 @@ interface ActionItemsMetricsProps {
 export const ActionItemsMetrics: React.FC<ActionItemsMetricsProps> = React.memo(({ metrics }) => {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* Metric 1: Total */}
       <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs flex items-center gap-4">
         <div className="w-12 h-12 rounded-2xl bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shrink-0">
           <CheckSquare className="w-6 h-6" />
@@ -27,7 +26,6 @@ export const ActionItemsMetrics: React.FC<ActionItemsMetricsProps> = React.memo(
         </div>
       </div>
 
-      {/* Metric 2: To Do */}
       <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs flex items-center gap-4">
         <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
           <Clock className="w-6 h-6" />
@@ -38,7 +36,6 @@ export const ActionItemsMetrics: React.FC<ActionItemsMetricsProps> = React.memo(
         </div>
       </div>
 
-      {/* Metric 3: In Progress */}
       <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs flex items-center gap-4">
         <div className="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
           <Flame className="w-6 h-6" />
@@ -49,7 +46,6 @@ export const ActionItemsMetrics: React.FC<ActionItemsMetricsProps> = React.memo(
         </div>
       </div>
 
-      {/* Metric 4: Done */}
       <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs flex items-center justify-between gap-2">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shrink-0">

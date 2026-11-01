@@ -26,7 +26,6 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '' }) => {
       document.documentElement.classList.remove('dark');
     }
 
-    // Broadcast change to other mounted components
     window.dispatchEvent(new Event('retroflow-theme-change'));
   };
 
@@ -41,10 +40,8 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '' }) => {
         dark:bg-[#0e1015] dark:border-white/[0.08] dark:text-amber-400 dark:hover:bg-[#0e1015] dark:hover:border-white/[0.16] dark:shadow-2xs
         ${className}`}
     >
-      {/* Light mode: Moon icon (click to switch to dark mode) */}
       <Moon className="w-4 h-4 block dark:hidden text-slate-600 hover:-rotate-12 transition-transform shrink-0" />
 
-      {/* Dark mode: Sun icon (click to switch to light mode) */}
       <Sun className="w-4 h-4 hidden dark:block text-amber-400 hover:rotate-45 transition-transform shrink-0" />
     </button>
   );

@@ -26,8 +26,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
   isManager = false,
   onActionItemsCountChange,
 }) => {
-  // STRICT RULE: Only Admin and Manager have 3 options (To Do, In Progress, Done).
-  // Developer, QA, Project Leader (Project Lead), and DevOps only have 2 options (To Do, In Progress).
   const rawRole = (user?.role || '').toLowerCase().trim();
   const rawProjectRole = (user?.projectRole || '').toLowerCase().trim();
 
@@ -78,15 +76,12 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     handleCycleStatus,
   } = useActionItems({ user, isAdmin, isManager, onActionItemsCountChange, canMarkDone });
 
-  // Pagination states (8 items per page)
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [currentLimit, setCurrentLimit] = useState<number>(DEFAULT_ITEMS_PER_PAGE);
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
 
-  // Filter transition loading state for smooth skeleton animation on status/filter changes
   const [isFilterLoading, setIsFilterLoading] = useState<boolean>(false);
 
-  // Reset to page 1 whenever filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [
@@ -108,7 +103,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
   const startRange = totalItems === 0 ? 0 : (activePage - 1) * currentLimit + 1;
   const endRange = Math.min(activePage * currentLimit, totalItems);
 
-  // Paginated items slice
   const paginatedItems = useMemo(() => {
     const startIndex = (activePage - 1) * currentLimit;
     return filteredItems.slice(startIndex, startIndex + currentLimit);
@@ -123,7 +117,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     }, 180);
   };
 
-  // Page numbers with ellipsis windowing
   const pageNumbers = useMemo(() => {
     if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -193,15 +186,12 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     [viewAllTeam, setViewAllTeam]
   );
 
-  // Initial tab loading skeleton only on the very first mount
   if (isInitialLoading) {
     return <ActionItemsSkeleton />;
   }
 
-
   return (
     <div className="space-y-6">
-      {/* 1. Header Overview Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#eaf5e3]/60 via-white to-slate-50 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#12151c] border border-[#cdeac0]/80 dark:border-white/[0.08] shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -212,7 +202,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
           </p>
         </div>
 
-        {/* Action Toggle (My items vs All Team for Admin/Manager) */}
         {(isAdmin || isManager) && (
           <div className="flex items-center gap-2 bg-white dark:bg-[#12151c] p-1.5 rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-xs shrink-0 self-start lg:self-auto">
             <button
@@ -239,10 +228,8 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
         )}
       </div>
 
-      {/* 2. Top Summary KPI Stats Grid */}
       <ActionItemsMetrics metrics={metrics} />
 
-      {/* 3. Filter & Control Toolbar */}
       <ActionItemsFilters
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -259,7 +246,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
         onResetFilters={handleResetFiltersWithLoader}
       />
 
-      {/* 4. Action Items List with Smooth UI Skeleton Loader */}
       <div className="space-y-3">
         {isLoading || isSearching || isFilterLoading || isPageLoading ? (
           <ActionItemsCardsSkeleton count={Math.min(currentLimit, 8)} />
@@ -283,10 +269,8 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
         )}
       </div>
 
-      {/* 5. Enterprise Pagination Footer (after 8 items) */}
       {totalItems > 0 && totalPages > 1 && (
         <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
-          {/* Left: Range & Limit Selector */}
           <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
             <span>
               Showing <strong className="text-slate-900 dark:text-white font-bold">{startRange}</strong> to{' '}
@@ -308,9 +292,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
             </div>
           </div>
 
-          {/* Right: Page Navigation Controls */}
           <div className="flex items-center gap-1.5">
-            {/* Previous Button */}
             <button
               type="button"
               onClick={() => handlePageChange(activePage - 1)}
@@ -321,7 +303,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
               <span className="hidden sm:inline">Prev</span>
             </button>
 
-            {/* Page Number Pills */}
             {pageNumbers.map((p, idx) =>
               typeof p === 'number' ? (
                 <button
@@ -346,7 +327,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
               )
             )}
 
-            {/* Next Button */}
             <button
               type="button"
               onClick={() => handlePageChange(activePage + 1)}
@@ -360,7 +340,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
         </div>
       )}
 
-      {/* Floating Toast Feedback */}
       {toastFeedback && (
         <div className="fixed bottom-6 right-6 z-50 p-4 rounded-xl bg-slate-900 text-white text-sm font-bold shadow-2xl flex items-center gap-2.5 border border-slate-800 animate-in slide-in-from-bottom-5">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />

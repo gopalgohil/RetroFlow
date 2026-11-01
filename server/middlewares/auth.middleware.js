@@ -5,17 +5,12 @@ import { verifyToken } from '../utils/token.js';
 import User from '../models/User.js';
 import { isSuperAdmin } from '../config/admin.config.js';
 
-/**
- * Middleware to protect private routes requiring valid JWT authentication.
- */
 export const protect = asyncHandler(async (req, res, next) => {
   let token;
 
-  // Check Authorization header for Bearer token
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
     token = req.headers.authorization.split(' ')[1];
   } else if (req.cookies && req.cookies.token) {
-    // Fallback to HTTP-only cookie
     token = req.cookies.token;
   }
 
@@ -25,7 +20,6 @@ export const protect = asyncHandler(async (req, res, next) => {
 
   try {
     const decoded = verifyToken(token);
-    // Find user excluding sensitive fields
     let user = null;
     if (decoded.id && mongoose.Types.ObjectId.isValid(decoded.id)) {
       user = await User.findById(decoded.id).select(
@@ -50,9 +44,6 @@ export const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-/**
- * Middleware for routes accessible to guests but enriched if token is provided
- */
 export const optionalAuth = asyncHandler(async (req, res, next) => {
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
@@ -83,17 +74,12 @@ export const optionalAuth = asyncHandler(async (req, res, next) => {
         };
       }
     } catch {
-      // Ignore token errors for optional auth
     }
   }
 
   next();
 });
 
-/**
- * Guard middleware restricting access strictly to Workspace Administrators and Managers.
- * Non-managers, developers, QA, DevOps, and unverified users are rejected with 403 Forbidden.
- */
 export const requireManagerOrAdmin = asyncHandler(async (req, res, next) => {
   const user = req.user;
   if (!user) {
@@ -120,10 +106,6 @@ export const requireManagerOrAdmin = asyncHandler(async (req, res, next) => {
   next();
 });
 
-/**
- * Guard middleware restricting access strictly to Workspace Administrators only.
- * Non-admins (including project managers, developers, guests) are rejected with 403 Forbidden.
- */
 export const requireAdmin = asyncHandler(async (req, res, next) => {
   const user = req.user;
   if (!user) {

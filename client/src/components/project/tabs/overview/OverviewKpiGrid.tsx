@@ -16,10 +16,6 @@ export interface OverviewKpiGridProps {
   leadDisplayName: string;
 }
 
-/**
- * OverviewKpiGrid:
- * Top 3 KPI metric cards showing Sprint Timeline, Tasks Progress, and Team Roster.
- */
 export const OverviewKpiGrid: React.FC<OverviewKpiGridProps> = ({
   project,
   activeSprint,
@@ -33,7 +29,6 @@ export const OverviewKpiGrid: React.FC<OverviewKpiGridProps> = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-      {/* Metric 2: Active Sprint Days Left */}
       <MetricCard
         title="Sprint Timeline"
         value={activeSprint ? `${activeSprint.daysLeft ?? 0} Days` : 'No Sprint'}
@@ -52,7 +47,6 @@ export const OverviewKpiGrid: React.FC<OverviewKpiGridProps> = ({
         subtitle={!activeSprint ? 'No active sprint running for this project.' : undefined}
       />
 
-      {/* Metric 3: Sprint Tasks Progress */}
       <MetricCard
         title="Tasks Progress"
         value={activeSprint ? `${completedTasks} / ${totalTasks}` : '0 / 0'}
@@ -77,7 +71,6 @@ export const OverviewKpiGrid: React.FC<OverviewKpiGridProps> = ({
         }
       />
 
-      {/* Metric 4: Team Contributors */}
       <MetricCard
         title="Team Roster"
         value={totalMembers}

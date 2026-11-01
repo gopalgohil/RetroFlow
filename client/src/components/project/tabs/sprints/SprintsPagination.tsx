@@ -14,10 +14,6 @@ export interface SprintsPaginationProps {
   onPageChange: (newPage: number) => void;
 }
 
-/**
- * SprintsPagination:
- * Industry-standard pagination bar displayed when total sprints > 10.
- */
 export const SprintsPagination: React.FC<SprintsPaginationProps> = ({
   page,
   limit,
@@ -28,7 +24,6 @@ export const SprintsPagination: React.FC<SprintsPaginationProps> = ({
   isLoading,
   onPageChange,
 }) => {
-  // Only display if more than 1 page exists (threshold > 10)
   if (totalPages <= 1) return null;
 
   const startSprint = totalItems === 0 ? 0 : (page - 1) * limit + 1;
@@ -52,16 +47,13 @@ export const SprintsPagination: React.FC<SprintsPaginationProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs">
-      {/* Pagination Info */}
       <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
         Showing <span className="font-bold text-slate-900 dark:text-white">{startSprint}</span> to{' '}
         <span className="font-bold text-slate-900 dark:text-white">{endSprint}</span> of{' '}
         <span className="font-bold text-slate-900 dark:text-white">{totalItems}</span> sprints
       </div>
 
-      {/* Navigation Controls */}
       <div className="flex items-center gap-1.5">
-        {/* Previous Button */}
         <button
           type="button"
           onClick={() => onPageChange(page - 1)}
@@ -72,7 +64,6 @@ export const SprintsPagination: React.FC<SprintsPaginationProps> = ({
           <span className="hidden sm:inline">Previous</span>
         </button>
 
-        {/* Number Buttons */}
         {getPageNumbers().map((p, idx) =>
           p === '...' ? (
             <span
@@ -98,7 +89,6 @@ export const SprintsPagination: React.FC<SprintsPaginationProps> = ({
           )
         )}
 
-        {/* Next Button */}
         <button
           type="button"
           onClick={() => onPageChange(page + 1)}

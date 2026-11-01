@@ -11,18 +11,12 @@ interface UseDashboardTabsOptions {
   transitionDuration?: number;
 }
 
-/**
- * Custom Hook: useDashboardTabs
- * Senior-level abstraction for handling dashboard tab routing, URL query synchronization,
- * browser back/forward popstate events, and smooth skeleton transitions without Next.js RSC overhead.
- */
 export function useDashboardTabs({
   defaultTab = 'sessions',
   transitionDuration = 380,
 }: UseDashboardTabsOptions = {}) {
   const searchParams = useSearchParams();
 
-  // 1. Derive initial tab from URL query param (?tab=...)
   const initialTabFromUrl = searchParams.get('tab') as DashboardTab | null;
   const initialTab =
     initialTabFromUrl && DASHBOARD_TABS.includes(initialTabFromUrl)
@@ -32,7 +26,6 @@ export function useDashboardTabs({
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // 2. Synchronize tab state with browser popstate (back/forward history)
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
@@ -50,10 +43,8 @@ export function useDashboardTabs({
     return () => window.removeEventListener('popstate', handlePopState);
   }, [activeTab, defaultTab, transitionDuration]);
 
-  // 3. Switch tab with clean URL pushState (Zero RSC re-render jitter)
   const switchTab = useCallback(
     (targetTab: string) => {
-      // If user is already on this tab, do nothing (prevent duplicate API calls & re-renders)
       if (targetTab === activeTab) return;
       if (!DASHBOARD_TABS.includes(targetTab as DashboardTab)) return;
 

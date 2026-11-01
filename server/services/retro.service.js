@@ -11,13 +11,8 @@ import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 import jwt from 'jsonwebtoken';
 import env from '../config/env.js';
 
-
 class RetroService {
-  /**
-   * Create a new custom retrospective session board
-   */
   async createRetro(userId, payload) {
-    // Ensure every topic has a unique topicId and assigned order
     const formattedTopics = (payload.topics || []).map((t, idx) => ({
       topicId: t.topicId || crypto.randomUUID(),
       title: t.title.trim(),
@@ -46,11 +41,9 @@ class RetroService {
     let sprintLabel = payload.sprintName || null;
 
     if (linkedProject) {
-      // Auto-whitelist all project members for strict project privacy
       const projectMemberEmails = linkedProject.members.map((m) => m.email.toLowerCase().trim());
       approvedMembers = Array.from(new Set([...approvedMembers, ...projectMemberEmails]));
 
-      // Determine sprint number dynamically
       let sprintNum = null;
       if (payload.sprintName) {
         const match = payload.sprintName.match(/\d+/);
@@ -66,7 +59,6 @@ class RetroService {
 
       sprintLabel = `Sprint ${sprintNum}`;
 
-      // Check if this sprint exists in linkedProject.sprints, or fallback to active sprint, or first sprint
       targetSprint =
         linkedProject.sprints?.find(
           (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
@@ -112,7 +104,6 @@ class RetroService {
       createdBy: userId,
     });
 
-    // If linked to a project, push retro link into project.retrospectives
     if (linkedProject) {
       const exists = linkedProject.retrospectives.some(
         (r) => r.id === retro._id.toString() || r.shareToken === retro.shareToken
@@ -147,9 +138,6 @@ class RetroService {
     return retro;
   }
 
-  /**
-   * Retrieve all retrospective sessions created by or accessible to user
-   */
   async getUserRetros(userOrId, filters = {}) {
     const userId = typeof userOrId === 'object' ? userOrId._id || userOrId.id : userOrId;
     const userRole = typeof userOrId === 'object' ? userOrId.role : null;
@@ -159,10 +147,7 @@ class RetroService {
     const conditions = [];
 
     if (userRole === 'admin' || isSuperAdmin(userEmail)) {
-      // Admin has full workspace visibility
     } else {
-      // Member / Developer: returns retros where developer was invited (approvedMembers), created,
-      // or attached to projects where they are assigned members or lead
       let memberProjectIds = [];
       if (userEmail) {
         try {
@@ -178,12 +163,10 @@ class RetroService {
 
       const orConditions = [{ createdBy: userId }];
 
-      // User belongs to the project linked to the retrospective
       if (memberProjectIds.length > 0) {
         orConditions.push({ projectId: { $in: memberProjectIds } });
       }
 
-      // Standalone retros or project retros where user is an approved member of that project
       if (userEmail) {
         const emailRegex = new RegExp(`^${userEmail}$`, 'i');
         orConditions.push({
@@ -199,7 +182,6 @@ class RetroService {
       conditions.push({ $or: orConditions });
     }
 
-    // Ensure orphaned project retrospectives (where the project was deleted) are excluded
     try {
       const activeProjects = await Project.find({}).select('_id key').lean();
       const activeProjectIds = activeProjects.map((p) => p._id);
@@ -245,7 +227,6 @@ class RetroService {
         ? conditions[0]
         : { $and: conditions };
 
-    // Enterprise Backend Pagination
     if (filters.page || (filters.limit && String(filters.limit).toLowerCase() !== 'all')) {
       const pageNum = Math.max(1, parseInt(filters.page, 10) || 1);
       const limitNum = Math.min(50, Math.max(1, parseInt(filters.limit, 10) || 9));
@@ -286,9 +267,6 @@ class RetroService {
     return retros;
   }
 
-  /**
-   * Helper to construct seed retrospective document from project retro link
-   */
   buildSeedRetroData(identifier, retroLink, project, creatorId = null) {
     const isPgi13 = identifier === 'retro-pgi-13' || retroLink?.shareToken === 'retro-pgi-13';
     const isPgi14 = identifier === 'retro-pgi-14' || retroLink?.shareToken === 'retro-pgi-14';
@@ -498,10 +476,6 @@ class RetroService {
     };
   }
 
-  /**
-   * Get single retrospective by ID or shareToken
-   * With resilient auto-provisioning for project-linked and canonical retrospectives
-   */
   async getRetroByIdOrToken(identifier, userId = null) {
     let query;
     if (identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)) {
@@ -512,7 +486,6 @@ class RetroService {
 
     let retro = await RetroBoard.findOne(query).populate('createdBy', 'name email');
 
-    // If not found in RetroBoard, check if this retro is registered under any Project
     if (!retro) {
       let linkedProject = await Project.findOne({
         $or: [
@@ -520,7 +493,6 @@ class RetroService {
           { 'retrospectives.id': identifier },
         ],
       });
-
 
       if (linkedProject) {
         const retroLink = (linkedProject.retrospectives || []).find(
@@ -548,7 +520,6 @@ class RetroService {
         if (project) {
           retroObj.project = project;
 
-          // Auto-whitelist all project members (Developers, QA, Managers) in retro.approvedMembers
           const projectEmails = (project.members || []).map((m) => m.email?.toLowerCase().trim()).filter(Boolean);
           if (project.lead?.email) projectEmails.push(project.lead.email.toLowerCase().trim());
 
@@ -564,7 +535,6 @@ class RetroService {
           }
         }
       } catch {
-        // Ignore project fetch error
       }
     } else if (retro.projectKey) {
       try {
@@ -572,7 +542,6 @@ class RetroService {
         if (project) {
           retroObj.project = project;
 
-          // Auto-whitelist all project members in retro.approvedMembers
           const projectEmails = (project.members || []).map((m) => m.email?.toLowerCase().trim()).filter(Boolean);
           if (project.lead?.email) projectEmails.push(project.lead.email.toLowerCase().trim());
 
@@ -588,16 +557,12 @@ class RetroService {
           }
         }
       } catch {
-        // Ignore project fetch error
       }
     }
 
     return retroObj;
   }
 
-  /**
-   * Update an existing retrospective session
-   */
   async updateRetro(retroId, currentUser, payload) {
     let query;
     if (typeof retroId === 'string' && retroId.length === 24 && /^[0-9a-fA-F]{24}$/.test(retroId)) {
@@ -608,7 +573,6 @@ class RetroService {
 
     let retro = await RetroBoard.findOne(query);
 
-    // If not found in RetroBoard, check if registered under any Project and auto-provision
     if (!retro) {
       const linkedProject = await Project.findOne({
         $or: [
@@ -635,7 +599,6 @@ class RetroService {
       throw ApiError.notFound('Retrospective session not found.');
     }
 
-    // Role & permission resolution
     const userId = (currentUser?._id || currentUser || '').toString();
     const userRole = (currentUser?.role || '').toLowerCase();
     const userEmail = (currentUser?.email || '').toLowerCase().trim();
@@ -688,7 +651,6 @@ class RetroService {
       throw ApiError.forbidden('Retrospective session not found or you do not have permission to edit it.');
     }
 
-    // Format topics if provided in payload
     if (payload.topics) {
       payload.topics = payload.topics.map((t, idx) => ({
         topicId: t.topicId || crypto.randomUUID(),
@@ -699,7 +661,6 @@ class RetroService {
         order: typeof t.order === 'number' ? t.order : idx,
       }));
 
-      // When a topic column is deleted, clean up orphaned cards attached to that deleted topic column
       const updatedTopicIds = new Set(payload.topics.map((t) => t.topicId));
       if (Array.isArray(retro.cards)) {
         retro.cards = retro.cards.filter((card) => updatedTopicIds.has(card.topicId));
@@ -709,7 +670,6 @@ class RetroService {
     Object.assign(retro, payload);
     await retro.save();
 
-    // Sync project retrospectives array if this session is project-linked
     if (retro.projectId || retro.projectKey) {
       try {
         const projectQuery = retro.projectId
@@ -728,13 +688,11 @@ class RetroService {
           'retrospectives.$.status': retro.status,
         };
 
-        // Try matching by shareToken first
         const tokenMatch = await Project.updateOne(
           { ...projectQuery, 'retrospectives.shareToken': retro.shareToken },
           { $set: updateSet }
         );
 
-        // Fallback matching by id if not matched by shareToken
         if (!tokenMatch || tokenMatch.matchedCount === 0) {
           await Project.updateOne(
             { ...projectQuery, 'retrospectives.id': retro._id.toString() },
@@ -749,9 +707,6 @@ class RetroService {
     return retro;
   }
 
-  /**
-   * Delete a retrospective session (Admins, Managers, or Session Creator)
-   */
   async deleteRetro(retroId, currentUser) {
     const userId = currentUser?._id || currentUser;
     const userRole = (currentUser?.role || '').toLowerCase();
@@ -776,10 +731,8 @@ class RetroService {
 
     let retro;
     if (isAdmin || isManager) {
-      // Workspace Admins and Managers can delete any retro session
       retro = await RetroBoard.findOneAndDelete(deleteQuery);
     } else {
-      // Regular facilitators can only delete sessions they created
       retro = await RetroBoard.findOneAndDelete({ ...deleteQuery, createdBy: userId });
     }
 
@@ -787,7 +740,6 @@ class RetroService {
       throw ApiError.notFound('Retrospective session not found or you do not have permission to delete it.');
     }
 
-    // Cascade delete: Automatically remove this retrospective from all linked projects
     try {
       const tokensToRemove = [
         retro._id ? retro._id.toString() : null,
@@ -820,9 +772,6 @@ class RetroService {
     return { id: retroId, deleted: true };
   }
 
-  /**
-   * Dispatch an email invitation to a developer/teammate
-   */
   async inviteTeammate(retroId, currentUser, { email, message }) {
     let query;
     if (typeof retroId === 'string' && retroId.length === 24 && /^[0-9a-fA-F]{24}$/.test(retroId)) {
@@ -879,13 +828,11 @@ class RetroService {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Whitelist developer automatically if not already listed
     if (!retro.approvedMembers.includes(normalizedEmail)) {
       retro.approvedMembers.push(normalizedEmail);
       await retro.save();
     }
 
-    // Generate secure encrypted JWT Magic Token (7-day lifespan)
     const magicToken = jwt.sign(
       {
         email: normalizedEmail,
@@ -931,9 +878,6 @@ class RetroService {
     };
   }
 
-  /**
-   * Verify an encrypted magic invite token and return verified developer profile with active session JWT
-   */
   async verifyMagicInvite(shareToken, magicToken) {
     if (!magicToken) {
       throw ApiError.badRequest('Magic invite token is required');
@@ -950,12 +894,10 @@ class RetroService {
       throw ApiError.unauthorized('Invalid token purpose.');
     }
 
-    // Verify share token matches
     if (decoded.shareToken !== shareToken) {
       throw ApiError.badRequest('This invitation link is not for this retrospective session.');
     }
 
-    // Find the retrospective
     const retro = await RetroBoard.findOne({ shareToken }).select(
       '_id title shareToken status approvedMembers createdBy projectId projectKey'
     );
@@ -968,7 +910,6 @@ class RetroService {
       throw ApiError.badRequest('Invalid token payload: missing email.');
     }
 
-    // Verify email is whitelisted in approvedMembers
     const isApproved =
       Array.isArray(retro.approvedMembers) &&
       retro.approvedMembers.some((e) => e && e.toLowerCase().trim() === normalizedEmail);
@@ -1042,10 +983,6 @@ class RetroService {
     };
   }
 
-  /**
-   * Solution 1: Instant No-Password Participant Identity Activation
-   * Enriches guest developer with linked project role and issues genuine 7-day JWT session token
-   */
   async joinParticipant(shareToken, { name, email }) {
     if (!name || !name.trim()) {
       throw ApiError.badRequest('Display name is required to join retrospective');
@@ -1065,7 +1002,6 @@ class RetroService {
     let linkedProject = null;
     let assignedRole = 'Developer';
 
-    // If retro is project-scoped, lookup project and matching team member
     if (retro.projectId || retro.projectKey) {
       const idOrKey = retro.projectId || retro.projectKey;
       const isValidObjectId = mongoose.Types.ObjectId.isValid(idOrKey);
@@ -1089,8 +1025,6 @@ class RetroService {
       }
     }
 
-    // Strict Option 1 Whitelist Verification:
-    // User MUST be explicitly in retro.approvedMembers, or be workspace admin / project lead / manager
     const isApproved =
       Array.isArray(retro.approvedMembers) &&
       retro.approvedMembers.some(
@@ -1109,7 +1043,6 @@ class RetroService {
           ));
     }
 
-    // Check if user is workspace admin
     const userAccount = await User.findOne({ email: normalizedEmail }).select('role');
     const isWorkspaceAdmin = userAccount && userAccount.role === 'admin';
 
@@ -1119,7 +1052,6 @@ class RetroService {
       );
     }
 
-    // Record attendee in retro
     if (!Array.isArray(retro.attendees)) {
       retro.attendees = [];
     }
@@ -1146,7 +1078,6 @@ class RetroService {
     const guestId = `guest-${crypto.randomUUID().slice(0, 8)}`;
     const userRole = assignedRole;
 
-    // Issue genuine 7-day JWT session token
     const token = generateToken(
       {
         id: guestId,
@@ -1187,9 +1118,6 @@ class RetroService {
     };
   }
 
-  /**
-   * Add a sticky card to a retrospective
-   */
   async addCard(identifier, { topicId, text, author, authorEmail }) {
     if (!topicId || !text?.trim()) {
       throw ApiError.badRequest('Topic ID and text are required');
@@ -1211,7 +1139,6 @@ class RetroService {
       updatedAt: new Date(),
     };
 
-
     const retro = await RetroBoard.findOneAndUpdate(
       query,
       { $push: { cards: newCard } },
@@ -1229,9 +1156,6 @@ class RetroService {
     return newCard;
   }
 
-  /**
-   * Update sticky card content (Author only)
-   */
   async updateCard(identifier, cardId, { text }, user = null) {
     if (!cardId || !text?.trim()) {
       throw ApiError.badRequest('Card ID and text are required');
@@ -1286,9 +1210,6 @@ class RetroService {
     return { cardId, text: trimmedText, updatedAt: updatedTime };
   }
 
-  /**
-   * Move sticky card to another topic/question column (Admin and Manager only)
-   */
   async moveCard(identifier, cardId, { topicId }, user = null) {
     if (!cardId || !topicId) {
       throw ApiError.badRequest('Card ID and target Topic ID are required');
@@ -1299,7 +1220,6 @@ class RetroService {
         ? { _id: identifier }
         : { shareToken: identifier };
 
-    // Verify session exists and check authorization if user identity is present
     const existingBoard = await RetroBoard.findOne(boardQuery).populate('projectId').lean();
     if (!existingBoard) {
       throw ApiError.notFound('Retrospective session not found');
@@ -1398,9 +1318,6 @@ class RetroService {
     return { cardId, topicId, updatedAt: updatedTime };
   }
 
-  /**
-   * Reorder sticky cards within a specific topic/question (Admin and Manager only)
-   */
   async reorderCards(identifier, topicId, cardIds, user = null) {
     if (!topicId || !Array.isArray(cardIds)) {
       throw ApiError.badRequest('Topic ID and ordered cardIds array are required');
@@ -1514,9 +1431,6 @@ class RetroService {
     return { topicId, cardIds };
   }
 
-  /**
-   * Delete a sticky card (Author or Manager/Admin only)
-   */
   async deleteCard(identifier, cardId, user = null) {
     if (!cardId) {
       throw ApiError.badRequest('Card ID is required');
@@ -1613,9 +1527,6 @@ class RetroService {
     return { success: true, cardId, shareToken: retro.shareToken };
   }
 
-  /**
-   * Toggle Like / Unlike on a sticky card
-   */
   async voteCard(identifier, cardId, voter = null, voterEmail = null) {
     if (!cardId) {
       throw ApiError.badRequest('Card ID is required');
@@ -1629,7 +1540,6 @@ class RetroService {
     const normalizedEmail = (voterEmail || '').toLowerCase().trim();
     const voterIdentifier = normalizedEmail || voterName;
 
-    // Retrieve targeted card subdocument
     const cardDoc = await RetroBoard.findOne(
       { ...query, 'cards.cardId': cardId },
       { 'cards.$': 1 }
@@ -1653,7 +1563,6 @@ class RetroService {
     let hasVoted = false;
 
     if (isAlreadyVoted) {
-      // Atomic UNLIKE: Pull voter from voters array and decrement votes count
       const pullCandidates = [voterIdentifier, normalizedEmail, voterName].filter(Boolean);
       updatedBoard = await RetroBoard.findOneAndUpdate(
         { ...query, 'cards.cardId': cardId },
@@ -1665,7 +1574,6 @@ class RetroService {
       );
       hasVoted = false;
     } else {
-      // Atomic LIKE: Add voter uniquely and increment votes count
       updatedBoard = await RetroBoard.findOneAndUpdate(
         { ...query, 'cards.cardId': cardId },
         {
@@ -1694,15 +1602,10 @@ class RetroService {
     };
   }
 
-  /**
-   * Dedicated Retrospective Attendance & Participation Analytics for Managers & Admins
-   * Multi-Project filtering, sprint attendance trends, and member-by-member engagement metrics
-   */
   async getRetroAnalytics(user, { projectId = 'all', year = null } = {}) {
     const userEmail = (user.email || '').toLowerCase().trim();
     const isAdmin = user.role === 'admin' || isSuperAdmin(userEmail);
 
-    // 1. Fetch available projects for dropdown filter
     const allProjects = await Project.find(
       isAdmin
         ? { isArchived: { $ne: true } }
@@ -1719,7 +1622,6 @@ class RetroService {
 
     const projectsList = allProjects;
 
-    // If non-admin manager has no assigned projects, safely return empty analytics scope
     if (!isAdmin && projectsList.length === 0) {
       const selectedYearNum = Number(year) || new Date().getFullYear();
       return {
@@ -1769,7 +1671,6 @@ class RetroService {
       };
     }
 
-    // Helper to calculate deduplicated members count for a project
     const getProjectUniqueMemberCount = (p) => {
       const emailSet = new Set();
       if (Array.isArray(p.members)) {
@@ -1790,7 +1691,6 @@ class RetroService {
       memberCount: getProjectUniqueMemberCount(p),
     }));
 
-    // 2. Determine project scope filter
     let targetProject = null;
     if (projectId && projectId !== 'all') {
       targetProject =
@@ -1799,7 +1699,6 @@ class RetroService {
         ) || null;
     }
 
-    // 3. Fetch scoped retrospective sessions
     const retroQuery = {};
     if (targetProject) {
       retroQuery.$or = [
@@ -1807,7 +1706,6 @@ class RetroService {
         { projectKey: targetProject.key },
       ];
     } else {
-      // Scope: fetch retros linked to accessible projects
       const projectIds = projectsList.map((p) => p._id);
       const projectKeys = projectsList.map((p) => p.key);
       if (isAdmin) {
@@ -1830,8 +1728,7 @@ class RetroService {
       .sort({ scheduledDate: -1, createdAt: -1 })
       .lean();
 
-    // 4. Aggregate unique team members within the selected scope
-    const memberMap = new Map(); // email -> memberObject
+    const memberMap = new Map(); 
 
     const registerMember = (email, name, role, avatar) => {
       if (!email) return;
@@ -1861,7 +1758,6 @@ class RetroService {
       }
     };
 
-    // Register project members based on scope
     const projectsInScope = targetProject ? [targetProject] : projectsList;
     projectsInScope.forEach((proj) => {
       if (proj.lead?.email) {
@@ -1874,7 +1770,6 @@ class RetroService {
       }
     });
 
-    // Also register any registered users or authors from retros
     retros.forEach((r) => {
       if (Array.isArray(r.attendees)) {
         r.attendees.forEach((att) => {
@@ -1890,18 +1785,15 @@ class RetroService {
       }
     });
 
-    // 5. Analyze each retrospective session (Trend & Attendance computation)
     const retroTrends = retros.map((r) => {
       const attendeesSet = new Set();
 
-      // Explicit attendees array
       if (Array.isArray(r.attendees)) {
         r.attendees.forEach((att) => {
           if (att.email) attendeesSet.add(att.email.toLowerCase().trim());
         });
       }
 
-      // Backward compatibility: Card authors & voters count as attended
       if (Array.isArray(r.cards)) {
         r.cards.forEach((c) => {
           if (c.authorEmail) attendeesSet.add(c.authorEmail.toLowerCase().trim());
@@ -1913,7 +1805,6 @@ class RetroService {
         });
       }
 
-      // Approved members fallback
       if (attendeesSet.size === 0 && Array.isArray(r.approvedMembers)) {
         r.approvedMembers.forEach((em) => {
           if (em) attendeesSet.add(em.toLowerCase().trim());
@@ -1922,7 +1813,6 @@ class RetroService {
 
       const attendeesCount = attendeesSet.size;
 
-      // Expected members in linked project or total team
       let expectedCount = 0;
       if (r.projectId || r.projectKey) {
         const linkedP = projectsList.find(
@@ -1949,7 +1839,6 @@ class RetroService {
         return topic?.title?.toLowerCase().includes('action') || c.status === 'done';
       }).length;
 
-      // Update individual member attendance records
       attendeesSet.forEach((email) => {
         if (memberMap.has(email)) {
           const m = memberMap.get(email);
@@ -1967,7 +1856,6 @@ class RetroService {
         }
       });
 
-      // Update card contributions & votes
       if (Array.isArray(r.cards)) {
         r.cards.forEach((c) => {
           const authorEmail = c.authorEmail?.toLowerCase()?.trim();
@@ -2007,7 +1895,6 @@ class RetroService {
         });
       }
 
-      // Action cards detection matching strictly the Action Items column on retro board
       const actionTopicIds = new Set();
       (r.topics || []).forEach((t) => {
         const titleLower = (t.title || '').toLowerCase();
@@ -2023,15 +1910,12 @@ class RetroService {
       });
 
       const actionCards = (r.cards || []).filter((c) => {
-        // 1. Must belong to the Action Items topic column
         if (c.topicId && actionTopicIds.has(c.topicId)) {
           return true;
         }
-        // 2. Explicit action item type
         if (c.type === 'action_item') {
           return true;
         }
-        // 3. Explicit action tag prefix
         const textLower = (c.text || '').toLowerCase().trim();
         return (
           textLower.startsWith('action:') ||
@@ -2067,7 +1951,6 @@ class RetroService {
       const pendingCount = actionCards.length - completedCount;
       const completionRate = actionCards.length > 0 ? Math.round((completedCount / actionCards.length) * 100) : 0;
 
-      // Dynamically resolve Manager / Project Lead for this project
       const projectManager =
         linkedProject?.members?.find(
           (m) => m.role === 'Manager' || m.role === 'Project Lead'
@@ -2084,7 +1967,6 @@ class RetroService {
         linkedProject?.lead?.email ||
         null;
 
-      // Extract unique assignees for this retro's action items
       const assigneesMap = new Map();
       actionCards.forEach((c) => {
         const matchedSprintItem = sprintItems.find(
@@ -2113,7 +1995,6 @@ class RetroService {
           (assignedStr && !assignedStr.includes('@') ? assignedStr : null) ||
           (email ? email.split('@')[0] : null);
 
-        // Intelligent fallback: check if card text mentions any project member
         if (!name && linkedProject?.members) {
           const textLower = (c.text || '').toLowerCase();
           const matchedMember = linkedProject.members.find((m) => {
@@ -2149,7 +2030,6 @@ class RetroService {
       const effectiveEndDate = r.endDate || pRetro?.endDate || null;
       const effectiveStartDate = r.startDate || pRetro?.startDate || rDate;
 
-      // Formatted list of action items with Given By (Manager) and Assigned To (Member)
       const itemsList = actionCards.map((c) => {
         const matchedSprintItem = sprintItems.find(
           (si) =>
@@ -2174,7 +2054,6 @@ class RetroService {
           matchedSprintItem?.assignee?.email ||
           (assignedStr.includes('@') ? assignedStr : null);
 
-        // Intelligent fallback: check if card text mentions any project member
         if (!assignedName && linkedProject?.members) {
           const textLower = (c.text || '').toLowerCase();
           const matchedMember = linkedProject.members.find((m) => {
@@ -2188,7 +2067,6 @@ class RetroService {
           }
         }
 
-        // Find sprint containing this item to deduce sprint deadline/end date
         const matchedSprint = (linkedProject?.sprints || []).find((s) =>
           (s.items || []).some(
             (si) =>
@@ -2253,7 +2131,6 @@ class RetroService {
       };
     });
 
-    // 6. Member Breakdown Aggregation
     const totalRetrosCount = retros.length;
     const memberAnalytics = Array.from(memberMap.values())
       .map((m) => {
@@ -2285,7 +2162,6 @@ class RetroService {
       })
       .sort((a, b) => b.attendanceRate - a.attendanceRate || b.cardsShared - a.cardsShared);
 
-    // 7. Extract Available Years and Compute Monthly Trends for Selected Year
     const getRetroDate = (r) => {
       const dStr = r.scheduledDate || r.startDate || r.createdAt;
       const parsed = dStr ? new Date(dStr) : null;
@@ -2325,7 +2201,6 @@ class RetroService {
       sessions: [],
     }));
 
-    // Populate monthly trends for the selected year
     retros.forEach((r) => {
       const rDate = getRetroDate(r);
       if (rDate.getFullYear() === selectedYear) {
@@ -2420,7 +2295,6 @@ class RetroService {
       completionRate: yearTotalTasks > 0 ? Math.round((yearCompletedTasks / yearTotalTasks) * 100) : 0,
     };
 
-    // 8. Top KPI Summary
     const averageAttendanceRate =
       retroTrends.length > 0
         ? Math.round(

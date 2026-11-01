@@ -18,10 +18,8 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = env.PORT || 5000;
 
-// 1. Security & Protection Headers
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
-// 2. Cross-Origin Resource Sharing (CORS) Configuration (Vercel & Production Ready)
 const clientOrigins = (env.CLIENT_URL || 'http://localhost:3000')
   .split(',')
   .map((url) => url.trim().replace(/\/$/, ''));
@@ -33,15 +31,12 @@ const allowedOrigins = new Set([
 ]);
 
 const isOriginAllowed = (origin) => {
-  // Allow server-to-server, curl, mobile, or same-origin requests with no origin header
   if (!origin) return true;
 
-  // Allow any localhost or 127.0.0.1 port in development (e.g. 3000, 3001, 3002, 5173, etc.)
   if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
     return true;
   }
 
-  // Check if origin matches whitelist or verified domain
   if (
     allowedOrigins.has(origin) ||
     origin.endsWith('.vercel.app') ||
@@ -81,22 +76,16 @@ app.use(
   })
 );
 
-
-// 3. Body & Cookie Parsing with payload limits
 app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
 app.use(cookieParser());
 app.use(requestLogger);
 
-// 4. Rate Limiting for general endpoints
 app.use('/api', generalLimiter);
 
-// 5. Mount API Routes (Accessible at both /api/* and /* for bulletproof client compatibility)
 app.use('/api', routes);
 app.use('/', routes);
 
-
-// Root Index Route
 app.get('/', (req, res) => {
   res.json({
     service: 'RetroFlow Backend API',
@@ -106,15 +95,12 @@ app.get('/', (req, res) => {
   });
 });
 
-// 6. 404 Catch-All Route
 app.use((req, res, next) => {
   next(ApiError.notFound(`Resource not found - ${req.method} ${req.originalUrl}`));
 });
 
-// 7. Centralized Global Error Handler Middleware
 app.use(errorHandler);
 
-// 8. Socket.io Real-Time Synchronization Engine
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: (origin, callback) => {
@@ -133,14 +119,11 @@ const io = new SocketIOServer(httpServer, {
 app.set('io', io);
 initRetroSocket(io);
 
-// 9. Bootstrap Server & Establish Database Connection
 let server;
 
 const startServer = async () => {
-  // Connect to MongoDB Atlas with connection pooling
   await database.connect();
 
-  // Initialize background Cron scheduler for automated monthly retrospectives
   cronService.initMonthlyRetroCron(io);
 
   server = httpServer.listen(PORT, () => {
@@ -154,7 +137,6 @@ const startServer = async () => {
   });
 };
 
-// 10. Graceful Shutdown Handlers (SIGTERM, SIGINT)
 const gracefulShutdown = async (signal) => {
   console.log(`\n[Server] Received ${signal}. Commencing graceful shutdown...`);
   if (cronService) {
@@ -178,7 +160,6 @@ const gracefulShutdown = async (signal) => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// 10. Process Safety & Exception Guards
 process.on('unhandledRejection', (reason) => {
   console.error('[Unhandled Rejection]', reason);
 });

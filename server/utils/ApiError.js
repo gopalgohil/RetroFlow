@@ -1,15 +1,4 @@
-/**
- * @file ApiError.js
- * @description Centralized Operational Error class extending JavaScript Error.
- * Ensures consistent error properties across the application.
- */
 export class ApiError extends Error {
-  /**
-   * @param {number} statusCode - HTTP status code
-   * @param {string} message - Human-readable error message
-   * @param {Array|Object} [errors=[]] - Detailed validation or contextual error items
-   * @param {string} [stack=''] - Optional stack trace override
-   */
   constructor(statusCode, message = 'Something went wrong', errors = [], stack = '') {
     super(message);
     this.statusCode = statusCode;
@@ -26,7 +15,6 @@ export class ApiError extends Error {
     }
   }
 
-  // Factory methods for clean semantic instantiations
   static badRequest(msg, errors = []) {
     return new ApiError(400, msg, errors);
   }

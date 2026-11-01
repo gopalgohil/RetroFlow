@@ -1,10 +1,6 @@
-/**
- * Formats a date string (YYYY-MM-DD or ISO) to "dd/mm/yy" format (e.g., 10/09/26)
- */
 export function formatDateDMY(dateStr?: string | null): string {
   if (!dateStr) return '';
 
-  // Extract YYYY-MM-DD via regex to avoid UTC/local timezone shifts
   const match = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (match) {
     const [, year, month, day] = match;

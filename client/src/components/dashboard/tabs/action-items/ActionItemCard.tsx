@@ -103,7 +103,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
 
   const fullTooltip = [givenByTooltip, assigneeTooltip].filter(Boolean).join('\n');
 
-  // Calculate Due Date Urgency
   const urgency = React.useMemo(() => {
     if (!item.dueDate) return null;
     if (isDone) {
@@ -149,7 +148,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
     };
   }, [item.dueDate, isDone]);
 
-  // Calculate Assigned Date
   const assignedDateFormatted = React.useMemo(() => {
     const rawDate = item.assignedAt || item.createdAt;
     if (!rawDate) return null;
@@ -193,9 +191,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           : 'bg-white dark:bg-[#0e1015] border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-[#88c958]/50 dark:hover:border-[#88c958]/40'
       }`}
     >
-      {/* Left: Task Action Index & Content */}
       <div className="flex items-start gap-4 flex-1 min-w-0">
-        {/* Item Number (Plain dark number) */}
         {typeof displayIndex === 'number' && (
           <span
             className={`text-base sm:text-lg font-black select-none shrink-0 tabular-nums min-w-[24px] pt-0.5 ${
@@ -208,9 +204,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           </span>
         )}
 
-        {/* Task Title, Priority & Clean Sub-row */}
         <div className="space-y-2 flex-1 min-w-0">
-          {/* Main Task Row */}
           <div className="flex flex-wrap items-center gap-2.5">
             <h4
               className={`text-base sm:text-[17px] font-bold tracking-tight select-text leading-snug ${
@@ -222,7 +216,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               {item.title}
             </h4>
 
-            {/* Clean Priority Pill with colored dot */}
             <span
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border leading-none shrink-0 ${priorityMeta.pill}`}
             >
@@ -231,7 +224,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
             </span>
           </div>
 
-          {/* Optional Custom Description (Only display authentic user-written descriptions, filter boilerplate origin text) */}
           {item.description &&
             !item.description.startsWith('Action item originated from Retrospective') &&
             !item.description.startsWith('Originated from Retrospective') &&
@@ -242,10 +234,8 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               </p>
             )}
 
-          {/* Clean Sub-Metadata Row */}
           <div className="flex flex-wrap items-center gap-2.5 pt-0.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
 
-            {/* Origin Retro Link */}
             {item.sourceRetroTitle && (
               item.sourceRetroShareToken ? (
                 <Link
@@ -265,7 +255,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               )
             )}
 
-            {/* Assigned Member Badge */}
             {item.assignee?.name && (
               <>
                 <span className="text-slate-300 dark:text-white/20">•</span>
@@ -279,7 +268,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               </>
             )}
 
-            {/* Assigned Date Badge */}
             {assignedDateFormatted && (
               <>
                 <span className="text-slate-300 dark:text-white/20">•</span>
@@ -293,7 +281,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               </>
             )}
 
-            {/* Due Date Badge */}
             {urgency && (
               <>
                 <span className="text-slate-300 dark:text-white/20">•</span>
@@ -310,7 +297,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
         </div>
       </div>
 
-      {/* Right: Status Dropdown & Assignee */}
       <div className="flex items-center justify-between md:justify-end gap-3.5 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-white/[0.08] shrink-0">
         <div className="relative" ref={statusRef}>
           <button
@@ -378,14 +364,12 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           )}
         </div>
 
-        {/* Merged Round Circles: Assigned By (Manager) & Assigned To (Member) merged half-half with round curve */}
         <div className="flex items-center shrink-0 select-none">
           {givenByName && item.assignee?.name ? (
             <div
               className="flex items-center -space-x-3.5 group/merged"
               title={fullTooltip}
             >
-              {/* Left Round Circle: Assigned By (Manager) */}
               <div
                 className="w-8 h-8 rounded-full bg-[#488e1e] text-white dark:bg-[#72ad46] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-0 group-hover/merged:z-10 group-hover/merged:scale-105 transition-all"
                 title={givenByTooltip}
@@ -393,7 +377,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
                 {getAssigneeInitials(givenByName)}
               </div>
 
-              {/* Right Round Circle: Assigned To (Member) */}
               <div
                 className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-10 hover:z-20 hover:scale-105 transition-all"
                 title={assigneeTooltip}

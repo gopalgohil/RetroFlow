@@ -13,10 +13,6 @@ export interface OverviewTabProps {
   currentUserRole?: string;
 }
 
-/**
- * OverviewTab:
- * Clean, production-grade layout orchestrator for the project overview tab.
- */
 export const OverviewTab: React.FC<OverviewTabProps> = ({
   project,
   onNavigateToTab,
@@ -65,7 +61,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* 1. Reusable KPI Metric Cards Grid */}
       <OverviewKpiGrid
         project={project}
         activeSprint={activeSprint}
@@ -77,7 +72,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         leadDisplayName={leadDisplayName}
       />
 
-      {/* 2. Bottom Row: Quick Retros & Team Contributors */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <OverviewRecentRetros
           retrospectives={project.retrospectives}

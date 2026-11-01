@@ -42,11 +42,6 @@ export interface UseRetroSessionReturn {
   canManageCard: (card: StickyCard) => boolean;
 }
 
-/**
- * Enterprise Modular Hook: useRetroSession
- * Orchestrates session hydration, participant identity, permissions,
- * real-time WebSocket synchronization, and optimistic card operations.
- */
 export function useRetroSession(shareToken: string): UseRetroSessionReturn {
   const [retro, setRetro] = useState<RetroBoard | null>(null);
   const [cards, setCards] = useState<StickyCard[]>([]);
@@ -69,7 +64,6 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
   const [verifiedGuestEmail, setVerifiedGuestEmail] = useState<string | null>(null);
   const [isMagicInvite, setIsMagicInvite] = useState<boolean>(false);
 
-  // Synchronous stable references to avoid callback invalidation cycles
   const cardsRef = useRef<StickyCard[]>([]);
   cardsRef.current = cards;
   const currentUserRef = useRef(currentUser);
@@ -78,7 +72,6 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
   retroRef.current = retro;
   const authFetchedRef = useRef(false);
 
-  // 1. Initial Load: Participant Identity & Board Fetching
   useEffect(() => {
     let urlInviteToken: string | null = null;
     if (typeof window !== 'undefined') {
@@ -189,7 +182,6 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     }
 
     const fetchSession = async () => {
-      // Only show full skeleton loader on very first initial load to avoid jarring UI flicker
       if (!retroRef.current) {
         setIsLoading(true);
       }
@@ -261,7 +253,6 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     }
   }, [shareToken, participantName]);
 
-  // 1.1 Strict Security Check: Verify logged in user is authorized once retro and user are resolved
   useEffect(() => {
     if (!retro) return;
     const userEmail = (currentUser?.email || '').toLowerCase().trim();
@@ -291,7 +282,6 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     [currentUser?.name, participantName]
   );
 
-  // 2. Modular Permissions Sub-Hook
   const {
     canExportToSprint,
     isFacilitator,
@@ -308,7 +298,6 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     retro,
   });
 
-  // 3. Modular Socket Synchronization Sub-Hook
   const { socketConnected } = useRetroSocketSync({
     shareToken,
     currentUser,
@@ -320,7 +309,6 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     setRetro,
   });
 
-  // 4. Instant Participant Identity Activation
   const setGuestName = useCallback(
     async (name: string, email?: string) => {
       const trimmed = name.trim();
@@ -363,7 +351,6 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     [verifiedGuestEmail, shareToken]
   );
 
-  // 5. Modular Card Operations Sub-Hook
   const {
     addCard,
     updateCard,
@@ -382,7 +369,6 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     setRemainingVotes,
   });
 
-  // 6. Session Lifecycle Controls (Manager & Admin Dynamic Closure)
   const endSession = useCallback(async () => {
     if (!retro) return;
     try {

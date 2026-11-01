@@ -13,10 +13,6 @@ import {
 import { ShareInviteModal } from '@/components/dashboard/ShareInviteModal';
 import { RetroBoardSkeleton } from '@/components/dashboard';
 
-/**
- * Senior Staff Engineer Standard Retrospective Page
- * Declarative, pure compositional architecture with dedicated custom hook & modular children.
- */
 export default function LiveRetroBoardPage({
   params,
 }: {
@@ -38,7 +34,6 @@ export default function LiveRetroBoardPage({
     }, 4000);
   };
 
-  // Encapsulates all DB persistence, Socket.io lifecycle, Identity & Role logic
   const session = useRetroSession(shareToken);
 
   if (session.isLoading) {
@@ -53,7 +48,6 @@ export default function LiveRetroBoardPage({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#08090a] text-slate-900 dark:text-white flex flex-col font-sans selection:bg-[#88c958] selection:text-[#08090a]">
-      {/* 1. Modular Session Navigation Header */}
       <RetroHeader
         title={session.retro.title}
         description={session.retro.description}
@@ -83,7 +77,6 @@ export default function LiveRetroBoardPage({
         onReopenSession={session.isFacilitator ? session.reopenSession : undefined}
       />
 
-      {/* Closed Session Banner */}
       {isClosed && (
         <div className="bg-slate-100 dark:bg-white/[0.04] border-b border-slate-200 dark:border-white/[0.08] px-4 py-2 sm:px-6 flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 animate-in fade-in">
           <div className="flex items-center gap-2">
@@ -99,7 +92,6 @@ export default function LiveRetroBoardPage({
         </div>
       )}
 
-      {/* 2. Responsive Retrospective Columns Board Canvas */}
       <main className="flex-1 p-3 sm:p-4 md:p-5 overflow-x-auto w-full">
         {(() => {
           const actionTopic = session.retro.topics?.find(
@@ -150,14 +142,12 @@ export default function LiveRetroBoardPage({
         })()}
       </main>
 
-      {/* 3. Guest Developer Display Name Prompt Dialog */}
       <ParticipantNameModal
         isOpen={session.isNamePromptOpen}
         onJoin={(name, email) => session.setGuestName(name, email)}
         verifiedEmail={session.verifiedGuestEmail}
       />
 
-      {/* 4. Team Share & Email Invite Modal (Facilitator / Admin / Manager only) */}
       {session.isFacilitator && (
         <ShareInviteModal
           isOpen={isInviteModalOpen}
@@ -166,7 +156,6 @@ export default function LiveRetroBoardPage({
         />
       )}
 
-      {/* 5. End Session & Action Items Export to Sprint Modal */}
       <EndSessionExportModal
         isOpen={isEndSessionModalOpen}
         onClose={() => setIsEndSessionModalOpen(false)}
@@ -184,7 +173,6 @@ export default function LiveRetroBoardPage({
         onSessionEnded={session.endSession}
       />
 
-      {/* 6. Real-time Permission Feedback Toast */}
       {toastFeedback && (
         <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-slate-900/95 dark:bg-[#0e1015]/95 text-white text-xs font-semibold shadow-2xl flex items-center gap-2.5 border border-slate-700/80 dark:border-white/[0.08] backdrop-blur-md animate-in slide-in-from-bottom-5">
           <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />

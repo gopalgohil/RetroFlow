@@ -24,7 +24,6 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  // Sync email from search params on client without Suspense bailout
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -36,9 +35,6 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
     }
   }, []);
 
-
-
-  // Countdown timer for resending verification code
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (countdown > 0) {
@@ -54,7 +50,6 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
     setError(null);
     setSuccessMessage(null);
 
-    // Validate with Zod
     const validation = verifyEmailSchema.safeParse({ email, otp });
     if (!validation.success) {
       setError(validation.error.issues[0]?.message || 'Please enter a valid 6-digit code');
@@ -70,7 +65,6 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
 
       setSuccessMessage(data.message || '🎉 Email verified successfully! Redirecting you to sign in...');
 
-      // Redirect to login page with verified parameter after 1.5 seconds
       setTimeout(() => {
         router.push(`/login?verified=true&email=${encodeURIComponent(email)}`);
       }, 1500);
@@ -96,7 +90,6 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
-      {/* Auth Header */}
       <AuthHeader
         title="Verify your email"
         subtitle={
@@ -106,11 +99,9 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
         }
       />
 
-      {/* Status Alerts */}
       {error && <Alert variant="error" message={error} />}
       {successMessage && <Alert variant="success" message={successMessage} />}
 
-      {/* Verification Form */}
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {!hasEmailFromParam && (
           <Input
@@ -139,7 +130,6 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
           autoFocus
         />
 
-        {/* Resend OTP & Change Email options */}
         <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
           <Link href="/signup" className="text-[#88c958] hover:underline font-medium">
             ← Change email / Re-signup
@@ -158,7 +148,6 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
           )}
         </div>
 
-        {/* Action Button */}
         <Button
           type="submit"
           variant="primary"
@@ -169,7 +158,6 @@ export const VerifyEmailForm: React.FC<VerifyEmailFormProps> = ({ initialEmail =
         </Button>
       </form>
 
-      {/* Footer Link */}
       <AuthFooterLink
         prompt="Already verified?"
         actionText="Sign in directly"

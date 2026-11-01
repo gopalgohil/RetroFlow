@@ -1,18 +1,7 @@
-/**
- * @file api.ts
- * @description Universal API Client for RetroFlow Frontend.
- * Centralizes Base URL, headers, authentication tokens, request/response logging, and error handling.
- */
 
-// Base API URL from environment variable or local backend default
-// Automatically normalizes URL to include /api even if user omits it in deployment settings
 const rawBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').trim().replace(/\/+$/, '');
 const BASE_URL = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
 
-
-/**
- * Standard API Endpoints Registry (Ensures type-safety & zero typos)
- */
 export const ENDPOINTS = {
   AUTH: {
     REGISTER: '/auth/register',
@@ -39,19 +28,11 @@ export interface RequestOptions extends RequestInit {
   token?: string;
 }
 
-/**
- * Single-flight in-flight request deduplication map for GET requests.
- * Prevents identical simultaneous API requests from firing multiple times over the network.
- */
 const inFlightGetRequests = new Map<string, Promise<any>>();
 
-/**
- * Core Universal Request Handler
- */
 async function request<T = any>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { params, token, headers, ...customConfig } = options;
 
-  // Build complete URL with optional query parameters
   let url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   if (params) {
     const searchParams = new URLSearchParams();
@@ -66,7 +47,6 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
     }
   }
 
-  // Retrieve JWT auth token and user context from localStorage if in browser environment
   let authToken = token || null;
 
   if (typeof window !== 'undefined') {
@@ -78,7 +58,6 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
   const method = (customConfig.method || 'GET').toUpperCase();
   const isGet = method === 'GET';
 
-  // Coalesce identical simultaneous GET requests to eliminate duplicate network traffic
   const dedupKey = isGet ? `${url}::${authToken || ''}` : null;
   if (dedupKey && inFlightGetRequests.has(dedupKey)) {
     return inFlightGetRequests.get(dedupKey)!;
@@ -99,7 +78,6 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
 
     const isDev = process.env.NODE_ENV !== 'production';
 
-    // 1. Log outgoing request in development console with full payload for network observability
     if (isDev) {
       console.groupCollapsed(
         `%c🚀 [API Call] ${method} ${endpoint}`,
@@ -129,7 +107,6 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
         data = await response.text();
       }
 
-      // 2. Log response in development console
       if (isDev) {
         const statusColor = response.ok ? '#10b981' : '#f43f5e';
         console.groupCollapsed(
@@ -140,7 +117,6 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
         console.groupEnd();
       }
 
-      // 3. Handle Unauthorized (401) sessions
       if (response.status === 401 && typeof window !== 'undefined') {
         const isAuthRoute =
           endpoint.includes('/auth/login') ||
@@ -166,7 +142,6 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
         }
       }
 
-      // 4. Unified error handling
       if (!response.ok) {
         const errorMessage =
           (data && typeof data === 'object' && (data.message || data.error)) ||
@@ -225,13 +200,7 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
   return executeRequest();
 }
 
-/**
- * Universal API Client Object
- */
 export const api = {
-  /**
-   * HTTP GET Request with automatic request coalescing
-   */
   get: <T = any>(endpoint: string, options?: RequestOptions) =>
     request<T>(endpoint, {
       ...options,
@@ -239,9 +208,6 @@ export const api = {
       params: options?.params,
     }),
 
-  /**
-   * HTTP POST Request
-   */
   post: <T = any>(endpoint: string, body?: any, options?: RequestOptions) =>
     request<T>(endpoint, {
       ...options,
@@ -249,9 +215,6 @@ export const api = {
       body: body ? JSON.stringify(body) : undefined,
     }),
 
-  /**
-   * HTTP PUT Request
-   */
   put: <T = any>(endpoint: string, body?: any, options?: RequestOptions) =>
     request<T>(endpoint, {
       ...options,
@@ -259,9 +222,6 @@ export const api = {
       body: body ? JSON.stringify(body) : undefined,
     }),
 
-  /**
-   * HTTP PATCH Request
-   */
   patch: <T = any>(endpoint: string, body?: any, options?: RequestOptions) =>
     request<T>(endpoint, {
       ...options,
@@ -269,9 +229,6 @@ export const api = {
       body: body ? JSON.stringify(body) : undefined,
     }),
 
-  /**
-   * HTTP DELETE Request
-   */
   delete: <T = any>(endpoint: string, options?: RequestOptions) =>
     request<T>(endpoint, { ...options, method: 'DELETE' }),
 };

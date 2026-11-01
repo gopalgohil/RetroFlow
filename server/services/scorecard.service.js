@@ -4,10 +4,6 @@ import Project from '../models/Project.js';
 import { isSuperAdmin } from '../config/admin.config.js';
 
 class ScorecardService {
-  /**
-   * Submit performance ratings for one or multiple team members
-   * Accessible by: Workspace Admin or Project Manager
-   */
   async submitScorecards(evaluations = [], context = {}, currentUser = null) {
     if (!currentUser) {
       const err = new Error('Authentication required');
@@ -46,8 +42,6 @@ class ScorecardService {
       const c = Math.max(1, Math.min(5, Number(ev.ratings?.communication || 3)));
       const col = Math.max(1, Math.min(5, Number(ev.ratings?.collaboration || 3)));
 
-      // Mehul Bhai's Weighted Formula:
-      // (Q * 0.35) + (T * 0.25) + (C * 0.25) + (Col * 0.15)
       const overall = Number(((q * 0.35) + (t * 0.25) + (c * 0.25) + (col * 0.15)).toFixed(2));
 
       const card = new Scorecard({
@@ -90,10 +84,6 @@ class ScorecardService {
     return savedRecords;
   }
 
-  /**
-   * Get Consolidated Team Scoreboard
-   * STRICTLY ADMIN ONLY
-   */
   async getTeamScoreboard(currentUser = null) {
     if (!currentUser) {
       const err = new Error('Authentication required');
@@ -111,13 +101,10 @@ class ScorecardService {
       throw err;
     }
 
-    // 1. Fetch all scorecards
     const allScorecards = await Scorecard.find({}).sort({ createdAt: -1 }).lean();
 
-    // 2. Fetch workspace users to build full roster
     const allUsers = await User.find({ role: { $ne: 'admin' } }).select('name email role projectRole avatar').lean();
 
-    // Group scorecards by memberEmail
     const scorecardsByMember = new Map();
     for (const sc of allScorecards) {
       const email = sc.memberEmail.toLowerCase();
@@ -129,7 +116,6 @@ class ScorecardService {
 
     const memberRoster = [];
 
-    // Combine users with their scorecard history
     const processedEmails = new Set();
 
     for (const user of allUsers) {
@@ -164,7 +150,6 @@ class ScorecardService {
           recentHistory: cards.slice(0, 5),
         });
       } else {
-        // Unrated member
         memberRoster.push({
           memberId: user._id.toString(),
           name: user.name,
@@ -181,7 +166,6 @@ class ScorecardService {
       }
     }
 
-    // Include any evaluated members who might not be in the direct User collection (e.g. project invitees)
     for (const [email, cards] of scorecardsByMember.entries()) {
       if (processedEmails.has(email)) continue;
       const total = cards.length;
@@ -211,10 +195,8 @@ class ScorecardService {
       });
     }
 
-    // Sort by overallScore descending (rated first, unrated last)
     memberRoster.sort((a, b) => b.overallScore - a.overallScore);
 
-    // Calculate High-level KPIs
     const ratedMembers = memberRoster.filter((m) => m.totalEvaluations > 0);
     const teamAvgScore =
       ratedMembers.length > 0
@@ -223,7 +205,6 @@ class ScorecardService {
 
     const topPerformer = ratedMembers.length > 0 ? ratedMembers[0] : null;
 
-    // Highest rated category
     let highestCategory = 'Quality';
     if (ratedMembers.length > 0) {
       const qTotal = ratedMembers.reduce((s, m) => s + m.breakdown.quality, 0);

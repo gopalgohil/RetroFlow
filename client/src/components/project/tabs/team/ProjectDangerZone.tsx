@@ -22,7 +22,6 @@ export const ProjectDangerZone: React.FC<ProjectDangerZoneProps> = ({
 }) => {
   const router = useRouter();
 
-  // Danger Zone state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -55,7 +54,6 @@ export const ProjectDangerZone: React.FC<ProjectDangerZoneProps> = ({
       try {
         res = await ProjectApiService.deleteProject(project.id);
       } catch (apiErr: any) {
-        // If project was not found in MongoDB (e.g. stale mock data), treat as deleted cleanly
         if (
           apiErr?.status === 404 ||
           apiErr?.message?.toLowerCase().includes('not found')
@@ -146,7 +144,6 @@ export const ProjectDangerZone: React.FC<ProjectDangerZoneProps> = ({
         </div>
 
         <div className="p-6 space-y-4 divide-y divide-rose-100 dark:divide-rose-950/40">
-          {/* Action A: Archive Initiative (Soft Delete) */}
           <div className="pt-2 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-0.5">
               <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -177,7 +174,6 @@ export const ProjectDangerZone: React.FC<ProjectDangerZoneProps> = ({
             </button>
           </div>
 
-          {/* Action B: Delete Initiative Permanently (Hard Delete) */}
           <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-0.5">
               <h4 className="text-xs font-bold text-rose-900 dark:text-rose-300 flex items-center gap-2">
@@ -214,7 +210,6 @@ export const ProjectDangerZone: React.FC<ProjectDangerZoneProps> = ({
         </div>
       </div>
 
-      {/* GitHub-Style Strict Confirmation Modal for Deletion */}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => {

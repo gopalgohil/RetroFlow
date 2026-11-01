@@ -28,7 +28,6 @@ interface ProjectsTabProps {
   user?: { name?: string; email?: string; role?: string; projectRole?: string } | null;
 }
 
-
 const formatProjectCreatedDate = (dateStr?: string | Date) => {
   if (!dateStr) return null;
   try {
@@ -58,7 +57,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [openingProjectId, setOpeningProjectId] = useState<string | null>(null);
 
-  // Enterprise Pagination & Counts state (6 items per page)
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationMeta>({
     page: 1,
@@ -76,7 +74,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
   const projectsGridRef = useRef<HTMLDivElement>(null);
 
-  // Manager and Admin deletion access
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
   const [deleteProjectError, setDeleteProjectError] = useState<string | null>(null);
@@ -198,7 +195,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
     return <ProjectsTabSkeleton />;
   }
 
-  // Only Workspace Admins and Managers have project initialization permission
   const activeUser = user || currentUser;
   const userRole = (activeUser?.role || '').toLowerCase();
   const userEmail = activeUser?.email?.toLowerCase().trim();
@@ -220,7 +216,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
-      {/* Header Banner */}
       <div className="p-6 rounded-2xl bg-gradient-to-r from-[#5cb028] via-[#52a622] to-[#458b1b] text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#0e1015] dark:border dark:border-white/[0.08] dark:shadow-2xl relative overflow-hidden group">
         <div className="absolute -right-16 -top-16 w-72 h-72 bg-white/10 dark:bg-[#88c958]/10 rounded-full blur-2xl dark:blur-3xl pointer-events-none" />
         <div className="relative z-10 space-y-1.5">
@@ -260,7 +255,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         )}
       </div>
 
-      {/* View Filter Switcher Bar */}
       <div ref={projectsGridRef} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
         <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] rounded-xl w-fit">
           <button
@@ -312,7 +306,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         )}
       </div>
 
-      {/* Projects Grid */}
       {isFilterLoading ? (
         <ProjectCardsSkeleton count={displayedProjects.length > 0 ? Math.min(displayedProjects.length, 3) : 3} />
       ) : (
@@ -350,7 +343,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               (project.sprints || [])[0];
 
             const userEmail = currentUser?.email?.toLowerCase().trim();
-            // Resolve designated project manager
             const managerMember = project.members?.find(
               (m) => (m.role || '').toLowerCase() === 'manager'
             );
@@ -377,7 +369,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 }`}
               >
                 <div className="space-y-4">
-                  {/* Card Top: Key, Name & Health */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       <UserAvatar name={project.name} avatar={project.key} size="lg" />
@@ -409,7 +400,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     )}
                   </div>
 
-                  {/* Dedicated Manager Identity Row */}
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200/60 dark:border-white/[0.08]">
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] font-black text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
@@ -436,7 +426,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                     {project.description || 'No description provided.'}
                   </p>
 
-                {/* Active Sprint Highlights */}
                 {activeSprint ? (
                   <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.08] space-y-2">
                     <div className="flex items-center justify-between text-xs">
@@ -472,7 +461,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                   </div>
                 )}
 
-                {/* Project Stats Footer */}
                 <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-white/[0.08] text-center">
                   <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-[#12151c]">
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Sprints</span>
@@ -495,7 +483,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
                 </div>
               </div>
 
-              {/* Action Button */}
               <div className="w-full">
                 {project.isArchived ? (
                   <div className="flex items-center gap-2">
@@ -562,10 +549,8 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
       </div>
       )}
 
-      {/* Enterprise-grade 6-Item Pagination Controls */}
       {pagination.totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 pb-2 border-t border-slate-200/90 dark:border-white/[0.08]">
-          {/* Pagination Counter Info */}
           <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Showing{' '}
             <span className="font-bold text-slate-900 dark:text-white">
@@ -578,9 +563,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             of <span className="font-bold text-slate-900 dark:text-white">{pagination.totalItems}</span> initiatives
           </div>
 
-          {/* Navigation Controls */}
           <div className="flex items-center gap-1.5">
-            {/* Previous Page Button */}
             <button
               type="button"
               onClick={() => handlePageChange(pagination.page - 1)}
@@ -591,7 +574,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               <span className="hidden sm:inline">Previous</span>
             </button>
 
-            {/* Numeric Page Buttons */}
             {getPageNumbers().map((p, idx) =>
               p === '...' ? (
                 <span key={`ellipsis-${idx}`} className="px-2 text-xs text-slate-400 dark:text-slate-500 font-bold select-none">
@@ -614,7 +596,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
               )
             )}
 
-            {/* Next Page Button */}
             <button
               type="button"
               onClick={() => handlePageChange(pagination.page + 1)}
@@ -628,7 +609,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         </div>
       )}
 
-      {/* Create Project Modal */}
       <CreateProjectModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
@@ -647,7 +627,6 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         }}
       />
 
-      {/* Delete Project Confirmation Modal */}
       {projectToDelete && (
         <Modal
           isOpen={!!projectToDelete}

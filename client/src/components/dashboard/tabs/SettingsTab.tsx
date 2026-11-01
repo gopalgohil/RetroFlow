@@ -11,10 +11,6 @@ interface SettingsTabProps {
   onSave: (updated: WorkspaceSettingsData) => Promise<void>;
 }
 
-/**
- * SettingsTab Component
- * Manages organization branding and default agile retrospective governance rules.
- */
 export const SettingsTab: React.FC<SettingsTabProps> = ({
   settings,
   isLoading,
@@ -23,7 +19,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 }) => {
   const [formData, setFormData] = useState<WorkspaceSettingsData>(settings);
 
-  // Synchronize internal state if settings update from server
   useEffect(() => {
     setFormData(settings);
   }, [settings]);
@@ -46,7 +41,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* General Profile Card */}
         <div className="p-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] shadow-xs space-y-4">
           <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.08]">
             <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center font-bold text-xs">
@@ -89,7 +83,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           </div>
         </div>
 
-        {/* Retrospective Default Governance Card */}
         <div className="p-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] shadow-xs space-y-4">
           <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.08]">
             <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center font-bold text-xs">
@@ -140,7 +133,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             </div>
           </div>
 
-          {/* Toggles */}
           <div className="space-y-3 pt-2">
             <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] hover:bg-slate-100/70 dark:hover:bg-white/[0.06] transition-colors cursor-pointer border border-slate-100 dark:border-white/[0.08]">
               <div>
@@ -184,7 +176,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           </div>
         </div>
 
-        {/* Save Action */}
         <div className="flex justify-end">
           <button
             type="submit"

@@ -15,10 +15,6 @@ export interface UseRetroSocketSyncParams {
   setRetro?: React.Dispatch<React.SetStateAction<RetroBoard | null>>;
 }
 
-/**
- * Modular Hook: useRetroSocketSync
- * Handles real-time WebSocket connection, subscription, and event cleanup
- */
 export function useRetroSocketSync({
   shareToken,
   currentUser,
@@ -102,11 +98,9 @@ export function useRetroSocketSync({
     const handleDisconnect = () => setSocketConnected(false);
     socket.on('disconnect', handleDisconnect);
 
-    // Event listeners
     const onCardCreated = (newCard: any) => {
       const id = newCard.cardId || newCard.id;
       setCards((prev) => {
-        // Match existing confirmed card or optimistic temp card
         const tempIdx = prev.findIndex(
           (c) =>
             c.id === id ||

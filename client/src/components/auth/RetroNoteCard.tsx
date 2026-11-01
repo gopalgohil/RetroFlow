@@ -27,13 +27,11 @@ export const RetroNoteCard: React.FC<RetroNoteCardProps> = ({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Category Title with indicator dot */}
       <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
         <span className={`w-2 h-2 rounded-full ${dotColor}`} />
         <span>{categoryTitle}</span>
       </div>
 
-      {/* Note Body */}
       <div className="rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.08] p-3.5 space-y-2 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-sm transition-all">
         <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-200 font-normal">
           {content}

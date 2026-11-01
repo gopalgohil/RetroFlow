@@ -1,11 +1,5 @@
 import mongoose from 'mongoose';
 
-/**
- * Scorecard Schema:
- * Stores 1-5 star performance ratings for sprint and retrospective contributors
- * applying Mehul Bhai's weighted formula:
- * Quality (35%) + Timeliness (25%) + Communication (25%) + Collaboration (15%) = 100%
- */
 const scorecardSchema = new mongoose.Schema(
   {
     memberId: {

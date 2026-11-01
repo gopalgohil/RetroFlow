@@ -36,7 +36,6 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
   const projectDropdownRef = useRef<HTMLDivElement>(null);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -69,7 +68,6 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
 
   return (
     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
-      {/* Title & Badge */}
       <div className="space-y-1">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shadow-2xs">
@@ -87,9 +85,7 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
         </p>
       </div>
 
-      {/* Project Selector, Year Selector & Refresh Controls */}
       <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-        {/* Multi-Project Filter Dropdown */}
         <div className="relative min-w-[200px] sm:min-w-[240px]" ref={projectDropdownRef}>
           <button
             type="button"
@@ -109,14 +105,12 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
             />
           </button>
 
-          {/* Project Dropdown Menu */}
           {isProjectDropdownOpen && !hasNoProjects && (
             <div className="absolute left-0 top-full mt-1.5 w-64 sm:w-72 rounded-2xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden flex flex-col">
               <div className="px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
                 Filter by Project
               </div>
 
-              {/* Pinned "All Projects (Combined)" */}
               <div className="border-b border-slate-100 dark:border-white/[0.06] shrink-0">
                 <button
                   type="button"
@@ -141,7 +135,6 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
                 </button>
               </div>
 
-              {/* Scrollable Project Items */}
               <div className="max-h-56 overflow-y-auto overscroll-contain py-0.5 [scrollbar-width:thin] scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10">
                 {projects?.map((proj) => {
                   const isSelected = selectedProjectId === proj.id;
@@ -178,7 +171,6 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
           )}
         </div>
 
-        {/* Year Filter Dropdown */}
         <div className="relative min-w-[120px] sm:min-w-[135px]" ref={yearDropdownRef}>
           <button
             type="button"
@@ -198,7 +190,6 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
             />
           </button>
 
-          {/* Year Dropdown Menu */}
           {isYearDropdownOpen && (
             <div className="absolute right-0 top-full mt-1.5 w-40 rounded-2xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden flex flex-col">
               <div className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
@@ -235,7 +226,6 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
           )}
         </div>
 
-        {/* Refresh Button */}
         <button
           type="button"
           onClick={onRefresh}

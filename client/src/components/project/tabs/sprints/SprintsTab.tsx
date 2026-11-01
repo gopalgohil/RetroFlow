@@ -31,11 +31,6 @@ export interface SprintsTabProps {
   canDeleteSprint?: boolean;
 }
 
-/**
- * SprintsTab:
- * Clean, production-grade orchestrator component for project sprints.
- * Adheres to modular Single Responsibility Principle with isolated subcomponents.
- */
 export const SprintsTab: React.FC<SprintsTabProps> = ({
   project,
   onProjectUpdated,
@@ -62,7 +57,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   const [sprintLimit] = useState<number>(10);
   const [isSprintPageLoading, setIsSprintPageLoading] = useState<boolean>(false);
 
-  // Expanded sprint cards
   const [expandedSprintIds, setExpandedSprintIds] = useState<string[]>(() => {
     const active = (project.sprints || []).find((s) => s.status === 'active')?.id || project.sprints?.[0]?.id;
     return active ? [active] : [];
@@ -74,7 +68,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   const [sprintToReopen, setSprintToReopen] = useState<Sprint | null>(null);
   const [sprintToDelete, setSprintToDelete] = useState<Sprint | null>(null);
 
-  // Confirmation dialog state for backlog item deletion
   const [itemToDelete, setItemToDelete] = useState<{
     sprintId: string;
     itemId: string;
@@ -124,7 +117,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     completed: allSprints.filter((s) => s.status === 'completed').length,
   });
 
-  // Keep state synchronized with project prop updates (e.g. status updates, date changes)
   useEffect(() => {
     const freshAll = project.sprints || [];
     const freshFiltered = freshAll.filter((s) => {
@@ -460,7 +452,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* 1. Top Filter Bar */}
       <SprintFilterBar
         filter={filter}
         statusCounts={statusCounts}
@@ -468,7 +459,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         disabled={isFilterLoading || isSprintPageLoading}
       />
 
-      {/* 2. Sprints List or Skeleton Loader */}
       {isSprintPageLoading || isFilterLoading ? (
         <SprintCardsSkeleton count={Math.min(sprintLimit, 3)} />
       ) : paginatedSprints.length === 0 ? (
@@ -524,7 +514,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         </div>
       )}
 
-      {/* 3. Industry-Standard Sprints Pagination (Appears ONLY when sprints > 10) */}
       {!isSprintPageLoading && !isFilterLoading && (
         <SprintsPagination
           page={sprintPagination.page}
@@ -538,7 +527,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         />
       )}
 
-      {/* 4. Complete Sprint Confirmation Dialog */}
       {sprintToComplete && (
         <ConfirmDialog
           isOpen={Boolean(sprintToComplete)}
@@ -555,7 +543,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         />
       )}
 
-      {/* 4.1 Reopen Sprint Confirmation Dialog */}
       {sprintToReopen && (
         <ConfirmDialog
           isOpen={Boolean(sprintToReopen)}
@@ -573,7 +560,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         />
       )}
 
-      {/* 4.2 Delete Sprint Confirmation Dialog */}
       {sprintToDelete && (
         <ConfirmDialog
           isOpen={Boolean(sprintToDelete)}
@@ -591,7 +577,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         />
       )}
 
-      {/* 5. Backlog Item Deletion Confirmation Dialog */}
       {itemToDelete && (
         <ConfirmDialog
           isOpen={Boolean(itemToDelete)}
@@ -610,7 +595,6 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         />
       )}
 
-      {/* 7. Custom Sprint Dates & Cycle Modal */}
       <EditSprintDatesModal
         isOpen={Boolean(editingDatesSprint)}
         onClose={() => setEditingDatesSprint(null)}

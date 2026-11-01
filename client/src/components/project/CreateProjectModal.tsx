@@ -48,8 +48,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   onClose,
   onProjectCreated,
 }) => {
-  // Form State
-  // Form State
   const [name, setName] = useState('');
   const [key, setKey] = useState('');
   const [isKeyManuallyEdited, setIsKeyManuallyEdited] = useState(false);
@@ -68,7 +66,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     });
   };
 
-  // Team Member Dropdown selection state (Multi-Select)
   const [selectedMemberEmails, setSelectedMemberEmails] = useState<string[]>([]);
   const [isMemberDropdownOpen, setIsMemberDropdownOpen] = useState(false);
   const memberDropdownRef = React.useRef<HTMLDivElement>(null);
@@ -95,7 +92,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     setMemberError('');
   };
 
-  // Close dropdown on outside click
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (memberDropdownRef.current && !memberDropdownRef.current.contains(event.target as Node)) {
@@ -106,7 +102,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Dynamic Workspace Members fetch on Modal Open
   React.useEffect(() => {
     if (!isOpen) {
       setName('');
@@ -134,7 +129,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       .then((rawMembers) => {
         const combinedMap = new Map<string, WorkspaceMemberOption>();
 
-        // 1. Current logged-in user (Admin / Creator) always at top
         if (currentUser?.email) {
           const userInitials = (currentUser.name || 'Admin')
             .split(' ')
@@ -152,7 +146,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           });
         }
 
-        // 2. Add real workspace members from MongoDB roster
         rawMembers.forEach((m: any) => {
           const email = (m.email || '').toLowerCase().trim();
           if (email && !combinedMap.has(email)) {
@@ -173,7 +166,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           }
         });
 
-        // 3. Fallback defaults if roster is small
         DEFAULT_WORKSPACE_LEADS.forEach((d) => {
           if (!combinedMap.has(d.email.toLowerCase())) {
             combinedMap.set(d.email.toLowerCase(), d);
@@ -188,17 +180,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       });
   }, [isOpen]);
 
-  // Team Members State
   const [members, setMembers] = useState<
     Array<{ name: string; email: string; role: ProjectMemberRole }>
   >([]);
 
-  // Input states for adding new member
   const [newMemberRole, setNewMemberRole] = useState<ProjectMemberRole>('Developer');
   const [memberError, setMemberError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Validation State
   const [errors, setErrors] = useState<{
     name?: string;
     key?: string;
@@ -253,17 +242,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     return Object.keys(errs).length === 0;
   };
 
-  // Character limit tracking
   const isNameOverLimit = name.length > MAX_PROJECT_NAME_LENGTH;
   const isDescriptionOverLimit = description.length > MAX_PROJECT_DESCRIPTION_LENGTH;
 
-  // Real-time field validities
   const isNameValid = name.trim().length >= 2 && !isNameOverLimit;
   const isKeyValid = key.trim().length >= 2 && /^[A-Z0-9]+$/i.test(key.trim());
   const isDescriptionValid = description.trim().length >= 5 && !isDescriptionOverLimit;
   const hasMembers = members.length >= 1 || selectedMemberEmails.length >= 1;
 
-  // Form validity: button is disabled until all required fields are filled and valid
   const isFormValid =
     isNameValid &&
     isKeyValid &&
@@ -272,7 +258,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     !isNameOverLimit &&
     !isDescriptionOverLimit;
 
-  // Immediate red error messages when over limit or touched
   const nameError = isNameOverLimit
     ? `Project name cannot exceed ${MAX_PROJECT_NAME_LENGTH} characters (currently ${name.length} characters)`
     : (touched.name ? errors.name : undefined);
@@ -281,7 +266,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     ? `Project description cannot exceed ${MAX_PROJECT_DESCRIPTION_LENGTH} characters (currently ${description.length} characters)`
     : (touched.description ? errors.description : undefined);
 
-  // Auto-generate 3-4 letter project key from project name
   const handleNameChange = (val: string) => {
     setName(val);
     if (val.length > MAX_PROJECT_NAME_LENGTH) {
@@ -414,7 +398,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
     let currentMembers = [...members];
 
-    // If user has selected members and a role in the dropdown row, auto-add them before validation
     if (selectedMemberEmails.length > 0 && newMemberRole) {
       for (const email of selectedMemberEmails) {
         const chosen = availableLeads.find(
@@ -447,7 +430,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       if (savedUser) currentUserProfile = JSON.parse(savedUser);
     } catch {}
 
-    // Determine lead: check if any member was assigned Project Lead or Manager, else default to the creating manager
     const designatedLead =
       currentMembers.find((m) => m.role === 'Project Lead') ||
       currentMembers.find((m) => m.role === 'Manager') ||
@@ -470,7 +452,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     const cleanLeadName = designatedLead.name.replace(/\s*\(You\)\s*/i, '').trim();
     const cleanLeadRole = ((designatedLead as any).role || 'Manager') as ProjectMemberRole;
 
-    // Ensure creating manager is always included in project membership
     const finalMembers = [...currentMembers];
     if (
       currentUserProfile?.email &&
@@ -504,7 +485,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     };
 
     try {
-      // Live REST API POST request -> visible in browser Network tab!
       const created = await ProjectApiService.createProject(payload);
       setIsSubmitting(false);
       if (typeof window !== 'undefined' && created?.id) {
@@ -517,7 +497,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       }
       onProjectCreated(created);
       onClose();
-      // Reset form
       setName('');
       setKey('');
       setIsKeyManuallyEdited(false);
@@ -571,7 +550,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       }
     >
       <form id="create-project-form" onSubmit={handleSubmit} className="space-y-6" noValidate>
-        {/* General Error Alert if Server / Network Fails */}
         {errors.general && (
           <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-900 dark:text-rose-200 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
             <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
@@ -579,7 +557,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           </div>
         )}
 
-        {/* Section 1: Project Identity & Key */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2 space-y-1.5">
             <div className="flex items-center justify-between">
@@ -672,7 +649,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           </div>
         </div>
 
-        {/* Description */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
@@ -725,7 +701,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           )}
         </div>
 
-        {/* Automated Monthly Retrospective Configuration Card */}
         <div className="rounded-xl border border-slate-200/90 dark:border-white/[0.08] bg-slate-50/70 dark:bg-[#12151c]/70 p-3.5 space-y-2.5 transition-all">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-0.5">
@@ -770,7 +745,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           )}
         </div>
 
-        {/* Team Members with Roles */}
         <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-white/[0.08]">
           <div className="flex items-center justify-between">
             <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
@@ -792,10 +766,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             </div>
           )}
 
-          {/* Add Member Selector Row */}
           <div className="p-3.5 rounded-xl bg-slate-50/90 dark:bg-[#12151c]/60 border border-slate-200/90 dark:border-white/[0.08] space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
-              {/* Member Dropdown Picker */}
               <div className="sm:col-span-7 relative" ref={memberDropdownRef}>
                 {(() => {
                   const unaddedMembers = availableLeads.filter(
@@ -862,10 +834,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                         />
                       </button>
 
-                      {/* Dropdown Menu */}
                       {isMemberDropdownOpen && (
                         <div className="absolute z-50 left-0 right-0 mt-1.5 p-1.5 bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] rounded-xl shadow-xl space-y-1 max-h-60 overflow-y-auto">
-                          {/* Quick Select All Header */}
                           {unaddedMembers.length > 0 && (
                             <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-100 dark:border-white/[0.08] mb-1">
                               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
@@ -915,7 +885,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                 }`}
                               >
                                 <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                  {/* Left Checkbox */}
                                   <div
                                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${
                                       isAdded
@@ -930,12 +899,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                                     )}
                                   </div>
 
-                                  {/* Member Avatar */}
                                   <div className="w-6 h-6 rounded-md bg-[#88c958]/15 text-[#88c958] font-bold text-[10px] flex items-center justify-center shrink-0">
                                     {m.avatar || m.name.slice(0, 2).toUpperCase()}
                                   </div>
 
-                                  {/* Name and Email */}
                                   <div className="min-w-0">
                                     <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                                       {m.name}
@@ -965,7 +932,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 })()}
               </div>
 
-              {/* Role Selector */}
               <div className="sm:col-span-3">
                 <select
                   value={newMemberRole}
@@ -983,7 +949,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 </select>
               </div>
 
-              {/* Add Button */}
               <div className="sm:col-span-2">
                 <button
                   type="button"
@@ -1003,7 +968,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             {memberError && <p className="text-[11px] text-rose-500 font-medium">{memberError}</p>}
           </div>
 
-          {/* List of Current Members */}
           {members.length > 0 && (
             <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
               {members.map((m) => (
@@ -1014,7 +978,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                   <UserAvatar name={m.name} email={m.email} title={m.email} size="xs" />
                   <span className="font-semibold text-slate-800 dark:text-slate-200">{m.name}</span>
 
-                  {/* Editable Role Dropdown */}
                   <div className="relative inline-flex items-center">
                     <select
                       value={m.role}

@@ -1,12 +1,5 @@
 import { z } from 'zod';
 
-/**
- * Universal Comprehensive Email Validation Schema
- * Validates RFC-compliant email addresses across all email providers:
- * standard personal emails (Gmail, Yahoo, Outlook, iCloud, etc.),
- * corporate & enterprise domains, subdomains (corp.co.uk),
- * plus-addressing (user+tag@domain.com), and all modern TLDs (.io, .ai, .app, .dev, .tech, etc.)
- */
 export const emailValidation = z
   .string()
   .trim()
@@ -46,9 +39,6 @@ export const emailValidation = z
     message: 'Please enter a valid email address (e.g. name@company.com or name@gmail.com)',
   });
 
-/**
- * Helper to validate an email string using Universal Email Validation
- */
 export function validateEmailAddress(email: string): { isValid: boolean; error?: string } {
   if (!email || !email.trim()) {
     return { isValid: false, error: 'Email address is required' };
@@ -60,9 +50,6 @@ export function validateEmailAddress(email: string): { isValid: boolean; error?:
   return { isValid: true };
 }
 
-/**
- * Zod Schema for User Registration (Sign Up)
- */
 export const signupSchema = z
   .object({
     fullName: z
@@ -93,9 +80,6 @@ export const signupSchema = z
 
 export type SignupFormData = z.infer<typeof signupSchema>;
 
-/**
- * Zod Schema for Verifying Email Signup OTP
- */
 export const verifyEmailSchema = z.object({
   email: emailValidation,
   otp: z
@@ -107,9 +91,6 @@ export const verifyEmailSchema = z.object({
 
 export type VerifyEmailFormData = z.infer<typeof verifyEmailSchema>;
 
-/**
- * Zod Schema for User Login
- */
 export const loginSchema = z.object({
   email: emailValidation,
   password: z
@@ -120,18 +101,12 @@ export const loginSchema = z.object({
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 
-/**
- * Zod Schema for Requesting Password Reset OTP
- */
 export const forgotPasswordSchema = z.object({
   email: emailValidation,
 });
 
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
-/**
- * Zod Schema for Verifying OTP and Resetting Password
- */
 export const resetPasswordSchema = z
   .object({
     otp: z

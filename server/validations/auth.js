@@ -1,12 +1,5 @@
 import { z } from 'zod';
 
-/**
- * Universal Comprehensive Email Validation Schema for Backend API
- * Validates RFC-compliant email addresses across all email providers:
- * standard personal emails (Gmail, Yahoo, Outlook, iCloud, etc.),
- * corporate & enterprise domains, subdomains (corp.co.uk),
- * plus-addressing (user+tag@domain.com), and all modern TLDs (.io, .ai, .app, .dev, .tech, etc.)
- */
 export const emailValidation = z
   .string({ required_error: 'Email is required' })
   .trim()

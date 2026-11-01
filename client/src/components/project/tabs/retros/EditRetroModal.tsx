@@ -17,10 +17,6 @@ export interface EditRetroModalProps {
   onSave: (e: React.FormEvent) => void;
 }
 
-/**
- * EditRetroModal:
- * Dialog for editing title, sprint association, and date of a project retro.
- */
 export const EditRetroModal: React.FC<EditRetroModalProps> = ({
   retro,
   editTitle,

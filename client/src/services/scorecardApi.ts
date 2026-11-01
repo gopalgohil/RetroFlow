@@ -12,10 +12,10 @@ export interface MemberRatingInput {
   memberEmail: string;
   memberRole?: string;
   ratings: {
-    quality: number; // 1-5
-    timeliness: number; // 1-5
-    communication: number; // 1-5
-    collaboration: number; // 1-5
+    quality: number; 
+    timeliness: number; 
+    communication: number; 
+    collaboration: number; 
   };
   feedback?: string;
 }
@@ -61,10 +61,6 @@ export interface TeamScoreboardData {
 }
 
 export class ScorecardApiService {
-  /**
-   * Submit performance ratings for one or more team members
-   * POST /api/scorecards
-   */
   static async submitScorecards(
     evaluations: MemberRatingInput[],
     context?: ScorecardContext
@@ -76,11 +72,6 @@ export class ScorecardApiService {
     return res.data || [];
   }
 
-  /**
-   * Get Consolidated Team Scoreboard
-   * GET /api/scorecards/scoreboard
-   * Restricted to Workspace Admin Only
-   */
   static async getTeamScoreboard(): Promise<TeamScoreboardData> {
     const res = await api.get<ApiResponseWrapper<TeamScoreboardData>>('/scorecards/scoreboard');
     return (

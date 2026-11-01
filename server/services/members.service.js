@@ -5,17 +5,7 @@ import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 import emailService from './email.service.js';
 import env from '../config/env.js';
 
-/**
- * Members & Whitelist Service
- * Encapsulates workspace team roster business logic and whitelist permissions
- */
 class MembersService {
-  /**
-   * Retrieves all registered workspace users and whitelisted contributors
-   * with assigned project counts and enterprise project roles
-   * @param {string|ObjectId} userId - Requesting facilitator ID
-   * @returns {Promise<Array>} 
-   */
   async getWorkspaceMembers(userId, { page = 1, limit = 10, search = '' } = {}) {
 
     const [users, projects] = await Promise.all([
@@ -34,7 +24,6 @@ class MembersService {
       Project.find({}, 'name key members lead').lean(),
     ]);
 
-    // 2. Build map of member email -> project stats (count, roles, names, isLead)
     const projectStatsMap = new Map();
     projects.forEach((proj) => {
       const leadEmail = proj.lead?.email?.toLowerCase().trim();
@@ -66,7 +55,6 @@ class MembersService {
       }
     });
 
-    // 3. Aggregate registered members
     const memberMap = new Map();
     users.forEach((u) => {
       const emailLower = u.email.toLowerCase().trim();
@@ -86,22 +74,18 @@ class MembersService {
               ? roleList[0]
               : 'Developer';
 
-      // Generate avatar initials
       const nameParts = (u.name || '').trim().split(/\s+/);
       const avatar = nameParts.length >= 2
         ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
         : (u.name?.[0] || u.email[0]).toUpperCase();
 
-      // Exclude users who are still unverified
       if (!isAdmin && !u.isVerified) {
         return;
       }
 
-      // Determine member status
       const isPending = !isAdmin && (u.status === 'pending' || (!u.isApproved && u.status !== 'rejected'));
       const memberStatus = isPending ? 'pending' : u.status === 'rejected' ? 'rejected' : 'active';
 
-      // Skip rejected users from active workspace roster
       if (memberStatus === 'rejected') {
         return;
       }
@@ -123,7 +107,6 @@ class MembersService {
       });
     });
 
-    // 4. Include project collaborators who may not have individual user accounts yet
     projects.forEach((proj) => {
       if (proj.lead?.email) {
         const emailLower = proj.lead.email.toLowerCase().trim();
@@ -173,7 +156,6 @@ class MembersService {
 
     let allMembers = Array.from(memberMap.values());
 
-    // Sort members: 1. Owner, 2. Pending Approval, 3. Active members by joinedAt desc
     allMembers.sort((a, b) => {
       if (a.isPrimaryLead) return -1;
       if (b.isPrimaryLead) return 1;
@@ -182,7 +164,6 @@ class MembersService {
       return new Date(b.joinedAt || 0) - new Date(a.joinedAt || 0);
     });
 
-    // 5. Apply search filtering if specified
     if (search && typeof search === 'string' && search.trim()) {
       const q = search.trim().toLowerCase();
       allMembers = allMembers.filter(
@@ -196,7 +177,6 @@ class MembersService {
       );
     }
 
-    // 6. Enterprise pagination calculations
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.max(1, parseInt(limit, 10) || 5);
     const totalItems = allMembers.length;
@@ -222,16 +202,9 @@ class MembersService {
     };
   }
 
-  /**
-   * Whitelists developer email to bypass waiting room across all facilitator retros
-   * @param {string|ObjectId} userId - Facilitator user ID
-   * @param {string} email - Developer email to whitelist
-   * @returns {Promise<Object>} Whitelisted member record
-   */
   async whitelistDeveloper(userId, email) {
     const cleanEmail = email.toLowerCase().trim();
 
-    // Automatically append to all retrospective boards created by this facilitator
     await RetroBoard.updateMany(
       { createdBy: userId },
       { $addToSet: { approvedMembers: cleanEmail } }
@@ -243,15 +216,9 @@ class MembersService {
     };
   }
 
-  /**
-   * Remove developer email from workspace: removes from User collection, all projects, and retro boards
-   * @param {string|ObjectId} userId - Facilitator user ID
-   * @param {string} email - Developer email to remove
-   */
   async removeWhitelistMember(userId, email) {
     const cleanEmail = email.toLowerCase().trim();
 
-    // Guard: Prevent removing primary workspace owner
     if (isSuperAdmin(cleanEmail)) {
       throw new Error('Primary Workspace Owner cannot be removed.');
     }
@@ -264,7 +231,6 @@ class MembersService {
       throw new Error('You cannot remove your own account from the workspace.');
     }
 
-    // Reassign project lead if this member was the designated lead of any projects
     await Project.updateMany(
       { 'lead.email': emailRegex },
       {
@@ -280,17 +246,14 @@ class MembersService {
     );
 
     await Promise.all([
-      // 1. Remove from all retro boards approved members (case-insensitive)
       RetroBoard.updateMany(
         {},
         { $pull: { approvedMembers: emailRegex } }
       ),
-      // 2. Remove from all projects team rosters (case-insensitive)
       Project.updateMany(
         {},
         { $pull: { members: { email: emailRegex } } }
       ),
-      // 3. Permanently remove user account from User collection
       User.deleteMany({ email: emailRegex }),
     ]);
 
@@ -300,12 +263,6 @@ class MembersService {
     };
   }
 
-  /**
-   * Update member project role
-   * @param {string|ObjectId} userId - Facilitator user ID
-   * @param {string} email - Member email to update
-   * @param {string} role - New role
-   */
   async updateMemberRole(userId, email, role) {
     const cleanEmail = email.toLowerCase().trim();
     const cleanRole = (role || 'Developer').trim();
@@ -323,13 +280,11 @@ class MembersService {
     user.role = 'member';
     await user.save();
 
-    // Also update this member's role across any projects they are part of
     await Project.updateMany(
       { 'members.email': cleanEmail },
       { $set: { 'members.$.role': cleanRole } }
     );
 
-    // If demoted from Manager/Lead to Developer/QA/DevOps, remove them from project.lead if assigned
     const isDemoted = !['Manager', 'Project Lead'].includes(cleanRole);
     if (isDemoted) {
       await Project.updateMany(
@@ -350,12 +305,6 @@ class MembersService {
     };
   }
 
-  /**
-   * Approves a pending developer access request permanently
-   * @param {string|ObjectId} adminUserId - Admin user ID
-   * @param {string} emailOrId - Applicant developer email or ID
-   * @param {string} assignedRole - Role to assign (e.g. Developer, QA, etc.)
-   */
   async approveMember(adminUserId, emailOrId, assignedRole) {
     const cleanEmail = (emailOrId || '').toLowerCase().trim();
     const escapedEmail = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -380,13 +329,11 @@ class MembersService {
 
     const targetEmail = user?.email || cleanEmail;
 
-    // Ensure email is whitelisted in RetroBoard
     await RetroBoard.updateMany(
       {},
       { $addToSet: { approvedMembers: targetEmail.toLowerCase().trim() } }
     );
 
-    // Send email notification to user stating their account has been approved and they can now log in
     if (user) {
       const loginUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
       emailService.notifyUserApproved({
@@ -409,11 +356,6 @@ class MembersService {
     };
   }
 
-  /**
-   * Rejects a pending developer access request and updates status to rejected
-   * @param {string|ObjectId} adminUserId - Admin user ID
-   * @param {string} emailOrId - Applicant developer email or ID
-   */
   async rejectMember(adminUserId, emailOrId) {
     const cleanEmail = (emailOrId || '').toLowerCase().trim();
 
@@ -435,7 +377,6 @@ class MembersService {
       throw new Error('Admin users cannot be rejected.');
     }
 
-    // Update status to 'rejected'
     if (user) {
       user.status = 'rejected';
       user.isApproved = false;
@@ -444,13 +385,11 @@ class MembersService {
 
     const targetEmail = user?.email || cleanEmail;
 
-    // Cleanly remove from all retro boards and projects
     await Promise.all([
       RetroBoard.updateMany({}, { $pull: { approvedMembers: targetEmail.toLowerCase().trim() } }),
       Project.updateMany({}, { $pull: { members: { email: targetEmail.toLowerCase().trim() } } }),
     ]);
 
-    // Send email notification to the user stating their signup request has been rejected
     emailService.notifyUserRejected({
       user: user || { email: targetEmail, name: targetEmail.split('@')[0] },
       contactEmail: getSuperAdminEmail(),

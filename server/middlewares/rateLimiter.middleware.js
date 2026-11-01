@@ -1,15 +1,11 @@
 import rateLimit from 'express-rate-limit';
 import { ApiError } from '../utils/ApiError.js';
 
-/**
- * Strict rate limiter for sensitive authentication endpoints (Login, Forgot Password, OTP).
- * Mitigates brute-force credential stuffing and OTP SMS/email flooding attacks.
- */
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Max 20 attempts per IP within 15 minutes
-  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
-  legacyHeaders: false, // Disable `X-RateLimit-*` headers
+  windowMs: 15 * 60 * 1000, 
+  max: 20, 
+  standardHeaders: true, 
+  legacyHeaders: false, 
   handler: (req, res, next) => {
     next(
       new ApiError(
@@ -20,9 +16,6 @@ export const authLimiter = rateLimit({
   },
 });
 
-/**
- * General application rate limiter for standard public API endpoints.
- */
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === 'production' ? 1000 : 50000,

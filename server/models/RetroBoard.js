@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 
-
 const topicSchema = new mongoose.Schema(
   {
     topicId: {
@@ -22,11 +21,11 @@ const topicSchema = new mongoose.Schema(
     },
     icon: {
       type: String,
-      default: 'smile', // e.g. smile, frown, bulb, puzzle, rocket, anchor, target, flag
+      default: 'smile', 
     },
     color: {
       type: String,
-      default: '#10B981', // Hex code
+      default: '#10B981', 
     },
     order: {
       type: Number,
@@ -35,7 +34,6 @@ const topicSchema = new mongoose.Schema(
   },
   { _id: false }
 );
-
 
 const cardSchema = new mongoose.Schema(
   {
@@ -114,7 +112,6 @@ const cardSchema = new mongoose.Schema(
   }
 );
 
-
 const attendeeSchema = new mongoose.Schema(
   {
     userId: {
@@ -153,9 +150,6 @@ const attendeeSchema = new mongoose.Schema(
   { _id: false }
 );
 
-/**
- * Retrospective Session Board Schema
- */
 const retroBoardSchema = new mongoose.Schema(
   {
     title: {
@@ -195,18 +189,17 @@ const retroBoardSchema = new mongoose.Schema(
       index: true,
       default: () => crypto.randomUUID().slice(0, 12),
     },
-    // TeamRetro Process & Waiting Room Controls
     approvalRequired: {
       type: Boolean,
-      default: false, // Require Admin approval before joining
+      default: false, 
     },
     revealMode: {
       type: Boolean,
-      default: false, // Blur cards until facilitator reveals
+      default: false, 
     },
     votingLimit: {
       type: Number,
-      default: 1, // Maximum 1 vote per participant
+      default: 1, 
       min: 1,
       max: 20,
     },
@@ -254,7 +247,7 @@ const retroBoardSchema = new mongoose.Schema(
     },
     approvedMembers: {
       type: [String],
-      default: [], // Whitelisted emails
+      default: [], 
     },
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -298,7 +291,6 @@ const retroBoardSchema = new mongoose.Schema(
   }
 );
 
-
 retroBoardSchema.index({ createdBy: 1, createdAt: -1 });
 retroBoardSchema.index({ approvedMembers: 1 });
 retroBoardSchema.index({ projectKey: 1 });
@@ -310,6 +302,4 @@ retroBoardSchema.index({ projectId: 1, status: 1 });
 const RetroBoard = mongoose.model('RetroBoard', retroBoardSchema);
 
 export default RetroBoard;
-
-
 

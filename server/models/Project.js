@@ -1,9 +1,6 @@
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 
-/**
- * Subdocument Schema: Sprint Backlog Story or Action Item
- */
 const backlogItemSchema = new mongoose.Schema(
   {
     id: {
@@ -67,9 +64,6 @@ const backlogItemSchema = new mongoose.Schema(
   { _id: false, strict: false }
 );
 
-/**
- * Subdocument Schema: Sprint Cycle
- */
 const sprintSchema = new mongoose.Schema(
   {
     id: {
@@ -127,9 +121,6 @@ const sprintSchema = new mongoose.Schema(
   { _id: false }
 );
 
-/**
- * Subdocument Schema: Project Team Member with Role
- */
 const projectMemberSchema = new mongoose.Schema(
   {
     id: {
@@ -164,9 +155,6 @@ const projectMemberSchema = new mongoose.Schema(
   { _id: false }
 );
 
-/**
- * Subdocument Schema: Retrospective Session Link
- */
 const projectRetroLinkSchema = new mongoose.Schema(
   {
     id: { type: String, required: true },
@@ -189,9 +177,6 @@ const projectRetroLinkSchema = new mongoose.Schema(
   { _id: false }
 );
 
-/**
- * Subdocument Schema: Velocity History Metric
- */
 const velocityMetricSchema = new mongoose.Schema(
   {
     sprintName: { type: String, required: true },
@@ -201,9 +186,6 @@ const velocityMetricSchema = new mongoose.Schema(
   { _id: false }
 );
 
-/**
- * Main Enterprise Project Schema
- */
 const projectSchema = new mongoose.Schema(
   {
     name: {
@@ -274,7 +256,6 @@ const projectSchema = new mongoose.Schema(
       virtuals: true,
       transform: (doc, ret) => {
         ret.id = ret._id.toString();
-        // Virtual active sprint resolution
         ret.activeSprint = ret.sprints?.find((s) => s.status === 'active') || ret.sprints?.[0] || null;
         return ret;
       },
@@ -282,7 +263,6 @@ const projectSchema = new mongoose.Schema(
   }
 );
 
-// Compound & Performance indexes for high-speed sub-millisecond queries
 projectSchema.index({ key: 1 });
 projectSchema.index({ key: 1, createdBy: 1 });
 projectSchema.index({ 'members.email': 1 });

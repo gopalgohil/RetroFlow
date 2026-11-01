@@ -1,11 +1,4 @@
-/**
- * @file logger.middleware.js
- * @description Developer-friendly HTTP request and payload terminal logger.
- * Displays formatted logs for incoming requests, JSON payloads (masking sensitive fields),
- * and outgoing responses with latency in milliseconds.
- */
 
-// Sensitive keys to mask in payload logs for security
 const SENSITIVE_FIELDS = ['password', 'confirmPassword', 'newPassword', 'token'];
 
 const sanitizePayload = (obj) => {
@@ -27,14 +20,12 @@ export const requestLogger = (req, res, next) => {
   const method = req.method;
   const url = req.originalUrl || req.url;
 
-  // 1. Log incoming request and payload
   console.log(`\n📥 [${method}] ${url}`);
   if (req.body && Object.keys(req.body).length > 0) {
     const cleanPayload = sanitizePayload(req.body);
     console.log(`📦 Payload:`, JSON.stringify(cleanPayload, null, 2));
   }
 
-  // 2. Intercept response completion to log status and execution time
   res.on('finish', () => {
     const duration = Date.now() - startTime;
     const statusCode = res.statusCode;

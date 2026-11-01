@@ -22,10 +22,6 @@ export interface RetroCardProps {
   onDelete: (retro: ProjectRetroLink) => void;
 }
 
-/**
- * RetroCard:
- * Card item for an individual retrospective session with live stats and action buttons.
- */
 export const RetroCard: React.FC<RetroCardProps> = ({
   retro,
   canManageProject,
@@ -42,7 +38,6 @@ export const RetroCard: React.FC<RetroCardProps> = ({
   return (
     <div className="group p-3.5 sm:p-4.5 2xl:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
       <div className="space-y-2.5">
-        {/* Card Top Row: Status badge on top-left & Date on top-right (matching Retrospective Sessions) */}
         <div className="flex items-center justify-between gap-2">
           <span
             className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
@@ -67,12 +62,10 @@ export const RetroCard: React.FC<RetroCardProps> = ({
           </span>
         </div>
 
-        {/* Title */}
         <h4 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug truncate group-hover:text-[#88c958] transition-colors">
           {retro.title}
         </h4>
 
-        {/* Stats Pills */}
         <div className="grid grid-cols-3 gap-2 pt-1">
           <div className="p-2 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-100 dark:border-white/[0.08] text-center">
             <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Topics</span>
@@ -95,9 +88,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
         </div>
       </div>
 
-      {/* Action Footer */}
       <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between gap-2">
-        {/* Left: Launch Board + Share / Invite */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Link
             href={`/retro/${retro.shareToken}`}
@@ -133,7 +124,6 @@ export const RetroCard: React.FC<RetroCardProps> = ({
           )}
         </div>
 
-        {/* Right: Quick Action Buttons (Admin & Project Leads only) */}
         {canManageProject && (
           <div className="flex items-center gap-1">
             <button

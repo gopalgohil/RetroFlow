@@ -3,9 +3,6 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import database from '../config/db.js';
 import env from '../config/env.js';
 
-/**
- * Health & Diagnostics Controller
- */
 export const checkHealth = asyncHandler(async (req, res) => {
   const dbStatus = database.getConnectionState();
 

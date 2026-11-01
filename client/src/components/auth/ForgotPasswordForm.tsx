@@ -12,7 +12,7 @@ import {
 import { api, ENDPOINTS } from '@/lib/api';
 
 const FORGOT_PWD_SESSION_KEY = 'retroflow_forgot_password_session';
-const FORGOT_PWD_SESSION_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
+const FORGOT_PWD_SESSION_EXPIRY_MS = 15 * 60 * 1000; 
 
 export const ForgotPasswordForm: React.FC = () => {
   const router = useRouter();
@@ -32,8 +32,6 @@ export const ForgotPasswordForm: React.FC = () => {
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  // Restore session from sessionStorage ONLY on page reload (F5 / mobile refresh)
-  // If user navigated fresh (e.g. from /login), clear session and start fresh at Step 1
   useEffect(() => {
     try {
       const navEntry = (typeof window !== 'undefined' && window.performance?.getEntriesByType?.('navigation')?.[0]) as PerformanceNavigationTiming | undefined;
@@ -63,11 +61,9 @@ export const ForgotPasswordForm: React.FC = () => {
         }
       }
     } catch {
-      // Ignore storage errors
     }
   }, []);
 
-  // Timer for OTP resend cooldown
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (step === 2 && countdown > 0) {
@@ -78,7 +74,6 @@ export const ForgotPasswordForm: React.FC = () => {
     return () => clearTimeout(timer);
   }, [step, countdown]);
 
-  // Clean up redirect timer on unmount
   useEffect(() => {
     return () => {
       if (redirectTimerRef.current) {
@@ -116,7 +111,6 @@ export const ForgotPasswordForm: React.FC = () => {
           })
         );
       } catch {
-        // Storage access fallback
       }
 
       setStep(2);
@@ -173,13 +167,11 @@ export const ForgotPasswordForm: React.FC = () => {
       try {
         sessionStorage.removeItem(FORGOT_PWD_SESSION_KEY);
       } catch {
-        // Storage access fallback
       }
 
       setIsRedirecting(true);
       setSuccessMessage('🎉 Password reset successfully! Redirecting you to sign in...');
 
-      // Redirect to login page after 1.5 seconds
       redirectTimerRef.current = setTimeout(() => {
         router.push(`/login?reset=true&email=${encodeURIComponent(email)}`);
       }, 1500);
@@ -210,7 +202,6 @@ export const ForgotPasswordForm: React.FC = () => {
           })
         );
       } catch {
-        // Storage access fallback
       }
       setSuccessMessage(msg);
     } catch (err: any) {
@@ -220,7 +211,6 @@ export const ForgotPasswordForm: React.FC = () => {
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
-      {/* Dynamic Header based on step */}
       <AuthHeader
         title={step === 1 ? 'Forgot your password?' : 'Enter verification code'}
         subtitle={
@@ -230,7 +220,6 @@ export const ForgotPasswordForm: React.FC = () => {
         }
       />
 
-      {/* General Alert messages */}
       {generalError && (
         <Alert variant="error">
           <div className="space-y-1.5">
@@ -250,7 +239,6 @@ export const ForgotPasswordForm: React.FC = () => {
       )}
       {successMessage && <Alert variant="success" message={successMessage} />}
 
-      {/* Step 1: Request OTP */}
       {step === 1 && (
         <form onSubmit={handleRequestOtp} className="space-y-4" noValidate>
           <Input
@@ -280,7 +268,6 @@ export const ForgotPasswordForm: React.FC = () => {
         </form>
       )}
 
-      {/* Step 2: Verify OTP and Set New Password */}
       {step === 2 && (
         <form onSubmit={handleResetPassword} className="space-y-4" noValidate>
           <Input
@@ -342,7 +329,6 @@ export const ForgotPasswordForm: React.FC = () => {
                 try {
                   sessionStorage.removeItem(FORGOT_PWD_SESSION_KEY);
                 } catch {
-                  // Storage access fallback
                 }
                 setStep(1);
                 setOtp('');
@@ -382,7 +368,6 @@ export const ForgotPasswordForm: React.FC = () => {
         </form>
       )}
 
-      {/* Footer link to login */}
       <AuthFooterLink
         prompt="Remember your password?"
         actionText="Sign in"
@@ -391,7 +376,6 @@ export const ForgotPasswordForm: React.FC = () => {
           try {
             sessionStorage.removeItem(FORGOT_PWD_SESSION_KEY);
           } catch {
-            // Storage access fallback
           }
         }}
       />

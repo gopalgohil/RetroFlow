@@ -1,15 +1,6 @@
 import WorkspaceSettings from '../models/WorkspaceSettings.js';
 
-/**
- * Workspace Settings Service
- * Encapsulates organizational configuration and agile governance parameters
- */
 class SettingsService {
-  /**
-   * Retrieves workspace settings, initializing defaults if none exist
-   * @param {string|ObjectId} userId - Organization administrator / facilitator ID
-   * @returns {Promise<Object>} Workspace settings document
-   */
   async getSettings(userId) {
     let settings = await WorkspaceSettings.findOne({ userId });
 
@@ -28,12 +19,6 @@ class SettingsService {
     return settings;
   }
 
-  /**
-   * Updates workspace configuration with validation
-   * @param {string|ObjectId} userId - Facilitator user ID
-   * @param {Object} updateData - Key/value pairs to update
-   * @returns {Promise<Object>} Updated settings document
-   */
   async updateSettings(userId, updateData) {
     const {
       workspaceName,

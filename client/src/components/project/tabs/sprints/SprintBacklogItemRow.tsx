@@ -56,10 +56,6 @@ const getAssigneeInitials = (name?: string, avatar?: string): string => {
   return 'U';
 };
 
-/**
- * SprintBacklogItemRow:
- * Highly optimized, memoized single backlog / action item card.
- */
 export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.memo(
   ({
     sprintId,
@@ -89,7 +85,6 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
       )
     );
 
-    // Only Manager/Admin (canManageProject) or designated Assignee can update status
     const canChangeStatus = Boolean(canManageProject || isAssignee);
 
     const givenByName =
@@ -126,7 +121,6 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
 
     return (
       <div className="group p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
-        {/* Left: Item Index Number & Title */}
         <div className="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
           <span
             className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 text-xs font-black flex items-center justify-center shrink-0 tabular-nums select-none mt-0.5 sm:mt-0 shadow-2xs"
@@ -202,9 +196,7 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
           </div>
         </div>
 
-        {/* Right: Status Select Dropdown, Merged Round Circles, Delete Action */}
         <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-          {/* Status Display: Interactive Dropdown for Assignee/Manager, Static Read-Only Badge for Others */}
           {!canChangeStatus ? (
             <div
               title={
@@ -272,14 +264,12 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
             </div>
           )}
 
-          {/* Merged Round Circles: Assigned By (Manager) & Assigned To (Member) merged half-half with round curve */}
           <div className="flex items-center shrink-0 select-none">
             {givenByName && item.assignee?.name ? (
               <div
                 className="flex items-center -space-x-3.5 group/merged"
                 title={fullTooltip}
               >
-                {/* Left Round Circle: Assigned By (Manager) */}
                 <div
                   className="w-8 h-8 rounded-full bg-[#488e1e] text-white dark:bg-[#72ad46] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-0 group-hover/merged:z-10 group-hover/merged:scale-105 transition-all"
                   title={givenByTooltip}
@@ -287,7 +277,6 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                   {getAssigneeInitials(givenByName)}
                 </div>
 
-                {/* Right Round Circle: Assigned To (Member) */}
                 <div
                   className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-10 hover:z-20 hover:scale-105 transition-all"
                   title={assigneeTooltip}
@@ -305,7 +294,6 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
             ) : null}
           </div>
 
-          {/* Admin / Manager / Lead Delete Action */}
           {canManageProject && onDeleteItem && (
             <button
               type="button"

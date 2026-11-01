@@ -1,22 +1,12 @@
 import mongoose from 'mongoose';
 import env from './env.js';
 
-/**
- * Enterprise MongoDB Atlas Connection Manager
- * Features:
- * - IPv4 Enforcement (family: 4) to eliminate Linux DNS latency
- * - Exponential backoff auto-reconnection
- * - Mongoose buffer timeout expansion
- * - Thread-safe readyState checks
- */
 class Database {
   constructor() {
     this.isConnecting = false;
 
-    // Expand buffering timeout from 10s to 30s to prevent buffering timeouts
     mongoose.set('bufferTimeoutMS', 30000);
 
-    // Setup lifecycle listeners once
     mongoose.connection.on('connected', () => {
       console.log(`[MongoDB] ✅ Connection established successfully.`);
     });
@@ -38,12 +28,10 @@ class Database {
   }
 
   async connect() {
-    // If already connected, return immediately
     if (mongoose.connection.readyState === 1) {
       return;
     }
 
-    // If currently establishing connection, wait
     if (mongoose.connection.readyState === 2 || this.isConnecting) {
       console.log('[MongoDB] Connection already in progress...');
       return;
@@ -59,9 +47,9 @@ class Database {
     const options = {
       maxPoolSize: 10,
       minPoolSize: 2,
-      serverSelectionTimeoutMS: 15000, // 15s to establish cloud TLS handshake
+      serverSelectionTimeoutMS: 15000, 
       socketTimeoutMS: 45000,
-      family: 4, // Force IPv4 on Linux to prevent DNS resolution hang
+      family: 4, 
     };
 
     try {

@@ -71,7 +71,6 @@ export const Modal: React.FC<ModalProps> = ({
         className={`relative w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto transition-all animate-in zoom-in-95 duration-150`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
         {(title || icon || showCloseButton) && (
           <div
             className={`px-6 py-4.5 border-b border-slate-200/80 dark:border-white/[0.08] flex items-center justify-between shrink-0 ${
@@ -115,10 +114,8 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
 
-        {/* Modal Body */}
         <div className="p-5 sm:p-6 overflow-y-auto flex-1 min-h-0 text-slate-800 dark:text-slate-200">{children}</div>
 
-        {/* Modal Footer */}
         {footer && (
           <div className="px-6 py-4 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50/60 dark:bg-[#12151c] flex items-center justify-end gap-3 shrink-0">
             {footer}

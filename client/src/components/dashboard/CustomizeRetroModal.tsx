@@ -39,7 +39,6 @@ interface CustomizeRetroModalProps {
   projectContext?: ProjectRetroContext | null;
 }
 
-// Available Color Swatches matching login accents
 const COLOR_PALETTE = [
   { label: 'Emerald Green', hex: '#10B981' },
   { label: 'Crimson Rose', hex: '#F43F5E' },
@@ -51,7 +50,6 @@ const COLOR_PALETTE = [
   { label: 'Teal Cyan', hex: '#06B6D4' },
 ];
 
-// Available Icons for Topics
 const AVAILABLE_ICONS = [
   { id: 'smile', label: 'Smile', icon: Smile },
   { id: 'frown', label: 'Frown', icon: Frown },
@@ -63,7 +61,6 @@ const AVAILABLE_ICONS = [
   { id: 'flag', label: 'Milestone', icon: Flag },
 ];
 
-// Pre-packaged TeamRetro Templates
 const TEMPLATE_PRESETS = [
   {
     id: 'went_well',
@@ -96,7 +93,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     setMounted(true);
   }, []);
 
-  // Form State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
@@ -109,14 +105,11 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const [backgroundTheme, setBackgroundTheme] = useState<'sailboat' | 'standard' | 'space' | 'mountain' | 'minimal'>('standard');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Topics list state
   const [topics, setTopics] = useState<RetroTopic[]>([]);
 
-  // Popover selectors
   const [colorPickerIndex, setColorPickerIndex] = useState<number | null>(null);
   const [iconPickerIndex, setIconPickerIndex] = useState<number | null>(null);
 
-  // Dragging state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -162,7 +155,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setBackgroundTheme(initialData.backgroundTheme || 'standard');
       setTopics(initialData.topics || []);
     } else if (projectContext) {
-      // Linked Project mode: Auto-fill project title, sprint, and auto-whitelist project members
       const sprintTag = projectContext.sprintName || 'Sprint 14';
       setTitle(`${projectContext.name} - ${sprintTag} Retrospective`);
       setDescription(`Agile feedback & sprint retrospective for ${projectContext.name} (${projectContext.key}).`);
@@ -171,7 +163,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setEndDate(new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]);
       setRevealMode(false);
       setVotingLimit(1);
-      setApprovalRequired(true); // Project privacy: restrict access to project members
+      setApprovalRequired(true); 
       const memberEmails = (projectContext.members || []).map((m) => m.email.toLowerCase().trim());
       setApprovedMembers(memberEmails);
       setBackgroundTheme('standard');
@@ -201,7 +193,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           order: 2,
         },
       ]);
-      // Default initial state for new retrospective
       const defaultTitle = projectContext?.sprintName
         ? `${projectContext.sprintName} Retrospective`
         : 'Sprint 1 Retrospective';
@@ -244,7 +235,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     }
   }, [initialData, projectContext, isOpen]);
 
-  // Topic manipulation methods
   const handleUpdateTopic = (index: number, field: keyof RetroTopic, value: any) => {
     setTopics((prev) => {
       const updated = [...prev];
@@ -298,7 +288,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     });
   };
 
-  // Drag and Drop reordering handlers
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
   };
@@ -328,10 +317,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     );
   };
 
-  // Date validation & live sprint duration metrics (Jira / TeamRetro industry standard)
   const todayStr = React.useMemo(() => new Date().toISOString().split('T')[0], []);
 
-  // Date validation: present/future date required on creation, and endDate >= startDate
   const dateValidation = React.useMemo(() => {
     if (!startDate && !endDate) {
       return {
@@ -355,7 +342,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       };
     }
 
-    // Past date prevention for newly created retros
     if (!initialData && startDate < todayStr) {
       return {
         isValid: false,
@@ -387,7 +373,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     }
   };
 
-  // Real-time validity checks
   const hasOverLimitTopic = topics.some((t) => t.title.length > MAX_TOPIC_TITLE_LENGTH);
   const hasEmptyTopic = topics.some((t) => !t.title.trim());
   const isTopicsCountValid = topics.length >= MIN_RETRO_TOPICS && topics.length <= MAX_RETRO_TOPICS;
@@ -485,7 +470,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="relative w-full max-w-4xl bg-white dark:bg-[#0e1015] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/[0.08] overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Modal Top Header */}
         <div className="px-6 py-4 border-b border-slate-200 dark:border-white/[0.08] flex items-center justify-between bg-slate-50/70 dark:bg-[#12151c]/80">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] flex items-center justify-center font-black text-xs shadow-xs">
@@ -509,7 +493,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           </button>
         </div>
 
-        {/* Linked Project Banner */}
         {projectContext && (
           <div className="px-6 py-2.5 bg-gradient-to-r from-emerald-50/50 via-slate-50 to-emerald-50/30 dark:from-[#0e1015] dark:via-[#12151c] dark:to-[#0e1015] border-b border-emerald-100/90 dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2">
@@ -532,7 +515,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           </div>
         )}
 
-        {/* Navigation Tabs */}
         <div className="px-6 border-b border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0e1015] flex items-center gap-8">
           {[
             { id: 'general', label: 'GENERAL' },
@@ -555,7 +537,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           })}
         </div>
 
-        {/* Modal Body Tabs Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/40 dark:bg-[#08090a]">
           {errorMessage && (
             <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center justify-between shadow-xs animate-in fade-in">
@@ -569,7 +550,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
               </button>
             </div>
           )}
-          {/* TAB 1: GENERAL */}
           {activeTab === 'general' && (
             <div className="max-w-2xl space-y-5 animate-in fade-in duration-150">
               <div>
@@ -599,7 +579,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 />
               </div>
 
-              {/* Starting Date & Ending Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
@@ -661,10 +640,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
             </div>
           )}
 
-          {/* TAB 2: TOPICS (Active Builder) */}
           {activeTab === 'topics' && (
             <div className="space-y-6 animate-in fade-in duration-150">
-              {/* Preset Template Selectors */}
               <div className="p-4 rounded-xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
@@ -692,7 +669,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 </div>
               </div>
 
-              {/* Column Rows List */}
               <div className="space-y-3">
                 {topics.map((topic, index) => {
                   const CurrentIcon =
@@ -712,7 +688,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                           : 'border-slate-200/90 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18]'
                       }`}
                     >
-                      {/* Drag Handle & Order */}
                       <div className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 shrink-0">
                         <GripVertical className="w-5 h-5" />
                         <span className="font-mono text-xs font-bold text-slate-400 w-4">
@@ -720,7 +695,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                         </span>
                       </div>
 
-                      {/* Custom Icon & Color Badge */}
                       <div className="relative shrink-0 flex items-center gap-1.5">
                         <button
                           type="button"
@@ -746,7 +720,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                           className="w-4 h-4 rounded-full border-2 border-white dark:border-[#0e1015] ring-1 ring-slate-200 dark:ring-white/[0.12] shadow-xs cursor-pointer hover:scale-110 transition-transform"
                         />
 
-                        {/* Color Picker Dropdown Popover */}
                         {colorPickerIndex === index && (
                           <div className="absolute top-12 left-0 z-50 p-2.5 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl shadow-xl grid grid-cols-4 gap-2 w-36">
                             {COLOR_PALETTE.map((c) => (
@@ -766,7 +739,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                           </div>
                         )}
 
-                        {/* Icon Picker Dropdown Popover */}
                         {iconPickerIndex === index && (
                           <div className="absolute top-12 left-0 z-50 p-2.5 bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-xl shadow-xl grid grid-cols-4 gap-2 w-44">
                             {AVAILABLE_ICONS.map((i) => {
@@ -789,7 +761,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                         )}
                       </div>
 
-                      {/* Topic Title & Description Inputs */}
                       <div className="flex-1 w-full space-y-1.5">
                         <div className="flex items-center justify-between gap-2">
                           <input
@@ -836,7 +807,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                         />
                       </div>
 
-                      {/* Right-Side Reordering & Delete Actions */}
                       <div className="flex items-center gap-1 self-end sm:self-center shrink-0">
                         <button
                           type="button"
@@ -872,7 +842,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 })}
               </div>
 
-              {/* Distinct Circular Add Button */}
               <div className="flex flex-col items-center justify-center pt-2 gap-1.5">
                 <button
                   type="button"
@@ -904,7 +873,6 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           )}
         </div>
 
-        {/* Modal Sticky Bottom Action Footer */}
         <div className="px-6 py-4 border-t border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0e1015] flex items-center justify-between">
           <button
             type="button"

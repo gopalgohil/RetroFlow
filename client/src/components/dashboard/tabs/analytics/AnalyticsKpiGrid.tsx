@@ -16,7 +16,6 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
 }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* Card 1: Team Attendance Rate */}
       <div className="p-5 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3 relative overflow-hidden group hover:border-[#88c958]/40 transition-colors">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
@@ -47,7 +46,6 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
                 : 'Low'}
             </span>
           </div>
-          {/* Visual Mini Progress Bar */}
           <div className="w-full bg-slate-100 dark:bg-white/[0.08] h-1.5 rounded-full mt-3 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
@@ -66,7 +64,6 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
         </p>
       </div>
 
-      {/* Card 2: Total Retros Conducted */}
       <div className="p-5 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3 relative overflow-hidden group hover:border-[#88c958]/40 transition-colors">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
@@ -92,7 +89,6 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
         </p>
       </div>
 
-      {/* Card 3: Top Contributor */}
       <div className="p-5 rounded-3xl bg-gradient-to-br from-[#eaf5e3]/50 via-white to-white dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#12151c] border border-[#cdeac0] dark:border-white/[0.08] shadow-xs space-y-3 relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-[#3d8318] dark:text-[#88c958] flex items-center gap-1">
@@ -129,7 +125,6 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
         </p>
       </div>
 
-      {/* Card 4: Attendance Attention */}
       <div className="p-5 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3 relative overflow-hidden group hover:border-amber-300 dark:hover:border-amber-500/40 transition-colors">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">

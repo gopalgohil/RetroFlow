@@ -90,7 +90,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Pre-save hook: Hash password with bcrypt if modified and present
 userSchema.pre('save', async function (next) {
   if (this.isModified('status')) {
     if (this.status === 'approved') {
@@ -112,7 +111,6 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// Compare entered password with hashed password in database
 userSchema.methods.matchPassword = async function (enteredPassword) {
   if (!this.password) {
     return false;
@@ -120,7 +118,6 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Performance indexes for rapid authentication and roster lookups
 userSchema.index({ role: 1 });
 userSchema.index({ status: 1 });
 userSchema.index({ createdAt: -1 });

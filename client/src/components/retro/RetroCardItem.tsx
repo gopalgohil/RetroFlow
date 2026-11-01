@@ -28,14 +28,6 @@ export interface RetroCardItemProps {
   onCardDrop?: (cardId: string, e: React.DragEvent) => void;
 }
 
-/**
- * Highly reusable Sticky Card Component
- * Features:
- * - 1-vote limit per user/developer/admin
- * - ThumbsUp icon for voting
- * - Voters popover on thumb hover showing list of voters with avatars (like Metro Retro/TeamRetro)
- * - Author name hidden by default, smoothly revealed only when hovering over the card
- */
 export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCardItem({
   card,
   topicColor,
@@ -140,7 +132,6 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
         !isRevealed ? 'filter blur-xs select-none' : ''
       }`}
     >
-      {/* Precision Drop Insertion Line (Zero Layout Shift) */}
       {isDragTarget && dropPosition === 'above' && (
         <div className="absolute -top-1 left-1.5 right-1.5 h-[2.5px] rounded-full bg-[#88c958] shadow-[0_0_6px_rgba(136,201,88,0.8)] z-30 pointer-events-none animate-pulse" />
       )}
@@ -185,9 +176,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
         </div>
       ) : (
         <>
-          {/* Top Row: Vote Action + Management Actions */}
           <div className="flex items-center justify-between gap-1">
-            {/* ThumbsUp Voting Button with Hover Voters Popover */}
             <div className="relative group/vote-popover">
               <button
                 type="button"
@@ -208,13 +197,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 <span>{card.votes || 0}</span>
               </button>
 
-              {/* Voters List Popover on Thumb Hover (Opens downwards for first card to prevent top container clipping) */}
               <div
                 className={`absolute left-0 ${
                   isFirstCard ? 'top-full mt-1.5' : 'bottom-full mb-2'
                 } hidden group-hover/vote-popover:flex flex-col z-50 bg-white dark:bg-[#0e1015] rounded-xl shadow-xl border border-slate-200/90 dark:border-white/[0.08] p-2.5 min-w-[160px] max-w-[240px] pointer-events-auto animate-in fade-in zoom-in-95 duration-150`}
               >
-                {/* Visual tooltip caret arrow */}
                 {isFirstCard ? (
                   <div className="absolute -top-1 left-3 w-2 h-2 bg-white dark:bg-[#0e1015] border-t border-l border-slate-200 dark:border-white/[0.08] rotate-45" />
                 ) : (
@@ -287,7 +274,6 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             </div>
 
             <div className="flex items-center gap-1 shrink-0">
-              {/* 1-Click Promote to Action Items (Admin/Manager only) */}
               {effectiveMoveToActions && (
                 <button
                   type="button"
@@ -300,7 +286,6 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 </button>
               )}
 
-              {/* Drag Handle (Strictly Admin and Manager only) */}
               {canMoveCrossColumn && (
                 isCardAssigned ? (
                   <div
@@ -319,7 +304,6 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 )
               )}
 
-              {/* Edit (Author Only) & Delete (Author or Facilitator Moderation) */}
               {(effectiveCanEdit || effectiveCanDelete) && (
                 <div className="flex items-center gap-0.5">
                   {effectiveCanEdit && (
@@ -371,12 +355,10 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             </div>
           </div>
 
-          {/* Card Body Text */}
           <p className="text-sm text-slate-800 dark:text-slate-100 leading-relaxed break-words font-medium py-1">
             {card.text}
           </p>
 
-          {/* Locked Assignee Badge for Committed Action Items */}
           {card.assignedTo?.name && (
             <div
               title={`Already assigned to ${card.assignedTo.name}. It cannot be reassigned.`}
@@ -390,7 +372,6 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             </div>
           )}
 
-          {/* Card Author & Assignee Attribution: Smoothly revealed on mouse hover */}
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pt-1.5 border-t border-slate-200/40 dark:border-white/[0.08] flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
               <div className="w-4 h-4 rounded-full bg-slate-200 dark:bg-[#141720] text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-[8px] uppercase shrink-0">

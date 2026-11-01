@@ -17,27 +17,19 @@ export interface UseRetroPermissionsParams {
   retro: RetroBoard | null;
 }
 
-/**
- * Modular Hook: useRetroPermissions
- * Encapsulates role resolution, facilitator checks, author verification,
- * and column moving permissions into a clean, testable unit.
- */
 export function useRetroPermissions({
   currentUser,
   currentAuthorName,
   verifiedGuestEmail,
   retro,
 }: UseRetroPermissionsParams) {
-  // Facilitator & Sprint Export Access (Admin, Manager, Project Lead)
   const canExportToSprint = useMemo(() => {
     if (!currentUser) return false;
     const role = (currentUser.role || '').toLowerCase().trim();
     const email = (currentUser.email || '').toLowerCase().trim();
 
-    // 1. Workspace Admin
     if (role === 'admin') return true;
 
-    // 2. Manager or Lead
     const projRole = (currentUser.projectRole || '').toLowerCase().trim();
     if (
       projRole === 'manager' ||
@@ -51,7 +43,6 @@ export function useRetroPermissions({
       return true;
     }
 
-    // 3. Creator of the retro board
     if (retro?.createdBy) {
       if (typeof retro.createdBy === 'object') {
         const creator = retro.createdBy as any;
@@ -63,7 +54,6 @@ export function useRetroPermissions({
       }
     }
 
-    // 4. Project Lead or Project Manager on linked project
     if (retro?.project) {
       const projLeadEmail = retro.project.lead?.email?.toLowerCase().trim();
       if (projLeadEmail && projLeadEmail === email) {
@@ -85,7 +75,6 @@ export function useRetroPermissions({
 
   const isFacilitator = canExportToSprint;
 
-  // Determine if current participant is an unregistered / external guest
   const isGuest = useMemo(() => {
     if (currentUser?.isGuest) return true;
     if (verifiedGuestEmail && !currentUser?.id) return true;
@@ -104,7 +93,6 @@ export function useRetroPermissions({
     return false;
   }, [currentUser, verifiedGuestEmail]);
 
-  // Derive dynamic user role (Admin, Manager, Developer, etc.)
   const effectiveUserRole = useMemo(() => {
     if (!currentUser) {
       return 'Developer';
@@ -137,7 +125,6 @@ export function useRetroPermissions({
     return 'Developer';
   }, [currentUser, retro?.project]);
 
-  // Cross-Column Card Moving Permission: Strictly Admin and Manager only
   const canMoveCrossColumn = useMemo(() => {
     if (!currentUser) return false;
     const wsRole = (currentUser.role || '').toLowerCase().trim();
@@ -167,7 +154,6 @@ export function useRetroPermissions({
     return false;
   }, [currentUser, effectiveUserRole, canExportToSprint]);
 
-  // Author & Card Modification Guards
   const isAuthorOfCard = useCallback(
     (card: StickyCard) => {
       if (

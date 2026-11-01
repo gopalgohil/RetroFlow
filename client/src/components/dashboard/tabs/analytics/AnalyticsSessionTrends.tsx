@@ -28,7 +28,6 @@ export const SessionTrendCardsSkeleton: React.FC<{ count?: number }> = ({ count 
           key={idx}
           className="p-4 rounded-2xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.06] space-y-3 animate-pulse"
         >
-          {/* Header row */}
           <div className="flex items-start justify-between gap-2">
             <div className="space-y-2 flex-1">
               <div className="h-4 w-24 bg-slate-200/80 dark:bg-white/[0.08] rounded-md" />
@@ -38,7 +37,6 @@ export const SessionTrendCardsSkeleton: React.FC<{ count?: number }> = ({ count 
             <div className="w-7 h-7 rounded-lg bg-slate-200/80 dark:bg-white/[0.08]" />
           </div>
 
-          {/* Turnout bar */}
           <div className="space-y-1.5 pt-1">
             <div className="flex justify-between">
               <div className="h-3 w-14 bg-slate-200/80 dark:bg-white/[0.08] rounded" />
@@ -47,7 +45,6 @@ export const SessionTrendCardsSkeleton: React.FC<{ count?: number }> = ({ count 
             <div className="h-2 w-full bg-slate-200/80 dark:bg-white/[0.06] rounded-full" />
           </div>
 
-          {/* Bottom metadata */}
           <div className="flex items-center gap-3 pt-1">
             <div className="h-3 w-16 bg-slate-200/80 dark:bg-white/[0.06] rounded" />
             <div className="h-3 w-24 bg-slate-200/80 dark:bg-white/[0.06] rounded" />
@@ -66,7 +63,6 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
   const [currentLimit, setCurrentLimit] = useState<number>(DEFAULT_ITEMS_PER_PAGE);
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
 
-  // Reset to page 1 whenever trends list or limit changes
   useEffect(() => {
     setCurrentPage(1);
   }, [trends.length, selectedProjectName, currentLimit]);
@@ -80,7 +76,6 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
   const startRange = totalItems === 0 ? 0 : (activePage - 1) * currentLimit + 1;
   const endRange = Math.min(activePage * currentLimit, totalItems);
 
-  // Paginated slice
   const paginatedTrends = useMemo(() => {
     const startIndex = (activePage - 1) * currentLimit;
     return trends.slice(startIndex, startIndex + currentLimit);
@@ -95,7 +90,6 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
     }, 180);
   };
 
-  // Page numbers with ellipsis windowing
   const pageNumbers = useMemo(() => {
     if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -126,7 +120,6 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
 
   return (
     <div className="p-6 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
@@ -141,7 +134,6 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
         </span>
       </div>
 
-      {/* Grid of Retro Session Cards or Skeleton */}
       {isPageLoading ? (
         <SessionTrendCardsSkeleton count={Math.min(currentLimit, 9)} />
       ) : paginatedTrends.length > 0 ? (
@@ -174,7 +166,6 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
                 </Link>
               </div>
 
-              {/* Turnout Progress Bar */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-semibold text-slate-600 dark:text-slate-400">Turnout</span>
@@ -196,7 +187,6 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
                 </div>
               </div>
 
-              {/* Bottom Metadata Badges */}
               <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                 <span className="flex items-center gap-1">
                   <MessageSquare className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
@@ -223,10 +213,8 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
         </div>
       )}
 
-      {/* Enterprise Pagination Footer */}
       {totalItems > 0 && totalPages > 1 && (
         <div className="pt-4 border-t border-slate-100 dark:border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          {/* Left: Range & Limit Selector */}
           <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
             <span>
               Showing <strong className="text-slate-800 dark:text-slate-200">{startRange}</strong> to{' '}
@@ -248,9 +236,7 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
             </div>
           </div>
 
-          {/* Right: Page Navigation Controls */}
           <div className="flex items-center gap-1">
-            {/* Previous Button */}
             <button
               type="button"
               onClick={() => handlePageChange(activePage - 1)}
@@ -261,7 +247,6 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
               <span className="hidden sm:inline">Prev</span>
             </button>
 
-            {/* Page Number Pills */}
             {pageNumbers.map((p, idx) =>
               typeof p === 'number' ? (
                 <button
@@ -286,7 +271,6 @@ export const AnalyticsSessionTrends: React.FC<AnalyticsSessionTrendsProps> = ({
               )
             )}
 
-            {/* Next Button */}
             <button
               type="button"
               onClick={() => handlePageChange(activePage + 1)}

@@ -22,29 +22,21 @@ export interface RetrosTabProps {
   canManageProject?: boolean;
 }
 
-/**
- * RetrosTab:
- * Clean, production-grade orchestrator component for project retrospectives.
- */
 export const RetrosTab: React.FC<RetrosTabProps> = ({
   project,
   onCreateRetroClick,
   onProjectUpdated,
   canManageProject = true,
 }) => {
-  // Share / Invite State
   const [invitingSession, setInvitingSession] = useState<ShareInviteSession | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
 
-  // Edit Retrospective via CustomizeRetroModal (Full Builder/Customizer)
   const [editingBoard, setEditingBoard] = useState<RetroBoard | null>(null);
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
 
-  // Delete Modal State
   const [deletingRetro, setDeletingRetro] = useState<ProjectRetroLink | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Backend-Driven Pagination State (9 retros per page - 3 rows of 3)
   const ITEMS_PER_PAGE = 9;
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedRetros, setPaginatedRetros] = useState<ProjectRetroLink[]>(
@@ -63,7 +55,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
   });
   const [isLoadingRetros, setIsLoadingRetros] = useState(false);
 
-  // Fetch paginated retros from backend
   const fetchRetrosPage = useCallback(
     async (page: number) => {
       setIsLoadingRetros(true);
@@ -103,7 +94,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
     fetchRetrosPage(currentPage);
   }, [currentPage, fetchRetrosPage]);
 
-  // Open Edit Modal with full RetroBoard data
   const handleOpenEdit = async (retro: ProjectRetroLink) => {
     const identifier = retro.id || retro.shareToken;
     try {
@@ -145,14 +135,12 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
     setIsCustomizeOpen(true);
   };
 
-  // Submit Edit via PUT /api/retros/:id and project sync
   const handleSaveCustomize = async (payload: CreateRetroPayload) => {
     if (!editingBoard) return;
     const identifier = editingBoard._id || editingBoard.shareToken;
 
     try {
       await api.put(`/api/retros/${identifier}`, payload);
-      // Synchronize full project model
       const updatedProject = await ProjectApiService.getProjectById(project.id, true);
       if (updatedProject && onProjectUpdated) {
         onProjectUpdated(updatedProject);
@@ -191,7 +179,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
     }
   };
 
-  // Submit Delete
   const handleConfirmDelete = async () => {
     if (!deletingRetro) return;
 
@@ -223,7 +210,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
     }
   };
 
-  // Quick Copy Link / Open Invite Modal
   const handleShareClick = (retro: ProjectRetroLink) => {
     if (typeof window !== 'undefined') {
       const url = `${window.location.origin}/retro/${retro.shareToken}`;
@@ -244,7 +230,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* 1. Top Banner */}
       <div className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
@@ -268,7 +253,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         )}
       </div>
 
-      {/* 2. Retrospectives Grid or Empty State */}
       {!isLoadingRetros && paginationMeta.totalItems === 0 && (!project.retrospectives || project.retrospectives.length === 0) ? (
         <div className="p-12 text-center bg-white dark:bg-[#0e1015] rounded-2xl border border-dashed border-slate-200 dark:border-white/[0.08] space-y-3">
           <UserAvatar name="RetroFlow" avatar="RF" size="lg" className="mx-auto" />
@@ -314,7 +298,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
             )}
           </div>
 
-          {/* 3. Pagination Controls Footer */}
           <RetrosPagination
             currentPage={currentPage}
             totalPages={paginationMeta.totalPages}
@@ -327,7 +310,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         </div>
       )}
 
-      {/* 4. Share / Invite Teammates Modal */}
       {canManageProject && (
         <ShareInviteModal
           isOpen={Boolean(invitingSession)}
@@ -336,7 +318,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         />
       )}
 
-      {/* 5. Customize & Edit Retrospective Modal (TeamRetro Builder) */}
       <CustomizeRetroModal
         isOpen={isCustomizeOpen}
         onClose={() => {
@@ -354,7 +335,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         }}
       />
 
-      {/* 6. Delete Retrospective Confirmation Modal */}
       <DeleteRetroModal
         retro={deletingRetro}
         isDeleting={isDeleting}

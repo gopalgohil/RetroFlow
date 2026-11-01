@@ -4,10 +4,6 @@ import retroService from '../services/retro.service.js';
 import { isLeadOrManagerUser } from '../utils/role.js';
 
 class RetroController {
-  /**
-   * Create custom retrospective
-   * POST /api/retros
-   */
   createRetro = asyncHandler(async (req, res) => {
     if (!isLeadOrManagerUser(req.user)) {
       return res.status(403).json({
@@ -20,47 +16,27 @@ class RetroController {
     return ApiResponse.created(res, retro, 'Retrospective session created successfully!');
   });
 
-  /**
-   * Get all user retrospectives
-   * GET /api/retros
-   */
   getUserRetros = asyncHandler(async (req, res) => {
     const { status, search, page, limit, all } = req.query;
     const retros = await retroService.getUserRetros(req.user, { status, search, page, limit, all });
     return ApiResponse.ok(res, retros, 'Retrospectives retrieved successfully');
   });
 
-  /**
-   * Get single retrospective by ID or token
-   * GET /api/retros/:id
-   */
   getRetro = asyncHandler(async (req, res) => {
     const retro = await retroService.getRetroByIdOrToken(req.params.id, req.user?._id);
     return ApiResponse.ok(res, retro, 'Retrospective session retrieved');
   });
 
-  /**
-   * Update retrospective session
-   * PUT /api/retros/:id
-   */
   updateRetro = asyncHandler(async (req, res) => {
     const updated = await retroService.updateRetro(req.params.id, req.user, req.body);
     return ApiResponse.ok(res, updated, 'Retrospective session updated successfully!');
   });
 
-  /**
-   * Delete retrospective session
-   * DELETE /api/retros/:id
-   */
   deleteRetro = asyncHandler(async (req, res) => {
     const result = await retroService.deleteRetro(req.params.id, req.user);
     return ApiResponse.ok(res, result, 'Retrospective session removed successfully.');
   });
 
-  /**
-   * Invite a developer to retrospective session via email
-   * POST /api/retros/:id/invite
-   */
   inviteTeammate = asyncHandler(async (req, res) => {
     if (!isLeadOrManagerUser(req.user)) {
       return res.status(403).json({
@@ -73,30 +49,18 @@ class RetroController {
     return ApiResponse.ok(res, result, result.message);
   });
 
-  /**
-   * Verify an encrypted magic invite token
-   * POST /api/retros/:id/verify-magic-invite
-   */
   verifyMagicInvite = asyncHandler(async (req, res) => {
     const { token } = req.body;
     const result = await retroService.verifyMagicInvite(req.params.id, token);
     return ApiResponse.ok(res, result, 'Magic invite verified successfully');
   });
 
-  /**
-   * Solution 1: Instant No-Password Participant Identity Activation
-   * POST /api/retros/:id/join-participant
-   */
   joinParticipant = asyncHandler(async (req, res) => {
     const { name, email } = req.body;
     const result = await retroService.joinParticipant(req.params.id, { name, email });
     return ApiResponse.ok(res, result, 'Participant session activated successfully');
   });
 
-  /**
-   * Add card to retrospective
-   * POST /api/retros/:id/cards
-   */
   addCard = asyncHandler(async (req, res) => {
     const card = await retroService.addCard(req.params.id, {
       ...req.body,
@@ -112,10 +76,6 @@ class RetroController {
     return ApiResponse.created(res, card, 'Card added successfully');
   });
 
-  /**
-   * Update card in retrospective
-   * PUT /api/retros/:id/cards/:cardId
-   */
   updateCard = asyncHandler(async (req, res) => {
     const updated = await retroService.updateCard(req.params.id, req.params.cardId, req.body, req.user);
 
@@ -127,10 +87,6 @@ class RetroController {
     return ApiResponse.ok(res, updated, 'Card updated successfully');
   });
 
-  /**
-   * Move card to another topic in retrospective
-   * PUT /api/retros/:id/cards/:cardId/move
-   */
   moveCard = asyncHandler(async (req, res) => {
     const moved = await retroService.moveCard(req.params.id, req.params.cardId, req.body, req.user);
 
@@ -142,10 +98,6 @@ class RetroController {
     return ApiResponse.ok(res, moved, 'Card moved successfully');
   });
 
-  /**
-   * Reorder cards within a topic in retrospective
-   * PUT /api/retros/:id/topics/:topicId/reorder-cards
-   */
   reorderCards = asyncHandler(async (req, res) => {
     const { cardIds } = req.body;
     const reordered = await retroService.reorderCards(req.params.id, req.params.topicId, cardIds, req.user);
@@ -158,10 +110,6 @@ class RetroController {
     return ApiResponse.ok(res, reordered, 'Cards reordered successfully');
   });
 
-  /**
-   * Delete card from retrospective
-   * DELETE /api/retros/:id/cards/:cardId
-   */
   deleteCard = asyncHandler(async (req, res) => {
     const result = await retroService.deleteCard(req.params.id, req.params.cardId, req.user);
 
@@ -176,10 +124,6 @@ class RetroController {
     return ApiResponse.ok(res, result, 'Card deleted successfully');
   });
 
-  /**
-   * Upvote card in retrospective
-   * POST /api/retros/:id/cards/:cardId/vote
-   */
   voteCard = asyncHandler(async (req, res) => {
     const voter = req.body.voter || req.user?.name || 'Developer';
     const voterEmail = req.body.voterEmail || req.user?.email || null;
@@ -198,10 +142,6 @@ class RetroController {
     return ApiResponse.ok(res, result, 'Vote recorded');
   });
 
-  /**
-   * Get Retrospective Attendance & Participation Analytics (Manager & Admin only)
-   * GET /api/retros/analytics?projectId=...
-   */
   getRetroAnalytics = asyncHandler(async (req, res) => {
     const { projectId = 'all', year } = req.query;
     const analytics = await retroService.getRetroAnalytics(req.user, { projectId, year });

@@ -24,7 +24,6 @@ async function run() {
       const originalCardsCount = retro.cards ? retro.cards.length : 0;
       if (!originalCardsCount) continue;
 
-      // Find action items topic
       const actionTopicIds = new Set(
         (retro.topics || [])
           .filter(
@@ -35,7 +34,6 @@ async function run() {
           .map((t) => t.topicId)
       );
 
-      // Filter out dummy action items
       const updatedCards = retro.cards.filter((card) => {
         const isActionTopic = actionTopicIds.has(card.topicId);
         if (isActionTopic) {
@@ -60,7 +58,6 @@ async function run() {
       }
     }
 
-    // Also check Project sprints
     const Project = mongoose.model(
       'Project',
       new mongoose.Schema({}, { strict: false })

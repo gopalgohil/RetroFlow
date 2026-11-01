@@ -1,9 +1,5 @@
 import mongoose from 'mongoose';
 
-/**
- * Workspace Settings Schema
- * Manages organization-wide settings, default retro parameters, and preferences.
- */
 const workspaceSettingsSchema = new mongoose.Schema(
   {
     userId: {

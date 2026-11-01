@@ -41,7 +41,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
     }
   }, [sprint, isOpen]);
 
-  // Handle start date change with smart auto-adjustment for end date
   const handleStartDateChange = (newStart: string) => {
     setStartDate(newStart);
     setError(null);
@@ -49,7 +48,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
     if (newStart && endDate) {
       const startMs = new Date(newStart).getTime();
       const endMs = new Date(endDate).getTime();
-      // If end date is now earlier than start date, auto-shift end date by 14 days
       if (endMs < startMs) {
         const shiftedEnd = new Date(startMs + 13 * 86400000).toISOString().split('T')[0];
         setEndDate(shiftedEnd);
@@ -57,7 +55,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
     }
   };
 
-  // Comprehensive validation
   const validation = useMemo(() => {
     if (!startDate || !endDate) {
       return {
@@ -86,7 +83,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
       };
     }
 
-    // Validation rule 1: End Date must be on or after Start Date
     if (endMs < startMs) {
       return {
         isValid: false,
@@ -97,7 +93,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
 
     const durationDays = Math.round((endMs - startMs) / 86400000) + 1;
 
-    // Validation rule 2: Max sprint duration (90 days)
     if (durationDays > 90) {
       return {
         isValid: false,
@@ -133,7 +128,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
     };
 
     try {
-      // 1. Live REST API request -> visible in browser Network tab!
       const updated = await ProjectApiService.updateSprintDates(
         projectId,
         sprint.id,
@@ -211,7 +205,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
       }
     >
       <form onSubmit={handleSave} className="space-y-4 pt-1">
-        {/* Global Error Banner */}
         {error && (
           <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-300 text-xs flex items-center gap-2 font-medium animate-in fade-in">
             <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
@@ -219,7 +212,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
           </div>
         )}
 
-        {/* Sprint Name */}
         <div className="space-y-1">
           <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
             Sprint Name
@@ -233,9 +225,7 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
           />
         </div>
 
-        {/* Start Date & End Date Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Starting Date */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
@@ -262,7 +252,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
             />
           </div>
 
-          {/* Ending Date */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
@@ -294,7 +283,6 @@ export const EditSprintDatesModal: React.FC<EditSprintDatesModalProps> = ({
           </div>
         </div>
 
-        {/* Inline Field Error Message for Invalid Date Selection */}
         {!validation.isValid && validation.errorMsg && (
           <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2 font-medium">
             <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />

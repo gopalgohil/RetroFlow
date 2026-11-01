@@ -11,15 +11,12 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || 'G-KFM52EY8VY',
 };
 
-// Initialize Firebase (singleton pattern prevents re-initialization on hot reload)
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Request basic profile and email scopes
 googleProvider.addScope('profile');
 googleProvider.addScope('email');
-// Prompt account selection every time
 googleProvider.setCustomParameters({
   prompt: 'select_account',
 });

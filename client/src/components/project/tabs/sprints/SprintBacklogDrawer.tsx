@@ -36,11 +36,6 @@ export interface SprintBacklogDrawerProps {
   onDeleteItem?: (sprintId: string, itemId: string) => Promise<void> | void;
 }
 
-/**
- * SprintBacklogDrawer:
- * Isolated backlog container for a sprint with local 10-item pagination,
- * smooth skeleton transitions, and status updates.
- */
 export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
   projectId,
   sprint,
@@ -73,7 +68,6 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
   });
   const [isLoadingPage, setIsLoadingPage] = useState<boolean>(false);
 
-  // Sync when sprint.items in parent updates (e.g. ticket status updated or new action items exported)
   useEffect(() => {
     const total = sprint.items?.length || 0;
     const totalPages = Math.ceil(total / limit) || 1;
@@ -125,13 +119,11 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
 
     const startTime = Date.now();
     try {
-      // Real backend API dispatch with Observable Network Call
       const res = await ProjectApiService.getSprintItems(projectId, sprint.id, {
         page: newPage,
         limit,
       });
 
-      // Maintain smooth skeleton visibility for at least 350ms so transitions are pleasant
       const elapsed = Date.now() - startTime;
       if (elapsed < 350) {
         await new Promise((resolve) => setTimeout(resolve, 350 - elapsed));
@@ -191,7 +183,6 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
 
   return (
     <div className="border-t border-slate-100 dark:border-white/[0.08] bg-slate-50/60 dark:bg-[#12151c]/60 p-5 space-y-3 rounded-b-2xl">
-      {/* Drawer Header */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
           <Layers className="w-3.5 h-3.5 text-[#88c958]" />
@@ -216,7 +207,6 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
         </div>
       ) : (
         <>
-          {/* Action Items List with Skeleton Loader when switching pages */}
           {isLoadingPage ? (
             <SprintBacklogListSkeleton
               count={
@@ -252,10 +242,8 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
             </div>
           )}
 
-          {/* Industry-standard Pagination Bar (Appears when items > 10) */}
           {pagination.totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 mt-2 border-t border-slate-200/80 dark:border-white/[0.08]">
-              {/* Pagination Info */}
               <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                 Showing{' '}
                 <span className="font-bold text-slate-900 dark:text-white">
@@ -272,9 +260,7 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
                 backlog items
               </div>
 
-              {/* Navigation Controls */}
               <div className="flex items-center gap-1.5">
-                {/* Previous Button */}
                 <button
                   type="button"
                   onClick={() => handlePageChange(currentPage - 1)}
@@ -285,7 +271,6 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
                   <span className="hidden sm:inline text-[11px]">Previous</span>
                 </button>
 
-                {/* Number Buttons */}
                 {getPageNumbers().map((p, idx) =>
                   p === '...' ? (
                     <span
@@ -311,7 +296,6 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
                   )
                 )}
 
-                {/* Next Button */}
                 <button
                   type="button"
                   onClick={() => handlePageChange(currentPage + 1)}

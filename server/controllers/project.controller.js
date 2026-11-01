@@ -7,10 +7,6 @@ import { isManagerUser } from '../utils/role.js';
 import cronService from '../services/cron.service.js';
 
 class ProjectController {
-  /**
-   * Get all projects (RBAC filtered)
-   * GET /api/projects
-   */
   getAllProjects = asyncHandler(async (req, res) => {
     const user = req.user;
     const userEmail = user?.email?.toLowerCase().trim();
@@ -30,7 +26,6 @@ class ProjectController {
       all,
     });
 
-    // High-speed browser caching with background revalidation
     res.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=60');
 
     return res.status(200).json({
@@ -50,10 +45,6 @@ class ProjectController {
     });
   });
 
-  /**
-   * Get single project by ID or key with RBAC membership validation
-   * GET /api/projects/:id
-   */
   getProject = asyncHandler(async (req, res) => {
     const project = await projectService.getProjectByIdOrKey(req.params.id, req.user);
     if (!project) {
@@ -65,11 +56,6 @@ class ProjectController {
     return ApiResponse.ok(res, project, 'Project details retrieved successfully');
   });
 
-  /**
-   * Create new project
-   * POST /api/projects
-   * RBAC Option B: Allowed for Admins, Project Leads, and Managers
-   */
   createProject = asyncHandler(async (req, res) => {
     const user = req.user;
     if (!user) {
@@ -83,7 +69,6 @@ class ProjectController {
     let canCreate = isManagerUser(user);
 
     if (!canCreate && userEmail) {
-      // Check if user is assigned Manager in any existing project in the workspace
       const isExistingManager = await Project.findOne({
         members: { $elemMatch: { email: userEmail, role: { $regex: /^manager$/i } } },
       });
@@ -105,37 +90,21 @@ class ProjectController {
     return ApiResponse.created(res, project, 'Agile project initialized successfully');
   });
 
-  /**
-   * Update project configuration
-   * PUT /api/projects/:id
-   */
   updateProject = asyncHandler(async (req, res) => {
     const project = await projectService.updateProject(req.params.id, req.body, req.user);
     return ApiResponse.ok(res, project, 'Project configuration updated successfully');
   });
 
-  /**
-   * Start an upcoming sprint
-   * POST /api/projects/:id/sprints/:sprintId/start
-   */
   startSprint = asyncHandler(async (req, res) => {
     const project = await projectService.startSprint(req.params.id, req.params.sprintId, req.user);
     return ApiResponse.ok(res, project, 'Sprint started successfully');
   });
 
-  /**
-   * Complete an active sprint
-   * POST /api/projects/:id/sprints/:sprintId/complete
-   */
   completeSprint = asyncHandler(async (req, res) => {
     const project = await projectService.completeSprint(req.params.id, req.params.sprintId, req.user);
     return ApiResponse.ok(res, project, 'Sprint completed successfully');
   });
 
-  /**
-   * Update status of an individual backlog item in a sprint
-   * PATCH /api/projects/:id/sprints/:sprintId/items/:itemId/status
-   */
   updateSprintItemStatus = asyncHandler(async (req, res) => {
     const { status, dueDate } = req.body;
     const project = await projectService.updateSprintItemStatus(
@@ -148,10 +117,6 @@ class ProjectController {
     return ApiResponse.ok(res, project, 'Sprint item updated successfully');
   });
 
-  /**
-   * Delete an individual backlog item in a sprint
-   * DELETE /api/projects/:id/sprints/:sprintId/items/:itemId
-   */
   deleteSprintItem = asyncHandler(async (req, res) => {
     const project = await projectService.deleteSprintItem(
       req.params.id,
@@ -162,10 +127,6 @@ class ProjectController {
     return ApiResponse.ok(res, project, 'Sprint backlog item deleted successfully');
   });
 
-  /**
-   * Delete an entire sprint
-   * DELETE /api/projects/:id/sprints/:sprintId
-   */
   deleteSprint = asyncHandler(async (req, res) => {
     const project = await projectService.deleteSprint(
       req.params.id,
@@ -175,10 +136,6 @@ class ProjectController {
     return ApiResponse.ok(res, project, 'Sprint deleted successfully');
   });
 
-  /**
-   * Get paginated backlog items & action items for an individual sprint
-   * GET /api/projects/:id/sprints/:sprintId/items
-   */
   getSprintItems = asyncHandler(async (req, res) => {
     const { page, limit, status, search } = req.query;
     const result = await projectService.getSprintItems(
@@ -190,10 +147,6 @@ class ProjectController {
     return ApiResponse.ok(res, result, 'Sprint backlog items retrieved successfully');
   });
 
-  /**
-   * Get paginated sprints for a project
-   * GET /api/projects/:id/sprints
-   */
   getProjectSprints = asyncHandler(async (req, res) => {
     const { page, limit, status, search } = req.query;
     const result = await projectService.getProjectSprints(
@@ -204,10 +157,6 @@ class ProjectController {
     return ApiResponse.ok(res, result, 'Project sprints retrieved successfully');
   });
 
-  /**
-   * Get paginated retrospectives for a project
-   * GET /api/projects/:id/retros
-   */
   getProjectRetros = asyncHandler(async (req, res) => {
     const { page, limit, search } = req.query;
     const result = await projectService.getProjectRetros(
@@ -218,10 +167,6 @@ class ProjectController {
     return ApiResponse.ok(res, result, 'Project retrospectives retrieved successfully');
   });
 
-  /**
-   * Update custom dates and goal of an individual sprint
-   * PATCH /api/projects/:id/sprints/:sprintId/dates
-   */
   updateSprintDates = asyncHandler(async (req, res) => {
     const project = await projectService.updateSprintDates(
       req.params.id,
@@ -232,28 +177,16 @@ class ProjectController {
     return ApiResponse.ok(res, project, 'Sprint dates updated successfully');
   });
 
-  /**
-   * Add a team member to project
-   * POST /api/projects/:id/members
-   */
   addMember = asyncHandler(async (req, res) => {
     const project = await projectService.addMember(req.params.id, req.body, req.user);
     return ApiResponse.created(res, project, 'Team member assigned to project');
   });
 
-  /**
-   * Remove a team member from project
-   * DELETE /api/projects/:id/members/:memberId
-   */
   removeMember = asyncHandler(async (req, res) => {
     const project = await projectService.removeMember(req.params.id, req.params.memberId, req.user);
     return ApiResponse.ok(res, project, 'Team member removed from project');
   });
 
-  /**
-   * Update a team member's role in project
-   * PATCH /api/projects/:id/members/:memberId/role
-   */
   updateMemberRole = asyncHandler(async (req, res) => {
     const { role } = req.body;
     const project = await projectService.updateMemberRole(
@@ -265,10 +198,6 @@ class ProjectController {
     return ApiResponse.ok(res, project, 'Project member role updated successfully.');
   });
 
-  /**
-   * Export retrospective action items directly into next sprint backlog
-   * POST /api/projects/:id/export-action-items
-   */
   exportActionItems = asyncHandler(async (req, res) => {
     const { sprintId, items } = req.body;
     const result = await projectService.exportActionItems(
@@ -284,10 +213,6 @@ class ProjectController {
     );
   });
 
-  /**
-   * Archive or restore project (Soft Delete)
-   * POST /api/projects/:id/archive
-   */
   archiveProject = asyncHandler(async (req, res) => {
     const { isArchived } = req.body;
     const project = await projectService.archiveProject(req.params.id, isArchived !== false, req.user);
@@ -298,19 +223,11 @@ class ProjectController {
     );
   });
 
-  /**
-   * Delete project permanently (Danger Zone)
-   * DELETE /api/projects/:id
-   */
   deleteProject = asyncHandler(async (req, res) => {
     const result = await projectService.deleteProject(req.params.id, req.user);
     return ApiResponse.ok(res, result, `Project ${result.deletedKey} permanently deleted`);
   });
 
-  /**
-   * Delete a retrospective linked to a project
-   * DELETE /api/projects/:id/retros/:retroId
-   */
   deleteProjectRetro = asyncHandler(async (req, res) => {
     const project = await projectService.deleteProjectRetro(
       req.params.id,
@@ -320,10 +237,6 @@ class ProjectController {
     return ApiResponse.ok(res, project, 'Retrospective session deleted successfully');
   });
 
-  /**
-   * Update retrospective linked to a project
-   * PATCH /api/projects/:id/retros/:retroId
-   */
   updateProjectRetro = asyncHandler(async (req, res) => {
     const project = await projectService.updateProjectRetro(
       req.params.id,
@@ -334,29 +247,17 @@ class ProjectController {
     return ApiResponse.ok(res, project, 'Retrospective session updated successfully');
   });
 
-  /**
-   * Send invitation emails for this project
-   * POST /api/projects/:id/invite
-   */
   inviteMembers = asyncHandler(async (req, res) => {
     const result = await projectService.inviteMembers(req.params.id, req.body, req.user);
     return ApiResponse.ok(res, result, result.message);
   });
 
-  /**
-   * Verify an encrypted magic invite token for project
-   * POST /api/projects/:id/verify-magic-invite
-   */
   verifyMagicInvite = asyncHandler(async (req, res) => {
     const { token } = req.body;
     const result = await projectService.verifyMagicInvite(req.params.id, token);
     return ApiResponse.ok(res, result, `Welcome to ${result.project.name}, ${result.user.name}!`);
   });
 
-  /**
-   * Get action items assigned to the current user (or all team items if requested by Admin/Manager)
-   * GET /api/projects/my/action-items
-   */
   getMyActionItems = asyncHandler(async (req, res) => {
     const result = await projectService.getMyActionItems(req.user, req.query);
     if (result && result.pagination) {
@@ -371,10 +272,6 @@ class ProjectController {
     return ApiResponse.ok(res, result, 'Assigned action items retrieved successfully');
   });
 
-  /**
-   * Update action item status
-   * PATCH /api/projects/my/action-items/:itemId/status
-   */
   updateActionItemStatus = asyncHandler(async (req, res) => {
     const { status } = req.body;
     const result = await projectService.updateActionItemStatus(
@@ -385,10 +282,6 @@ class ProjectController {
     return ApiResponse.ok(res, result, 'Action item status updated successfully');
   });
 
-  /**
-   * Manually trigger monthly automated retro creation (Admin / Manager testing)
-   * POST /api/projects/admin/trigger-monthly-cron
-   */
   triggerMonthlyRetroCron = asyncHandler(async (req, res) => {
     const io = req.app.get('io');
     const result = await cronService.runMonthlyRetroJob(io);
