@@ -68,21 +68,13 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
 
   return (
     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs">
-      <div className="space-y-1">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shadow-2xs">
-            <BarChart3 className="w-5 h-5 text-[#5cb028] dark:text-[#88c958]" />
-          </div>
-          <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Retrospective Analytics
-          </h2>
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30 uppercase tracking-wide">
-            Manager View
-          </span>
+      <div className="flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shadow-2xs">
+          <BarChart3 className="w-5 h-5 text-[#5cb028] dark:text-[#88c958]" />
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-2xl">
-          Track team attendance rates, sprint participation quality, and feedback contribution across your agile retrospectives.
-        </p>
+        <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          Retrospective Analytics
+        </h2>
       </div>
 
       <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
