@@ -525,38 +525,49 @@ class EmailService {
   }
 
   getUserAccountApprovedTemplate({ userName, userEmail, role = 'Developer', loginUrl }) {
+    const cleanLoginUrl = (loginUrl || `${(env.CLIENT_URL || 'http://localhost:3000').replace(/\/+$/, '')}/login`).replace(/([^:])\/\/+/g, '$1/');
     const bodyHtml = `
-      <div style="text-align: center; margin-bottom: 24px;">
+      <div style="text-align: center; margin-bottom: 28px;">
         <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #eaf5e3; color: #2d6614; border: 1px solid #cdeac0; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
           Account Approved
         </div>
-        <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 14px 0 6px 0; letter-spacing: -0.5px;">
+        <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 16px 0 0 0; letter-spacing: -0.5px;">
           Welcome to Digiflux, ${userName}!
         </h2>
-        <p style="font-size: 13px; color: #64748b; margin: 0; line-height: 1.5;">
-          Great news! Your account has been reviewed and approved by the workspace administrator. You can now log in and access your workspace.
-        </p>
       </div>
 
       <!-- Account Role Card -->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="retro-card-padding" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 28px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px;">
         <tr>
-          <td>
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 4px;">Account Details</div>
-            <div style="font-size: 14px; color: #334155; margin-bottom: 4px;">Email: <strong style="color: #0f172a;">${userEmail}</strong></div>
-            <div style="font-size: 14px; color: #334155;">Assigned Role: <strong style="color: #3d8318;">${role}</strong></div>
+          <td style="padding: 22px 24px;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+              <tr>
+                <td style="padding-bottom: 14px; border-bottom: 1px solid #e2e8f0;">
+                  <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.6px; display: block; margin-bottom: 5px;">Registered Email</span>
+                  <span style="font-size: 14px; font-weight: 700; color: #0f172a; word-break: break-all;">${userEmail}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-top: 14px;">
+                  <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.6px; display: block; margin-bottom: 6px;">Assigned Role</span>
+                  <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; background-color: #eaf5e3; color: #2d6614; font-size: 12px; font-weight: 700; border: 1px solid #cdeac0;">
+                    ${role}
+                  </span>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
       </table>
 
       <!-- CTA Button -->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0 16px 0;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 28px 0 16px 0;">
         <tr>
           <td align="center">
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
               <tr>
                 <td align="center" style="background-color: #5cb028; border-radius: 10px; box-shadow: 0 4px 14px rgba(92, 176, 40, 0.3);">
-                  <a href="${loginUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                  <a href="${cleanLoginUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
                     Sign In to Your Workspace &rarr;
                   </a>
                 </td>
@@ -568,7 +579,7 @@ class EmailService {
 
       <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
         Or go directly to:<br />
-        <a href="${loginUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${loginUrl}</a>
+        <a href="${cleanLoginUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${cleanLoginUrl}</a>
       </p>
     `;
 
