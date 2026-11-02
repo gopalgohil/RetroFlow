@@ -242,7 +242,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       projectId: selectedProject?.id || '',
       name: `Sprint ${nextSprintNum} - Execution & Backlog`,
       number: nextSprintNum,
-      status: 'active' as const,
+      status: 'upcoming' as const,
       startDate: nextStart.toISOString().split('T')[0],
       endDate: nextEnd.toISOString().split('T')[0],
       goal: `Sprint ${nextSprintNum} deliverables and retrospective action items.`,
@@ -826,9 +826,12 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                   ) : (
                                     <span>Sprint #{sp.number || 1}</span>
                                   )}
-                                  {sp.daysLeft !== undefined && (
-                                    <span>• {sp.daysLeft}d left</span>
-                                  )}
+                                  {(() => {
+                                    const remainingDays = sp.endDate
+                                      ? Math.max(0, Math.ceil((new Date(sp.endDate).getTime() - Date.now()) / 86400000))
+                                      : sp.daysLeft;
+                                    return remainingDays !== undefined ? <span>• {remainingDays}d left</span> : null;
+                                  })()}
                                   {Array.isArray(sp.items) && (
                                     <span>• {sp.items.length} items</span>
                                   )}
