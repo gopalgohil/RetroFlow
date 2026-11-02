@@ -377,13 +377,12 @@ class MembersService {
       throw new Error('Admin users cannot be rejected.');
     }
 
-    if (user) {
-      user.status = 'rejected';
-      user.isApproved = false;
-      await user.save();
-    }
-
     const targetEmail = user?.email || cleanEmail;
+    const targetUser = user ? { email: user.email, name: user.name } : { email: targetEmail, name: targetEmail.split('@')[0] };
+
+    if (user) {
+      await User.deleteOne({ _id: user._id });
+    }
 
     await Promise.all([
       RetroBoard.updateMany({}, { $pull: { approvedMembers: targetEmail.toLowerCase().trim() } }),
@@ -391,17 +390,18 @@ class MembersService {
     ]);
 
     emailService.notifyUserRejected({
-      user: user || { email: targetEmail, name: targetEmail.split('@')[0] },
+      user: targetUser,
       contactEmail: getSuperAdminEmail(),
     }).catch((err) => {
       console.error('[Brevo User Rejection Notification Error]', err.message);
     });
-    console.log(`\n📬 [User Rejected Notification]: Dispatched rejection email to ${targetEmail}\n`);
+    console.log(`\n📬 [User Rejected Notification]: Dispatched rejection email to ${targetEmail} and permanently deleted user record from database\n`);
 
     return {
       id: user?._id,
       email: targetEmail,
       status: 'rejected',
+      deleted: true,
       rejected: true,
     };
   }

@@ -29,7 +29,10 @@ class AuthService {
 
     let user = await User.findOne({ email: normalizedEmail });
 
-    if (user && user.isVerified) {
+    if (user && user.status === 'rejected') {
+      await User.deleteOne({ _id: user._id });
+      user = null;
+    } else if (user && user.isVerified) {
       throw ApiError.conflict('An account with this email address already exists. Please sign in.');
     }
 
