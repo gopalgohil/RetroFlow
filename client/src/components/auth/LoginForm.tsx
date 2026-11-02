@@ -124,8 +124,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       }
     } catch (err: any) {
       setIsLoading(false);
-      if (err.status === 403 || err.message?.toLowerCase().includes('not verified')) {
+      const msg = (err.message || '').toLowerCase();
+      const isRejection = msg.includes('rejected') || err.data?.status === 'rejected';
+      const isVerificationRequired =
+        !isRejection &&
+        (err.data?.requiresVerification ||
+          err.requiresVerification ||
+          msg.includes('not verified') ||
+          msg.includes('verification code'));
+
+      if (isVerificationRequired) {
         setUnverifiedEmail(formData.email);
+      } else {
+        setUnverifiedEmail(null);
       }
       setGeneralError(err.message || 'Invalid email or password.');
     }
