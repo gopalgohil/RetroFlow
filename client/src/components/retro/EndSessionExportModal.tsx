@@ -132,8 +132,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     }
     setSelectedProjectId(targetProj.id);
 
-    const match = (sprintName || retroTitle || '').match(/\d+/);
-    const currentSprintNum = match ? parseInt(match[0], 10) : 1;
+    const match = (sprintName || '').match(/sprint\s*(\d+)/i) || (retroTitle || '').match(/sprint\s*(\d+)/i) || (sprintName || retroTitle || '').match(/\d+/);
+    const currentSprintNum = match ? parseInt(match[1] || match[0], 10) : 1;
     const nextSprintNum = currentSprintNum + 1;
 
     let targetSprint = targetProj.sprints?.find(
@@ -224,8 +224,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   }, [selectedProject, getSuggestedSprint]);
 
   const nextSprint = useMemo(() => {
-    const match = (retroTitle || sprintName || '').match(/\d+/);
-    const retroSprintNum = match ? parseInt(match[0], 10) : (selectedProject?.retrospectives?.length || 1);
+    const match = (sprintName || '').match(/sprint\s*(\d+)/i) || (retroTitle || '').match(/sprint\s*(\d+)/i) || (sprintName || retroTitle || '').match(/\d+/);
+    const retroSprintNum = match ? parseInt(match[1] || match[0], 10) : (selectedProject?.retrospectives?.length || 1);
     const nextSprintNum = retroSprintNum + 1;
 
     // Next sprint dates derived from retroEndDate (e.g. 2026-01-31 -> 2026-02-01 to 2026-02-28)

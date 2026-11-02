@@ -1579,8 +1579,8 @@ class ProjectService {
             (r) => r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId
           );
           if (retroEntry?.sprintName) {
-            const sMatch = retroEntry.sprintName.match(/\d+/);
-            if (sMatch) sprintNum = parseInt(sMatch[0], 10) + 1;
+            const sMatch = retroEntry.sprintName.match(/sprint\s*(\d+)/i) || retroEntry.sprintName.match(/\d+/);
+            if (sMatch) sprintNum = parseInt(sMatch[1] || sMatch[0], 10) + 1;
           }
         }
       }
