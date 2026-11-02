@@ -223,7 +223,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     return selectedProject ? getSuggestedSprint(selectedProject.id) : null;
   }, [selectedProject, getSuggestedSprint]);
 
-  const currentSprint = useMemo(() => {
+  const nextSprint = useMemo(() => {
     const match = (retroTitle || sprintName || '').match(/\d+/);
     const retroSprintNum = match ? parseInt(match[0], 10) : (selectedProject?.retrospectives?.length || 1);
     const nextSprintNum = retroSprintNum + 1;
@@ -237,7 +237,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000);
     const daysLeft = Math.max(1, Math.min(totalDays, rawDiff));
 
-    const autoSprintObj = {
+    return {
       id: `sprint-auto-${nextSprintNum}`,
       projectId: selectedProject?.id || '',
       name: `Sprint ${nextSprintNum} - Execution & Backlog`,
@@ -252,33 +252,28 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       openBlockers: 0,
       items: [],
     };
-
-    if (!selectedProject?.sprints || selectedProject.sprints.length === 0) {
-      return autoSprintObj;
-    }
-
-    const targetId = selectedSprintId || suggestedSprint?.id;
-    if (targetId && targetId.startsWith('sprint-auto-')) {
-      return autoSprintObj;
-    }
-
-    return (
-      selectedProject.sprints.find((s) => s.id === targetId) ||
-      selectedProject.sprints.find((s) => s.number === nextSprintNum) ||
-      autoSprintObj
-    );
-  }, [selectedProject, selectedSprintId, suggestedSprint, retroTitle, sprintName, retroEndDate]);
+  }, [retroTitle, sprintName, selectedProject, retroEndDate]);
 
   const sprintOptions = useMemo(() => {
     const list = [...(selectedProject?.sprints || [])];
     if (
-      currentSprint &&
-      !list.some((s) => s.id === currentSprint.id || (currentSprint.number && s.number === currentSprint.number))
+      nextSprint &&
+      !list.some((s) => s.id === nextSprint.id || (nextSprint.number && s.number === nextSprint.number))
     ) {
-      list.push(currentSprint);
+      list.push(nextSprint);
     }
     return list;
-  }, [selectedProject, currentSprint]);
+  }, [selectedProject, nextSprint]);
+
+  const currentSprint = useMemo(() => {
+    if (!sprintOptions || sprintOptions.length === 0) return nextSprint;
+    const targetId = selectedSprintId || suggestedSprint?.id;
+    return (
+      sprintOptions.find((s) => s.id === targetId) ||
+      sprintOptions.find((s) => s.id === nextSprint?.id) ||
+      sprintOptions[0]
+    );
+  }, [sprintOptions, selectedSprintId, suggestedSprint, nextSprint]);
 
   const sprintMinDate = currentSprint?.startDate ? currentSprint.startDate.split('T')[0] : '';
   const sprintMaxDate = currentSprint?.endDate ? currentSprint.endDate.split('T')[0] : '';
