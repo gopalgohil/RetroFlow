@@ -1553,82 +1553,111 @@ class ProjectService {
     if (!project) throw new Error('Project not found');
     this.assertCanManage(project, currentUser);
 
+    let requestedSprintNum = null;
+    if (sprintId && sprintId.startsWith('sprint-auto-')) {
+      const parsed = parseInt(sprintId.replace('sprint-auto-', ''), 10);
+      if (!isNaN(parsed)) requestedSprintNum = parsed;
+    }
+
     let sprint = project.sprints.find((s) => s.id === sprintId);
 
+    if (!sprint && requestedSprintNum) {
+      sprint = project.sprints.find(
+        (s) => s.number === requestedSprintNum || s.name.toLowerCase().startsWith(`sprint ${requestedSprintNum}`)
+      );
+    }
+
     if (!sprint) {
-      let sprintNum = null;
-      const sourceTitle = items[0]?.sourceRetroTitle || '';
-      const match = sourceTitle.match(/sprint\s*(\d+)/i);
-      if (match) {
-        sprintNum = parseInt(match[1], 10);
-      } else if (items[0]?.sourceRetroId) {
-        const retroEntry = project.retrospectives?.find(
-          (r) => r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId
-        );
-        if (retroEntry?.sprintName) {
-          const sMatch = retroEntry.sprintName.match(/\d+/);
-          if (sMatch) sprintNum = parseInt(sMatch[0], 10);
+      let sprintNum = requestedSprintNum;
+      if (!sprintNum) {
+        const sourceTitle = items[0]?.sourceRetroTitle || '';
+        const match = sourceTitle.match(/sprint\s*(\d+)/i);
+        if (match) {
+          sprintNum = parseInt(match[1], 10) + 1;
+        } else if (items[0]?.sourceRetroId) {
+          const retroEntry = project.retrospectives?.find(
+            (r) => r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId
+          );
+          if (retroEntry?.sprintName) {
+            const sMatch = retroEntry.sprintName.match(/\d+/);
+            if (sMatch) sprintNum = parseInt(sMatch[0], 10) + 1;
+          }
         }
       }
 
       if (sprintNum) {
         // Retro action items target Sprint N+1 (Next Sprint)
-        const nextSprintNum = sprintNum + 1;
         sprint = project.sprints.find(
-          (s) => s.number === nextSprintNum || s.name.toLowerCase().startsWith(`sprint ${nextSprintNum}`)
+          (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
         );
-        if (!sprint) {
-          sprint = project.sprints.find((s) => s.status === 'upcoming');
-        }
       }
-    }
 
-    if (!sprint) {
-      sprint = project.sprints.find((s) => s.status === 'upcoming') ||
-               project.sprints.find((s) => s.status === 'active') ||
-               project.sprints[0];
+      if (!sprint) {
+        sprint = project.sprints.find((s) => s.status === 'upcoming');
+      }
+
+      if (!sprint) {
+        const finalSprintNum = sprintNum || (project.sprints?.length || 0) + 1;
+        let refDate = new Date();
+        if (items[0]?.sourceRetroId) {
+          const retroEntry = project.retrospectives?.find(
+            (r) => r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId
+          );
+          if (retroEntry?.endDate) {
+            refDate = new Date(retroEntry.endDate);
+          } else if (retroEntry?.scheduledDate) {
+            refDate = new Date(retroEntry.scheduledDate);
+          }
+        }
+
+        const nextDates = getNextMonthlySprintDates(refDate);
+        sprint = {
+          id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
+          name: `Sprint ${finalSprintNum} - Execution & Backlog`,
+          number: finalSprintNum,
+          status: 'active',
+          startDate: nextDates.startDate,
+          endDate: nextDates.endDate,
+          goal: `Sprint ${finalSprintNum} deliverables and retrospective action items.`,
+          daysLeft: nextDates.daysLeft,
+          totalStoryPoints: 0,
+          completedStoryPoints: 0,
+          openBlockers: 0,
+          items: [],
+        };
+        project.sprints.push(sprint);
+
+        project.sprints.forEach((sp) => {
+          if (sp.id !== sprint.id && sp.number < sprint.number && sp.status === 'active') {
+            sp.status = 'completed';
+          }
+        });
+      }
     }
 
     if (sprint && sprint.status === 'upcoming') {
       sprint.status = 'active';
-      const nextDates = getNextMonthlySprintDates(sprint.startDate || new Date());
-      sprint.startDate = sprint.startDate || nextDates.startDate;
-      sprint.endDate = sprint.endDate || nextDates.endDate;
-      sprint.daysLeft = nextDates.daysLeft;
-    }
-
-    if (!sprint) {
-      let sprintNum = 1;
-      const sourceTitle = items[0]?.sourceRetroTitle || '';
-      const match = sourceTitle.match(/sprint\s*(\d+)/i);
-      if (match) {
-        sprintNum = parseInt(match[1], 10) + 1;
-      } else if (items[0]?.sourceRetroId) {
+      let refDate = new Date();
+      if (items[0]?.sourceRetroId) {
         const retroEntry = project.retrospectives?.find(
           (r) => r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId
         );
-        if (retroEntry?.sprintName) {
-          const sMatch = retroEntry.sprintName.match(/\d+/);
-          if (sMatch) sprintNum = parseInt(sMatch[0], 10) + 1;
+        if (retroEntry?.endDate) {
+          refDate = new Date(retroEntry.endDate);
+        } else if (retroEntry?.scheduledDate) {
+          refDate = new Date(retroEntry.scheduledDate);
         }
       }
+      const nextDates = getNextMonthlySprintDates(refDate);
+      sprint.startDate = sprint.startDate || nextDates.startDate;
+      sprint.endDate = sprint.endDate || nextDates.endDate;
+      sprint.daysLeft = nextDates.daysLeft;
 
-      const nextDates = getNextMonthlySprintDates(new Date());
-      sprint = {
-        id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
-        name: `Sprint ${sprintNum} - Execution & Backlog`,
-        number: sprintNum,
-        status: 'active',
-        startDate: nextDates.startDate,
-        endDate: nextDates.endDate,
-        goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
-        daysLeft: nextDates.daysLeft,
-        totalStoryPoints: 0,
-        completedStoryPoints: 0,
-        openBlockers: 0,
-        items: [],
-      };
-      project.sprints.push(sprint);
+      project.sprints.forEach((sp) => {
+        if (sp.id !== sprint.id && sp.number < sprint.number && sp.status === 'active') {
+          sp.status = 'completed';
+        }
+      });
     }
 
     const newItems = items.map((item) => {

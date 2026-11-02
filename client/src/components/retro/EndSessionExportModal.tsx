@@ -34,6 +34,8 @@ export interface EndSessionExportModalProps {
   projectKey?: string | null;
   sprintId?: string | null;
   sprintName?: string | null;
+  retroStartDate?: string | null;
+  retroEndDate?: string | null;
   onSessionEnded?: () => void;
   mode?: 'export_only' | 'end_and_export';
   canExport?: boolean;
@@ -59,6 +61,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   projectKey,
   sprintId,
   sprintName,
+  retroStartDate,
+  retroEndDate,
   onSessionEnded,
   mode = 'end_and_export',
   canExport = true,
@@ -128,38 +132,29 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     }
     setSelectedProjectId(targetProj.id);
 
-    let targetSprint = null;
+    const match = (sprintName || retroTitle || '').match(/\d+/);
+    const currentSprintNum = match ? parseInt(match[0], 10) : 1;
+    const nextSprintNum = currentSprintNum + 1;
 
-    if (sprintId) {
-      targetSprint = targetProj.sprints?.find((s) => s.id === sprintId);
-    }
+    let targetSprint = targetProj.sprints?.find(
+      (s) =>
+        s.number === nextSprintNum ||
+        s.name.toLowerCase().includes(`sprint ${nextSprintNum}`)
+    ) || targetProj.sprints?.find((s) => s.status === 'upcoming');
 
-    if (!targetSprint && sprintName) {
-      const match = sprintName.match(/\d+/);
-      const sprintNum = match ? parseInt(match[0], 10) : null;
-      const nextSprintNum = sprintNum !== null ? sprintNum + 1 : null;
-      targetSprint = targetProj.sprints?.find(
-        (s) =>
-          (nextSprintNum !== null && s.number === nextSprintNum) ||
-          (nextSprintNum !== null && s.name.toLowerCase().includes(`sprint ${nextSprintNum}`))
-      ) || targetProj.sprints?.find((s) => s.status === 'upcoming');
-    }
-
-    if (!targetSprint && retroTitle) {
-      const match = retroTitle.match(/sprint\s*(\d+)/i);
-      if (match) {
-        const sprintNum = parseInt(match[1], 10);
-        const nextSprintNum = sprintNum + 1;
-        targetSprint = targetProj.sprints?.find(
-          (s) =>
-            s.number === nextSprintNum ||
-            s.name.toLowerCase().includes(`sprint ${nextSprintNum}`)
-        ) || targetProj.sprints?.find((s) => s.status === 'upcoming');
+    if (!targetSprint && sprintId) {
+      const explicit = targetProj.sprints?.find((s) => s.id === sprintId);
+      if (explicit && explicit.number !== currentSprintNum) {
+        targetSprint = explicit;
       }
     }
 
     if (!targetSprint) {
-      targetSprint = getSuggestedSprint(targetProj.id) || targetProj.sprints?.find((s) => s.status === 'upcoming') || targetProj.sprints?.[0] || null;
+      targetSprint = {
+        id: `sprint-auto-${nextSprintNum}`,
+        name: `Sprint ${nextSprintNum} - Execution & Backlog`,
+        number: nextSprintNum,
+      } as any;
     }
 
     if (targetSprint) {
@@ -229,41 +224,61 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   }, [selectedProject, getSuggestedSprint]);
 
   const currentSprint = useMemo(() => {
-    if (!selectedProject?.sprints || selectedProject.sprints.length === 0) {
-      const match = (retroTitle || sprintName || '').match(/\d+/);
-      const retroSprintNum = match ? parseInt(match[0], 10) : (selectedProject?.retrospectives?.length || 1);
-      const nextSprintNum = retroSprintNum + 1;
-      const now = new Date();
-      const nextStart = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 1));
-      const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
-      const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / 86400000));
-      const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000);
-      const daysLeft = Math.max(1, Math.min(totalDays, rawDiff));
+    const match = (retroTitle || sprintName || '').match(/\d+/);
+    const retroSprintNum = match ? parseInt(match[0], 10) : (selectedProject?.retrospectives?.length || 1);
+    const nextSprintNum = retroSprintNum + 1;
 
-      return {
-        id: `sprint-auto-${nextSprintNum}`,
-        name: `Sprint ${nextSprintNum} - Execution & Backlog`,
-        number: nextSprintNum,
-        status: 'active' as const,
-        startDate: nextStart.toISOString().split('T')[0],
-        endDate: nextEnd.toISOString().split('T')[0],
-        goal: `Sprint ${nextSprintNum} deliverables and retrospective action items.`,
-        daysLeft,
-        totalStoryPoints: 0,
-        completedStoryPoints: 0,
-        openBlockers: 0,
-        items: [],
-      };
+    // Next sprint dates derived from retroEndDate (e.g. 2026-01-31 -> 2026-02-01 to 2026-02-28)
+    const ref = retroEndDate ? new Date(retroEndDate) : new Date();
+    const nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
+    const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+    const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / 86400000));
+    const now = new Date();
+    const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000);
+    const daysLeft = Math.max(1, Math.min(totalDays, rawDiff));
+
+    const autoSprintObj = {
+      id: `sprint-auto-${nextSprintNum}`,
+      projectId: selectedProject?.id || '',
+      name: `Sprint ${nextSprintNum} - Execution & Backlog`,
+      number: nextSprintNum,
+      status: 'active' as const,
+      startDate: nextStart.toISOString().split('T')[0],
+      endDate: nextEnd.toISOString().split('T')[0],
+      goal: `Sprint ${nextSprintNum} deliverables and retrospective action items.`,
+      daysLeft,
+      totalStoryPoints: 0,
+      completedStoryPoints: 0,
+      openBlockers: 0,
+      items: [],
+    };
+
+    if (!selectedProject?.sprints || selectedProject.sprints.length === 0) {
+      return autoSprintObj;
     }
+
     const targetId = selectedSprintId || suggestedSprint?.id;
+    if (targetId && targetId.startsWith('sprint-auto-')) {
+      return autoSprintObj;
+    }
+
     return (
       selectedProject.sprints.find((s) => s.id === targetId) ||
-      selectedProject.sprints.find((s) => s.status === 'upcoming') ||
-      selectedProject.sprints.find((s) => s.status === 'active') ||
-      selectedProject.sprints[0] ||
-      null
+      selectedProject.sprints.find((s) => s.number === nextSprintNum) ||
+      autoSprintObj
     );
-  }, [selectedProject, selectedSprintId, suggestedSprint, retroTitle, sprintName]);
+  }, [selectedProject, selectedSprintId, suggestedSprint, retroTitle, sprintName, retroEndDate]);
+
+  const sprintOptions = useMemo(() => {
+    const list = [...(selectedProject?.sprints || [])];
+    if (
+      currentSprint &&
+      !list.some((s) => s.id === currentSprint.id || (currentSprint.number && s.number === currentSprint.number))
+    ) {
+      list.push(currentSprint);
+    }
+    return list;
+  }, [selectedProject, currentSprint]);
 
   const sprintMinDate = currentSprint?.startDate ? currentSprint.startDate.split('T')[0] : '';
   const sprintMaxDate = currentSprint?.endDate ? currentSprint.endDate.split('T')[0] : '';
@@ -362,7 +377,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
 
     if (!selectedProject || selectedCardIds.length === 0) return;
     const sprintIdToUse =
-      selectedSprintId || suggestedSprint?.id || selectedProject.sprints[0]?.id;
+      selectedSprintId || currentSprint?.id || suggestedSprint?.id || selectedProject.sprints[0]?.id;
 
     const itemsToExport = actionCards
       .filter((c) => selectedCardIds.includes(c.id))
@@ -764,44 +779,14 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                 {isSprintDropdownOpen && (
                   <div className="absolute z-50 top-full left-0 right-0 sm:right-0 sm:left-auto sm:min-w-[340px] w-full mt-1.5 bg-white dark:bg-[#161a23] border border-slate-200 dark:border-white/[0.1] rounded-xl shadow-2xl p-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                     <div className="max-h-[220px] overflow-y-auto space-y-1 pr-0.5 overscroll-contain">
-                      {(!selectedProject?.sprints || selectedProject.sprints.length === 0) ? (
-                        currentSprint ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedSprintId(currentSprint.id);
-                              setIsSprintDropdownOpen(false);
-                            }}
-                            className="w-full text-left p-2.5 rounded-lg transition-all flex items-center justify-between gap-2.5 cursor-pointer border bg-[#88c958]/10 border-[#88c958]/30 dark:bg-[#88c958]/15 text-slate-900 dark:text-white"
-                          >
-                            <div className="min-w-0 flex-1 space-y-1">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                  {currentSprint.name}
-                                </span>
-                                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                                  ACTIVE
-                                </span>
-
-                              </div>
-                              <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-                                <span>{currentSprint.startDate} → {currentSprint.endDate}</span>
-                                <span>• 14d left</span>
-                              </div>
-                            </div>
-                            <div className="w-5 h-5 rounded-full bg-[#88c958] text-white flex items-center justify-center shrink-0">
-                              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                            </div>
-                          </button>
-                        ) : (
-                          <div className="px-3 py-3 text-center text-xs text-slate-400">
-                            No sprints found in this project
-                          </div>
-                        )
+                      {sprintOptions.length === 0 ? (
+                        <div className="px-3 py-3 text-center text-xs text-slate-400">
+                          No sprints found in this project
+                        </div>
                       ) : (
-                        selectedProject.sprints.map((sp) => {
+                        sprintOptions.map((sp) => {
                           const isSelected = sp.id === currentSprint?.id;
-                                                    return (
+                          return (
                             <button
                               key={sp.id}
                               type="button"

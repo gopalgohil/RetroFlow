@@ -167,6 +167,8 @@ export default function LiveRetroBoardPage({
         projectKey={session.retro.projectKey}
         sprintId={session.retro.sprintId}
         sprintName={session.retro.sprintName}
+        retroStartDate={session.retro.startDate || session.retro.scheduledDate}
+        retroEndDate={session.retro.endDate}
         mode={exportModalMode}
         canExport={session.canExportToSprint}
         currentUser={session.currentUser}
