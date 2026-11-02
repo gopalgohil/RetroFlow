@@ -16,12 +16,9 @@ export const metadata: Metadata = {
   title: "Digiflux | Agile Retrospectives & Sprint Management",
   description: "Collaborative Agile Retrospectives & Sprint Delivery Platform",
   icons: {
-    icon: [
-      { url: '/favicon_1.svg?v=retroflow', type: 'image/svg+xml' },
-      { url: '/icon.svg?v=retroflow', type: 'image/svg+xml' },
-    ],
-    shortcut: '/favicon_1.svg?v=retroflow',
-    apple: '/favicon_1.svg?v=retroflow',
+    icon: '/favicon_1.svg',
+    shortcut: '/favicon_1.svg',
+    apple: '/favicon_1.svg',
   },
   manifest: '/manifest.json',
 };
@@ -38,10 +35,6 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <link rel="icon" href="/favicon_1.svg?v=retroflow" type="image/svg+xml" />
-        <link rel="alternate icon" href="/icon.svg?v=retroflow" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/favicon_1.svg?v=retroflow" />
-        <link rel="shortcut icon" href="/favicon_1.svg?v=retroflow" />
         <meta name="theme-color" content="#5cb028" />
         <script
           dangerouslySetInnerHTML={{
