@@ -67,6 +67,8 @@ export const exportActionItemsSchema = z.object({
   items: z
     .array(
       z.object({
+        id: z.string().optional(),
+        cardId: z.string().optional(),
         title: z
           .string({ required_error: 'Action item title is required' })
           .trim()

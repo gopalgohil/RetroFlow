@@ -78,6 +78,8 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
 
       try {
         const itemsToExport = actionCards.map((c: any) => ({
+          id: c.cardId || c.id,
+          cardId: c.cardId || c.id,
           title: c.text,
           description: c.description || '',
           storyPoints: typeof c.storyPoints === 'number' ? c.storyPoints : 3,

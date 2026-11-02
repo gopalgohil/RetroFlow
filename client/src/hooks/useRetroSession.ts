@@ -29,6 +29,7 @@ export interface UseRetroSessionReturn {
   setGuestName: (name: string, email?: string) => Promise<void> | void;
   setIsRevealed: React.Dispatch<React.SetStateAction<boolean>>;
   setRetro: React.Dispatch<React.SetStateAction<RetroBoard | null>>;
+  setCards: React.Dispatch<React.SetStateAction<StickyCard[]>>;
   endSession: () => Promise<void>;
   reopenSession: () => Promise<void>;
   addCard: (topicId: string, text: string) => Promise<void>;
@@ -209,8 +210,9 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
                   : null,
               assignedSprintName: c.assignedSprintName || null,
               isExportedToActionItems: Boolean(
-                c.isExportedToActionItems &&
-                (c.assignedSprintName || (c.assignedTo && typeof c.assignedTo === 'object' && c.assignedTo.name))
+                c.isExportedToActionItems ||
+                c.assignedSprintName ||
+                (c.assignedTo && typeof c.assignedTo === 'object' && c.assignedTo.name)
               ),
               hasVoted: Array.isArray(c.voters) && (
                 c.voters.some((v: string) => {
@@ -426,6 +428,7 @@ export function useRetroSession(shareToken: string): UseRetroSessionReturn {
     setGuestName,
     setIsRevealed,
     setRetro,
+    setCards,
     endSession,
     reopenSession,
     addCard,

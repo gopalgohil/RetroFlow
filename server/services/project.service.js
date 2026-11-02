@@ -9,6 +9,7 @@ import emailService from './email.service.js';
 import { generateToken } from '../utils/token.js';
 import { ApiError } from '../utils/ApiError.js';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
+import { getRetroNamespace } from '../sockets/retro.socket.js';
 
 function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, contextText = '') {
   const tEmail = (targetEmail || '').toLowerCase().trim();
@@ -1691,8 +1692,10 @@ class ProjectService {
             currentUser?.name ||
             'Project Manager';
 
+      const rawCardId = item.cardId || item.id || null;
       return {
         id: `act-${crypto.randomUUID().slice(0, 8)}`,
+        cardId: rawCardId,
         title: item.title.trim(),
         description: item.description?.trim() || '',
         type: 'action_item',
@@ -1728,6 +1731,7 @@ class ProjectService {
       const existingIdx = sprint.items.findIndex(
         (it) =>
           it.id === newItem.id ||
+          (newItem.cardId && it.cardId === newItem.cardId) ||
           (newItem.sourceRetroId &&
             it.sourceRetroId === newItem.sourceRetroId &&
             it.title.toLowerCase().trim() === newItem.title.toLowerCase().trim())
@@ -1764,11 +1768,11 @@ class ProjectService {
 
         const retroBoardDoc = await RetroBoard.findOne(retroQuery);
         if (retroBoardDoc) {
-          retroBoardDoc.status = 'completed';
           retroBoardDoc.cards = retroBoardDoc.cards || [];
           for (const it of newItems) {
             const card = retroBoardDoc.cards.find(
               (c) =>
+                (it.cardId && (c.cardId === it.cardId || (c._id && c._id.toString() === it.cardId))) ||
                 (it.id && (c.cardId === it.id || (c._id && c._id.toString() === it.id))) ||
                 (c.text && it.title && c.text.trim().toLowerCase() === it.title.trim().toLowerCase())
             );
@@ -1778,7 +1782,19 @@ class ProjectService {
               card.isExportedToActionItems = true;
             }
           }
+          retroBoardDoc.markModified('cards');
           await retroBoardDoc.save();
+
+          try {
+            const retroNamespace = getRetroNamespace();
+            if (retroNamespace && retroBoardDoc.shareToken) {
+              retroNamespace.to(`retro:${retroBoardDoc.shareToken}`).emit('cards:exported', {
+                cards: retroBoardDoc.cards,
+              });
+            }
+          } catch (emitErr) {
+            console.warn('[exportActionItems] Failed to emit cards:exported:', emitErr);
+          }
         }
       } catch (err) {
         console.warn('[exportActionItems] Failed to update RetroBoard status and cards:', err);

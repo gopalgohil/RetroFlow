@@ -76,8 +76,15 @@ function checkSocketRateLimit(socket, maxEvents = 30, windowMs = 1000) {
   return socket._rateLimitState.count <= maxEvents;
 }
 
+let retroNamespaceInstance = null;
+
+export function getRetroNamespace() {
+  return retroNamespaceInstance;
+}
+
 export function initRetroSocket(io) {
   const retroNamespace = io.of('/retro');
+  retroNamespaceInstance = retroNamespace;
 
   retroNamespace.use(async (socket, next) => {
     try {
@@ -501,6 +508,12 @@ export function initRetroSocket(io) {
               error: 'Permission denied: Only Admin and Manager can move cards between questions.',
             });
           }
+          return;
+        }
+
+        const targetCard = board.cards?.find((c) => c.cardId === cardId);
+        if (targetCard && (targetCard.isExportedToActionItems || targetCard.assignedSprintName || targetCard.assignedTo?.name)) {
+          if (callback) callback({ error: 'Assigned action item cards cannot be moved.' });
           return;
         }
 

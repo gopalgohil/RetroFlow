@@ -171,6 +171,7 @@ export default function LiveRetroBoardPage({
         canExport={session.canExportToSprint}
         currentUser={session.currentUser}
         onSessionEnded={session.endSession}
+        onCardsExported={session.setCards}
       />
 
       {toastFeedback && (

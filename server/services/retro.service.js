@@ -541,50 +541,87 @@ class RetroService {
     }
 
     const retroObj = retro.toObject();
-    if (retro.projectId) {
-      try {
-        const project = await Project.findById(retro.projectId).select('lead members key name').lean();
-        if (project) {
-          retroObj.project = project;
+    let linkedProjectDoc = null;
+    try {
+      if (retro.projectId) {
+        linkedProjectDoc = await Project.findById(retro.projectId).select('lead members key name sprints').lean();
+      } else if (retro.projectKey) {
+        linkedProjectDoc = await Project.findOne({ key: retro.projectKey }).select('lead members key name sprints').lean();
+      } else {
+        linkedProjectDoc = await Project.findOne({
+          $or: [
+            { 'retrospectives.shareToken': retro.shareToken },
+            { 'retrospectives.id': retro._id.toString() },
+          ],
+        }).select('lead members key name sprints').lean();
+      }
 
-          const projectEmails = (project.members || []).map((m) => m.email?.toLowerCase().trim()).filter(Boolean);
-          if (project.lead?.email) projectEmails.push(project.lead.email.toLowerCase().trim());
+      if (linkedProjectDoc) {
+        retroObj.project = linkedProjectDoc;
 
-          let updatedApproved = false;
-          projectEmails.forEach((email) => {
-            if (!retro.approvedMembers.includes(email)) {
-              retro.approvedMembers.push(email);
-              updatedApproved = true;
+        const projectEmails = (linkedProjectDoc.members || []).map((m) => m.email?.toLowerCase().trim()).filter(Boolean);
+        if (linkedProjectDoc.lead?.email) projectEmails.push(linkedProjectDoc.lead.email.toLowerCase().trim());
+
+        let updatedApproved = false;
+        projectEmails.forEach((email) => {
+          if (!retro.approvedMembers.includes(email)) {
+            retro.approvedMembers.push(email);
+            updatedApproved = true;
+          }
+        });
+
+        let cardsModified = false;
+        const retroIdStr = retro._id ? retro._id.toString() : '';
+        const shareTokenStr = retro.shareToken || '';
+
+        if (Array.isArray(linkedProjectDoc.sprints)) {
+          for (const sp of linkedProjectDoc.sprints) {
+            if (!Array.isArray(sp.items)) continue;
+            for (const item of sp.items) {
+              const matchesSource =
+                item.sourceRetroId === retroIdStr ||
+                item.sourceRetroId === shareTokenStr ||
+                (item.sourceRetroTitle && item.sourceRetroTitle === retro.title);
+
+              if (matchesSource) {
+                const targetCard = (retro.cards || []).find(
+                  (c) =>
+                    (item.cardId && (c.cardId === item.cardId || (c._id && c._id.toString() === item.cardId))) ||
+                    (item.id && (c.cardId === item.id || (c._id && c._id.toString() === item.id))) ||
+                    (c.text && item.title && c.text.trim().toLowerCase() === item.title.trim().toLowerCase())
+                );
+
+                if (targetCard) {
+                  const hasAssignedDifference =
+                    !targetCard.isExportedToActionItems ||
+                    !targetCard.assignedSprintName ||
+                    (item.assignee?.name && targetCard.assignedTo?.name !== item.assignee.name);
+
+                  if (hasAssignedDifference) {
+                    if (item.assignee) {
+                      targetCard.assignedTo = item.assignee;
+                    }
+                    targetCard.assignedSprintName = sp.name;
+                    targetCard.isExportedToActionItems = true;
+                    cardsModified = true;
+                  }
+                }
+              }
             }
-          });
-          if (updatedApproved) {
-            await retro.save();
           }
         }
-      } catch {
-      }
-    } else if (retro.projectKey) {
-      try {
-        const project = await Project.findOne({ key: retro.projectKey }).select('lead members key name').lean();
-        if (project) {
-          retroObj.project = project;
 
-          const projectEmails = (project.members || []).map((m) => m.email?.toLowerCase().trim()).filter(Boolean);
-          if (project.lead?.email) projectEmails.push(project.lead.email.toLowerCase().trim());
-
-          let updatedApproved = false;
-          projectEmails.forEach((email) => {
-            if (!retro.approvedMembers.includes(email)) {
-              retro.approvedMembers.push(email);
-              updatedApproved = true;
-            }
-          });
-          if (updatedApproved) {
-            await retro.save();
-          }
+        if (cardsModified) {
+          retro.markModified('cards');
         }
-      } catch {
+
+        if (updatedApproved || cardsModified) {
+          await retro.save();
+          retroObj.cards = retro.cards;
+        }
       }
+    } catch (syncErr) {
+      console.warn('[getRetroByIdOrToken] Failed to sync project details or action items:', syncErr);
     }
 
     return retroObj;

@@ -38,6 +38,7 @@ export interface EndSessionExportModalProps {
   mode?: 'export_only' | 'end_and_export';
   canExport?: boolean;
   currentUser?: any;
+  onCardsExported?: (updatedCards: StickyCard[]) => void;
 }
 
 interface ItemConfig {
@@ -61,6 +62,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   onSessionEnded,
   mode = 'end_and_export',
   canExport = true,
+  onCardsExported,
 }) => {
   const {
     projects,
@@ -420,14 +422,31 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     });
 
     const targetSprintObj = selectedProject.sprints?.find((s) => s.id === sprintIdToUse);
+    const updatedCardsList = cards.map((c) => {
+      const it = itemsToExport.find(
+        (exp) => exp.id === c.id || (exp as any).cardId === c.id || exp.id === c.cardId
+      );
+      if (it) {
+        return {
+          ...c,
+          assignedTo: it.assignee,
+          assignedSprintName: targetSprintObj?.name || 'Sprint Backlog',
+          isExportedToActionItems: true,
+        };
+      }
+      return c;
+    });
+
     itemsToExport.forEach((it) => {
-      const originalCard = cards.find((c) => c.id === it.id);
+      const originalCard = cards.find((c) => c.id === it.id || c.cardId === it.id);
       if (originalCard) {
         originalCard.assignedTo = it.assignee;
         originalCard.assignedSprintName = targetSprintObj?.name || 'Sprint Backlog';
         originalCard.isExportedToActionItems = true;
       }
     });
+
+    onCardsExported?.(updatedCardsList);
 
     if (onSessionEnded && mode === 'end_and_export') {
       try {

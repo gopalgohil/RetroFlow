@@ -59,6 +59,18 @@ export function useRetroSocketSync({
                 authorEmail: c.authorEmail,
                 votes: typeof c.votes === 'number' ? c.votes : 0,
                 voters: Array.isArray(c.voters) ? c.voters : [],
+                assignedTo:
+                  c.assignedTo && typeof c.assignedTo === 'object' && c.assignedTo.name
+                    ? c.assignedTo
+                    : typeof c.assignedTo === 'string' && c.assignedTo.trim() && c.assignedTo !== 'Unassigned'
+                    ? { name: c.assignedTo.trim() }
+                    : null,
+                assignedSprintName: c.assignedSprintName || null,
+                isExportedToActionItems: Boolean(
+                  c.isExportedToActionItems ||
+                  c.assignedSprintName ||
+                  (c.assignedTo && typeof c.assignedTo === 'object' && c.assignedTo.name)
+                ),
                 hasVoted:
                   Array.isArray(c.voters) &&
                   c.voters.some((v: string) => {
@@ -119,6 +131,16 @@ export function useRetroSocketSync({
             votes: typeof newCard.votes === 'number' ? newCard.votes : next[tempIdx].votes || 0,
             voters: Array.isArray(newCard.voters) ? newCard.voters : next[tempIdx].voters || [],
             createdAt: newCard.createdAt || next[tempIdx].createdAt,
+            assignedTo: newCard.assignedTo || next[tempIdx].assignedTo || null,
+            assignedSprintName: newCard.assignedSprintName || next[tempIdx].assignedSprintName || null,
+            isExportedToActionItems: Boolean(
+              newCard.isExportedToActionItems ||
+              next[tempIdx].isExportedToActionItems ||
+              newCard.assignedSprintName ||
+              next[tempIdx].assignedSprintName ||
+              (newCard.assignedTo && newCard.assignedTo.name) ||
+              (next[tempIdx].assignedTo && next[tempIdx].assignedTo.name)
+            ),
           };
           return next;
         }
@@ -134,6 +156,13 @@ export function useRetroSocketSync({
             votes: typeof newCard.votes === 'number' ? newCard.votes : 0,
             voters: Array.isArray(newCard.voters) ? newCard.voters : [],
             createdAt: newCard.createdAt,
+            assignedTo: newCard.assignedTo || null,
+            assignedSprintName: newCard.assignedSprintName || null,
+            isExportedToActionItems: Boolean(
+              newCard.isExportedToActionItems ||
+              newCard.assignedSprintName ||
+              (newCard.assignedTo && newCard.assignedTo.name)
+            ),
           },
         ];
       });
@@ -223,12 +252,50 @@ export function useRetroSocketSync({
       }
     };
 
+    const onCardsExported = (payload?: { cards?: any[] }) => {
+      if (payload?.cards && Array.isArray(payload.cards)) {
+        setCards((prev) =>
+          prev.map((card) => {
+            const updated = payload.cards!.find(
+              (c: any) =>
+                (c.cardId && (c.cardId === card.id || c.cardId === card.cardId)) ||
+                (c.id && (c.id === card.id || c.id === card.cardId)) ||
+                (c.text && card.text && c.text.trim().toLowerCase() === card.text.trim().toLowerCase())
+            );
+            if (updated) {
+              const assignedTo =
+                updated.assignedTo && typeof updated.assignedTo === 'object' && updated.assignedTo.name
+                  ? updated.assignedTo
+                  : typeof updated.assignedTo === 'string' && updated.assignedTo.trim() && updated.assignedTo !== 'Unassigned'
+                  ? { name: updated.assignedTo.trim() }
+                  : card.assignedTo || null;
+              const assignedSprintName = updated.assignedSprintName || card.assignedSprintName || null;
+              const isExportedToActionItems = Boolean(
+                updated.isExportedToActionItems ||
+                assignedSprintName ||
+                (assignedTo && assignedTo.name) ||
+                card.isExportedToActionItems
+              );
+              return {
+                ...card,
+                assignedTo,
+                assignedSprintName,
+                isExportedToActionItems,
+              };
+            }
+            return card;
+          })
+        );
+      }
+    };
+
     socket.on('card:created', onCardCreated);
     socket.on('card:updated', onCardUpdated);
     socket.on('card:deleted', onCardDeleted);
     socket.on('card:moved', onCardMoved);
     socket.on('cards:reordered', onCardsReordered);
     socket.on('card:voted', onCardVoted);
+    socket.on('cards:exported', onCardsExported);
     socket.on('session:ended', onSessionEnded);
     socket.on('session:reopened', onSessionReopened);
 
@@ -241,6 +308,7 @@ export function useRetroSocketSync({
       socket.off('card:moved', onCardMoved);
       socket.off('cards:reordered', onCardsReordered);
       socket.off('card:voted', onCardVoted);
+      socket.off('cards:exported', onCardsExported);
       socket.off('session:ended', onSessionEnded);
       socket.off('session:reopened', onSessionReopened);
     };
