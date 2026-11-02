@@ -1,56 +1,32 @@
-import WorkspaceSettings from '../models/WorkspaceSettings.js';
+// Settings service returns default workspace settings in-memory without creating a MongoDB collection.
 
 class SettingsService {
   async getSettings(userId) {
-    let settings = await WorkspaceSettings.findOne({ userId });
-
-    if (!settings) {
-      settings = await WorkspaceSettings.create({
-        userId,
-        workspaceName: 'Digiflux Agile Core',
-        organizationName: 'Agile Engineering Team',
-        defaultVotingLimit: 1,
-        allowAnonymousFeedback: true,
-        timerDefaultMinutes: 10,
-        enableSlackNotifications: false,
-      });
-    }
-
-    return settings;
+    return {
+      userId,
+      workspaceName: 'RetroFlow Agile Core',
+      organizationName: 'Agile Engineering Team',
+      defaultVotingLimit: 1,
+      allowAnonymousFeedback: true,
+      timerDefaultMinutes: 10,
+      enableSlackNotifications: false,
+    };
   }
 
   async updateSettings(userId, updateData) {
-    const {
-      workspaceName,
-      organizationName,
-      defaultVotingLimit,
-      allowAnonymousFeedback,
-      timerDefaultMinutes,
-      enableSlackNotifications,
-    } = updateData;
-
-    const updated = await WorkspaceSettings.findOneAndUpdate(
-      { userId },
-      {
-        $set: {
-          ...(workspaceName !== undefined && { workspaceName: workspaceName.trim() }),
-          ...(organizationName !== undefined && { organizationName: organizationName.trim() }),
-          ...(defaultVotingLimit !== undefined && { defaultVotingLimit: Number(defaultVotingLimit) }),
-          ...(allowAnonymousFeedback !== undefined && {
-            allowAnonymousFeedback: Boolean(allowAnonymousFeedback),
-          }),
-          ...(timerDefaultMinutes !== undefined && {
-            timerDefaultMinutes: Number(timerDefaultMinutes),
-          }),
-          ...(enableSlackNotifications !== undefined && {
-            enableSlackNotifications: Boolean(enableSlackNotifications),
-          }),
-        },
-      },
-      { new: true, upsert: true, runValidators: true }
-    );
-
-    return updated;
+    return {
+      userId,
+      workspaceName: (updateData.workspaceName || 'RetroFlow Agile Core').trim(),
+      organizationName: (updateData.organizationName || 'Agile Engineering Team').trim(),
+      defaultVotingLimit:
+        updateData.defaultVotingLimit !== undefined ? Number(updateData.defaultVotingLimit) : 1,
+      allowAnonymousFeedback:
+        updateData.allowAnonymousFeedback !== undefined ? Boolean(updateData.allowAnonymousFeedback) : true,
+      timerDefaultMinutes:
+        updateData.timerDefaultMinutes !== undefined ? Number(updateData.timerDefaultMinutes) : 10,
+      enableSlackNotifications:
+        updateData.enableSlackNotifications !== undefined ? Boolean(updateData.enableSlackNotifications) : false,
+    };
   }
 }
 

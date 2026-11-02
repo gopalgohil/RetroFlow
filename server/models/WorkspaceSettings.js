@@ -1,51 +1,5 @@
-import mongoose from 'mongoose';
+// WorkspaceSettings model is disabled to prevent creating 'workspacesettings' collection in MongoDB Atlas.
+// Settings are handled cleanly in-memory by settings.service.js.
 
-const workspaceSettingsSchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-      unique: true,
-    },
-    workspaceName: {
-      type: String,
-      default: 'RetroFlow Agile Core',
-      trim: true,
-      maxlength: 100,
-    },
-    organizationName: {
-      type: String,
-      default: 'Agile Engineering Team',
-      trim: true,
-      maxlength: 100,
-    },
-    defaultVotingLimit: {
-      type: Number,
-      default: 1,
-      min: 1,
-      max: 20,
-    },
-    allowAnonymousFeedback: {
-      type: Boolean,
-      default: true,
-    },
-    timerDefaultMinutes: {
-      type: Number,
-      default: 10,
-      min: 1,
-      max: 60,
-    },
-    enableSlackNotifications: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-const WorkspaceSettings = mongoose.model('WorkspaceSettings', workspaceSettingsSchema);
-
+const WorkspaceSettings = null;
 export default WorkspaceSettings;
