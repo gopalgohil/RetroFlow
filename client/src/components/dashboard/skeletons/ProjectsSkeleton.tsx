@@ -8,52 +8,52 @@ export const ProjectCardsSkeleton: React.FC<{ count?: number }> = ({ count = 3 }
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="p-6 rounded-3xl bg-white dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 flex flex-col justify-between"
+          className="p-6 rounded-3xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs space-y-4 flex flex-col justify-between"
         >
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-[#eaf5e3] dark:bg-[#5cb028]/20 shrink-0" />
+                <div className="w-11 h-11 rounded-2xl bg-[#eaf5e3] dark:bg-[#88c958]/20 shrink-0 border border-[#88c958]/30" />
                 <div className="space-y-1.5">
-                  <div className="h-5 w-36 bg-slate-200 dark:bg-slate-800 rounded-md" />
-                  <div className="h-3.5 w-20 bg-slate-100 dark:bg-slate-800/60 rounded" />
+                  <div className="h-5 w-36 bg-slate-200 dark:bg-white/[0.08] rounded-md" />
+                  <div className="h-3.5 w-20 bg-slate-100 dark:bg-white/[0.05] rounded" />
                 </div>
               </div>
-              <div className="h-6 w-16 rounded-full bg-emerald-100/70 dark:bg-emerald-950/40" />
+              <div className="h-6 w-16 rounded-full bg-emerald-100/70 dark:bg-[#88c958]/15 border border-[#88c958]/25" />
             </div>
 
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
-              <div className="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-700 shrink-0" />
+            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] flex items-center gap-2.5">
+              <div className="w-6 h-6 rounded-lg bg-slate-200 dark:bg-white/[0.08] shrink-0" />
               <div className="space-y-1 flex-1">
-                <div className="h-2.5 w-16 bg-slate-200 dark:bg-slate-700 rounded" />
-                <div className="h-3 w-24 bg-slate-300 dark:bg-slate-600 rounded" />
+                <div className="h-2.5 w-16 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                <div className="h-3 w-24 bg-slate-300 dark:bg-white/[0.12] rounded" />
               </div>
             </div>
 
             <div className="space-y-1.5 pt-1">
-              <div className="h-3 w-full bg-slate-100 dark:bg-slate-800/60 rounded" />
-              <div className="h-3 w-4/5 bg-slate-100 dark:bg-slate-800/60 rounded" />
+              <div className="h-3 w-full bg-slate-100 dark:bg-white/[0.05] rounded" />
+              <div className="h-3 w-4/5 bg-slate-100 dark:bg-white/[0.05] rounded" />
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-2">
+            <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] space-y-2">
               <div className="flex items-center justify-between">
-                <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
-                <div className="h-3.5 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-3.5 w-20 bg-slate-200 dark:bg-white/[0.08] rounded" />
+                <div className="h-3.5 w-16 bg-slate-200 dark:bg-white/[0.08] rounded" />
               </div>
-              <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full" />
+              <div className="h-2 w-full bg-slate-200 dark:bg-white/[0.08] rounded-full" />
             </div>
 
             <div className="grid grid-cols-3 gap-2 pt-1">
               {[1, 2, 3].map((s) => (
-                <div key={s} className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-center space-y-1">
-                  <div className="h-2 w-10 bg-slate-200 dark:bg-slate-700 rounded mx-auto" />
-                  <div className="h-4 w-6 bg-slate-300 dark:bg-slate-600 rounded mx-auto" />
+                <div key={s} className="p-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06] text-center space-y-1">
+                  <div className="h-2 w-10 bg-slate-200 dark:bg-white/[0.08] rounded mx-auto" />
+                  <div className="h-4 w-6 bg-slate-300 dark:bg-white/[0.12] rounded mx-auto" />
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="h-11 w-full rounded-2xl bg-[#5cb028]/20 dark:bg-[#5cb028]/20 border border-[#5cb028]/30 mt-2" />
+          <div className="h-11 w-full rounded-2xl bg-[#5cb028]/20 dark:bg-[#88c958]/20 border border-[#5cb028]/30 dark:border-[#88c958]/30 mt-2" />
         </div>
       ))}
     </div>
@@ -97,23 +97,23 @@ export const SprintCardsSkeleton: React.FC<{ count?: number }> = ({ count = 3 })
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-xs p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+          className="rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4"
         >
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
+            <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-white/[0.08] shrink-0" />
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <div className="h-5 w-36 rounded-md bg-slate-200 dark:bg-slate-800" />
-                <div className="h-5 w-20 rounded-full bg-slate-100 dark:bg-slate-800/60" />
+                <div className="h-5 w-36 rounded-md bg-slate-200 dark:bg-white/[0.08]" />
+                <div className="h-5 w-20 rounded-full bg-slate-100 dark:bg-white/[0.05]" />
               </div>
-              <div className="h-3.5 w-72 rounded bg-slate-100 dark:bg-slate-800/60" />
+              <div className="h-3.5 w-72 rounded bg-slate-100 dark:bg-white/[0.05]" />
               <div className="flex items-center gap-2 pt-1">
-                <div className="h-4 w-36 rounded bg-slate-100 dark:bg-slate-800/60" />
-                <div className="h-4 w-28 rounded bg-slate-100 dark:bg-slate-800/60" />
+                <div className="h-4 w-36 rounded bg-slate-100 dark:bg-white/[0.05]" />
+                <div className="h-4 w-28 rounded bg-slate-100 dark:bg-white/[0.05]" />
               </div>
             </div>
           </div>
-          <div className="h-8 w-44 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0" />
+          <div className="h-8 w-44 rounded-xl bg-slate-100 dark:bg-white/[0.08] shrink-0" />
         </div>
       ))}
     </div>

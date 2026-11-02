@@ -25,16 +25,16 @@ export const RetroBoardSkeleton: React.FC = () => {
 
           <div className="space-y-1.5 animate-pulse">
             <div className="flex items-center gap-2.5">
-              <div className="h-5 w-48 sm:w-64 rounded-lg bg-slate-200 dark:bg-[#141720]" />
+              <div className="h-5 w-48 sm:w-64 rounded-lg bg-slate-200 dark:bg-white/[0.08]" />
               <div className="h-5 w-24 rounded-full bg-emerald-100 dark:bg-[#88c958]/20" />
             </div>
-            <div className="h-3 w-40 sm:w-72 rounded bg-slate-100 dark:bg-[#12151c]" />
+            <div className="h-3 w-40 sm:w-72 rounded bg-slate-100 dark:bg-white/[0.05]" />
           </div>
         </div>
 
         <div className="flex items-center gap-3 animate-pulse">
           <div className="hidden sm:block h-8 w-36 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/20 border border-[#cdeac0] dark:border-[#88c958]/30" />
-          <div className="hidden md:block h-8 w-32 rounded-xl bg-slate-100 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08]" />
+          <div className="hidden md:block h-8 w-32 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08]" />
           <div className="h-9 w-36 rounded-xl bg-[#88c958]/30" />
         </div>
       </header>
@@ -62,11 +62,11 @@ export const RetroBoardSkeleton: React.FC = () => {
                       style={{ backgroundColor: col.color }}
                       className="w-6 h-6 rounded-lg opacity-80"
                     />
-                    <div className={`h-3.5 ${col.titleWidth} rounded bg-slate-300 dark:bg-slate-700`} />
+                    <div className={`h-3.5 ${col.titleWidth} rounded bg-slate-300 dark:bg-white/[0.1]`} />
                   </div>
-                  <div className="h-4 w-5 rounded-full bg-white/80 dark:bg-[#141720]" />
+                  <div className="h-4 w-5 rounded-full bg-white/80 dark:bg-white/[0.08]" />
                 </div>
-                <div className="h-2 w-32 rounded bg-slate-200/70 dark:bg-[#141720] ml-8" />
+                <div className="h-2 w-32 rounded bg-slate-200/70 dark:bg-white/[0.08] ml-8" />
               </div>
 
               <div className="p-2.5 space-y-2 min-h-[220px]">
@@ -74,22 +74,22 @@ export const RetroBoardSkeleton: React.FC = () => {
                   <div
                     key={cIdx}
                     style={{ borderLeftColor: col.color }}
-                    className="p-2.5 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08] border-l-[3.5px] shadow-2xs space-y-2"
+                    className="p-2.5 rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.08] border-l-[3.5px] shadow-2xs space-y-2"
                   >
                     <div className="space-y-1.5">
-                      <div className="h-3.5 w-full rounded bg-slate-200 dark:bg-[#141720]" />
-                      <div className="h-3.5 w-3/4 rounded bg-slate-200 dark:bg-[#141720]" />
+                      <div className="h-3.5 w-full rounded bg-slate-200 dark:bg-white/[0.08]" />
+                      <div className="h-3.5 w-3/4 rounded bg-slate-200 dark:bg-white/[0.08]" />
                     </div>
                     <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-white/[0.05]">
-                      <div className="h-3 w-20 rounded bg-slate-200 dark:bg-[#141720]" />
-                      <div className="h-6 w-16 rounded-lg bg-slate-200 dark:bg-[#141720]" />
+                      <div className="h-3 w-20 rounded bg-slate-200 dark:bg-white/[0.08]" />
+                      <div className="h-6 w-16 rounded-lg bg-slate-200 dark:bg-white/[0.08]" />
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="p-3.5 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50/50 dark:bg-[#12151c]/60">
-                <div className="h-9 w-full rounded-xl bg-slate-200/80 dark:bg-[#141720]" />
+              <div className="p-3.5 border-t border-slate-100 dark:border-white/[0.08] bg-slate-50/50 dark:bg-white/[0.02]">
+                <div className="h-9 w-full rounded-xl bg-slate-200/80 dark:bg-white/[0.08]" />
               </div>
             </div>
           ))}

@@ -269,10 +269,10 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-xl bg-white dark:bg-[#0f172a] rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xl shadow-slate-900/15 overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200"
+        className="relative w-full max-w-xl bg-white dark:bg-[#0e1015] rounded-3xl border border-slate-200/90 dark:border-white/[0.08] shadow-2xl shadow-slate-900/15 overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 bg-gradient-to-r from-slate-50 via-emerald-50/30 to-white dark:from-slate-900 dark:via-emerald-950/20 dark:to-slate-900 border-b border-slate-200/80 dark:border-slate-800 flex items-start justify-between gap-4">
+        <div className="p-6 bg-gradient-to-r from-slate-50 via-emerald-50/30 to-white dark:from-[#0e1015] dark:via-emerald-950/20 dark:to-[#0e1015] border-b border-slate-200/80 dark:border-white/[0.08] flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white font-black text-xl flex items-center justify-center shadow-md shadow-[#5cb028]/25 shrink-0">
               {initials}

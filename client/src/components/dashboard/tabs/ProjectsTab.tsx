@@ -468,7 +468,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
             </button>
           </div>
         ) : (
-          <div className="p-12 text-center rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 space-y-3">
+          <div className="p-12 text-center rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] space-y-3">
             <div className="w-14 h-14 rounded-2xl bg-[#eaf5e3] dark:bg-[#5cb028]/15 text-[#3d8318] dark:text-[#5cb028] flex items-center justify-center font-bold mx-auto shadow-2xs">
               <Lock className="w-6 h-6 text-[#5cb028]" />
             </div>

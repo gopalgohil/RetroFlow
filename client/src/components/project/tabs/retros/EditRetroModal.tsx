@@ -33,8 +33,8 @@ export const EditRetroModal: React.FC<EditRetroModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white dark:bg-[#0f172a] rounded-2xl p-6 max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div className="bg-white dark:bg-[#0e1015] rounded-2xl p-6 max-w-md w-full border border-slate-200 dark:border-white/[0.08] shadow-2xl space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/[0.08]">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-[#eaf5e3] dark:bg-[#5cb028]/20 text-[#3d8318] dark:text-[#5cb028] flex items-center justify-center font-bold">
               <Edit3 className="w-4 h-4" />
