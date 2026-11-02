@@ -37,9 +37,9 @@ export default function AuthLayout({
         </div>
       </header>
 
-      <main className="flex-1 py-6 sm:py-10 px-4 sm:px-6 w-full flex items-center justify-center">
+      <main className="flex-1 py-8 sm:py-12 px-4 sm:px-6 w-full flex items-center justify-center">
         <div
-          className="w-full max-w-md bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] rounded-3xl p-5 sm:p-7 shadow-lg shadow-slate-200/70 dark:shadow-2xl dark:shadow-black/50"
+          className="w-full max-w-md bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] rounded-3xl px-6 sm:px-8 py-8 sm:py-11 shadow-lg shadow-slate-200/70 dark:shadow-2xl dark:shadow-black/50 min-h-[520px] sm:min-h-[560px] flex flex-col justify-center"
         >
           {children}
         </div>
