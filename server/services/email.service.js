@@ -274,16 +274,15 @@ class EmailService {
     const topicPillsHtml =
       topics && topics.length > 0
         ? topics
-            .map(
-              (t) => `
-          <span style="display: inline-block; background-color: ${t.color || '#5cb028'}18; color: ${
-                t.color || '#3d8318'
+          .map(
+            (t) => `
+          <span style="display: inline-block; background-color: ${t.color || '#5cb028'}18; color: ${t.color || '#3d8318'
               }; border: 1px solid ${t.color || '#5cb028'}35; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 6px; margin: 3px 4px 3px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; white-space: nowrap;">
             ${t.title}
           </span>
         `
-            )
-            .join('')
+          )
+          .join('')
         : '';
 
     const bodyHtml = `
@@ -309,14 +308,12 @@ class EmailService {
             <div class="session-heading" style="font-size: 17px; line-height: 23px; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">
               ${retroTitle}
             </div>
-            ${
-              description
-                ? `<div style="font-size: 13px; line-height: 19px; color: #64748b; margin: 0 0 12px 0;">${description}</div>`
-                : ''
-            }
-            ${
-              topicPillsHtml
-                ? `
+            ${description
+        ? `<div style="font-size: 13px; line-height: 19px; color: #64748b; margin: 0 0 12px 0;">${description}</div>`
+        : ''
+      }
+            ${topicPillsHtml
+        ? `
               <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
                 <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px; letter-spacing: 0.5px;">Agenda Topics:</div>
                 <div style="line-height: 26px;">
@@ -324,15 +321,14 @@ class EmailService {
                 </div>
               </div>
             `
-                : ''
-            }
+        : ''
+      }
           </td>
         </tr>
       </table>
 
-      ${
-        customMessage
-          ? `
+      ${customMessage
+        ? `
         <!-- Custom Message Box -->
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; background-color: #f8fafc; border-left: 3px solid #5cb028; border-radius: 0 8px 8px 0;">
           <tr>
@@ -345,7 +341,7 @@ class EmailService {
           </tr>
         </table>
       `
-          : ''
+        : ''
       }
 
       <!-- Direct Mobile-Friendly CTA Button (Digiflux Green) -->
@@ -403,9 +399,9 @@ class EmailService {
       </div>
 
       <!-- Project Metadata Card -->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="retro-card-padding" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
         <tr>
-          <td>
+          <td style="padding: 20px 22px;">
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 4px;">Project Details</div>
             <div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">${projectName} (${projectKey})</div>
             <div style="font-size: 12px; color: #64748b;">
@@ -415,9 +411,8 @@ class EmailService {
         </tr>
       </table>
 
-      ${
-        customMessage
-          ? `
+      ${customMessage
+        ? `
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; background-color: #f8fafc; border-left: 3px solid #5cb028; border-radius: 0 8px 8px 0;">
           <tr>
             <td style="padding: 12px 16px;">
@@ -429,7 +424,7 @@ class EmailService {
           </tr>
         </table>
       `
-          : ''
+        : ''
       }
 
       <!-- Direct Mobile-Friendly CTA Button (Digiflux Green) -->
@@ -465,6 +460,7 @@ class EmailService {
 
   getAdminNewUserPendingTemplate({ userName, userEmail, registeredAt, reviewUrl }) {
     const formattedDate = registeredAt || new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+    const cleanReviewUrl = (reviewUrl || `${(env.CLIENT_URL || 'http://localhost:3000').replace(/\/+$/, '')}/admin/users`).replace(/([^:])\/\/+/g, '$1/');
     const bodyHtml = `
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
@@ -479,9 +475,9 @@ class EmailService {
       </div>
 
       <!-- User Details Card -->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="retro-card-padding" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
         <tr>
-          <td>
+          <td style="padding: 20px 22px;">
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 6px;">Applicant Information</div>
             <div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">${userName}</div>
             <div style="font-size: 13px; color: #475569; margin-bottom: 8px;">
@@ -501,7 +497,7 @@ class EmailService {
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
               <tr>
                 <td align="center" style="background-color: #5cb028; border-radius: 10px; box-shadow: 0 4px 14px rgba(92, 176, 40, 0.3);">
-                  <a href="${reviewUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                  <a href="${cleanReviewUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
                     Review &amp; Approve User &rarr;
                   </a>
                 </td>
@@ -513,7 +509,7 @@ class EmailService {
 
       <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
         Or open the Admin Dashboard:<br />
-        <a href="${reviewUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${reviewUrl}</a>
+        <a href="${cleanReviewUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${cleanReviewUrl}</a>
       </p>
     `;
 
@@ -605,9 +601,9 @@ class EmailService {
         </p>
       </div>
 
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="retro-card-padding" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
         <tr>
-          <td>
+          <td style="padding: 20px 22px;">
             <p style="font-size: 13px; color: #334155; line-height: 1.6; margin: 0 0 10px 0;">
               Your signup request for <strong>${userEmail}</strong> was reviewed by the workspace administrator, but could not be approved at this time.
             </p>
@@ -627,43 +623,54 @@ class EmailService {
   }
 
   getUserWelcomeTemplate({ userName, userEmail, dashboardUrl }) {
-    const url = dashboardUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
+    const cleanUrl = (dashboardUrl || `${(env.CLIENT_URL || 'http://localhost:3000').replace(/\/+$/, '')}/login`).replace(/([^:])\/\/+/g, '$1/');
     const bodyHtml = `
-      <div style="text-align: center; margin-bottom: 24px;">
-        <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #eaf5e3; color: #2d6614; border: 1px solid #cdeac0; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
-          🎉 Welcome to Digiflux
+      <div style="text-align: center; margin-bottom: 28px;">
+        <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+          Account Pending Approval
         </div>
-        <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 14px 0 6px 0; letter-spacing: -0.5px;">
+        <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 16px 0 0 0; letter-spacing: -0.5px;">
           Welcome to Digiflux, ${userName}!
         </h2>
-        <p style="font-size: 13px; color: #64748b; margin: 0; line-height: 1.5;">
-          Your email address (<strong>${userEmail}</strong>) has been successfully verified and your account is ready.
-        </p>
       </div>
 
-      <!-- Account Status Box -->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="retro-card-padding" style="margin-bottom: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+      <!-- Account Status Card -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 28px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px;">
         <tr>
-          <td>
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; margin-bottom: 6px;">Registration Summary</div>
-            <div style="font-size: 14px; color: #334155; margin-bottom: 4px;">User: <strong style="color: #0f172a;">${userName}</strong></div>
-            <div style="font-size: 14px; color: #334155; margin-bottom: 6px;">Email: <strong style="color: #0f172a;">${userEmail}</strong></div>
-            <div style="font-size: 13px; color: #92400e; background-color: #fef3c7; border: 1px solid #fde68a; padding: 10px 12px; border-radius: 8px; margin-top: 10px; line-height: 1.5;">
-              ⏳ <strong>Status: Pending Workspace Review</strong><br />
-              <span style="font-size: 12px; color: #78350f;">Your account has been submitted to your workspace administrator for approval. You can sign in anytime to monitor your approval status.</span>
-            </div>
+          <td style="padding: 22px 24px;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+              <tr>
+                <td style="padding-bottom: 14px; border-bottom: 1px solid #e2e8f0;">
+                  <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.6px; display: block; margin-bottom: 5px;">Registered Email</span>
+                  <span style="font-size: 14px; font-weight: 700; color: #0f172a; word-break: break-all;">${userEmail}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-top: 14px;">
+                  <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.6px; display: block; margin-bottom: 8px;">Account Status</span>
+                  <div>
+                    <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; background-color: #fffbeb; color: #b45309; font-size: 12px; font-weight: 700; border: 1px solid #fde68a;">
+                      Pending Administrator Review
+                    </span>
+                  </div>
+                  <div style="font-size: 13px; color: #64748b; line-height: 1.5; margin-top: 10px;">
+                    Your account is awaiting approval by the workspace administrator. You will be notified via email once access is granted.
+                  </div>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
       </table>
 
       <!-- CTA Button -->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0 16px 0;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 28px 0 16px 0;">
         <tr>
           <td align="center">
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
               <tr>
                 <td align="center" style="background-color: #5cb028; border-radius: 10px; box-shadow: 0 4px 14px rgba(92, 176, 40, 0.3);">
-                  <a href="${url}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                  <a href="${cleanUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
                     Sign In to Your Workspace &rarr;
                   </a>
                 </td>
@@ -675,13 +682,13 @@ class EmailService {
 
       <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
         Or go directly to:<br />
-        <a href="${url}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${url}</a>
+        <a href="${cleanUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${cleanUrl}</a>
       </p>
     `;
 
     return this._wrapEmail({
-      title: 'Welcome to Digiflux!',
-      preheader: `Welcome to Digiflux, ${userName}! Your email has been verified.`,
+      title: 'Welcome to Digiflux - Pending Approval',
+      preheader: `Welcome to Digiflux, ${userName}! Your account is pending administrator approval.`,
       bodyHtml,
     });
   }
