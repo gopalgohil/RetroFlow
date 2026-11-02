@@ -572,11 +572,11 @@ export const SessionList: React.FC<SessionListProps> = ({
                 };
 
                 return (
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-1.5 mb-3.5">
                     <p className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">
                       AGENDA TOPICS:
                     </p>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
                       {topicsList.map((t: any, idx: number) => {
                         let dotColor = dotColorMap[t.color];
                         if (!dotColor) {
@@ -625,12 +625,12 @@ export const SessionList: React.FC<SessionListProps> = ({
                         return (
                           <span
                             key={t.topicId || idx}
-                            className="px-3 py-1.5 rounded-lg text-xs sm:text-[13px] font-medium border transition-all inline-flex items-center gap-2 bg-slate-100/80 dark:bg-white/[0.04] border-slate-200/80 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-white/[0.15]"
+                            className="shrink-0 px-2 sm:px-2.5 py-1 rounded-lg text-xs sm:text-[13px] font-medium border transition-all inline-flex items-center gap-1.5 bg-slate-100/80 dark:bg-white/[0.04] border-slate-200/80 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-white/[0.15] whitespace-nowrap"
                           >
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-                            <span className="truncate max-w-[160px] sm:max-w-[200px]">{t.title}</span>
+                            <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0 ${dotColor}`} />
+                            <span className="truncate">{t.title}</span>
                             <span
-                              className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full text-[10.5px] font-bold ${
+                              className={`inline-flex items-center justify-center min-w-[17px] h-[17px] px-1 rounded-full text-[10px] font-bold ${
                                 cardCount > 0
                                   ? 'bg-slate-200 dark:bg-white/[0.14] text-slate-900 dark:text-white'
                                   : 'bg-slate-200/70 dark:bg-white/[0.06] text-slate-500 dark:text-slate-400'
