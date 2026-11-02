@@ -558,17 +558,17 @@ export const SessionList: React.FC<SessionListProps> = ({
                         { title: 'Action Items', color: '#0EA5E9' },
                       ];
 
-                const colorMap: Record<string, { bg: string; text: string; border: string; badgeBg: string; badgeText: string }> = {
-                  '#5cb028': { bg: 'bg-[#eaf5e3] dark:bg-[#88c958]/10', text: 'text-[#3d8318] dark:text-[#88c958]', border: 'border-[#cdeac0] dark:border-[#88c958]/30', badgeBg: 'bg-[#5cb028] dark:bg-[#88c958]', badgeText: 'text-white dark:text-[#08090a]' },
-                  '#88c958': { bg: 'bg-[#eaf5e3] dark:bg-[#88c958]/10', text: 'text-[#3d8318] dark:text-[#88c958]', border: 'border-[#cdeac0] dark:border-[#88c958]/30', badgeBg: 'bg-[#5cb028] dark:bg-[#88c958]', badgeText: 'text-white dark:text-[#08090a]' },
-                  '#10B981': { bg: 'bg-emerald-50 dark:bg-emerald-500/10', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-500/30', badgeBg: 'bg-emerald-600 dark:bg-emerald-500', badgeText: 'text-white dark:text-[#08090a]' },
-                  '#F43F5E': { bg: 'bg-rose-50 dark:bg-rose-500/10', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-500/30', badgeBg: 'bg-rose-500', badgeText: 'text-white' },
-                  '#0EA5E9': { bg: 'bg-sky-50 dark:bg-sky-500/10', text: 'text-sky-700 dark:text-sky-300', border: 'border-sky-200 dark:border-sky-500/30', badgeBg: 'bg-sky-500', badgeText: 'text-white' },
-                  '#F59E0B': { bg: 'bg-amber-50 dark:bg-amber-500/10', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-500/30', badgeBg: 'bg-amber-500', badgeText: 'text-white' },
-                  '#4F46E5': { bg: 'bg-indigo-50 dark:bg-[#88c958]/10', text: 'text-indigo-700 dark:text-[#88c958]', border: 'border-indigo-200 dark:border-[#88c958]/30', badgeBg: 'bg-indigo-600 dark:bg-[#88c958]', badgeText: 'text-white dark:text-[#08090a]' },
-                  '#8B5CF6': { bg: 'bg-purple-50 dark:bg-purple-500/10', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-200 dark:border-purple-500/30', badgeBg: 'bg-purple-500', badgeText: 'text-white' },
-                  '#EC4899': { bg: 'bg-pink-50 dark:bg-pink-500/10', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-200 dark:border-pink-500/30', badgeBg: 'bg-pink-500', badgeText: 'text-white' },
-                  '#06B6D4': { bg: 'bg-teal-50 dark:bg-teal-500/10', text: 'text-teal-700 dark:text-teal-300', border: 'border-teal-200 dark:border-teal-500/30', badgeBg: 'bg-teal-600 dark:bg-teal-500', badgeText: 'text-white dark:text-[#08090a]' },
+                const dotColorMap: Record<string, string> = {
+                  '#5cb028': 'bg-[#5cb028]',
+                  '#88c958': 'bg-[#88c958]',
+                  '#10B981': 'bg-emerald-500',
+                  '#F43F5E': 'bg-rose-500',
+                  '#0EA5E9': 'bg-sky-500',
+                  '#F59E0B': 'bg-amber-500',
+                  '#4F46E5': 'bg-indigo-500',
+                  '#8B5CF6': 'bg-purple-500',
+                  '#EC4899': 'bg-pink-500',
+                  '#06B6D4': 'bg-teal-500',
                 };
 
                 return (
@@ -576,10 +576,10 @@ export const SessionList: React.FC<SessionListProps> = ({
                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">
                       AGENDA TOPICS:
                     </p>
-                    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {topicsList.map((t: any, idx: number) => {
-                        let theme = colorMap[t.color];
-                        if (!theme) {
+                        let dotColor = dotColorMap[t.color];
+                        if (!dotColor) {
                           const titleLower = (t.title || '').toLowerCase();
                           if (
                             titleLower.includes('good') ||
@@ -587,29 +587,29 @@ export const SessionList: React.FC<SessionListProps> = ({
                             titleLower.includes('win') ||
                             titleLower.includes('smile')
                           ) {
-                            theme = colorMap['#10B981'];
+                            dotColor = 'bg-emerald-500';
                           } else if (
                             titleLower.includes('improve') ||
                             titleLower.includes('bad') ||
                             titleLower.includes('frown') ||
                             titleLower.includes('problem')
                           ) {
-                            theme = colorMap['#F43F5E'];
+                            dotColor = 'bg-rose-500';
                           } else if (
                             titleLower.includes('action') ||
                             titleLower.includes('item') ||
                             titleLower.includes('task') ||
                             titleLower.includes('target')
                           ) {
-                            theme = colorMap['#0EA5E9'];
+                            dotColor = 'bg-sky-500';
                           } else {
-                            const fallbackColors = [
-                              colorMap['#10B981'],
-                              colorMap['#F43F5E'],
-                              colorMap['#0EA5E9'],
-                              colorMap['#8B5CF6'],
+                            const fallbackDots = [
+                              'bg-emerald-500',
+                              'bg-rose-500',
+                              'bg-sky-500',
+                              'bg-purple-500',
                             ];
-                            theme = fallbackColors[idx % fallbackColors.length];
+                            dotColor = fallbackDots[idx % fallbackDots.length];
                           }
                         }
 
@@ -625,11 +625,16 @@ export const SessionList: React.FC<SessionListProps> = ({
                         return (
                           <span
                             key={t.topicId || idx}
-                            className={`px-2 py-0.5 rounded-lg text-[10px] sm:text-[10.5px] 2xl:text-xs font-bold border transition-all inline-flex items-center gap-1 tracking-tight ${theme.bg} ${theme.text} ${theme.border}`}
+                            className="px-2.5 py-1 rounded-lg text-[10.5px] sm:text-[11px] font-medium border transition-all inline-flex items-center gap-1.5 bg-slate-100/80 dark:bg-white/[0.04] border-slate-200/80 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/[0.15]"
                           >
-                            <span>{t.title}</span>
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+                            <span className="truncate max-w-[140px] sm:max-w-[180px]">{t.title}</span>
                             <span
-                              className={`inline-flex items-center justify-center min-w-[15px] h-[15px] px-0.5 rounded-full text-[8.5px] sm:text-[9px] 2xl:text-[10px] font-extrabold ${theme.badgeBg} ${theme.badgeText}`}
+                              className={`inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-bold ${
+                                cardCount > 0
+                                  ? 'bg-slate-200 dark:bg-white/[0.12] text-slate-800 dark:text-white'
+                                  : 'bg-slate-200/60 dark:bg-white/[0.05] text-slate-400 dark:text-slate-500'
+                              }`}
                             >
                               {cardCount}
                             </span>
