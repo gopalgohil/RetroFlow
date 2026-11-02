@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Input, Button, Checkbox, Alert } from '@/components/ui';
+import { Input, Button, Alert } from '@/components/ui';
 import { AuthHeader, SocialButton, AuthDivider, AuthFooterLink } from '@/components/auth';
 import { loginSchema, LoginFormData } from '@/lib/validations/auth';
 import { api, ENDPOINTS } from '@/lib/api';
@@ -28,7 +28,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [formData, setFormData] = useState({
     email: initialEmail,
     password: '',
-    rememberMe: false,
   });
 
   const [isVerifiedParam, setIsVerifiedParam] = useState(initialVerified);
@@ -261,13 +260,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           autoComplete="current-password"
         />
 
-        <div className="flex items-center justify-between pt-1">
-          <Checkbox
-            label="Remember me"
-            checked={formData.rememberMe}
-            onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
-          />
-
+        <div className="flex items-center justify-end pt-1">
           <Link
             href="/forgot-password"
             onClick={() => {
