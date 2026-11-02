@@ -660,6 +660,14 @@ class ProjectService {
       const defaultManagerName = projectManager?.name || project.lead?.name || 'Project Manager';
 
       project.sprints.forEach((s) => {
+        if (s.startDate && s.endDate && s.status === 'active') {
+          const sEnd = new Date(s.endDate).getTime();
+          const sStart = new Date(s.startDate).getTime();
+          const totalDays = Math.max(1, Math.ceil((sEnd - sStart) / (1000 * 60 * 60 * 24)));
+          const rawRemaining = Math.ceil((sEnd - Date.now()) / (1000 * 60 * 60 * 24));
+          s.daysLeft = Math.max(0, Math.min(totalDays, rawRemaining));
+        }
+
         if (Array.isArray(s.items)) {
           s.items.forEach((it) => {
             if (!it.givenBy || it.givenBy === 'Admin') {

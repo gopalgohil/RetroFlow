@@ -26,12 +26,27 @@ export const OverviewKpiGrid: React.FC<OverviewKpiGridProps> = ({
   leadRoleLabel,
   leadDisplayName,
 }) => {
+  const totalSprintDays = activeSprint?.startDate && activeSprint?.endDate
+    ? Math.max(
+        1,
+        Math.ceil(
+          (new Date(activeSprint.endDate).getTime() - new Date(activeSprint.startDate).getTime()) / (1000 * 60 * 60 * 24)
+        )
+      )
+    : 30;
+
+  const rawRemaining = activeSprint?.endDate
+    ? Math.ceil((new Date(activeSprint.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : (activeSprint?.daysLeft ?? 0);
+
+  const daysRemaining = activeSprint ? Math.max(0, Math.min(totalSprintDays, rawRemaining)) : 0;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
       <MetricCard
         title="Sprint Timeline"
-        value={activeSprint ? `${activeSprint.daysLeft ?? 0} Days` : 'No Sprint'}
+        value={activeSprint ? `${daysRemaining} Days` : 'No Sprint'}
         unit={activeSprint ? 'remaining' : ''}
         icon={<Clock className="w-4 h-4" />}
         variant={activeSprint ? 'indigo' : 'default'}
