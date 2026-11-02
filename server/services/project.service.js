@@ -355,8 +355,28 @@ class ProjectService {
             actionCards.map((c) => (c.text || '').toLowerCase().trim()).filter(Boolean)
           );
 
+          const otherSprintCardIds = new Set();
+          const otherSprintTitles = new Set();
+          project.sprints.forEach((sp) => {
+            if (sp.id !== sprint.id && Array.isArray(sp.items)) {
+              sp.items.forEach((it) => {
+                if (it.cardId) otherSprintCardIds.add(it.cardId);
+                if (it.id) otherSprintCardIds.add(it.id);
+                if (it.id && it.id.startsWith('act-')) otherSprintCardIds.add(it.id.replace(/^act-/, ''));
+                if (it.title) otherSprintTitles.add(it.title.toLowerCase().trim());
+              });
+            }
+          });
+
           const prevCount = sprint.items.length;
           sprint.items = sprint.items.filter((it) => {
+            const cleanId = (it.id || '').replace(/^act-/, '');
+            const cardTitle = (it.title || '').toLowerCase().trim();
+
+            if (otherSprintCardIds.has(cleanId) || otherSprintCardIds.has(it.cardId) || otherSprintTitles.has(cardTitle)) {
+              return false;
+            }
+
             const isFromThisRetro = Boolean(
               it.sourceRetroId &&
                 (it.sourceRetroId === retroItem.id ||
@@ -366,9 +386,6 @@ class ProjectService {
             );
 
             if (!isFromThisRetro) return true;
-
-            const cleanId = (it.id || '').replace(/^act-/, '');
-            const cardTitle = (it.title || '').toLowerCase().trim();
 
             const isStillActiveActionCard =
               activeCardIds.has(cleanId) ||
@@ -382,21 +399,29 @@ class ProjectService {
             sprintItemsChanged = true;
           }
 
-          for (const card of actionCards) {
-            const cardTitle = (card.text || '').trim();
-            if (!cardTitle) continue;
+          if (sprint.status !== 'completed') {
+            for (const card of actionCards) {
+              const cardTitle = (card.text || '').trim();
+              if (!cardTitle) continue;
 
-            const cleanCardId = card.cardId;
-            const existingItem = sprint.items.find(
-              (it) =>
-                it.id === cleanCardId ||
-                it.id === `act-${cleanCardId}` ||
-                ((it.sourceRetroId === retroItem.id ||
-                  it.sourceRetroId === retroItem.shareToken ||
-                  (liveBoard._id && it.sourceRetroId === liveBoard._id.toString()) ||
-                  (liveBoard.shareToken && it.sourceRetroId === liveBoard.shareToken)) &&
-                  it.title.toLowerCase().trim() === cardTitle.toLowerCase())
-            );
+              const cleanCardId = card.cardId;
+              if (
+                otherSprintCardIds.has(cleanCardId) ||
+                otherSprintTitles.has(cardTitle.toLowerCase())
+              ) {
+                continue;
+              }
+
+              const existingItem = sprint.items.find(
+                (it) =>
+                  it.id === cleanCardId ||
+                  it.id === `act-${cleanCardId}` ||
+                  ((it.sourceRetroId === retroItem.id ||
+                    it.sourceRetroId === retroItem.shareToken ||
+                    (liveBoard._id && it.sourceRetroId === liveBoard._id.toString()) ||
+                    (liveBoard.shareToken && it.sourceRetroId === liveBoard.shareToken)) &&
+                    it.title.toLowerCase().trim() === cardTitle.toLowerCase())
+              );
 
             let assigneeName = card.assignedTo?.name || card.author || 'Assigned Member';
             let assigneeEmail = card.assignedTo?.email || card.authorEmail || undefined;
@@ -511,6 +536,7 @@ class ProjectService {
               sprintItemsChanged = true;
             }
           }
+        }
 
           if (sprintItemsChanged) {
             sprint.totalStoryPoints = sprint.items.reduce(
@@ -1783,6 +1809,27 @@ class ProjectService {
         sprint.items.push(newItem);
       }
     }
+
+    const targetItemCardIds = new Set(newItems.map((n) => n.cardId).filter(Boolean));
+    const targetItemTitles = new Set(newItems.map((n) => n.title.toLowerCase().trim()).filter(Boolean));
+
+    project.sprints.forEach((sp) => {
+      if (sp.id !== sprint.id && Array.isArray(sp.items)) {
+        const initialLen = sp.items.length;
+        sp.items = sp.items.filter((it) => {
+          if (it.cardId && targetItemCardIds.has(it.cardId)) return false;
+          if (it.title && targetItemTitles.has(it.title.toLowerCase().trim())) return false;
+          return true;
+        });
+        if (sp.items.length !== initialLen) {
+          sp.totalStoryPoints = sp.items.reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
+          sp.completedStoryPoints = sp.items
+            .filter((it) => it.status === 'done')
+            .reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
+        }
+      }
+    });
+
     sprint.totalStoryPoints = sprint.items.reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
     sprint.completedStoryPoints = sprint.items
       .filter((it) => it.status === 'done')
