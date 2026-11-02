@@ -285,10 +285,26 @@ class ProjectService {
           if (liveBoard.startDate && (!retroItem.startDate || retroItem.startDate !== new Date(liveBoard.startDate).toISOString().split('T')[0])) {
             retroItem.startDate = new Date(liveBoard.startDate).toISOString().split('T')[0];
             hasChanges = true;
+          } else if (!liveBoard.startDate && retroItem.startDate) {
+            liveBoard.startDate = new Date(retroItem.startDate);
+            await liveBoard.save();
           }
+
           if (liveBoard.endDate && (!retroItem.endDate || retroItem.endDate !== new Date(liveBoard.endDate).toISOString().split('T')[0])) {
             retroItem.endDate = new Date(liveBoard.endDate).toISOString().split('T')[0];
             hasChanges = true;
+          } else if (!liveBoard.endDate && retroItem.endDate) {
+            liveBoard.endDate = new Date(retroItem.endDate);
+            await liveBoard.save();
+          } else if (!liveBoard.endDate && !retroItem.endDate && (liveBoard.startDate || retroItem.startDate)) {
+            const sDate = new Date(liveBoard.startDate || retroItem.startDate);
+            if (!isNaN(sDate.getTime())) {
+              const endOfMonth = new Date(Date.UTC(sDate.getFullYear(), sDate.getMonth() + 1, 0)).toISOString().split('T')[0];
+              retroItem.endDate = endOfMonth;
+              liveBoard.endDate = new Date(endOfMonth);
+              await liveBoard.save();
+              hasChanges = true;
+            }
           }
 
           if (

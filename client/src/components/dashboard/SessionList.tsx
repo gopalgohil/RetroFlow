@@ -21,6 +21,7 @@ import {
   FolderKanban,
 } from 'lucide-react';
 import { RetroBoard } from '@/types/retro';
+import { formatRetroDateRange } from '@/lib/dateUtils';
 import { useDebounce } from '@/hooks/useDebounce';
 import { ShareInviteModal } from './ShareInviteModal';
 import { SessionCardsSkeleton } from './DashboardSkeletons';
@@ -527,7 +528,11 @@ export const SessionList: React.FC<SessionListProps> = ({
                 <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 dark:text-slate-500">
                   <Calendar className="w-3.5 h-3.5" />
                   <span>
-                    {formatDate(session.startDate || session.scheduledDate || session.createdAt)}
+                    {formatRetroDateRange(
+                      session.startDate,
+                      session.endDate,
+                      session.scheduledDate || session.createdAt
+                    )}
                   </span>
                 </div>
               </div>

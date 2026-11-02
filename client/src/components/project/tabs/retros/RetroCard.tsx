@@ -11,7 +11,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { ProjectRetroLink } from '@/types/project';
-import { formatDateDMY } from '@/lib/dateUtils';
+import { formatRetroDateRange } from '@/lib/dateUtils';
 
 export interface RetroCardProps {
   retro: ProjectRetroLink;
@@ -32,8 +32,11 @@ export const RetroCard: React.FC<RetroCardProps> = ({
 }) => {
   const isActive = retro.status === 'active';
 
-  const meetingDate = retro.startDate || retro.scheduledDate || (retro as any).createdAt;
-  const dateDisplay = formatDateDMY(meetingDate);
+  const dateDisplay = formatRetroDateRange(
+    retro.startDate,
+    retro.endDate,
+    retro.scheduledDate || (retro as any).createdAt
+  );
 
   return (
     <div className="group p-3.5 sm:p-4.5 2xl:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 hover:shadow-md transition-all flex flex-col justify-between space-y-4">

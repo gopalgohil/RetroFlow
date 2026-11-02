@@ -24,6 +24,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { RetroTrendItem } from './types';
+import { formatRetroDateRange } from '@/lib/dateUtils';
 
 interface AnalyticsRetroActionTableProps {
   retros: RetroTrendItem[];
@@ -186,21 +187,10 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
   };
 
   const formatDateRange = (retro: RetroTrendItem) => {
-    const startStr = retro.startDate || retro.date;
-    const endStr = retro.endDate;
-
-    if (startStr && endStr) {
-      try {
-        const d1 = new Date(startStr);
-        const d2 = new Date(endStr);
-        if (!isNaN(d1.getTime()) && !isNaN(d2.getTime())) {
-          const s1 = d1.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          const s2 = d2.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          return `${s1} – ${s2}`;
-        }
-      } catch {}
-    }
-    return formatDate(startStr || retro.date);
+    return (
+      formatRetroDateRange(retro.startDate, retro.endDate, retro.date) ||
+      formatDate(retro.startDate || retro.date)
+    );
   };
 
   return (

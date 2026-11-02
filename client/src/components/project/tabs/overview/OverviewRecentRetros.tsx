@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { ProjectRetroLink } from '@/types/project';
 import { UserAvatar } from '@/components/ui';
-import { formatDateDMY } from '@/lib/dateUtils';
+import { formatRetroDateRange } from '@/lib/dateUtils';
 
 export interface OverviewRecentRetrosProps {
   retrospectives: ProjectRetroLink[];
@@ -44,7 +44,13 @@ export const OverviewRecentRetros: React.FC<OverviewRecentRetrosProps> = ({
               <div>
                 <p className="text-xs font-bold text-slate-900 dark:text-white">{retro.title}</p>
                 <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  <span>{formatDateDMY(retro.scheduledDate)}</span>
+                  <span>
+                    {formatRetroDateRange(
+                      retro.startDate,
+                      retro.endDate,
+                      retro.scheduledDate
+                    )}
+                  </span>
                   <span>•</span>
                   <span>{retro.cardsCount} cards</span>
                   <span>•</span>
