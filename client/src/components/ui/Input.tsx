@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  labelRight?: React.ReactNode;
   error?: string;
   helperText?: string;
   startIcon?: React.ReactNode;
@@ -16,6 +17,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       label,
+      labelRight,
       error,
       helperText,
       startIcon,
@@ -35,10 +37,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className="w-full space-y-1 text-left">
-        {label && (
-          <label htmlFor={inputId} className="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
-            {label}
-          </label>
+        {(label || labelRight) && (
+          <div className="flex items-center justify-between gap-2">
+            {label ? (
+              <label htmlFor={inputId} className="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                {label}
+              </label>
+            ) : <span />}
+            {labelRight && <div>{labelRight}</div>}
+          </div>
         )}
         <div className="relative">
           {startIcon && (

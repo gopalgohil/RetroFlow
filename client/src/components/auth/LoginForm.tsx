@@ -261,6 +261,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
         <Input
           label="Password"
+          labelRight={
+            <Link
+              href="/forgot-password"
+              onClick={() => {
+                try {
+                  sessionStorage.removeItem('retroflow_forgot_password_session');
+                } catch {
+                }
+              }}
+              className="text-xs sm:text-sm font-semibold text-[#88c958] hover:text-[#96dc63] hover:underline transition-colors"
+            >
+              Forgot password?
+            </Link>
+          }
           type="password"
           name="password"
           placeholder="••••••••••••"
@@ -270,21 +284,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           required
           autoComplete="current-password"
         />
-
-        <div className="flex items-center justify-end pt-1">
-          <Link
-            href="/forgot-password"
-            onClick={() => {
-              try {
-                sessionStorage.removeItem('retroflow_forgot_password_session');
-              } catch {
-              }
-            }}
-            className="text-xs sm:text-sm font-semibold text-[#88c958] hover:text-[#96dc63] hover:underline transition-colors"
-          >
-            Forgot password?
-          </Link>
-        </div>
 
         <Button
           type="submit"
