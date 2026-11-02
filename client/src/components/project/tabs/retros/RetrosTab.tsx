@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import Link from 'next/link';
-import { Plus, Lock, ExternalLink } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Project, ProjectRetroLink } from '@/types/project';
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
-import { StatusPill, UserAvatar } from '@/components/ui';
+import { UserAvatar } from '@/components/ui';
 import { ShareInviteModal, ShareInviteSession } from '@/components/dashboard/ShareInviteModal';
 import { CustomizeRetroModal } from '@/components/dashboard/CustomizeRetroModal';
 import { ProjectApiService } from '@/services/projectApi';
@@ -37,25 +36,6 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
   const [deletingRetro, setDeletingRetro] = useState<ProjectRetroLink | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const currentMonthName = useMemo(() => new Date().toLocaleString('en-US', { month: 'long' }), []);
-
-  const activeMonthlyRetro = useMemo(() => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-    const startOfMonth = new Date(currentYear, currentMonth, 1);
-    const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
-    const todayMidnight = new Date(new Date().setHours(0, 0, 0, 0));
-
-    return (project.retrospectives || []).find((r) => {
-      const rDate = r.startDate || r.scheduledDate ? new Date(r.startDate || r.scheduledDate) : null;
-      const rEndDate = r.endDate ? new Date(r.endDate) : null;
-      const isSameMonth = rDate && rDate >= startOfMonth && rDate <= endOfMonth;
-      const isNotExpired = rEndDate ? rEndDate >= todayMidnight : true;
-      return isSameMonth && isNotExpired;
-    });
-  }, [project.retrospectives]);
 
   const ITEMS_PER_PAGE = 9;
   const [currentPage, setCurrentPage] = useState(1);
@@ -250,64 +230,16 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            Project Retrospectives
-            <StatusPill status="upcoming" label={`${paginationMeta.totalItems} Sessions`} />
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Collaborative agile feedback boards attached to <strong>{project.name}</strong> ({project.key}).
-          </p>
-        </div>
-
-        {canManageProject && (paginationMeta.totalItems > 0 || (project.retrospectives?.length || 0) > 0) && (
-          activeMonthlyRetro ? (
-            <button
-              type="button"
-              disabled
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-200/90 dark:border-white/[0.08] cursor-not-allowed select-none shadow-xs"
-              title={`${currentMonthName} retrospective is already active for ${project.name}. Company policy permits only 1 retrospective per project per month until month-end.`}
-            >
-              <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <span>Create Retrospective</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onCreateRetroClick}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all hover:scale-[1.01] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/20"
-            >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span>Create Retrospective</span>
-            </button>
-          )
-        )}
-      </div>
-
-      {activeMonthlyRetro && (
-        <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs animate-in fade-in">
-          <div className="flex items-start sm:items-center gap-2.5">
-            <span className="text-amber-600 dark:text-amber-400 font-black text-sm mt-0.5 sm:mt-0">ℹ️</span>
-            <div>
-              <p className="font-extrabold text-amber-900 dark:text-amber-200">
-                {currentMonthName} Retrospective is already active for this project
-              </p>
-              <p className="text-amber-700 dark:text-amber-400 text-[11px] mt-0.5">
-                In accordance with company policy, 1 retrospective per project per month is allowed until month-end. You can manage, export, or delete the current session to make changes.
-              </p>
-            </div>
-          </div>
-          {activeMonthlyRetro.shareToken && (
-            <Link
-              href={`/retro/${activeMonthlyRetro.shareToken}`}
-              target="_blank"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 shadow-2xs transition-colors cursor-pointer"
-            >
-              <span>Open Active Retro</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Link>
-          )}
+      {canManageProject && (paginationMeta.totalItems > 0 || (project.retrospectives?.length || 0) > 0) && (
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={onCreateRetroClick}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/20 transition-all hover:scale-[1.01] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a] dark:shadow-[#88c958]/20"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Create Retrospective</span>
+          </button>
         </div>
       )}
 
