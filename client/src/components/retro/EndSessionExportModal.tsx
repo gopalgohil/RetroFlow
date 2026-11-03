@@ -136,11 +136,23 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     const currentSprintNum = match ? parseInt(match[1] || match[0], 10) : 1;
     const nextSprintNum = currentSprintNum + 1;
 
+    // Pehle next sprint number se dhundho (non-completed)
     let targetSprint = targetProj.sprints?.find(
       (s) =>
-        s.number === nextSprintNum ||
-        s.name.toLowerCase().includes(`sprint ${nextSprintNum}`)
-    ) || targetProj.sprints?.find((s) => s.status === 'upcoming');
+        s.status !== 'completed' &&
+        (s.number === nextSprintNum ||
+          s.name.toLowerCase().includes(`sprint ${nextSprintNum}`))
+    );
+
+    // Nahi mila toh koi bhi upcoming sprint lo
+    if (!targetSprint) {
+      targetSprint = targetProj.sprints?.find((s) => s.status === 'upcoming');
+    }
+
+    // Nahi mila toh active sprint lo (completed nahi)
+    if (!targetSprint) {
+      targetSprint = targetProj.sprints?.find((s) => s.status === 'active');
+    }
 
     if (!targetSprint && sprintId) {
       const explicit = targetProj.sprints?.find((s) => s.id === sprintId);

@@ -1595,6 +1595,18 @@ class ProjectService {
 
     let sprint = project.sprints.find((s) => s.id === sprintId);
 
+    // Agar completed sprint mili toh use mat karo, next non-completed sprint lo
+    if (sprint && sprint.status === 'completed') {
+      const completedNum = sprint.number || 1;
+      sprint =
+        project.sprints.find(
+          (s) => s.status !== 'completed' && s.number === completedNum + 1
+        ) ||
+        project.sprints.find((s) => s.status === 'upcoming') ||
+        project.sprints.find((s) => s.status === 'active') ||
+        null;
+    }
+
     if (!sprint && requestedSprintNum) {
       sprint = project.sprints.find(
         (s) => s.number === requestedSprintNum || s.name.toLowerCase().startsWith(`sprint ${requestedSprintNum}`)
@@ -1628,6 +1640,11 @@ class ProjectService {
 
       if (!sprint) {
         sprint = project.sprints.find((s) => s.status === 'upcoming');
+      }
+
+      // Completed sprint me kabhi export mat karo - active lo
+      if (!sprint) {
+        sprint = project.sprints.find((s) => s.status === 'active');
       }
 
       if (!sprint) {
