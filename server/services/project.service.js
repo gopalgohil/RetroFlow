@@ -327,6 +327,15 @@ class ProjectService {
             (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
           );
 
+          // Agar ye sprint completed hai toh exported cards dobara yahan mat daalo
+          // Exported cards already next active/upcoming sprint me hain
+          const sprintIsCompleted = sprint && sprint.status === 'completed';
+          const allExported = actionCards.length > 0 && actionCards.every((c) => c.isExportedToActionItems);
+          if (sprintIsCompleted && allExported) {
+            // Skip karo - items already sahi sprint me hain, sync mat karo
+            continue;
+          }
+
           if (!sprint) {
             const cadenceDays = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
             sprint = {
