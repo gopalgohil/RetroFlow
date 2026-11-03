@@ -107,21 +107,7 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
         setExportedCount(result.exportedCount);
         setLastExportedSprint(result.targetSprint);
 
-        // Clear all caches so sprint tab shows new items instantly
         ProjectApiService.clearProjectsCache();
-        try {
-          // Clear project-specific sessionStorage cache so page re-fetches fresh data
-          const keys = Object.keys(sessionStorage);
-          keys.forEach((key) => {
-            if (
-              key.startsWith('retroflow_cached_project_') ||
-              key === 'retroflow_cached_active_project'
-            ) {
-              sessionStorage.removeItem(key);
-            }
-          });
-          localStorage.removeItem('retroflow_cached_active_project');
-        } catch {}
 
         ProjectDataService.exportActionItemsToSprint(projectId, sprintId, itemsToExport);
 

@@ -263,27 +263,6 @@ function ProjectDetailContent() {
     setActiveTab(newTab);
     const url = `/projects/${projectId}?tab=${newTab}`;
     window.history.pushState(null, '', url);
-
-    // Sprints tab open hote hi fresh data fetch karo taaki export ke baad turant items dikhein
-    if (newTab === 'sprints') {
-      ProjectApiService.clearProjectsCache();
-      try {
-        sessionStorage.removeItem(`retroflow_cached_project_${projectId}`);
-        localStorage.removeItem('retroflow_cached_active_project');
-      } catch {}
-      ProjectApiService.getProjectById(projectId, true)
-        .then((p) => {
-          if (p) {
-            setProject(p);
-            try {
-              sessionStorage.setItem(`retroflow_cached_project_${p.id}`, JSON.stringify(p));
-              localStorage.setItem('retroflow_cached_active_project', JSON.stringify(p));
-            } catch {}
-          }
-        })
-        .catch(() => {});
-    }
-
     setTimeout(() => {
       setIsTabTransitioning(false);
     }, 380);
