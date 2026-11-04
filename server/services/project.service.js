@@ -1143,7 +1143,7 @@ class ProjectService {
 
     item.updatedAt = new Date();
 
-    if (item.sourceRetroId && status) {
+    if (item.sourceRetroId && (status || dueDate !== undefined)) {
       try {
         const retroQuery = mongoose.isValidObjectId(item.sourceRetroId)
           ? { _id: item.sourceRetroId }
@@ -1157,7 +1157,8 @@ class ProjectService {
               (c.text && c.text.toLowerCase().trim() === normTitle)
           );
           if (matchedCard) {
-            matchedCard.status = status;
+            if (status) matchedCard.status = status;
+            if (dueDate !== undefined) matchedCard.dueDate = dueDate;
             matchedCard.updatedAt = new Date();
             await retro.save();
           }
