@@ -96,18 +96,36 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
     (assigneeName && givenByName && givenByName !== 'Unassigned' && givenByName !== 'Project Manager' && assigneeName.toLowerCase().trim() === givenByName.toLowerCase().trim())
   );
 
+  const assignedDateFull = React.useMemo(() => {
+    const rawDate = item.assignedAt || item.createdAt;
+    if (!rawDate) return '';
+    try {
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return '';
+    }
+  }, [item.assignedAt, item.createdAt]);
+
+  const assignmentDateSuffix = assignedDateFull ? ` (Assigned on ${assignedDateFull})` : '';
+
   const assigneeTooltip = assigneeEmail
-    ? `Assigned to: ${assigneeName} (${assigneeEmail})`
-    : `Assigned to: ${assigneeName}`;
+    ? `Assigned to: ${assigneeName} (${assigneeEmail})${assignmentDateSuffix}`
+    : `Assigned to: ${assigneeName}${assignmentDateSuffix}`;
 
   const givenByTooltip = givenByName
     ? managerEmail
-      ? `Assigned by: ${givenByName} (${managerEmail})`
-      : `Assigned by: ${givenByName}`
+      ? `Assigned by: ${givenByName} (${managerEmail})${assignmentDateSuffix}`
+      : `Assigned by: ${givenByName}${assignmentDateSuffix}`
     : '';
 
   const fullTooltip = isSelfAssigned
-    ? `Self-assigned by ${assigneeName}${assigneeEmail ? ` (${assigneeEmail})` : ''}`
+    ? `Self-assigned by ${assigneeName}${assigneeEmail ? ` (${assigneeEmail})` : ''}${assignmentDateSuffix}`
     : [givenByTooltip, assigneeTooltip].filter(Boolean).join('\n');
 
   const urgency = React.useMemo(() => {
@@ -154,37 +172,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
       className: 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.04] border-slate-200/70 dark:border-white/[0.06]',
     };
   }, [item.dueDate, isDone]);
-
-  const assignedDateFormatted = React.useMemo(() => {
-    const rawDate = item.assignedAt || item.createdAt;
-    if (!rawDate) return null;
-    try {
-      const d = new Date(rawDate);
-      if (isNaN(d.getTime())) return null;
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return null;
-    }
-  }, [item.assignedAt, item.createdAt]);
-
-  const assignedDateFull = React.useMemo(() => {
-    const rawDate = item.assignedAt || item.createdAt;
-    if (!rawDate) return '';
-    try {
-      const d = new Date(rawDate);
-      if (isNaN(d.getTime())) return '';
-      return d.toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    } catch {
-      return '';
-    }
-  }, [item.assignedAt, item.createdAt]);
 
   const priorityMeta = PRIORITY_CONFIG[item.priority] || PRIORITY_CONFIG.medium;
 
@@ -285,19 +272,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
                     <span>Assigned to: <strong className="font-extrabold">{assigneeName}</strong></span>
                   </span>
                 )}
-              </>
-            )}
-
-            {assignedDateFormatted && (
-              <>
-                <span className="text-slate-300 dark:text-white/20">•</span>
-                <span
-                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]"
-                  title={assignedDateFull ? `Assigned on ${assignedDateFull}` : undefined}
-                >
-                  <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-400 shrink-0" />
-                  <span>Assigned: {assignedDateFormatted}</span>
-                </span>
               </>
             )}
 

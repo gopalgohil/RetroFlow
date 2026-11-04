@@ -74,20 +74,43 @@ export const SprintCard: React.FC<SprintCardProps> = ({
     ((sprint.completedStoryPoints || 0) / (sprint.totalStoryPoints || 1)) * 100
   );
 
-  const totalSprintDays = sprint.startDate && sprint.endDate
+  const now = new Date();
+  const sprintStart = sprint.startDate ? new Date(sprint.startDate) : null;
+  const sprintEnd = sprint.endDate ? new Date(sprint.endDate) : null;
+
+  const totalSprintDays = sprintStart && sprintEnd
     ? Math.max(
         1,
         Math.ceil(
-          (new Date(sprint.endDate).getTime() - new Date(sprint.startDate).getTime()) / (1000 * 60 * 60 * 24)
+          (sprintEnd.getTime() - sprintStart.getTime()) / (1000 * 60 * 60 * 24)
         )
       )
-    : 30;
+    : 14;
 
-  const rawRemaining = Math.ceil(
-    (new Date(sprint.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const daysUntilStart = sprintStart
+    ? Math.ceil((sprintStart.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
 
-  const daysRemaining = Math.max(0, Math.min(totalSprintDays, rawRemaining));
+  const rawRemaining = sprintEnd
+    ? Math.ceil((sprintEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  const sprintTimeLabel = React.useMemo(() => {
+    if (sprint.status === 'completed') return null;
+    if (sprint.status === 'upcoming') {
+      return daysUntilStart > 0
+        ? `Starts in ${daysUntilStart}d (${totalSprintDays}d duration)`
+        : `${totalSprintDays}d duration`;
+    }
+    // Active sprint
+    if (daysUntilStart > 0) {
+      return `Starts in ${daysUntilStart}d (${totalSprintDays}d duration)`;
+    }
+    if (rawRemaining <= 0) {
+      return 'Ends today';
+    }
+    return `${rawRemaining} days remaining`;
+  }, [sprint.status, daysUntilStart, rawRemaining, totalSprintDays]);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -157,10 +180,10 @@ export const SprintCard: React.FC<SprintCardProps> = ({
                 )}
               </div>
 
-              {sprint.status === 'active' && (
+              {sprintTimeLabel && (
                 <span className="flex items-center gap-1 text-[#88c958] font-medium">
                   <Clock className="w-3.5 h-3.5" />
-                  {daysRemaining} days remaining
+                  {sprintTimeLabel}
                 </span>
               )}
             </div>

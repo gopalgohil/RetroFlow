@@ -558,7 +558,7 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                                             ) : assignedToName ? (
                                               <span
                                                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/[0.08] shadow-2xs"
-                                                title={`Assigned to: ${assignedToName}${givenByName ? `\nGiven by: ${givenByName}` : ''}`}
+                                                title={`Assigned to: ${assignedToName}${givenByName ? `\nGiven by: ${givenByName}` : ''}${item.assignedDate ? `\nAssigned on: ${formatDate(item.assignedDate)}` : ''}`}
                                               >
                                                 <User className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                                                 <span>
@@ -574,16 +574,6 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                                               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-400 italic bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06]">
                                                 <User className="w-3.5 h-3.5 shrink-0 opacity-40" />
                                                 <span>Unassigned</span>
-                                              </span>
-                                            )}
-
-                                            {item.assignedDate && (
-                                              <span
-                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100/70 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06]"
-                                                title={`Assigned on ${formatDate(item.assignedDate)}`}
-                                              >
-                                                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                                <span>Assigned: {formatDate(item.assignedDate)}</span>
                                               </span>
                                             )}
 
