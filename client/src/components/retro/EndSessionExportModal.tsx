@@ -822,6 +822,12 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                     <span>Sprint #{sp.number || 1}</span>
                                   )}
                                   {(() => {
+                                    if (sp.status === 'upcoming') {
+                                      const sStart = sp.startDate ? new Date(sp.startDate).getTime() : 0;
+                                      const sEnd = sp.endDate ? new Date(sp.endDate).getTime() : 0;
+                                      const duration = sStart && sEnd ? Math.max(1, Math.round((sEnd - sStart) / 86400000) + 1) : null;
+                                      return duration ? <span>• {duration}d duration</span> : null;
+                                    }
                                     const remainingDays = sp.endDate
                                       ? Math.max(0, Math.ceil((new Date(sp.endDate).getTime() - Date.now()) / 86400000))
                                       : sp.daysLeft;
