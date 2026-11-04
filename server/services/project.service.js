@@ -355,27 +355,11 @@ class ProjectService {
             actionCards.map((c) => (c.text || '').toLowerCase().trim()).filter(Boolean)
           );
 
-          const otherSprintCardIds = new Set();
-          const otherSprintTitles = new Set();
-          project.sprints.forEach((sp) => {
-            if (sp.id !== sprint.id && Array.isArray(sp.items)) {
-              sp.items.forEach((it) => {
-                if (it.cardId) otherSprintCardIds.add(it.cardId);
-                if (it.id) otherSprintCardIds.add(it.id);
-                if (it.id && it.id.startsWith('act-')) otherSprintCardIds.add(it.id.replace(/^act-/, ''));
-                if (it.title) otherSprintTitles.add(it.title.toLowerCase().trim());
-              });
-            }
-          });
-
+          // Clean up cards from retro sprint if they were deleted from the retro board
           const prevCount = sprint.items.length;
           sprint.items = sprint.items.filter((it) => {
             const cleanId = (it.id || '').replace(/^act-/, '');
             const cardTitle = (it.title || '').toLowerCase().trim();
-
-            if (otherSprintCardIds.has(cleanId) || otherSprintCardIds.has(it.cardId) || otherSprintTitles.has(cardTitle)) {
-              return false;
-            }
 
             const isFromThisRetro = Boolean(
               it.sourceRetroId &&
@@ -399,29 +383,68 @@ class ProjectService {
             sprintItemsChanged = true;
           }
 
-          if (sprint.status !== 'completed') {
-            for (const card of actionCards) {
-              const cardTitle = (card.text || '').trim();
-              if (!cardTitle) continue;
+          // Process action cards from retro: route each card to its target sprint
+          for (const card of actionCards) {
+            const cardTitle = (card.text || '').trim();
+            if (!cardTitle) continue;
 
-              const cleanCardId = card.cardId;
-              if (
-                otherSprintCardIds.has(cleanCardId) ||
-                otherSprintTitles.has(cardTitle.toLowerCase())
-              ) {
-                continue;
-              }
+            const cleanCardId = card.cardId;
 
-              const existingItem = sprint.items.find(
-                (it) =>
-                  it.id === cleanCardId ||
-                  it.id === `act-${cleanCardId}` ||
-                  ((it.sourceRetroId === retroItem.id ||
-                    it.sourceRetroId === retroItem.shareToken ||
-                    (liveBoard._id && it.sourceRetroId === liveBoard._id.toString()) ||
-                    (liveBoard.shareToken && it.sourceRetroId === liveBoard.shareToken)) &&
-                    it.title.toLowerCase().trim() === cardTitle.toLowerCase())
+            // Determine target sprint for this card
+            let targetSprint = null;
+            if (card.assignedSprintName) {
+              targetSprint = project.sprints.find(
+                (s) => s.name?.toLowerCase().trim() === card.assignedSprintName.toLowerCase().trim()
               );
+            }
+            if (!targetSprint && card.assignedSprintId) {
+              targetSprint = project.sprints.find((s) => s.id === card.assignedSprintId);
+            }
+            if (!targetSprint) {
+              if (sprint.status !== 'completed') {
+                targetSprint = sprint;
+              } else {
+                targetSprint =
+                  project.sprints.find((s) => s.status === 'active' && s.id !== sprint.id) ||
+                  project.sprints.find((s) => s.status === 'upcoming') ||
+                  project.sprints.find((s) => s.number === sprintNum + 1);
+              }
+            }
+
+            if (!targetSprint) continue;
+            targetSprint.items = targetSprint.items || [];
+
+            // Prevent same card appearing in other sprints
+            project.sprints.forEach((sp) => {
+              if (sp.id !== targetSprint.id && Array.isArray(sp.items)) {
+                const initLen = sp.items.length;
+                sp.items = sp.items.filter((it) => {
+                  const itCleanId = (it.id || '').replace(/^act-/, '');
+                  if (cleanCardId && (itCleanId === cleanCardId || it.cardId === cleanCardId)) return false;
+                  if (it.title && it.title.toLowerCase().trim() === cardTitle.toLowerCase()) return false;
+                  return true;
+                });
+                if (sp.items.length !== initLen) {
+                  sp.totalStoryPoints = sp.items.reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
+                  sp.completedStoryPoints = sp.items
+                    .filter((it) => it.status === 'done')
+                    .reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
+                  hasChanges = true;
+                }
+              }
+            });
+
+            const existingItem = targetSprint.items.find(
+              (it) =>
+                it.id === cleanCardId ||
+                it.id === `act-${cleanCardId}` ||
+                it.cardId === cleanCardId ||
+                ((it.sourceRetroId === retroItem.id ||
+                  it.sourceRetroId === retroItem.shareToken ||
+                  (liveBoard._id && it.sourceRetroId === liveBoard._id.toString()) ||
+                  (liveBoard.shareToken && it.sourceRetroId === liveBoard.shareToken)) &&
+                  it.title.toLowerCase().trim() === cardTitle.toLowerCase())
+            );
 
             let assigneeName = card.assignedTo?.name || card.author || 'Assigned Member';
             let assigneeEmail = card.assignedTo?.email || card.authorEmail || undefined;
@@ -486,6 +509,7 @@ class ProjectService {
             };
 
             if (existingItem) {
+              let changed = false;
               if (assigneeName && (!existingItem.assignee?.name || existingItem.assignee.name !== assigneeName || existingItem.assignee.name.includes('@') || existingItem.assignee.avatar?.length < 2)) {
                 existingItem.assignee = {
                   ...(existingItem.assignee || {}),
@@ -493,35 +517,38 @@ class ProjectService {
                   email: assigneeEmail || existingItem.assignee?.email,
                   avatar: getInitials(assigneeName),
                 };
-                sprintItemsChanged = true;
+                changed = true;
               }
               if (!existingItem.givenBy || existingItem.givenBy === 'Admin') {
                 existingItem.givenBy = managerName;
                 existingItem.managerName = managerName;
-                sprintItemsChanged = true;
+                changed = true;
               }
               if (card.status && existingItem.status !== card.status) {
                 existingItem.status = card.status;
-                sprintItemsChanged = true;
+                changed = true;
               }
               if (card.dueDate && existingItem.dueDate !== card.dueDate) {
                 existingItem.dueDate = card.dueDate;
-                sprintItemsChanged = true;
+                changed = true;
               }
               if (card.priority && existingItem.priority !== card.priority) {
                 existingItem.priority = card.priority;
-                sprintItemsChanged = true;
+                changed = true;
               }
-            } else {
-
-              sprint.items.push({
+              if (changed) {
+                hasChanges = true;
+              }
+            } else if (card.isExportedToActionItems || card.assignedSprintName || (card.assignedTo && card.assignedTo.name)) {
+              targetSprint.items.push({
                 id: `act-${cleanCardId || crypto.randomUUID().slice(0, 8)}`,
+                cardId: cleanCardId,
                 title: cardTitle,
                 description: '',
                 type: 'action_item',
                 priority: card.priority || 'high',
                 status: card.status || 'todo',
-                dueDate: card.dueDate || sprint.endDate || null,
+                dueDate: card.dueDate || targetSprint.endDate || null,
                 storyPoints: 3,
                 assignee: {
                   name: assigneeName,
@@ -529,14 +556,22 @@ class ProjectService {
                   avatar: getInitials(assigneeName),
                 },
                 givenBy: managerName,
+                managerName: managerName,
                 sourceRetroId: retroItem.id || retroItem.shareToken || liveBoard._id?.toString(),
                 sourceRetroTitle: retroItem.title || liveBoard.title,
                 createdAt: card.createdAt || new Date(),
               });
-              sprintItemsChanged = true;
+              targetSprint.totalStoryPoints = targetSprint.items.reduce(
+                (acc, it) => acc + (Number(it.storyPoints) || 0),
+                0
+              );
+              targetSprint.completedStoryPoints = targetSprint.items
+                .filter((it) => it.status === 'done')
+                .reduce((acc, it) => acc + (Number(it.storyPoints) || 0), 0);
+              retroItem.actionItemsExported = true;
+              hasChanges = true;
             }
           }
-        }
 
           if (sprintItemsChanged) {
             sprint.totalStoryPoints = sprint.items.reduce(

@@ -117,6 +117,7 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
           sprintName: result.targetSprint?.name || 'Sprint Backlog',
         };
       } catch (err) {
+        console.error('[useRetroProjectIntegration] Export API error:', err);
         const fallback = ProjectDataService.exportActionItemsToSprint(
           projectId,
           sprintId,
