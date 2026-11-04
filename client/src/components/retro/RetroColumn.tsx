@@ -13,6 +13,7 @@ import {
   Plus,
   Sparkles,
   Lock,
+  Check,
 } from 'lucide-react';
 import { RetroTopic, StickyCard } from '@/types/retro';
 import { RetroCardItem } from './RetroCardItem';
@@ -88,6 +89,12 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
     (topic.title || '').toLowerCase().includes('action') ||
     topic.icon === 'target' ||
     (topic.topicId && topic.topicId.toLowerCase().includes('action'));
+
+  const unexportedActionItemsCount = isActionColumn
+    ? cards.filter(
+        (c) => !(c.assignedTo?.name || c.isExportedToActionItems || (c as any)?.assignedSprintName)
+      ).length
+    : 0;
 
   const canAddCard = !isActionColumn || Boolean(canManageActionItems);
 
@@ -245,7 +252,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   };
 
   const handleColumnDragOver = (e: React.DragEvent) => {
-    if (!canMoveCrossColumn) return;
+    if (isClosed || !canMoveCrossColumn) return;
     if (isActionColumn && !canManageActionItems) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -261,7 +268,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
     e.preventDefault();
     setIsColumnDragOver(false);
 
-    if (!canMoveCrossColumn) {
+    if (isClosed || !canMoveCrossColumn) {
       handleCardDragEnd();
       return;
     }
@@ -316,16 +323,29 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            {onExportTopic && cards.length > 0 && topic.title.toLowerCase().includes('action') && (
-              <button
-                type="button"
-                onClick={onExportTopic}
-                title="Select action items and push directly to sprint backlog"
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-2xs transition-all hover:scale-[1.03] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
-              >
-                <Sparkles className="w-3 h-3 text-white dark:text-[#08090a]" />
-                <span>To Sprint</span>
-              </button>
+            {onExportTopic && cards.length > 0 && isActionColumn && (
+              unexportedActionItemsCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={onExportTopic}
+                  title={`Select from ${unexportedActionItemsCount} remaining action item(s) and push directly to sprint backlog`}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-2xs transition-all hover:scale-[1.03] active:scale-95 cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
+                >
+                  <Sparkles className="w-3 h-3 text-white dark:text-[#08090a]" />
+                  <span>To Sprint</span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-white/25 text-white dark:bg-black/20 dark:text-[#08090a]">
+                    {unexportedActionItemsCount}
+                  </span>
+                </button>
+              ) : (
+                <div
+                  title="All action items have been exported to sprints"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 text-xs font-bold select-none cursor-default"
+                >
+                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
+                  <span>All Exported</span>
+                </div>
+              )
             )}
             <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-full bg-white/90 dark:bg-[#141720] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/[0.08] shrink-0">
               {cards.length}
@@ -364,11 +384,12 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             canMoveCrossColumn={canMoveCrossColumn}
             isDragTarget={dragTargetId === card.id}
             dropPosition={dragTargetId === card.id ? dropPosition : null}
+            isClosed={isClosed}
             onVote={onVoteCard}
             onUpdate={onUpdateCard}
             onDelete={onDeleteCard}
             onMoveToActions={
-              !isActionColumn && canManageActionItems && actionTopicId && onMoveCard
+              !isClosed && !isActionColumn && canManageActionItems && actionTopicId && onMoveCard
                 ? () => onMoveCard(card.id, actionTopicId)
                 : undefined
             }

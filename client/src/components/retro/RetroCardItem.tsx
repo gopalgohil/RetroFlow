@@ -17,6 +17,7 @@ export interface RetroCardItemProps {
   isFirstCard?: boolean;
   isDragTarget?: boolean;
   dropPosition?: 'above' | 'below' | null;
+  isClosed?: boolean;
   onVote: (cardId: string) => void;
   onUpdate: (cardId: string, text: string) => void;
   onDelete: (cardId: string) => void;
@@ -41,6 +42,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   isFirstCard = false,
   isDragTarget = false,
   dropPosition = null,
+  isClosed = false,
   onVote,
   onUpdate,
   onDelete,
@@ -57,6 +59,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const handleStartEdit = () => {
+    if (isClosed) return;
     setEditText(card.text);
     setIsEditing(true);
   };
@@ -67,6 +70,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   };
 
   const handleSaveEdit = () => {
+    if (isClosed) return;
     const trimmed = editText.trim();
     if (!trimmed) return;
     onUpdate(card.id, trimmed);
@@ -79,10 +83,10 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
     card.isExportedToActionItems ||
     (card as any).assignedSprintName
   );
-  const effectiveCanEdit = canEdit && !isCardAssigned;
-  const effectiveCanDelete = canDelete && !isCardAssigned;
-  const effectiveMoveToActions = isCardAssigned ? undefined : onMoveToActions;
-  const effectiveCanMoveCrossColumn = Boolean(canMoveCrossColumn && !isCardAssigned);
+  const effectiveCanEdit = !isClosed && canEdit && !isCardAssigned;
+  const effectiveCanDelete = !isClosed && canDelete && !isCardAssigned;
+  const effectiveMoveToActions = isClosed || isCardAssigned ? undefined : onMoveToActions;
+  const effectiveCanMoveCrossColumn = Boolean(!isClosed && canMoveCrossColumn && !isCardAssigned);
 
   return (
     <div
@@ -180,9 +184,12 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             <div className="relative group/vote-popover">
               <button
                 type="button"
-                onClick={() => onVote(card.id)}
+                onClick={() => !isClosed && onVote(card.id)}
+                disabled={isClosed}
                 title={
-                  card.hasVoted
+                  isClosed
+                    ? `Session is closed (${card.votes || 0} votes)`
+                    : card.hasVoted
                     ? 'You voted for this thought. Click to unlike'
                     : 'Click to vote for this thought (1 vote per card)'
                 }
@@ -191,7 +198,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                   backgroundColor: card.hasVoted ? topicColor : `${topicColor}15`,
                   borderColor: card.hasVoted ? topicColor : `${topicColor}30`,
                 }}
-                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all shadow-2xs ${
+                  isClosed
+                    ? 'cursor-default opacity-85'
+                    : 'hover:scale-105 active:scale-95 cursor-pointer'
+                }`}
               >
                 <ThumbsUp className={`w-3 h-3 ${card.hasVoted ? 'fill-current' : ''}`} />
                 <span>{card.votes || 0}</span>
