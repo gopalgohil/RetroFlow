@@ -963,21 +963,28 @@ class ProjectService {
     if (!project) throw new Error('Project not found');
     this.assertCanManage(project, currentUser);
 
-    let found = false;
-    project.sprints = project.sprints.map((s) => {
+    const targetSprint = project.sprints.find((s) => s.id === sprintId);
+    if (!targetSprint) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
+
+    const targetNum = targetSprint.number || 1;
+
+    project.sprints.forEach((s) => {
       if (s.id === sprintId) {
-        found = true;
         s.status = 'active';
         s.daysLeft = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
       } else if (s.status === 'active') {
-        s.status = 'completed';
-        s.daysLeft = 0;
+        // If the other active sprint is a FUTURE sprint (e.g. Sprint 3 when reopening Sprint 2),
+        // mark it 'upcoming', NOT 'completed'!
+        if ((s.number || 0) > targetNum) {
+          s.status = 'upcoming';
+        } else {
+          s.status = 'completed';
+          s.daysLeft = 0;
+        }
       }
-      return s;
     });
 
-    if (!found) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
-
+    project.markModified('sprints');
     await project.save();
     return project;
   }
@@ -988,13 +995,12 @@ class ProjectService {
     this.assertCanManage(project, currentUser);
 
     let completedSprint = null;
-    project.sprints = project.sprints.map((s) => {
+    project.sprints.forEach((s) => {
       if (s.id === sprintId) {
         s.status = 'completed';
         s.daysLeft = 0;
         completedSprint = s;
       }
-      return s;
     });
 
     if (!completedSprint) throw new Error(`Sprint with ID ${sprintId} not found in this project`);
@@ -1010,15 +1016,17 @@ class ProjectService {
     const refDate = completedSprint.endDate ? new Date(completedSprint.endDate) : new Date();
     const nextDates = getNextMonthlySprintDates(refDate);
 
-    let nextSprint = project.sprints.find((s) => s.status === 'upcoming');
+    const nextNum = (completedSprint.number || 0) + 1;
+    // Check if next sprint already exists (either by number nextNum or status upcoming)
+    let nextSprint = project.sprints.find((s) => s.number === nextNum && s.id !== completedSprint.id) ||
+                     project.sprints.find((s) => s.status === 'upcoming');
+
     if (nextSprint) {
       nextSprint.status = 'active';
       nextSprint.startDate = nextSprint.startDate || nextDates.startDate;
       nextSprint.endDate = nextSprint.endDate || nextDates.endDate;
       nextSprint.daysLeft = nextDates.daysLeft;
     } else {
-      const maxNum = project.sprints.reduce((max, s) => Math.max(max, s.number || 0), 0);
-      const nextNum = (completedSprint.number || maxNum) + 1;
       nextSprint = {
         id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
         name: `Sprint ${nextNum} - Execution & Backlog`,
@@ -1047,7 +1055,15 @@ class ProjectService {
           dueDate: targetSprintDoc.endDate || itemObj.dueDate,
         };
       });
-      targetSprintDoc.items = [...(targetSprintDoc.items || []), ...rolledOver];
+
+      // Avoid duplicating items already present in target sprint
+      const existingIds = new Set((targetSprintDoc.items || []).map((it) => it.id));
+      const existingTitles = new Set((targetSprintDoc.items || []).map((it) => (it.title || '').toLowerCase().trim()));
+      const uniqueRollover = rolledOver.filter(
+        (it) => !existingIds.has(it.id) && !existingTitles.has((it.title || '').toLowerCase().trim())
+      );
+
+      targetSprintDoc.items = [...(targetSprintDoc.items || []), ...uniqueRollover];
 
       // Sync retro board cards to point to the new rolled-over sprint
       for (const item of rolledOver) {
@@ -1078,11 +1094,26 @@ class ProjectService {
     targetSprintDoc.totalStoryPoints = (targetSprintDoc.items || []).reduce((acc, i) => acc + (Number(i.storyPoints) || 0), 0);
     targetSprintDoc.completedStoryPoints = (targetSprintDoc.items || []).filter((i) => i.status === 'done').reduce((acc, i) => acc + (Number(i.storyPoints) || 0), 0);
 
+    // Deduplicate any accidental duplicate sprints with identical sprint numbers
+    const seenNumbers = new Set();
+    project.sprints = project.sprints.filter((s) => {
+      if (!s.number) return true;
+      if (seenNumbers.has(s.number)) {
+        const primary = project.sprints.find((p) => p.number === s.number && p.id !== s.id);
+        if (primary && Array.isArray(s.items) && s.items.length > 0) {
+          const primaryIds = new Set(primary.items.map((i) => i.id));
+          s.items.forEach((it) => {
+            if (!primaryIds.has(it.id)) primary.items.push(it);
+          });
+        }
+        return false;
+      }
+      seenNumbers.add(s.number);
+      return true;
+    });
+
     project.activeSprint = targetSprintDoc;
     project.markModified('sprints');
-
-    await project.save();
-    return project;
 
     await project.save();
     return project;

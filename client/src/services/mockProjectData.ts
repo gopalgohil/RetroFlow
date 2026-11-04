@@ -116,12 +116,18 @@ export class ProjectDataService {
     if (projIndex === -1) return null;
 
     const project = projects[projIndex];
+    const targetSprint = project.sprints.find((s) => s.id === sprintId);
+    const targetNum = targetSprint?.number || 1;
+
     project.sprints = project.sprints.map((s) => {
       if (s.id === sprintId) {
-        return { ...s, status: 'active', daysLeft: 14 };
+        return { ...s, status: 'active' as const, daysLeft: 14 };
       }
       if (s.status === 'active') {
-        return { ...s, status: 'completed', daysLeft: 0 };
+        if ((s.number || 0) > targetNum) {
+          return { ...s, status: 'upcoming' as const };
+        }
+        return { ...s, status: 'completed' as const, daysLeft: 0 };
       }
       return s;
     });
@@ -142,7 +148,6 @@ export class ProjectDataService {
 
     project.sprints = project.sprints.map((s) => {
       if (s.id === sprintId) {
-        const incomplete = (s.items || []).filter((i) => i.status !== 'done');
         const done = (s.items || []).filter((i) => i.status === 'done');
         completedSprint = { ...s };
         const donePoints = done.reduce((acc, i) => acc + (typeof i.storyPoints === 'number' ? i.storyPoints : 3), 0);
@@ -173,15 +178,16 @@ export class ProjectDataService {
     const nextStartDate = nextStart.toISOString().split('T')[0];
     const nextEndDate = nextEnd.toISOString().split('T')[0];
 
-    let nextSprint = project.sprints.find((s) => s.status === 'upcoming');
+    const nextNum = ((completedSprint as Sprint).number || 0) + 1;
+    let nextSprint = project.sprints.find((s) => s.number === nextNum && s.id !== (completedSprint as Sprint).id) ||
+                     project.sprints.find((s) => s.status === 'upcoming');
+
     if (nextSprint) {
       nextSprint.status = 'active';
       nextSprint.startDate = nextSprint.startDate || nextStartDate;
       nextSprint.endDate = nextSprint.endDate || nextEndDate;
       nextSprint.daysLeft = daysLeft;
     } else {
-      const maxNum = project.sprints.reduce((max, s) => Math.max(max, s.number || 0), 0);
-      const nextNum = ((completedSprint as Sprint).number || maxNum) + 1;
       nextSprint = {
         id: `sprint-${Date.now()}`,
         projectId: project.id,
@@ -201,11 +207,14 @@ export class ProjectDataService {
     }
 
     if (incompleteItems.length > 0) {
-      const rolledOver = incompleteItems.map((item) => ({
-        ...item,
-        sprintId: nextSprint!.id,
-        dueDate: nextSprint!.endDate || item.dueDate,
-      }));
+      const existingIds = new Set((nextSprint.items || []).map((it) => it.id));
+      const rolledOver = incompleteItems
+        .filter((item) => !existingIds.has(item.id))
+        .map((item) => ({
+          ...item,
+          sprintId: nextSprint!.id,
+          dueDate: nextSprint!.endDate || item.dueDate,
+        }));
       nextSprint.items = [...(nextSprint.items || []), ...rolledOver];
     }
 
@@ -216,6 +225,15 @@ export class ProjectDataService {
     nextSprint.completedStoryPoints = (nextSprint.items || [])
       .filter((i) => i.status === 'done')
       .reduce((acc, i) => acc + (typeof i.storyPoints === 'number' ? i.storyPoints : 3), 0);
+
+    // Deduplicate any sprints with identical numbers
+    const seenNums = new Set<number>();
+    project.sprints = project.sprints.filter((s) => {
+      if (!s.number) return true;
+      if (seenNums.has(s.number)) return false;
+      seenNums.add(s.number);
+      return true;
+    });
 
     project.activeSprint = nextSprint;
     project.updatedAt = new Date().toISOString().split('T')[0];
