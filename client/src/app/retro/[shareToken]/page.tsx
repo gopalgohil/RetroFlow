@@ -12,6 +12,9 @@ import {
 } from '@/components/retro';
 import { ShareInviteModal } from '@/components/dashboard/ShareInviteModal';
 import { RetroBoardSkeleton } from '@/components/dashboard';
+import { useRetroProjectIntegration } from '@/hooks/useRetroProjectIntegration';
+import { getRetroSocket } from '@/lib/socket';
+import { api, ENDPOINTS } from '@/lib/api';
 
 export default function LiveRetroBoardPage({
   params,
@@ -35,6 +38,70 @@ export default function LiveRetroBoardPage({
   };
 
   const session = useRetroSession(shareToken);
+  const { projects } = useRetroProjectIntegration();
+
+  const linkedProject = React.useMemo(() => {
+    if (!session.retro?.projectId) return projects[0] || null;
+    const pId = typeof session.retro.projectId === 'string'
+      ? session.retro.projectId
+      : (session.retro.projectId as any)?._id || (session.retro.projectId as any)?.id;
+    return projects.find((p) => p.id === pId || (p as any)._id === pId) || projects[0] || null;
+  }, [projects, session.retro?.projectId]);
+
+  const projectMembers = React.useMemo(() => {
+    if (!linkedProject) return [];
+    const list = [...(linkedProject.members || [])];
+    if (linkedProject.lead && !list.some((m) => m.email?.toLowerCase() === linkedProject.lead?.email?.toLowerCase())) {
+      list.unshift({
+        id: linkedProject.lead.id || 'lead',
+        name: linkedProject.lead.name,
+        email: linkedProject.lead.email,
+        role: 'Project Lead',
+        avatar: linkedProject.lead.avatar || linkedProject.lead.name.slice(0, 2).toUpperCase(),
+      });
+    }
+    return list;
+  }, [linkedProject]);
+
+  const handleReassignCard = async (
+    cardId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
+  ) => {
+    session.setCards((prev) =>
+      prev.map((c) => {
+        if (c.id === cardId || c.cardId === cardId) {
+          return {
+            ...c,
+            assignedTo: assignee ? {
+              name: assignee.name,
+              email: assignee.email,
+              avatar: assignee.avatar,
+            } : null,
+          };
+        }
+        return c;
+      })
+    );
+
+    const socket = getRetroSocket();
+    const token = typeof window !== 'undefined' ? localStorage.getItem('retroflow_token') : null;
+    if (socket && socket.connected) {
+      socket.emit('card:edit', {
+        shareToken,
+        cardId,
+        assignedTo: assignee,
+        token,
+      });
+    } else {
+      try {
+        await api.patch(`${ENDPOINTS.RETROS}/${shareToken}/cards/${cardId}`, {
+          assignedTo: assignee,
+        });
+      } catch (err) {
+        console.error('Failed to reassign card:', err);
+      }
+    }
+  };
 
   if (session.isLoading) {
     return <RetroBoardSkeleton />;
@@ -115,6 +182,8 @@ export default function LiveRetroBoardPage({
                   canMoveCrossColumn={session.canMoveCrossColumn}
                   activeDragTopicId={activeDragTopicId}
                   isClosed={isClosed}
+                  projectMembers={projectMembers}
+                  onReassignCard={handleReassignCard}
                   onDragCardStart={(_cardId, topicId) => setActiveDragTopicId(topicId)}
                   onDragCardEnd={() => setActiveDragTopicId(null)}
                   onCrossColumnRejected={handleCrossColumnRejected}

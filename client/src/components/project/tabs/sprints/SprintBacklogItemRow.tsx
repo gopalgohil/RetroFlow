@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Sparkles, ChevronDown, Trash2, Calendar, Check, AlertCircle } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Sparkles, ChevronDown, Trash2, Calendar, Check, AlertCircle, UserPlus, UserX } from 'lucide-react';
 import { BacklogItem } from '@/types/project';
 
 interface SprintBacklogItemRowProps {
@@ -21,6 +21,7 @@ interface SprintBacklogItemRowProps {
     email?: string;
     role?: string;
   } | null;
+  members?: Array<{ id?: string; name: string; email?: string; avatar?: string; role?: string }>;
   isDeleting?: boolean;
   onUpdateStatus: (
     sprintId: string,
@@ -31,6 +32,11 @@ interface SprintBacklogItemRowProps {
     sprintId: string,
     itemId: string,
     newDueDate: string | null
+  ) => Promise<void> | void;
+  onUpdateAssignee?: (
+    sprintId: string,
+    itemId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
   ) => Promise<void> | void;
   onDeleteItem?: (sprintId: string, itemId: string) => void;
 }
@@ -68,11 +74,30 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
     canManageProject = false,
     canMarkDone = false,
     currentUser = null,
+    members = [],
     isDeleting = false,
     onUpdateStatus,
     onUpdateDueDate,
+    onUpdateAssignee,
     onDeleteItem,
   }) => {
+    const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
+    const assigneeDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (assigneeDropdownRef.current && !assigneeDropdownRef.current.contains(event.target as Node)) {
+          setIsAssigneeOpen(false);
+        }
+      };
+      if (isAssigneeOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+      }
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [isAssigneeOpen]);
+
     const userEmail = currentUser?.email?.toLowerCase().trim();
     const userName = currentUser?.name?.toLowerCase().trim();
     const assigneeEmail = item.assignee?.email?.toLowerCase().trim();
@@ -346,41 +371,105 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
             </div>
           )}
 
-          <div className="flex items-center shrink-0 select-none">
-            {isSelfAssigned && item.assignee?.name ? (
-              <div
-                className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015] cursor-pointer hover:scale-105 transition-all"
-                title={fullTooltip}
+          <div ref={assigneeDropdownRef} className="relative flex items-center shrink-0 select-none">
+            {canManageProject && onUpdateAssignee ? (
+              <button
+                type="button"
+                onClick={() => setIsAssigneeOpen((prev) => !prev)}
+                title={item.assignee?.name ? `${fullTooltip}\n\nClick to reassign developer` : 'Click to assign a developer'}
+                className="group/assignee flex items-center gap-1 rounded-full p-0.5 hover:ring-2 hover:ring-[#88c958]/80 transition-all cursor-pointer"
               >
-                {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
-              </div>
-            ) : givenByName && item.assignee?.name ? (
-              <div
-                className="flex items-center -space-x-3.5 group/merged"
-                title={fullTooltip}
-              >
+                {isSelfAssigned && item.assignee?.name ? (
+                  <div className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015]">
+                    {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+                  </div>
+                ) : givenByName && item.assignee?.name ? (
+                  <div className="flex items-center -space-x-3.5">
+                    <div className="w-8 h-8 rounded-full bg-[#488e1e] text-white dark:bg-[#72ad46] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs z-0">
+                      {getAssigneeInitials(givenByName)}
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs z-10">
+                      {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+                    </div>
+                  </div>
+                ) : item.assignee?.name ? (
+                  <div className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015]">
+                    {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 rounded-full border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-400 dark:text-slate-500 hover:border-[#88c958] hover:text-[#88c958] flex items-center justify-center text-xs font-bold transition-colors">
+                    <UserPlus className="w-3.5 h-3.5" />
+                  </div>
+                )}
+              </button>
+            ) : (
+              item.assignee?.name ? (
                 <div
-                  className="w-8 h-8 rounded-full bg-[#488e1e] text-white dark:bg-[#72ad46] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-0 group-hover/merged:z-10 group-hover/merged:scale-105 transition-all"
-                  title={givenByTooltip}
-                >
-                  {getAssigneeInitials(givenByName)}
-                </div>
-
-                <div
-                  className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-10 hover:z-20 hover:scale-105 transition-all"
-                  title={assigneeTooltip}
+                  className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015]"
+                  title={fullTooltip}
                 >
                   {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
                 </div>
+              ) : null
+            )}
+
+            {isAssigneeOpen && (
+              <div className="absolute right-0 top-full mt-2 w-56 max-h-64 overflow-y-auto bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.12] rounded-xl shadow-xl z-50 p-1 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-white/[0.08]">
+                  Reassign Task
+                </div>
+                <div className="py-1 space-y-0.5">
+                  {members.map((member) => {
+                    const isSelected = item.assignee?.name?.toLowerCase().trim() === member.name?.toLowerCase().trim();
+                    return (
+                      <button
+                        key={member.id || member.email || member.name}
+                        type="button"
+                        onClick={() => {
+                          setIsAssigneeOpen(false);
+                          if (!isSelected && onUpdateAssignee) {
+                            onUpdateAssignee(sprintId, item.id, {
+                              name: member.name,
+                              email: member.email,
+                              avatar: member.avatar,
+                            });
+                          }
+                        }}
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] font-bold'
+                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-5 h-5 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-[9px] font-black flex items-center justify-center shrink-0">
+                            {getAssigneeInitials(member.name, member.avatar)}
+                          </div>
+                          <span className="truncate">{member.name}</span>
+                        </div>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] shrink-0" />}
+                      </button>
+                    );
+                  })}
+
+                  {item.assignee?.name && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAssigneeOpen(false);
+                        if (onUpdateAssignee) {
+                          onUpdateAssignee(sprintId, item.id, null);
+                        }
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors border-t border-slate-100 dark:border-white/[0.08] mt-1 pt-1.5 cursor-pointer font-medium"
+                    >
+                      <UserX className="w-3.5 h-3.5 shrink-0" />
+                      <span>Unassign task</span>
+                    </button>
+                  )}
+                </div>
               </div>
-            ) : item.assignee?.name ? (
-              <div
-                className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015] cursor-pointer hover:scale-105 transition-all"
-                title={assigneeTooltip}
-              >
-                {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
-              </div>
-            ) : null}
+            )}
           </div>
 
           {canManageProject && onDeleteItem && (

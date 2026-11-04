@@ -21,6 +21,7 @@ export interface SprintCardProps {
     email?: string;
     role?: string;
   } | null;
+  members?: Array<{ id?: string; name: string; email?: string; avatar?: string; role?: string }>;
   canDeleteSprint?: boolean;
   updatingItemId: string | null;
   deletingItemId?: string | null;
@@ -39,6 +40,11 @@ export interface SprintCardProps {
     itemId: string,
     newDueDate: string | null
   ) => Promise<void> | void;
+  onUpdateAssignee?: (
+    sprintId: string,
+    itemId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
+  ) => Promise<void> | void;
   onDeleteItem?: (sprintId: string, itemId: string) => Promise<void> | void;
 }
 
@@ -50,6 +56,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   canManageProject,
   canMarkDone = false,
   currentUser = null,
+  members = [],
   canDeleteSprint = false,
   updatingItemId,
   deletingItemId = null,
@@ -60,6 +67,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   onDeleteSprint,
   onUpdateItemStatus,
   onUpdateDueDate,
+  onUpdateAssignee,
   onDeleteItem,
 }) => {
   const percentComplete = Math.round(
@@ -276,8 +284,10 @@ export const SprintCard: React.FC<SprintCardProps> = ({
           canManageProject={canManageProject}
           canMarkDone={canMarkDone}
           currentUser={currentUser}
+          members={members}
           onUpdateItemStatus={onUpdateItemStatus}
           onUpdateDueDate={onUpdateDueDate}
+          onUpdateAssignee={onUpdateAssignee}
           onDeleteItem={onDeleteItem}
         />
       )}

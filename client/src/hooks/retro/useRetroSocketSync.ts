@@ -168,9 +168,18 @@ export function useRetroSocketSync({
       });
     };
 
-    const onCardUpdated = (payload: { cardId: string; text: string }) => {
+    const onCardUpdated = (payload: { cardId: string; text?: string; assignedTo?: any }) => {
       setCards((prev) =>
-        prev.map((c) => (c.id === payload.cardId || c.cardId === payload.cardId ? { ...c, text: payload.text } : c))
+        prev.map((c) => {
+          if (c.id === payload.cardId || c.cardId === payload.cardId) {
+            return {
+              ...c,
+              ...(payload.text !== undefined ? { text: payload.text } : {}),
+              ...(payload.assignedTo !== undefined ? { assignedTo: payload.assignedTo } : {}),
+            };
+          }
+          return c;
+        })
       );
     };
 

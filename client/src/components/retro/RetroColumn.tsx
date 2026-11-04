@@ -52,6 +52,11 @@ export interface RetroColumnProps {
   onReorderCards?: (topicId: string, cardIds: string[]) => void;
   onExportTopic?: () => void;
   isClosed?: boolean;
+  projectMembers?: Array<{ id?: string; name: string; email?: string; avatar?: string; role?: string }>;
+  onReassignCard?: (
+    cardId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
+  ) => Promise<void> | void;
 }
 
 export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn({
@@ -64,6 +69,8 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   canMoveCrossColumn = true,
   activeDragTopicId = null,
   isClosed = false,
+  projectMembers = [],
+  onReassignCard,
   onDragCardStart,
   onDragCardEnd,
   onCrossColumnRejected,
@@ -385,6 +392,9 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             isDragTarget={dragTargetId === card.id}
             dropPosition={dragTargetId === card.id ? dropPosition : null}
             isClosed={isClosed}
+            projectMembers={projectMembers}
+            canManageActionItems={canManageActionItems}
+            onReassignCard={onReassignCard}
             onVote={onVoteCard}
             onUpdate={onUpdateCard}
             onDelete={onDeleteCard}

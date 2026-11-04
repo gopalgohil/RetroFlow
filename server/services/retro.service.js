@@ -1220,23 +1220,33 @@ class RetroService {
     return newCard;
   }
 
-  async updateCard(identifier, cardId, { text }, user = null) {
-    if (!cardId || !text?.trim()) {
-      throw ApiError.badRequest('Card ID and text are required');
+  async updateCard(identifier, cardId, { text, assignedTo }, user = null) {
+    if (!cardId) {
+      throw ApiError.badRequest('Card ID is required');
+    }
+    if (text === undefined && assignedTo === undefined) {
+      throw ApiError.badRequest('Either text or assignedTo is required');
     }
 
-    const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
-      ? { _id: identifier, 'cards.cardId': cardId }
-      : { shareToken: identifier, 'cards.cardId': cardId };
+    const boardQuery = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+      ? { _id: identifier }
+      : { shareToken: identifier };
+
+    const retroBoardDoc = await RetroBoard.findOne(boardQuery).populate('projectId');
+    if (!retroBoardDoc) {
+      throw ApiError.notFound('Retrospective session not found');
+    }
+
+    const targetCard = retroBoardDoc.cards.find(
+      (c) => c.cardId === cardId || (c._id && c._id.toString() === cardId)
+    );
+    if (!targetCard) {
+      throw ApiError.notFound('Card or retrospective session not found');
+    }
 
     if (user) {
-      const existing = await RetroBoard.findOne(query, { 'cards.$': 1 }).lean();
-      if (!existing || !existing.cards || existing.cards.length === 0) {
-        throw ApiError.notFound('Card or retrospective session not found');
-      }
-      const targetCard = existing.cards[0];
-      const targetEmail = (targetCard.authorEmail || '').toLowerCase().trim();
       const userEmail = (user.email || '').toLowerCase().trim();
+      const targetEmail = (targetCard.authorEmail || '').toLowerCase().trim();
       const targetAuthor = (targetCard.author || '').toLowerCase().trim();
       const userName = (user.name || '').toLowerCase().trim();
 
@@ -1244,34 +1254,67 @@ class RetroService {
         Boolean(userEmail && targetEmail && userEmail === targetEmail) ||
         Boolean(!targetEmail && targetAuthor && userName && userName === targetAuthor);
 
-      if (!isAuthor) {
-        throw ApiError.forbidden('Permission denied: Only the original author can edit this feedback.');
+      const isManagerOrAdmin =
+        user.role === 'admin' ||
+        user.projectRole === 'admin' ||
+        user.projectRole === 'manager' ||
+        user.projectRole === 'lead' ||
+        userEmail === retroBoardDoc.facilitatorEmail?.toLowerCase().trim() ||
+        isSuperAdmin(userEmail);
+
+      if (text !== undefined && !isAuthor && !isManagerOrAdmin) {
+        throw ApiError.forbidden('Permission denied: Only the original author or manager can edit feedback.');
+      }
+      if (assignedTo !== undefined && !isManagerOrAdmin) {
+        throw ApiError.forbidden('Permission denied: Only a manager or facilitator can reassign action items.');
       }
     }
 
-    const trimmedText = text.trim();
     const updatedTime = new Date();
+    const setUpdates = {
+      'cards.$.updatedAt': updatedTime,
+    };
+
+    let trimmedText = targetCard.text;
+    if (text !== undefined && text !== null) {
+      trimmedText = text.trim();
+      setUpdates['cards.$.text'] = trimmedText;
+    }
+
+    if (assignedTo !== undefined) {
+      const formattedAssignee = (assignedTo && assignedTo.name) ? {
+        name: assignedTo.name.trim(),
+        email: (assignedTo.email || '').trim().toLowerCase(),
+        avatar: assignedTo.avatar || assignedTo.name.trim().slice(0, 2).toUpperCase(),
+      } : undefined;
+      setUpdates['cards.$.assignedTo'] = formattedAssignee;
+      targetCard.assignedTo = formattedAssignee;
+    }
+
+    const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
+      ? { _id: identifier, 'cards.cardId': cardId }
+      : { shareToken: identifier, 'cards.cardId': cardId };
 
     const retro = await RetroBoard.findOneAndUpdate(
       query,
-      {
-        $set: {
-          'cards.$.text': trimmedText,
-          'cards.$.updatedAt': updatedTime,
-        },
-      },
+      { $set: setUpdates },
       { new: true }
     );
 
-    if (!retro) {
-      throw ApiError.notFound('Card or retrospective session not found');
+    if (assignedTo !== undefined) {
+      await projectService.syncCardAssigneeToSprint(identifier, cardId, assignedTo);
     }
 
-    if (retro.shareToken) {
+    if (retro?.shareToken) {
       projectService.syncRetroBoardToProjects(retro.shareToken).catch(() => {});
     }
 
-    return { cardId, text: trimmedText, updatedAt: updatedTime };
+    return {
+      cardId,
+      text: trimmedText,
+      assignedTo: targetCard.assignedTo,
+      updatedAt: updatedTime,
+    };
   }
 
   async moveCard(identifier, cardId, { topicId }, user = null) {

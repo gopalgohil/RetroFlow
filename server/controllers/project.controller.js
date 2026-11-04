@@ -106,12 +106,12 @@ class ProjectController {
   });
 
   updateSprintItemStatus = asyncHandler(async (req, res) => {
-    const { status, dueDate } = req.body;
+    const { status, dueDate, assignee } = req.body;
     const project = await projectService.updateSprintItemStatus(
       req.params.id,
       req.params.sprintId,
       req.params.itemId,
-      { status, dueDate },
+      { status, dueDate, assignee },
       req.user
     );
     return ApiResponse.ok(res, project, 'Sprint item updated successfully');

@@ -23,6 +23,7 @@ export interface SprintBacklogDrawerProps {
     email?: string;
     role?: string;
   } | null;
+  members?: Array<{ id?: string; name: string; email?: string; avatar?: string; role?: string }>;
   onUpdateItemStatus: (
     sprintId: string,
     itemId: string,
@@ -32,6 +33,11 @@ export interface SprintBacklogDrawerProps {
     sprintId: string,
     itemId: string,
     newDueDate: string | null
+  ) => Promise<void> | void;
+  onUpdateAssignee?: (
+    sprintId: string,
+    itemId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
   ) => Promise<void> | void;
   onDeleteItem?: (sprintId: string, itemId: string) => Promise<void> | void;
 }
@@ -45,8 +51,10 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
   canManageProject = false,
   canMarkDone = false,
   currentUser = null,
+  members = [],
   onUpdateItemStatus,
   onUpdateDueDate,
+  onUpdateAssignee,
   onDeleteItem,
 }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -231,11 +239,13 @@ export const SprintBacklogDrawer: React.FC<SprintBacklogDrawerProps> = ({
                   canManageProject={canManageProject}
                   canMarkDone={canMarkDone}
                   currentUser={currentUser}
+                  members={members}
                   projectManagerName={projectManagerName}
                   sprintStartDate={sprint.startDate}
                   sprintEndDate={sprint.endDate}
                   onUpdateStatus={onUpdateItemStatus}
                   onUpdateDueDate={onUpdateDueDate}
+                  onUpdateAssignee={onUpdateAssignee}
                   onDeleteItem={onDeleteItem}
                 />
               ))}

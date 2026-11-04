@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, memo } from 'react';
-import { Pencil, Trash2, Check, X, ThumbsUp, GripVertical, Zap, User } from 'lucide-react';
+import { Pencil, Trash2, Check, X, ThumbsUp, GripVertical, Zap, User, UserX } from 'lucide-react';
 import { StickyCard } from '@/types/retro';
 
 export interface RetroCardItemProps {
@@ -18,6 +18,12 @@ export interface RetroCardItemProps {
   isDragTarget?: boolean;
   dropPosition?: 'above' | 'below' | null;
   isClosed?: boolean;
+  projectMembers?: Array<{ id?: string; name: string; email?: string; avatar?: string; role?: string }>;
+  canManageActionItems?: boolean;
+  onReassignCard?: (
+    cardId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
+  ) => Promise<void> | void;
   onVote: (cardId: string) => void;
   onUpdate: (cardId: string, text: string) => void;
   onDelete: (cardId: string) => void;
@@ -43,6 +49,9 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   isDragTarget = false,
   dropPosition = null,
   isClosed = false,
+  projectMembers = [],
+  canManageActionItems = false,
+  onReassignCard,
   onVote,
   onUpdate,
   onDelete,
@@ -57,6 +66,22 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   const [editText, setEditText] = useState(card.text);
   const [isDragging, setIsDragging] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isReassignOpen, setIsReassignOpen] = useState(false);
+  const reassignDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (reassignDropdownRef.current && !reassignDropdownRef.current.contains(event.target as Node)) {
+        setIsReassignOpen(false);
+      }
+    };
+    if (isReassignOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isReassignOpen]);
 
   const handleStartEdit = () => {
     if (isClosed) return;
@@ -371,15 +396,88 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
           </p>
 
           {card.assignedTo?.name && (
-            <div
-              title={`Already assigned to ${card.assignedTo.name}. It cannot be reassigned.`}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold text-emerald-700 dark:text-emerald-400 select-none shadow-2xs"
-            >
-              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span className="truncate">
-                Assigned to: <strong className="font-extrabold">{card.assignedTo.name}</strong>
-                {card.assignedSprintName ? ` (${card.assignedSprintName})` : ''}
-              </span>
+            <div ref={reassignDropdownRef} className="relative">
+              <div
+                className="flex items-center justify-between gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold text-emerald-700 dark:text-emerald-400 select-none shadow-2xs"
+              >
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="truncate">
+                    Assigned to: <strong className="font-extrabold">{card.assignedTo.name}</strong>
+                    {card.assignedSprintName ? ` (${card.assignedSprintName})` : ''}
+                  </span>
+                </div>
+
+                {onReassignCard && canManageActionItems && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsReassignOpen((prev) => !prev);
+                    }}
+                    title="Click to reassign to another developer"
+                    className="p-1 rounded-md text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 hover:bg-emerald-200/50 dark:hover:bg-emerald-800/40 transition-colors shrink-0 cursor-pointer ml-1"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+
+              {isReassignOpen && (
+                <div className="absolute left-0 top-full mt-1.5 w-60 max-h-56 overflow-y-auto bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.12] rounded-xl shadow-xl z-50 p-1 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-white/[0.08]">
+                    Reassign Developer
+                  </div>
+                  <div className="py-1 space-y-0.5">
+                    {projectMembers.map((member) => {
+                      const isSelected = card.assignedTo?.name?.toLowerCase().trim() === member.name?.toLowerCase().trim();
+                      return (
+                        <button
+                          key={member.id || member.email || member.name}
+                          type="button"
+                          onClick={() => {
+                            setIsReassignOpen(false);
+                            if (!isSelected && onReassignCard) {
+                              onReassignCard(card.id, {
+                                name: member.name,
+                                email: member.email,
+                                avatar: member.avatar,
+                              });
+                            }
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] font-bold'
+                              : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-5 h-5 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-[9px] font-black flex items-center justify-center shrink-0">
+                              {member.avatar || member.name.slice(0, 2).toUpperCase()}
+                            </div>
+                            <span className="truncate">{member.name}</span>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] shrink-0" />}
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsReassignOpen(false);
+                        if (onReassignCard) {
+                          onReassignCard(card.id, null);
+                        }
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors border-t border-slate-100 dark:border-white/[0.08] mt-1 pt-1.5 cursor-pointer font-medium"
+                    >
+                      <UserX className="w-3.5 h-3.5 shrink-0" />
+                      <span>Unassign / Clear</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

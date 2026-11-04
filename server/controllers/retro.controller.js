@@ -82,6 +82,18 @@ class RetroController {
     const io = req.app.get('io');
     if (io) {
       io.of('/retro').to(`retro:${req.params.id}`).emit('card:updated', updated);
+      try {
+        const retroDoc = await RetroBoard.findOne(
+          req.params.id.length === 24 && /^[0-9a-fA-F]{24}$/.test(req.params.id)
+            ? { _id: req.params.id }
+            : { shareToken: req.params.id }
+        ).lean();
+        if (retroDoc?.cards) {
+          io.of('/retro').to(`retro:${req.params.id}`).emit('cards:exported', {
+            cards: retroDoc.cards,
+          });
+        }
+      } catch {}
     }
 
     return ApiResponse.ok(res, updated, 'Card updated successfully');

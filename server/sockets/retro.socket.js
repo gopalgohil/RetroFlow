@@ -31,7 +31,15 @@ const cardAddSchema = z.object({
 const cardEditSchema = z.object({
   shareToken: z.string().min(1, 'Share token is required'),
   cardId: z.string().min(1, 'Card ID is required'),
-  text: z.string().trim().min(1, 'Card text cannot be empty').max(2000, 'Card text cannot exceed 2000 characters'),
+  text: z.string().trim().max(2000, 'Card text cannot exceed 2000 characters').optional(),
+  assignedTo: z
+    .object({
+      name: z.string(),
+      email: z.string().optional(),
+      avatar: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
   token: z.string().optional(),
 });
 
@@ -334,7 +342,7 @@ export function initRetroSocket(io) {
           return;
         }
 
-        const { shareToken, cardId, text } = parsed.data;
+        const { shareToken, cardId, text, assignedTo } = parsed.data;
 
         const authUser = getAuthenticatedUser(payload);
         if (!authUser) {
@@ -346,7 +354,7 @@ export function initRetroSocket(io) {
 
         const existingBoard = await RetroBoard.findOne(
           { shareToken, 'cards.cardId': cardId },
-          { 'cards.$': 1 }
+          { 'cards.$': 1, projectId: 1, facilitatorEmail: 1, ownerEmail: 1 }
         ).lean();
 
         if (!existingBoard || !existingBoard.cards || existingBoard.cards.length === 0) {
@@ -364,29 +372,45 @@ export function initRetroSocket(io) {
           Boolean(userEmail && targetEmail && userEmail === targetEmail) ||
           Boolean(!targetEmail && targetAuthor && userName && userName === targetAuthor);
 
-        if (!isAuthor) {
-          console.warn(
-            `[Socket Security] Blocked unauthorized edit attempt on card ${cardId} by ${
-              authUser.email || authUser.name
-            } (Original author: ${targetCard.authorEmail || targetCard.author})`
-          );
+        const isManagerOrAdmin = checkAdminOrManager(existingBoard, authUser);
+
+        if (text !== undefined && !isAuthor && !isManagerOrAdmin) {
           if (callback) {
-            callback({ error: 'Permission denied: Only the original author can edit this feedback.' });
+            callback({ error: 'Permission denied: Only the original author or manager can edit this feedback.' });
           }
           return;
         }
 
-        const trimmedText = text.trim();
+        if (assignedTo !== undefined && !isManagerOrAdmin) {
+          if (callback) {
+            callback({ error: 'Permission denied: Only managers can reassign action items.' });
+          }
+          return;
+        }
+
         const updatedTime = new Date();
+        const setUpdates = {
+          'cards.$.updatedAt': updatedTime,
+        };
+
+        let trimmedText = targetCard.text;
+        if (text !== undefined && text !== null) {
+          trimmedText = text.trim();
+          setUpdates['cards.$.text'] = trimmedText;
+        }
+
+        if (assignedTo !== undefined) {
+          const formattedAssignee = (assignedTo && assignedTo.name) ? {
+            name: assignedTo.name.trim(),
+            email: (assignedTo.email || '').trim().toLowerCase(),
+            avatar: assignedTo.avatar || assignedTo.name.trim().slice(0, 2).toUpperCase(),
+          } : undefined;
+          setUpdates['cards.$.assignedTo'] = formattedAssignee;
+        }
 
         const updatedBoard = await RetroBoard.findOneAndUpdate(
           { shareToken, 'cards.cardId': cardId },
-          {
-            $set: {
-              'cards.$.text': trimmedText,
-              'cards.$.updatedAt': updatedTime,
-            },
-          },
+          { $set: setUpdates },
           { new: true }
         );
 
@@ -395,14 +419,25 @@ export function initRetroSocket(io) {
           return;
         }
 
+        if (assignedTo !== undefined) {
+          await projectService.syncCardAssigneeToSprint(shareToken, cardId, assignedTo);
+        }
+
         const roomName = `retro:${shareToken}`;
         retroNamespace.to(roomName).emit('card:updated', {
           cardId,
           text: trimmedText,
+          assignedTo: setUpdates['cards.$.assignedTo'],
           updatedAt: updatedTime,
         });
 
-        if (callback) callback({ success: true, text: trimmedText });
+        if (updatedBoard?.cards) {
+          retroNamespace.to(roomName).emit('cards:exported', {
+            cards: updatedBoard.cards,
+          });
+        }
+
+        if (callback) callback({ success: true, text: trimmedText, assignedTo: setUpdates['cards.$.assignedTo'] });
       } catch (err) {
         console.error('[Socket] card:edit error:', err);
         if (callback) callback({ error: 'Failed to update card' });

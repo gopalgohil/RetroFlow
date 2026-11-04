@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Layers } from 'lucide-react';
 import { Project, Sprint } from '@/types/project';
 import { PaginationMeta } from '@/types/retro';
@@ -450,6 +450,43 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     setSprintToDelete(null);
   };
 
+  const assignableMembers = useMemo(() => {
+    const list = [...(project.members || [])];
+    if (project.lead && !list.some((m) => m.email?.toLowerCase() === project.lead?.email?.toLowerCase())) {
+      list.unshift({
+        id: project.lead.id || 'lead',
+        name: project.lead.name,
+        email: project.lead.email,
+        role: 'Project Lead',
+        avatar: project.lead.avatar || project.lead.name.slice(0, 2).toUpperCase(),
+      });
+    }
+    return list;
+  }, [project.members, project.lead]);
+
+  const handleUpdateAssignee = async (
+    sprintId: string,
+    itemId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
+  ) => {
+    setUpdatingItemId(itemId);
+    try {
+      const updated = await ProjectApiService.updateSprintItemAssignee(
+        project.id,
+        sprintId,
+        itemId,
+        assignee
+      );
+      if (updated) {
+        onProjectUpdated(updated);
+      }
+    } catch (err: any) {
+      console.error('Failed to update sprint item assignee:', err);
+    } finally {
+      setUpdatingItemId(null);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <SprintFilterBar
@@ -495,6 +532,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               canManageProject={canManageProject}
               canMarkDone={canMarkDone}
               currentUser={effectiveUser}
+              members={assignableMembers}
               updatingItemId={updatingItemId}
               deletingItemId={deletingItemId}
               onToggleExpand={toggleExpand}
@@ -504,6 +542,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               onDeleteSprint={(sp) => setSprintToDelete(sp)}
               onUpdateItemStatus={handleUpdateItemStatus}
               onUpdateDueDate={handleUpdateItemDueDate}
+              onUpdateAssignee={handleUpdateAssignee}
               onDeleteItem={(sprintId, itemId) => {
                 const sp = project.sprints.find((s) => s.id === sprintId);
                 const it = sp?.items.find((i) => i.id === itemId);

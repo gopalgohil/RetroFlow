@@ -706,6 +706,70 @@ class ProjectService {
     }
   }
 
+  async syncCardAssigneeToSprint(retroIdentifier, cardId, assignedTo) {
+    if (!cardId) return null;
+    try {
+      const retroQuery = mongoose.Types.ObjectId.isValid(retroIdentifier) && retroIdentifier.length === 24
+        ? { $or: [{ _id: retroIdentifier }, { shareToken: retroIdentifier }] }
+        : { shareToken: retroIdentifier };
+
+      const retro = await RetroBoard.findOne(retroQuery).lean();
+      if (!retro) return null;
+
+      const card = retro.cards?.find(
+        (c) => c.cardId === cardId || (c._id && c._id.toString() === cardId)
+      );
+      if (!card) return null;
+
+      const normText = (card.text || '').toLowerCase().trim();
+
+      const projects = await Project.find({
+        $or: [
+          ...(retro.projectId ? [{ _id: retro.projectId }] : []),
+          { 'sprints.items.cardId': cardId },
+          { 'sprints.items.title': card.text },
+        ],
+      });
+
+      for (const project of projects) {
+        let modified = false;
+        for (const sprint of project.sprints || []) {
+          for (const item of sprint.items || []) {
+            if (
+              item.cardId === cardId ||
+              (item.title && item.title.toLowerCase().trim() === normText)
+            ) {
+              item.assignee = (assignedTo && assignedTo.name) ? {
+                name: assignedTo.name || '',
+                email: assignedTo.email || '',
+                avatar: assignedTo.avatar || (assignedTo.name ? assignedTo.name.slice(0, 2).toUpperCase() : ''),
+              } : undefined;
+              item.updatedAt = new Date();
+              modified = true;
+
+              try {
+                const retroNamespace = getRetroNamespace();
+                if (retroNamespace) {
+                  retroNamespace.emit('sprint:item_updated', {
+                    projectId: project._id?.toString() || project.id,
+                    sprintId: sprint.id,
+                    item,
+                  });
+                }
+              } catch {}
+            }
+          }
+        }
+        if (modified) {
+          project.markModified('sprints');
+          await project.save();
+        }
+      }
+    } catch (err) {
+      console.warn('[syncCardAssigneeToSprint] Sync warning:', err?.message || err);
+    }
+  }
+
   async getProjectByIdOrKey(idOrKey, currentUser = null) {
     if (!idOrKey) return null;
 
@@ -1220,24 +1284,56 @@ class ProjectService {
 
     item.updatedAt = new Date();
 
-    if (item.sourceRetroId && (status || dueDate !== undefined)) {
+    if (status || dueDate !== undefined || assignee !== undefined) {
       try {
-        const retroQuery = mongoose.isValidObjectId(item.sourceRetroId)
-          ? { _id: item.sourceRetroId }
-          : { shareToken: item.sourceRetroId };
-        const retro = await RetroBoard.findOne(retroQuery);
-        if (retro) {
+        const retroQuery = item.sourceRetroId
+          ? (mongoose.isValidObjectId(item.sourceRetroId)
+              ? { $or: [{ _id: item.sourceRetroId }, { shareToken: item.sourceRetroId }] }
+              : { shareToken: item.sourceRetroId })
+          : { projectId: project._id };
+
+        const retros = await RetroBoard.find(retroQuery);
+        for (const retro of retros) {
           const normTitle = (item.title || '').toLowerCase().trim();
-          const matchedCard = retro.cards.find(
+          const matchedCard = retro.cards?.find(
             (c) =>
+              (item.cardId && (c.cardId === item.cardId || (c._id && c._id.toString() === item.cardId))) ||
               c.cardId === itemId ||
+              (c._id && c._id.toString() === itemId) ||
               (c.text && c.text.toLowerCase().trim() === normTitle)
           );
           if (matchedCard) {
             if (status) matchedCard.status = status;
             if (dueDate !== undefined) matchedCard.dueDate = dueDate;
+            if (assignee !== undefined) {
+              matchedCard.assignedTo = item.assignee;
+            }
             matchedCard.updatedAt = new Date();
+            retro.markModified('cards');
             await retro.save();
+
+            try {
+              const retroNamespace = getRetroNamespace();
+              if (retroNamespace) {
+                if (retro.shareToken) {
+                  retroNamespace.to(`retro:${retro.shareToken}`).emit('cards:exported', {
+                    cards: retro.cards,
+                  });
+                  retroNamespace.to(`retro:${retro.shareToken}`).emit('card:updated', {
+                    cardId: matchedCard.cardId || matchedCard.id,
+                    text: matchedCard.text,
+                    assignedTo: matchedCard.assignedTo,
+                  });
+                }
+                retroNamespace.emit('sprint:item_updated', {
+                  projectId: project._id?.toString() || project.id,
+                  sprintId,
+                  item,
+                });
+              }
+            } catch (emitErr) {
+              console.warn('[updateSprintItemStatus] Socket emit warning:', emitErr?.message || emitErr);
+            }
           }
         }
       } catch (syncErr) {

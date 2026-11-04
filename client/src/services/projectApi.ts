@@ -216,7 +216,11 @@ export class ProjectApiService {
     projectId: string,
     sprintId: string,
     itemId: string,
-    statusOrPayload: 'todo' | 'in_progress' | 'done' | { status?: 'todo' | 'in_progress' | 'done'; dueDate?: string | null }
+    statusOrPayload: 'todo' | 'in_progress' | 'done' | {
+      status?: 'todo' | 'in_progress' | 'done';
+      dueDate?: string | null;
+      assignee?: { name: string; email?: string; avatar?: string } | null;
+    }
   ): Promise<Project> {
     const payload = typeof statusOrPayload === 'string' ? { status: statusOrPayload } : statusOrPayload;
     const res = await api.patch<ApiResponseWrapper<Project>>(
@@ -224,6 +228,15 @@ export class ProjectApiService {
       payload
     );
     return res.data;
+  }
+
+  static async updateSprintItemAssignee(
+    projectId: string,
+    sprintId: string,
+    itemId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
+  ): Promise<Project> {
+    return this.updateSprintItemStatus(projectId, sprintId, itemId, { assignee });
   }
 
   static async updateSprintItemDueDate(
