@@ -1573,6 +1573,19 @@ class ProjectService {
     const diffDays = Math.ceil((endMs - nowMs) / 86400000);
     sprint.daysLeft = Math.max(0, diffDays);
 
+    // Auto-cap: If any task dueDate exceeds the updated sprint endDate, cap it to sprint.endDate
+    if (Array.isArray(sprint.items)) {
+      sprint.items.forEach((item) => {
+        if (item.dueDate) {
+          const itemDueMs = new Date(item.dueDate).getTime();
+          if (!isNaN(itemDueMs) && itemDueMs > endMs) {
+            item.dueDate = endDate;
+          }
+        }
+      });
+    }
+
+    project.markModified('sprints');
     await project.save();
     return project;
   }

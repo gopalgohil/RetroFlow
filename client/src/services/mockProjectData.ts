@@ -356,6 +356,16 @@ export class ProjectDataService {
       if (s.id === sprintId) {
         const endMs = new Date(payload.endDate).getTime();
         const diffDays = Math.ceil((endMs - Date.now()) / 86400000);
+        const cappedItems = (s.items || []).map((item) => {
+          if (item.dueDate) {
+            const itemDueMs = new Date(item.dueDate).getTime();
+            if (!isNaN(itemDueMs) && itemDueMs > endMs) {
+              return { ...item, dueDate: payload.endDate };
+            }
+          }
+          return item;
+        });
+
         return {
           ...s,
           startDate: payload.startDate,
@@ -363,6 +373,7 @@ export class ProjectDataService {
           daysLeft: Math.max(0, diffDays),
           goal: payload.goal !== undefined ? payload.goal : s.goal,
           name: payload.name !== undefined ? payload.name : s.name,
+          items: cappedItems,
         };
       }
       return s;

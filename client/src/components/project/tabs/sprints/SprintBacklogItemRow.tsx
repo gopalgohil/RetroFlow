@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, ChevronDown, Trash2, Calendar, Check } from 'lucide-react';
+import { Sparkles, ChevronDown, Trash2, Calendar, Check, AlertCircle } from 'lucide-react';
 import { BacklogItem } from '@/types/project';
 
 interface SprintBacklogItemRowProps {
@@ -126,6 +126,52 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
       ? `Self-assigned by ${assigneeDisplayName}${assigneeEmail ? ` (${assigneeEmail})` : ''}`
       : [givenByTooltip, assigneeTooltip].filter(Boolean).join('\n');
 
+    const dueBadgeInfo = React.useMemo(() => {
+      if (!item.dueDate) return null;
+      if (isDone) {
+        return {
+          label: `Due: ${formatDueDate(item.dueDate)}`,
+          badgeClass: 'text-slate-400 dark:text-slate-500 font-medium',
+          isOverdue: false,
+          tooltip: `Completed deadline: ${formatDueDate(item.dueDate)}`,
+        };
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = item.dueDate.includes('T') ? new Date(item.dueDate) : new Date(`${item.dueDate}T00:00:00`);
+      target.setHours(0, 0, 0, 0);
+
+      const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        const daysAgo = Math.abs(diffDays);
+        return {
+          label: `Due: ${formatDueDate(item.dueDate)} · Overdue (${daysAgo}d)`,
+          badgeClass:
+            'bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25 border border-rose-500/30 font-bold',
+          isOverdue: true,
+          tooltip: `Task is OVERDUE by ${daysAgo} day${daysAgo > 1 ? 's' : ''}! Deadline was ${formatDueDate(item.dueDate)}. Click to change.`,
+        };
+      }
+      if (diffDays === 0) {
+        return {
+          label: `Due: ${formatDueDate(item.dueDate)} · Due Today`,
+          badgeClass:
+            'bg-amber-500/15 text-amber-700 dark:text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 font-bold',
+          isOverdue: false,
+          tooltip: `Due today! (${formatDueDate(item.dueDate)}). Click to change.`,
+        };
+      }
+      return {
+        label: `Due: ${formatDueDate(item.dueDate)}`,
+        badgeClass:
+          'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 font-bold',
+        isOverdue: false,
+        tooltip: `Target deadline: ${formatDueDate(item.dueDate)}. Click to change.`,
+      };
+    }, [item.dueDate, isDone]);
+
     return (
       <div className="group p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
         <div className="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
@@ -172,7 +218,7 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                 </>
               ) : canManageProject ? (
                 <label
-                  title="Click to set or change due date for this item"
+                  title={dueBadgeInfo?.tooltip || 'Click to set or change due date for this item'}
                   onClick={(e) => {
                     const input = e.currentTarget.querySelector('input[type="date"]') as HTMLInputElement | null;
                     if (input && typeof input.showPicker === 'function') {
@@ -181,11 +227,19 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                       } catch {}
                     }
                   }}
-                  className="relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-colors bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/20"
+                  className={`relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] cursor-pointer transition-colors ${
+                    dueBadgeInfo
+                      ? dueBadgeInfo.badgeClass
+                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 font-bold'
+                  }`}
                 >
-                  <Calendar className="w-2.5 h-2.5 shrink-0" />
+                  {dueBadgeInfo?.isOverdue ? (
+                    <AlertCircle className="w-2.5 h-2.5 shrink-0 text-rose-600 dark:text-rose-400 animate-pulse" />
+                  ) : (
+                    <Calendar className="w-2.5 h-2.5 shrink-0" />
+                  )}
                   <span>
-                    {item.dueDate ? `Due: ${formatDueDate(item.dueDate)}` : '+ Due Date'}
+                    {dueBadgeInfo?.label || (item.dueDate ? `Due: ${formatDueDate(item.dueDate)}` : '+ Due Date')}
                   </span>
                   <input
                     type="date"
@@ -207,10 +261,17 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                     className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                   />
                 </label>
-              ) : item.dueDate ? (
-                <span className="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
-                  <Calendar className="w-2.5 h-2.5" />
-                  Due: {formatDueDate(item.dueDate)}
+              ) : dueBadgeInfo ? (
+                <span
+                  title={dueBadgeInfo.tooltip}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] ${dueBadgeInfo.badgeClass}`}
+                >
+                  {dueBadgeInfo.isOverdue ? (
+                    <AlertCircle className="w-2.5 h-2.5 shrink-0 text-rose-600 dark:text-rose-400" />
+                  ) : (
+                    <Calendar className="w-2.5 h-2.5" />
+                  )}
+                  {dueBadgeInfo.label}
                 </span>
               ) : null}
             </div>
