@@ -400,6 +400,17 @@ class ProjectService {
             if (!targetSprint && card.assignedSprintId) {
               targetSprint = project.sprints.find((s) => s.id === card.assignedSprintId);
             }
+
+            // If target sprint is completed and item is not done, route to the current active sprint
+            if (targetSprint && targetSprint.status === 'completed' && card.status !== 'done') {
+              const activeOrUpcoming =
+                project.sprints.find((s) => s.status === 'active' && s.id !== targetSprint.id) ||
+                project.sprints.find((s) => s.status === 'upcoming');
+              if (activeOrUpcoming) {
+                targetSprint = activeOrUpcoming;
+              }
+            }
+
             if (!targetSprint) {
               if (sprint.status !== 'completed') {
                 targetSprint = sprint;
@@ -992,7 +1003,7 @@ class ProjectService {
     const incompleteItems = (completedSprint.items || []).filter((i) => i.status !== 'done');
     const doneItems = (completedSprint.items || []).filter((i) => i.status === 'done');
     completedSprint.items = doneItems;
-    completedSprint.completedStoryPoints = doneItems.reduce((acc, i) => acc + (i.storyPoints || 0), 0);
+    completedSprint.completedStoryPoints = doneItems.reduce((acc, i) => acc + (Number(i.storyPoints) || 0), 0);
     completedSprint.totalStoryPoints = completedSprint.completedStoryPoints;
 
     // Calculate Next Sprint Dates (Next Month 1st -> Next Month Last Day)
@@ -1025,18 +1036,53 @@ class ProjectService {
       project.sprints.push(nextSprint);
     }
 
+    // Locate the actual subdocument in project.sprints to ensure Mongoose change tracking
+    const targetSprintDoc = project.sprints.find((s) => s.id === nextSprint.id) || nextSprint;
+
     if (incompleteItems.length > 0) {
-      const rolledOver = incompleteItems.map((item) => ({
-        ...item,
-        dueDate: nextSprint.endDate || item.dueDate,
-      }));
-      nextSprint.items = [...(nextSprint.items || []), ...rolledOver];
+      const rolledOver = incompleteItems.map((item) => {
+        const itemObj = typeof item.toObject === 'function' ? item.toObject() : { ...item };
+        return {
+          ...itemObj,
+          dueDate: targetSprintDoc.endDate || itemObj.dueDate,
+        };
+      });
+      targetSprintDoc.items = [...(targetSprintDoc.items || []), ...rolledOver];
+
+      // Sync retro board cards to point to the new rolled-over sprint
+      for (const item of rolledOver) {
+        if (item.sourceRetroId) {
+          try {
+            const retroQuery = mongoose.isValidObjectId(item.sourceRetroId)
+              ? { _id: item.sourceRetroId }
+              : { shareToken: item.sourceRetroId };
+            const retro = await RetroBoard.findOne(retroQuery);
+            if (retro) {
+              const normTitle = (item.title || '').toLowerCase().trim();
+              const matchedCard = retro.cards.find(
+                (c) => c.cardId === item.cardId || c.cardId === item.id || (c.text && c.text.toLowerCase().trim() === normTitle)
+              );
+              if (matchedCard) {
+                matchedCard.assignedSprintName = targetSprintDoc.name;
+                matchedCard.updatedAt = new Date();
+                await retro.save();
+              }
+            }
+          } catch (rErr) {
+            console.warn('[completeSprint] Retro board sprint name rollover update note:', rErr?.message || rErr);
+          }
+        }
+      }
     }
 
-    nextSprint.totalStoryPoints = (nextSprint.items || []).reduce((acc, i) => acc + (i.storyPoints || 0), 0);
-    nextSprint.completedStoryPoints = (nextSprint.items || []).filter((i) => i.status === 'done').reduce((acc, i) => acc + (i.storyPoints || 0), 0);
+    targetSprintDoc.totalStoryPoints = (targetSprintDoc.items || []).reduce((acc, i) => acc + (Number(i.storyPoints) || 0), 0);
+    targetSprintDoc.completedStoryPoints = (targetSprintDoc.items || []).filter((i) => i.status === 'done').reduce((acc, i) => acc + (Number(i.storyPoints) || 0), 0);
 
-    project.activeSprint = nextSprint;
+    project.activeSprint = targetSprintDoc;
+    project.markModified('sprints');
+
+    await project.save();
+    return project;
 
     await project.save();
     return project;
