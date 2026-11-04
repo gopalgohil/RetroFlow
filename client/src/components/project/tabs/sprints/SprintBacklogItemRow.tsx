@@ -173,6 +173,14 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
               ) : canManageProject ? (
                 <label
                   title="Click to set or change due date for this item"
+                  onClick={(e) => {
+                    const input = e.currentTarget.querySelector('input[type="date"]') as HTMLInputElement | null;
+                    if (input && typeof input.showPicker === 'function') {
+                      try {
+                        input.showPicker();
+                      } catch {}
+                    }
+                  }}
                   className="relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-colors bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/20"
                 >
                   <Calendar className="w-2.5 h-2.5 shrink-0" />
@@ -185,6 +193,12 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                     max={sprintEndDate ? sprintEndDate.split('T')[0] : undefined}
                     value={item.dueDate ? item.dueDate.split('T')[0] : ''}
                     disabled={isUpdating || isDeleting}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      try {
+                        (e.target as HTMLInputElement).showPicker?.();
+                      } catch {}
+                    }}
                     onChange={(e) => {
                       if (onUpdateDueDate) {
                         onUpdateDueDate(sprintId, item.id, e.target.value || null);
