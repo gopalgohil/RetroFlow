@@ -306,41 +306,26 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
     : (isWorkspaceAdmin || isManager);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#5cb028] via-[#52a622] to-[#458b1b] text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#0e1015] dark:border dark:border-white/[0.08] dark:shadow-2xl relative overflow-hidden group">
-        <div className="absolute -right-16 -top-16 w-72 h-72 bg-white/10 dark:bg-[#88c958]/10 rounded-full blur-2xl dark:blur-3xl pointer-events-none" />
-        <div className="relative z-10 space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/30 dark:bg-[#88c958]/10 dark:text-[#88c958] dark:border-[#88c958]/25 shadow-2xs">
-              {isWorkspaceAdmin
-                ? 'Admin Supervision'
-                : isManager
-                ? 'Manager Supervision'
-                : isLead
-                ? 'Lead Management'
-                : 'My Projects'}
+    <div className="space-y-6 animate-in fade-in duration-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/[0.08]">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              Projects
+            </h1>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-white/[0.08]">
+              {tabCounts.all || pagination.totalItems} {tabCounts.all === 1 ? 'Project' : 'Projects'}
             </span>
-            <span className="text-xs text-white/90 dark:text-slate-400">
-              • {tabCounts.all || pagination.totalItems} {isWorkspaceAdmin ? 'Workspace Projects' : isManager ? 'Managed Projects' : 'Assigned Projects'}
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30">
+              {isWorkspaceAdmin ? 'Admin' : isManager ? 'Manager' : isLead ? 'Lead' : 'Member'}
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:font-black">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             {isWorkspaceAdmin
-              ? 'Enterprise Project & Sprint Delivery'
+              ? 'All Scrum & Kanban projects across your organization workspace.'
               : isManager
-              ? 'Agile Project & Sprint Management'
-              : isLead
-              ? 'Team Projects & Sprints'
-              : 'My Projects & Sprints'}
-          </h2>
-          <p className="text-xs text-white/90 dark:text-slate-400 max-w-xl leading-relaxed">
-            {isWorkspaceAdmin
-              ? 'Complete organization supervisory view across all Scrum sprints, velocity metrics, and retrospectives.'
-              : isManager
-              ? 'Manage your team initiatives, initialize new projects, and track sprint execution.'
-              : isLead
-              ? 'Track sprint execution, backlog priorities, and team deliverables.'
-              : `Showing initiatives where your account (${currentUser?.email || activeUser?.email || 'logged in user'}) is registered as a member.`}
+              ? 'Projects and sprint initiatives managed by your team.'
+              : 'Delivery projects and sprint initiatives assigned to you.'}
           </p>
         </div>
 
@@ -348,15 +333,15 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
           <button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
-            className="relative z-10 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#3d8318] text-xs font-bold shadow-md transition-all hover:scale-[1.02] cursor-pointer shrink-0 dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_16px_rgba(136,201,88,0.25)] dark:hover:shadow-[0_0_24px_rgba(136,201,88,0.4)]"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4d9720] text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer shrink-0 dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black"
           >
-            <Plus className="w-4 h-4 stroke-[2.5] text-[#5cb028] dark:text-[#08090a]" />
+            <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Create New Project</span>
           </button>
         )}
       </div>
 
-      <div ref={projectsGridRef} className="space-y-4 pt-2">
+      <div ref={projectsGridRef} className="space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
           <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] rounded-xl w-fit shrink-0">
             <button
