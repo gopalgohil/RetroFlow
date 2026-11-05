@@ -417,7 +417,11 @@ function DashboardContent({ initialUser }: DashboardClientProps) {
               )}
 
               {activeTab === 'projects' && (
-                <ProjectsTab isAdmin={canCreateProject} user={activeUser} />
+                <ProjectsTab
+                  isAdmin={isAdmin}
+                  canCreateProject={canCreateProject}
+                  user={activeUser}
+                />
               )}
 
               {activeTab === 'action_items' && (

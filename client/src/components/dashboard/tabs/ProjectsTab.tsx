@@ -30,6 +30,7 @@ import { ProjectsTabSkeleton, ProjectCardsSkeleton, ProjectTableSkeleton } from 
 
 interface ProjectsTabProps {
   isAdmin?: boolean;
+  canCreateProject?: boolean;
   user?: { name?: string; email?: string; role?: string; projectRole?: string } | null;
 }
 
@@ -48,7 +49,11 @@ const formatProjectCreatedDate = (dateStr?: string | Date) => {
   }
 };
 
-export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user = null }) => {
+export const ProjectsTab: React.FC<ProjectsTabProps> = ({
+  isAdmin: propIsAdmin,
+  canCreateProject: propCanCreateProject,
+  user = null,
+}) => {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -84,8 +89,11 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   const [deleteProjectError, setDeleteProjectError] = useState<string | null>(null);
 
   const isManagerOrAdmin = Boolean(
-    isAdmin ||
+    (propIsAdmin && user?.role === 'admin') ||
+    user?.role === 'admin' ||
     currentUser?.role === 'admin' ||
+    user?.projectRole === 'Manager' ||
+    user?.role?.toLowerCase().includes('manager') ||
     currentUser?.projectRole === 'Manager' ||
     currentUser?.role?.toLowerCase().includes('manager')
   );
@@ -269,18 +277,33 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
   const userProjectRole = ((activeUser as any)?.projectRole || '').toLowerCase();
 
   const isWorkspaceAdmin = Boolean(
-    isAdmin ||
+    (propIsAdmin !== undefined ? (propIsAdmin && userRole === 'admin') : false) ||
     userRole === 'admin'
   );
 
   const isManager = Boolean(
-    isWorkspaceAdmin ||
-    userProjectRole === 'manager' ||
-    userRole === 'manager' ||
-    userRole.includes('manager')
+    !isWorkspaceAdmin && (
+      userProjectRole === 'manager' ||
+      userRole === 'manager' ||
+      userRole.includes('manager')
+    )
   );
 
-  const canCreateProject = isWorkspaceAdmin || isManager;
+  const isLead = Boolean(
+    !isWorkspaceAdmin &&
+    !isManager && (
+      userProjectRole === 'project lead' ||
+      userProjectRole === 'team lead' ||
+      userProjectRole.includes('lead') ||
+      userRole === 'project lead' ||
+      userRole === 'team lead' ||
+      userRole.includes('lead')
+    )
+  );
+
+  const canCreateProject = propCanCreateProject !== undefined
+    ? propCanCreateProject
+    : (isWorkspaceAdmin || isManager);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
@@ -289,25 +312,35 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({ isAdmin = false, user 
         <div className="relative z-10 space-y-1.5">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/30 dark:bg-[#88c958]/10 dark:text-[#88c958] dark:border-[#88c958]/25 shadow-2xs">
-              {isAdmin ? 'Admin Supervision' : canCreateProject ? 'Lead / Management' : 'My Projects'}
+              {isWorkspaceAdmin
+                ? 'Admin Supervision'
+                : isManager
+                ? 'Manager Supervision'
+                : isLead
+                ? 'Lead Management'
+                : 'My Projects'}
             </span>
             <span className="text-xs text-white/90 dark:text-slate-400">
-              • {tabCounts.all || pagination.totalItems} {isAdmin || canCreateProject ? 'Workspace Projects' : 'Assigned Projects'}
+              • {tabCounts.all || pagination.totalItems} {isWorkspaceAdmin ? 'Workspace Projects' : isManager ? 'Managed Projects' : 'Assigned Projects'}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white dark:font-black">
-            {isAdmin
+            {isWorkspaceAdmin
               ? 'Enterprise Project & Sprint Delivery'
-              : canCreateProject
-              ? 'Agile Projects & Sprints'
+              : isManager
+              ? 'Agile Project & Sprint Management'
+              : isLead
+              ? 'Team Projects & Sprints'
               : 'My Projects & Sprints'}
           </h2>
           <p className="text-xs text-white/90 dark:text-slate-400 max-w-xl leading-relaxed">
-            {isAdmin
+            {isWorkspaceAdmin
               ? 'Complete organization supervisory view across all Scrum sprints, velocity metrics, and retrospectives.'
-              : canCreateProject
-              ? 'Manage your agile initiatives, initialize new projects, and track sprint execution.'
-              : `Showing initiatives where your account (${currentUser?.email || 'logged in user'}) is registered as Manager or member.`}
+              : isManager
+              ? 'Manage your team initiatives, initialize new projects, and track sprint execution.'
+              : isLead
+              ? 'Track sprint execution, backlog priorities, and team deliverables.'
+              : `Showing initiatives where your account (${currentUser?.email || activeUser?.email || 'logged in user'}) is registered as a member.`}
           </p>
         </div>
 
