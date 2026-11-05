@@ -93,16 +93,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navItems = [
     {
-      id: 'sessions',
-      label: 'Retrospective Sessions',
-      icon: LayoutDashboard,
-      badge: isMounted && activeSessionsCount > 0 ? `${activeSessionsCount} Live` : undefined,
-    },
-    {
       id: 'projects',
       label: 'My Projects',
       icon: FolderKanban,
       sublabel: 'Sprints & Delivery',
+    },
+    {
+      id: 'sessions',
+      label: 'Retrospective Sessions',
+      icon: LayoutDashboard,
+      badge: isMounted && activeSessionsCount > 0 ? `${activeSessionsCount} Live` : undefined,
     },
     {
       id: 'action_items',

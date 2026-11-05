@@ -628,6 +628,11 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
   );
 
   useEffect(() => {
+    // Initial fetch to populate active sessions count badge in sidebar
+    fetchSessions();
+  }, [fetchSessions]);
+
+  useEffect(() => {
     if (activeTab === 'sessions') {
       fetchSessions();
     } else if (activeTab === 'members') {

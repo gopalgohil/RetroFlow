@@ -591,7 +591,7 @@ function DashboardFallback({ initialUser }: DashboardClientProps) {
     return (
       <div className="min-h-screen dark:bg-[#08090a] bg-[#F8FAFC] text-slate-900 dark:text-white flex selection:bg-[#88c958] selection:text-[#08090a] font-sans transition-colors duration-200">
         <Sidebar
-          activeTab="sessions"
+          activeTab="projects"
           setActiveTab={() => {}}
           activeSessionsCount={0}
           user={activeUser}

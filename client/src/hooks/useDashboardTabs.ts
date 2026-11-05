@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export const DASHBOARD_TABS = ['sessions', 'projects', 'action_items', 'members', 'analytics'] as const;
+export const DASHBOARD_TABS = ['projects', 'sessions', 'action_items', 'members', 'analytics'] as const;
 export type DashboardTab = (typeof DASHBOARD_TABS)[number];
 
 interface UseDashboardTabsOptions {
@@ -12,7 +12,7 @@ interface UseDashboardTabsOptions {
 }
 
 export function useDashboardTabs({
-  defaultTab = 'sessions',
+  defaultTab = 'projects',
   transitionDuration = 380,
 }: UseDashboardTabsOptions = {}) {
   const searchParams = useSearchParams();
