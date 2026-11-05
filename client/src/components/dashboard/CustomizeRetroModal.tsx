@@ -643,9 +643,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
-                    <span>Starting Date <span className="text-rose-500">*</span></span>
-                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(Present date)</span>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between min-h-[18px]">
+                    <span className="whitespace-nowrap">Starting Date <span className="text-rose-500">*</span></span>
+                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap">(Present date)</span>
                   </label>
                   <div className="relative">
                     <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -670,9 +670,14 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
-                    <span>Ending Date <span className="text-rose-500">*</span></span>
-                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(Defaults to month end: Jan 31, Feb 28, Nov 30)</span>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between min-h-[18px]">
+                    <span className="whitespace-nowrap">Ending Date <span className="text-rose-500">*</span></span>
+                    <span
+                      className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                      title="Defaults to month end: Jan 31, Feb 28, Nov 30"
+                    >
+                      (Month end)
+                    </span>
                   </label>
                   <div className="relative">
                     <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
