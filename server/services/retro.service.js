@@ -1741,10 +1741,6 @@ class RetroService {
           averageAttendanceRate: 0,
           totalRetros: 0,
           allTimeRetros: 0,
-          totalSprints: 0,
-          activeSprints: 0,
-          completedSprints: 0,
-          upcomingSprints: 0,
           totalTasks: 0,
           completedTasks: 0,
           pendingTasks: 0,
@@ -2452,20 +2448,6 @@ class RetroService {
           }, memberAnalytics[0])
         : null;
 
-    let totalSprints = 0;
-    let activeSprints = 0;
-    let completedSprints = 0;
-    let upcomingSprints = 0;
-
-    projectsInScope.forEach((proj) => {
-      if (Array.isArray(proj.sprints)) {
-        totalSprints += proj.sprints.length;
-        activeSprints += proj.sprints.filter((s) => s.status === 'active').length;
-        completedSprints += proj.sprints.filter((s) => s.status === 'completed').length;
-        upcomingSprints += proj.sprints.filter((s) => s.status === 'upcoming').length;
-      }
-    });
-
     return {
       projects: formattedProjects,
       availableYears,
@@ -2476,10 +2458,6 @@ class RetroService {
         averageAttendanceRate,
         totalRetros: yearTotalRetros,
         allTimeRetros: totalRetrosCount,
-        totalSprints,
-        activeSprints,
-        completedSprints,
-        upcomingSprints,
         totalTasks: yearTotalTasks,
         completedTasks: yearCompletedTasks,
         pendingTasks: yearPendingTasks,

@@ -107,10 +107,6 @@ export interface AnalyticsSummary {
   averageAttendanceRate: number;
   totalRetros: number;
   allTimeRetros?: number;
-  totalSprints?: number;
-  activeSprints?: number;
-  completedSprints?: number;
-  upcomingSprints?: number;
   totalTasks?: number;
   completedTasks?: number;
   pendingTasks?: number;
