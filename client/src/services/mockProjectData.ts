@@ -415,14 +415,13 @@ export class ProjectDataService {
     const nextNum = maxNum + 1;
     const sprintName = payload.name?.trim() || `Sprint ${nextNum} - Execution & Backlog`;
 
-    const hasActive = project.sprints.some((s) => s.status === 'active');
-    const status: 'active' | 'upcoming' = hasActive ? 'upcoming' : 'active';
+    // 1. Status Default: Manually created sprints always default to 'upcoming'
+    const status: 'upcoming' = 'upcoming';
 
     const startMs = new Date(payload.startDate).getTime();
     const endMs = new Date(payload.endDate).getTime();
     const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000));
-    const rawRemaining = Math.ceil((endMs - Date.now()) / 86400000);
-    const daysLeft = status === 'active' ? Math.max(0, Math.min(totalDays, rawRemaining)) : totalDays;
+    const daysLeft = totalDays;
 
     const newSprint: Sprint = {
       id: `sprint-${Date.now()}`,

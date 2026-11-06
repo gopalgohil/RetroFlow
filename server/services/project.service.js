@@ -379,10 +379,10 @@ class ProjectService {
 
             const isFromThisRetro = Boolean(
               it.sourceRetroId &&
-                (it.sourceRetroId === retroItem.id ||
-                  it.sourceRetroId === retroItem.shareToken ||
-                  (liveBoard._id && it.sourceRetroId === liveBoard._id.toString()) ||
-                  (liveBoard.shareToken && it.sourceRetroId === liveBoard.shareToken))
+              (it.sourceRetroId === retroItem.id ||
+                it.sourceRetroId === retroItem.shareToken ||
+                (liveBoard._id && it.sourceRetroId === liveBoard._id.toString()) ||
+                (liveBoard.shareToken && it.sourceRetroId === liveBoard.shareToken))
             );
 
             if (!isFromThisRetro) return true;
@@ -623,7 +623,7 @@ class ProjectService {
               sprints: project.sprints,
             },
           }
-        ).catch(() => {});
+        ).catch(() => { });
       }
     } catch (err) {
       console.warn('[ProjectService] Error syncing retrospectives metrics:', err.message);
@@ -686,7 +686,7 @@ class ProjectService {
               },
             ],
           }
-        ).catch(() => {});
+        ).catch(() => { });
       }
 
       try {
@@ -772,7 +772,7 @@ class ProjectService {
                     item,
                   });
                 }
-              } catch {}
+              } catch { }
             }
           }
         }
@@ -850,7 +850,7 @@ class ProjectService {
     const isAdmin = Boolean(
       currentUser &&
       (currentUser.role?.toLowerCase() === 'admin' ||
-       isSuperAdmin(currentUser.email?.toLowerCase()))
+        isSuperAdmin(currentUser.email?.toLowerCase()))
     );
 
     if (isAdmin) {
@@ -1121,7 +1121,7 @@ class ProjectService {
     const nextNum = (completedSprint.number || 0) + 1;
     // Check if next sprint already exists (either by number nextNum or status upcoming)
     let nextSprint = project.sprints.find((s) => s.number === nextNum && s.id !== completedSprint.id) ||
-                     project.sprints.find((s) => s.status === 'upcoming');
+      project.sprints.find((s) => s.status === 'upcoming');
 
     if (nextSprint) {
       nextSprint.status = 'active';
@@ -1327,8 +1327,8 @@ class ProjectService {
       try {
         const retroQuery = item.sourceRetroId
           ? (mongoose.isValidObjectId(item.sourceRetroId)
-              ? { $or: [{ _id: item.sourceRetroId }, { shareToken: item.sourceRetroId }] }
-              : { shareToken: item.sourceRetroId })
+            ? { $or: [{ _id: item.sourceRetroId }, { shareToken: item.sourceRetroId }] }
+            : { shareToken: item.sourceRetroId })
           : { projectId: project._id };
 
         const retros = await RetroBoard.find(retroQuery);
@@ -1422,11 +1422,11 @@ class ProjectService {
       try {
         const retroQuery = deletedItem.sourceRetroId
           ? {
-              $or: [
-                ...(deletedItem.sourceRetroId.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: deletedItem.sourceRetroId }] : []),
-                { shareToken: deletedItem.sourceRetroId },
-              ],
-            }
+            $or: [
+              ...(deletedItem.sourceRetroId.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: deletedItem.sourceRetroId }] : []),
+              { shareToken: deletedItem.sourceRetroId },
+            ],
+          }
           : { projectId: project._id };
 
         await RetroBoard.updateMany(
@@ -1522,21 +1522,21 @@ class ProjectService {
 
     let items = Array.isArray(sprint.items)
       ? sprint.items.map((it) => {
-          const itObj = it && typeof it.toObject === 'function' ? it.toObject() : { ...it };
-          const resolvedGivenBy =
-            !itObj.givenBy || itObj.givenBy === 'Admin' ? defaultManagerName : itObj.givenBy;
-          const isDone = itObj.status === 'done';
-          return {
-            ...itObj,
-            givenBy: resolvedGivenBy,
-            managerName:
-              !itObj.managerName || itObj.managerName === 'Admin'
-                ? resolvedGivenBy
-                : itObj.managerName,
-            completedAt: isDone ? (itObj.completedAt || itObj.createdAt || new Date().toISOString()) : itObj.completedAt,
-            completedBy: isDone ? (itObj.completedBy || resolvedGivenBy) : itObj.completedBy,
-          };
-        })
+        const itObj = it && typeof it.toObject === 'function' ? it.toObject() : { ...it };
+        const resolvedGivenBy =
+          !itObj.givenBy || itObj.givenBy === 'Admin' ? defaultManagerName : itObj.givenBy;
+        const isDone = itObj.status === 'done';
+        return {
+          ...itObj,
+          givenBy: resolvedGivenBy,
+          managerName:
+            !itObj.managerName || itObj.managerName === 'Admin'
+              ? resolvedGivenBy
+              : itObj.managerName,
+          completedAt: isDone ? (itObj.completedAt || itObj.createdAt || new Date().toISOString()) : itObj.completedAt,
+          completedBy: isDone ? (itObj.completedBy || resolvedGivenBy) : itObj.completedBy,
+        };
+      })
       : [];
 
     if (status && status !== 'all') {
@@ -2061,8 +2061,8 @@ class ProjectService {
         (item.givenBy && item.givenBy !== 'Admin')
           ? item.givenBy
           : (item.managerName && item.managerName !== 'Admin')
-          ? item.managerName
-          : projectManager?.name ||
+            ? item.managerName
+            : projectManager?.name ||
             project.lead?.name ||
             currentUser?.name ||
             'Project Manager';
@@ -2081,17 +2081,17 @@ class ProjectService {
         storyPoints: storyPointsNum,
         assignee: resolvedName
           ? {
-              name: resolvedName,
-              email: resolvedEmail,
-              avatar:
-                resolvedAvatar ||
-                resolvedName
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')
-                  .toUpperCase()
-                  .slice(0, 2),
-            }
+            name: resolvedName,
+            email: resolvedEmail,
+            avatar:
+              resolvedAvatar ||
+              resolvedName
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2),
+          }
           : undefined,
         givenBy: resolvedGivenBy,
         managerName: resolvedGivenBy,
@@ -2312,8 +2312,8 @@ class ProjectService {
             (item.givenBy && item.givenBy !== 'Admin')
               ? item.givenBy
               : (item.managerName && item.managerName !== 'Admin')
-              ? item.managerName
-              : projectManager?.name || proj.lead?.name || 'Project Manager';
+                ? item.managerName
+                : projectManager?.name || proj.lead?.name || 'Project Manager';
           const managerEmail = projectManager?.email || proj.lead?.email;
 
           actionItems.push({
@@ -2790,7 +2790,7 @@ class ProjectService {
       await RetroBoard.deleteOne({
         $or: [{ _id: retroIdOrToken }, { shareToken: retroIdOrToken }],
       });
-    } catch {}
+    } catch { }
 
     return project;
   }
@@ -2831,7 +2831,7 @@ class ProjectService {
         { $or: [{ _id: retroIdOrToken }, { shareToken: retroIdOrToken }] },
         { $set: updateFields }
       );
-    } catch {}
+    } catch { }
 
     return project;
   }
