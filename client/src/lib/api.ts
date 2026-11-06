@@ -58,7 +58,11 @@ async function request<T = any>(endpoint: string, options: RequestOptions = {}):
   const method = (customConfig.method || 'GET').toUpperCase();
   const isGet = method === 'GET';
 
-  const dedupKey = isGet ? `${url}::${authToken || ''}` : null;
+  // Do not deduplicate GET requests if an explicit AbortSignal is provided!
+  // Deduplicating requests with signals can cause one caller's cancellation to poison
+  // or abort other callers, or cause a cancelled request to return an AbortError to a fresh caller.
+  const hasCustomSignal = Boolean(customConfig.signal || options.signal);
+  const dedupKey = isGet && !hasCustomSignal ? `${url}::${authToken || ''}` : null;
   if (dedupKey && inFlightGetRequests.has(dedupKey)) {
     return inFlightGetRequests.get(dedupKey)!;
   }

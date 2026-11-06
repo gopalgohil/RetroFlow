@@ -148,6 +148,12 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
         params: searchQuery ? { search: searchQuery.trim() } : undefined,
         signal: controller.signal,
       });
+
+      // Ignore if a newer request was initiated
+      if (sessionsAbortRef.current !== controller || controller.signal.aborted) {
+        return;
+      }
+
       const list = Array.isArray(res)
         ? res
         : Array.isArray(res?.data)
@@ -168,6 +174,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
         err?.name === 'CanceledError' ||
         err?.code === 'ERR_CANCELED' ||
         controller.signal.aborted ||
+        sessionsAbortRef.current !== controller ||
         (err?.message && String(err.message).toLowerCase().includes('aborted'));
 
       if (isAborted) {
@@ -175,7 +182,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
       }
       console.error('Failed to load retrospectives:', err.message);
     } finally {
-      if (!controller.signal.aborted) {
+      if (sessionsAbortRef.current === controller && !controller.signal.aborted) {
         setIsSessionsLoading(false);
       }
     }
@@ -364,12 +371,16 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
             }
           }
         }
+        if (membersAbortRef.current !== controller || controller.signal.aborted) {
+          return;
+        }
       } catch (err: any) {
         const isAborted =
           err?.name === 'AbortError' ||
           err?.name === 'CanceledError' ||
           err?.code === 'ERR_CANCELED' ||
           controller.signal.aborted ||
+          membersAbortRef.current !== controller ||
           (err?.message && String(err.message).toLowerCase().includes('aborted'));
 
         if (isAborted) {
@@ -377,7 +388,7 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
         }
         console.error('Failed to load workspace members:', err.message);
       } finally {
-        if (!controller.signal.aborted) {
+        if (membersAbortRef.current === controller && !controller.signal.aborted) {
           setIsMembersLoading(false);
         }
       }
@@ -627,17 +638,25 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [showToast]
   );
 
+  const prevTabRef = useRef<string>(activeTab);
+  const initialMountFetchDoneRef = useRef<boolean>(false);
+
   useEffect(() => {
-    // Initial fetch to populate active sessions count badge in sidebar
+    // Initial fetch to populate active sessions count badge in sidebar or when searchQuery changes
     fetchSessions();
+    initialMountFetchDoneRef.current = true;
   }, [fetchSessions]);
 
   useEffect(() => {
-    if (activeTab === 'sessions') {
+    // Avoid double fetching on initial mount if activeTab is already 'sessions'
+    if (!initialMountFetchDoneRef.current) return;
+
+    if (activeTab === 'sessions' && prevTabRef.current !== 'sessions') {
       fetchSessions();
-    } else if (activeTab === 'members') {
+    } else if (activeTab === 'members' && prevTabRef.current !== 'members') {
       fetchMembers();
     }
+    prevTabRef.current = activeTab;
   }, [activeTab, fetchSessions, fetchMembers]);
 
   useEffect(() => {
