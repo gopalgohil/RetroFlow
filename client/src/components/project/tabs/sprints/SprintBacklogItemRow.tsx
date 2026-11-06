@@ -268,7 +268,11 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                   </span>
                   <input
                     type="date"
-                    min={sprintStartDate ? sprintStartDate.split('T')[0] : undefined}
+                    min={
+                      item.dueDate && sprintStartDate && item.dueDate.split('T')[0] < sprintStartDate.split('T')[0]
+                        ? item.dueDate.split('T')[0]
+                        : (sprintStartDate ? sprintStartDate.split('T')[0] : undefined)
+                    }
                     max={sprintEndDate ? sprintEndDate.split('T')[0] : undefined}
                     value={item.dueDate ? item.dueDate.split('T')[0] : ''}
                     disabled={isUpdating || isDeleting}

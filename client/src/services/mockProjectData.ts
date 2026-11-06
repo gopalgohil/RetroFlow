@@ -167,10 +167,22 @@ export class ProjectDataService {
 
     const incompleteItems = ((completedSprint as Sprint).items || []).filter((i) => i.status !== 'done');
 
-    // Calculate next month dates (1st of next month to last day of next month)
+    // Smart Next Sprint calculation: Check if current month still has days left (>= 7 days)
     const ref = (completedSprint as Sprint).endDate ? new Date((completedSprint as Sprint).endDate) : new Date();
-    const nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
-    const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+    const currentMonthEnd = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 0));
+    const nextDay = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth(), ref.getUTCDate() + 1));
+    const daysRemainingInMonth = Math.ceil((currentMonthEnd.getTime() - nextDay.getTime()) / 86400000) + 1;
+
+    let nextStart: Date;
+    let nextEnd: Date;
+    if (daysRemainingInMonth >= 7) {
+      nextStart = nextDay;
+      nextEnd = currentMonthEnd;
+    } else {
+      nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
+      nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+    }
+
     const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / 86400000));
     const now = new Date();
     const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000);
@@ -213,7 +225,8 @@ export class ProjectDataService {
         .map((item) => ({
           ...item,
           sprintId: nextSprint!.id,
-          dueDate: nextSprint!.endDate || item.dueDate,
+          // Preserve original due date so overdue flags reflect genuine deadlines
+          dueDate: item.dueDate || nextSprint!.endDate,
         }));
       nextSprint.items = [...(nextSprint.items || []), ...rolledOver];
     }

@@ -54,8 +54,24 @@ function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, c
 
 function getNextMonthlySprintDates(refDate = new Date()) {
   const ref = new Date(refDate);
-  const nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
-  const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+  // Check if there are days remaining in the current month of refDate (e.g. >= 7 days for bi-weekly/2nd sprint)
+  const currentMonthEnd = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 0));
+  const nextDay = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth(), ref.getUTCDate() + 1));
+  const daysRemainingInMonth = Math.ceil((currentMonthEnd.getTime() - nextDay.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+  let nextStart;
+  let nextEnd;
+
+  if (daysRemainingInMonth >= 7) {
+    // There are at least 7 days left in the current month, start next sprint next day through month end
+    nextStart = nextDay;
+    nextEnd = currentMonthEnd;
+  } else {
+    // Month is complete or less than a week remaining, transition cleanly into next month
+    nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
+    nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+  }
+
   const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / (1000 * 60 * 60 * 24)));
   const now = new Date();
   const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -1132,7 +1148,8 @@ class ProjectService {
         const itemObj = typeof item.toObject === 'function' ? item.toObject() : { ...item };
         return {
           ...itemObj,
-          dueDate: targetSprintDoc.endDate || itemObj.dueDate,
+          // Preserve the original deadline so overdue items are clearly identifiable
+          dueDate: itemObj.dueDate || targetSprintDoc.endDate || null,
         };
       });
 
