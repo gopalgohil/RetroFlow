@@ -338,6 +338,17 @@ export class ProjectApiService {
     return res.data;
   }
 
+  static async createSprint(
+    projectId: string,
+    payload: { startDate: string; endDate: string; name?: string; goal?: string }
+  ): Promise<{ project: Project; sprint: Sprint }> {
+    const res = await api.post<ApiResponseWrapper<{ project: Project; sprint: Sprint }>>(
+      `${ENDPOINTS.PROJECTS}/${projectId}/sprints`,
+      payload
+    );
+    return res.data;
+  }
+
   static async addMember(
     projectId: string,
     member: { name: string; email: string; role: ProjectMemberRole }

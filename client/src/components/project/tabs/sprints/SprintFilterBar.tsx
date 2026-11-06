@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Plus } from 'lucide-react';
 
 export type SprintFilterTab = 'all' | 'active' | 'upcoming' | 'completed';
 
@@ -14,6 +15,8 @@ export interface SprintFilterBarProps {
   };
   onFilterChange: (tab: SprintFilterTab) => void;
   disabled?: boolean;
+  canManageProject?: boolean;
+  onCreateSprint?: () => void;
 }
 
 export const SprintFilterBar: React.FC<SprintFilterBarProps> = ({
@@ -21,6 +24,8 @@ export const SprintFilterBar: React.FC<SprintFilterBarProps> = ({
   statusCounts,
   onFilterChange,
   disabled = false,
+  canManageProject = true,
+  onCreateSprint,
 }) => {
   const tabs: { id: SprintFilterTab; label: string }[] = [
     { id: 'all', label: `All Sprints (${statusCounts.all})` },
@@ -48,6 +53,17 @@ export const SprintFilterBar: React.FC<SprintFilterBarProps> = ({
           </button>
         ))}
       </div>
+
+      {canManageProject && onCreateSprint && (
+        <button
+          type="button"
+          onClick={onCreateSprint}
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#88c958] hover:bg-[#76b34a] text-white text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Create Sprint</span>
+        </button>
+      )}
     </div>
   );
 };

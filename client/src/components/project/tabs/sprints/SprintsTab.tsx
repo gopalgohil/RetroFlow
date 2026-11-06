@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Layers } from 'lucide-react';
+import { Layers, Plus } from 'lucide-react';
 import { Project, Sprint } from '@/types/project';
 import { PaginationMeta } from '@/types/retro';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
 import { ConfirmDialog } from '@/components/ui';
 import { EditSprintDatesModal } from '@/components/project/EditSprintDatesModal';
+import { CreateSprintModal } from '@/components/project/CreateSprintModal';
 import { SprintCardsSkeleton } from '@/components/dashboard/DashboardSkeletons';
 import {
   SprintFilterBar,
@@ -64,6 +65,8 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [editingDatesSprint, setEditingDatesSprint] = useState<Sprint | null>(null);
+  const [isCreateSprintOpen, setIsCreateSprintOpen] = useState<boolean>(false);
+  const [referenceSprintForCreate, setReferenceSprintForCreate] = useState<Sprint | null>(null);
   const [sprintToComplete, setSprintToComplete] = useState<Sprint | null>(null);
   const [sprintToStart, setSprintToStart] = useState<Sprint | null>(null);
   const [sprintToReopen, setSprintToReopen] = useState<Sprint | null>(null);
@@ -403,6 +406,16 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     }
   };
 
+  const handleOpenCreateSprint = (refSprint?: Sprint) => {
+    setReferenceSprintForCreate(refSprint || null);
+    setIsCreateSprintOpen(true);
+  };
+
+  const handleSprintCreated = (updatedProject: Project, newSprint: Sprint) => {
+    onProjectUpdated(updatedProject);
+    setExpandedSprintIds((prev) => Array.from(new Set([...prev, newSprint.id])));
+  };
+
   const handleCompleteSprint = async (sprint: Sprint) => {
     try {
       const updated = await ProjectApiService.completeSprint(project.id, sprint.id);
@@ -539,6 +552,8 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         statusCounts={statusCounts}
         onFilterChange={handleFilterChange}
         disabled={isFilterLoading || isSprintPageLoading}
+        canManageProject={canManageProject}
+        onCreateSprint={() => handleOpenCreateSprint()}
       />
 
       {isSprintPageLoading || isFilterLoading ? (
@@ -553,6 +568,16 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mt-1 leading-relaxed">
               No sprints have been created for this project yet. Sprints will appear here when planned or linked with a retrospective session.
             </p>
+            {canManageProject && (
+              <button
+                type="button"
+                onClick={() => handleOpenCreateSprint()}
+                className="mt-4 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#88c958] hover:bg-[#76b34a] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create First Sprint</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="p-12 text-center rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs flex flex-col items-center justify-center">
@@ -585,6 +610,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               onStartSprint={(sp) => setSprintToStart(sp)}
               onReopenSprint={(sp) => setSprintToReopen(sp)}
               onEditDates={(sp) => setEditingDatesSprint(sp)}
+              onCreateNextSprint={(sp) => handleOpenCreateSprint(sp)}
               onDeleteSprint={(sp) => setSprintToDelete(sp)}
               onUpdateItemStatus={handleUpdateItemStatus}
               onUpdateDueDate={handleUpdateItemDueDate}
@@ -721,6 +747,18 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         sprint={editingDatesSprint}
         projectId={project.id}
         onSprintUpdated={(up) => onProjectUpdated(up)}
+      />
+
+      <CreateSprintModal
+        isOpen={isCreateSprintOpen}
+        onClose={() => {
+          setIsCreateSprintOpen(false);
+          setReferenceSprintForCreate(null);
+        }}
+        projectId={project.id}
+        project={project}
+        referenceSprint={referenceSprintForCreate}
+        onSprintCreated={handleSprintCreated}
       />
     </div>
   );

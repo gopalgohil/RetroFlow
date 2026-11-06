@@ -10,6 +10,7 @@ import {
   exportActionItemsSchema,
   updateSprintItemStatusSchema,
   updateSprintDatesSchema,
+  createSprintSchema,
 } from '../validations/project.validation.js';
 
 const router = Router();
@@ -83,6 +84,13 @@ router.get(
   '/:id/sprints',
   optionalAuth,
   projectController.getProjectSprints
+);
+
+router.post(
+  '/:id/sprints',
+  optionalAuth,
+  validate(createSprintSchema),
+  projectController.createSprint
 );
 
 router.patch(

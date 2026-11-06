@@ -398,6 +398,52 @@ export class ProjectDataService {
     return project;
   }
 
+  public static createSprint(
+    projectId: string,
+    payload: { startDate: string; endDate: string; name?: string; goal?: string }
+  ): { project: Project; sprint: Sprint } | null {
+    const projects = this.getStoredProjects();
+    const projIndex = projects.findIndex((p) => p.id === projectId);
+    if (projIndex === -1) return null;
+
+    const project = projects[projIndex];
+    project.sprints = Array.isArray(project.sprints) ? project.sprints : [];
+
+    const maxNum = project.sprints.reduce((max, s) => Math.max(max, s.number || 0), 0);
+    const nextNum = maxNum + 1;
+    const sprintName = payload.name?.trim() || `Sprint ${nextNum} - Execution & Backlog`;
+
+    const hasActive = project.sprints.some((s) => s.status === 'active');
+    const status: 'active' | 'upcoming' = hasActive ? 'upcoming' : 'active';
+
+    const endMs = new Date(payload.endDate).getTime();
+    const diffDays = Math.ceil((endMs - Date.now()) / 86400000);
+    const daysLeft = Math.max(0, diffDays);
+
+    const newSprint: Sprint = {
+      id: `sprint-${Date.now()}`,
+      projectId: project.id,
+      name: sprintName,
+      number: nextNum,
+      status,
+      startDate: payload.startDate,
+      endDate: payload.endDate,
+      goal: payload.goal?.trim() || `Sprint ${nextNum} deliverables and retrospective action items.`,
+      daysLeft,
+      totalStoryPoints: 0,
+      completedStoryPoints: 0,
+      openBlockers: 0,
+      items: [],
+    };
+
+    project.sprints.push(newSprint);
+    project.updatedAt = new Date().toISOString().split('T')[0];
+    projects[projIndex] = project;
+    this.saveProjects(projects);
+
+    return { project, sprint: newSprint };
+  }
+
   public static addMember(
     projectId: string,
     member: { name: string; email: string; role: Project['members'][0]['role'] }

@@ -1719,6 +1719,57 @@ class ProjectService {
     return project;
   }
 
+  async createSprint(idOrKey, payload, currentUser = null) {
+    const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
+    if (!project) throw new Error('Project not found');
+    this.assertCanManage(project, currentUser);
+
+    const { startDate, endDate, name, goal } = payload;
+    const startMs = new Date(startDate).getTime();
+    const endMs = new Date(endDate).getTime();
+
+    if (isNaN(startMs) || isNaN(endMs) || endMs < startMs) {
+      throw new Error('End date must be on or after start date');
+    }
+
+    project.sprints = Array.isArray(project.sprints) ? project.sprints : [];
+
+    const maxNum = project.sprints.reduce((max, s) => Math.max(max, s.number || 0), 0);
+    const nextNum = maxNum + 1;
+    const sprintName = name?.trim() || `Sprint ${nextNum} - Execution & Backlog`;
+
+    const hasActive = project.sprints.some((s) => s.status === 'active');
+    const status = hasActive ? 'upcoming' : 'active';
+
+    const nowMs = Date.now();
+    const diffDays = Math.ceil((endMs - nowMs) / 86400000);
+    const daysLeft = Math.max(0, diffDays);
+
+    const newSprint = {
+      id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
+      name: sprintName,
+      number: nextNum,
+      status,
+      startDate,
+      endDate,
+      goal: goal?.trim() || `Sprint ${nextNum} deliverables and retrospective action items.`,
+      daysLeft,
+      totalStoryPoints: 0,
+      completedStoryPoints: 0,
+      openBlockers: 0,
+      items: [],
+    };
+
+    project.sprints.push(newSprint);
+    project.markModified('sprints');
+    await project.save();
+
+    return {
+      project,
+      sprint: newSprint,
+    };
+  }
+
   async addMember(idOrKey, memberData, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');

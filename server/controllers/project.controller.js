@@ -167,6 +167,15 @@ class ProjectController {
     return ApiResponse.ok(res, result, 'Project retrospectives retrieved successfully');
   });
 
+  createSprint = asyncHandler(async (req, res) => {
+    const result = await projectService.createSprint(
+      req.params.id,
+      req.body,
+      req.user
+    );
+    return ApiResponse.created(res, result, 'Sprint created successfully');
+  });
+
   updateSprintDates = asyncHandler(async (req, res) => {
     const project = await projectService.updateSprintDates(
       req.params.id,

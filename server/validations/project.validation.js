@@ -112,6 +112,41 @@ export const updateSprintItemStatusSchema = z
     }
   );
 
+export const createSprintSchema = z
+  .object({
+    name: z.string().trim().max(150).optional(),
+    startDate: z
+      .string({ required_error: 'Start date is required' })
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date must be in YYYY-MM-DD format'),
+    endDate: z
+      .string({ required_error: 'End date is required' })
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be in YYYY-MM-DD format'),
+    goal: z.string().trim().max(500).optional(),
+  })
+  .refine(
+    (data) => {
+      const start = new Date(data.startDate).getTime();
+      const end = new Date(data.endDate).getTime();
+      return !isNaN(start) && !isNaN(end) && end >= start;
+    },
+    {
+      message: 'End date cannot be earlier than start date',
+      path: ['endDate'],
+    }
+  )
+  .refine(
+    (data) => {
+      const start = new Date(data.startDate).getTime();
+      const end = new Date(data.endDate).getTime();
+      const diffDays = Math.round((end - start) / 86400000);
+      return diffDays <= 90;
+    },
+    {
+      message: 'Sprint duration cannot exceed 90 days',
+      path: ['endDate'],
+    }
+  );
+
 export const updateSprintDatesSchema = z
   .object({
     startDate: z
