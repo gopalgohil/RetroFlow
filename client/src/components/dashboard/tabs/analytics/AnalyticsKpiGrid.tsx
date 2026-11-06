@@ -78,14 +78,30 @@ export const AnalyticsKpiGrid: React.FC<AnalyticsKpiGridProps> = ({
             {summary.totalRetros}
           </span>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-            Active in <span className="font-semibold text-slate-700 dark:text-slate-300">{selectedProjectName}</span>
-            {summary.allTimeRetros !== undefined && summary.allTimeRetros !== summary.totalRetros && (
-              <span className="block text-[10px] text-slate-400 mt-0.5">({summary.allTimeRetros} all-time sessions)</span>
+            {summary.totalSprints !== undefined && summary.totalSprints > 0 ? (
+              <>
+                Across <span className="font-bold text-slate-700 dark:text-slate-200">{summary.totalSprints} Sprints</span>
+                <span className="block text-[10px] text-slate-400 mt-0.5 font-medium">
+                  ({summary.activeSprints ?? 0} Active • {summary.completedSprints ?? 0} Completed)
+                </span>
+              </>
+            ) : (
+              <>
+                Active in <span className="font-semibold text-slate-700 dark:text-slate-300">{selectedProjectName}</span>
+                {summary.allTimeRetros !== undefined && summary.allTimeRetros !== summary.totalRetros && (
+                  <span className="block text-[10px] text-slate-400 mt-0.5">({summary.allTimeRetros} all-time sessions)</span>
+                )}
+              </>
             )}
           </p>
         </div>
-        <p className="text-[11px] text-slate-400 dark:text-slate-500">
-          {summary.totalMembers} active team members evaluated
+        <p className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center justify-between">
+          <span>{summary.totalMembers} active team members</span>
+          {summary.totalSprints !== undefined && (
+            <span className="font-bold text-[#3d8318] dark:text-[#88c958] text-[10px] px-1.5 py-0.5 rounded-md bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30">
+              {summary.totalSprints} Sprints
+            </span>
+          )}
         </p>
       </div>
 
