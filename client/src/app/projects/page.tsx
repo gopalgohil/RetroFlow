@@ -7,7 +7,7 @@ export default function ProjectsIndexPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/dashboard/projects');
+    router.replace('/dashboard?tab=projects');
   }, [router]);
 
   return (

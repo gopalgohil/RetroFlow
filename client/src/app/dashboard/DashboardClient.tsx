@@ -18,22 +18,19 @@ import {
   RejectedView,
 } from '@/components/dashboard';
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
-import { useDashboardTabs, DashboardTab } from '@/hooks/useDashboardTabs';
+import { useDashboardTabs } from '@/hooks/useDashboardTabs';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { api, ENDPOINTS } from '@/lib/api';
 import { CheckCircle2 } from 'lucide-react';
 
 interface DashboardClientProps {
   initialUser?: any;
-  initialTab?: DashboardTab;
 }
 
-function DashboardContent({ initialUser, initialTab }: DashboardClientProps) {
+function DashboardContent({ initialUser }: DashboardClientProps) {
   const router = useRouter();
 
-  const { activeTab, switchTab, isTransitioning } = useDashboardTabs({
-    initialTabOverride: initialTab,
-  });
+  const { activeTab, switchTab, isTransitioning } = useDashboardTabs();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -623,10 +620,10 @@ function DashboardFallback({ initialUser }: DashboardClientProps) {
   return <DashboardLayoutSkeleton />;
 }
 
-export default function DashboardClient({ initialUser, initialTab }: DashboardClientProps) {
+export default function DashboardClient({ initialUser }: DashboardClientProps) {
   return (
     <Suspense fallback={<DashboardFallback initialUser={initialUser} />}>
-      <DashboardContent initialUser={initialUser} initialTab={initialTab} />
+      <DashboardContent initialUser={initialUser} />
     </Suspense>
   );
 }

@@ -87,7 +87,7 @@ export const ProjectDangerZone: React.FC<ProjectDangerZoneProps> = ({
         }
         router.push(`/projects/${res.nextProjectId}`);
       } else {
-        router.push('/dashboard/projects');
+        router.push('/dashboard?tab=projects');
       }
     } catch (err: any) {
       setDeleteError(err.message || 'Failed to delete project.');
