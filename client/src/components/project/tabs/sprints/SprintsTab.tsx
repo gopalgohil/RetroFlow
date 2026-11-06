@@ -429,12 +429,19 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
 
   const handleStartSprint = async (sprint: Sprint) => {
     const targetNum = sprint.number || 1;
+    const currentlyActive = (project.sprints || []).find((s) => s.status === 'active' && s.id !== sprint.id);
+    const incompleteItems = (currentlyActive?.items || []).filter((i) => i.status !== 'done');
+    const doneItems = (currentlyActive?.items || []).filter((i) => i.status === 'done');
+
     const updatedSprints = (project.sprints || []).map((s) => {
       if (s.id === sprint.id) {
+        const existingIds = new Set((s.items || []).map((it) => it.id));
+        const uniqueRollover = incompleteItems.filter((it) => !existingIds.has(it.id));
         return {
           ...s,
           status: 'active' as const,
           daysLeft: project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14,
+          items: [...(s.items || []), ...uniqueRollover],
         };
       }
       if (s.status === 'active') {
@@ -443,6 +450,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
           ...s,
           status: (isFuture ? 'upcoming' : 'completed') as any,
           daysLeft: isFuture ? s.daysLeft : 0,
+          items: doneItems,
         };
       }
       return s;

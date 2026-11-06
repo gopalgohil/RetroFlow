@@ -1744,12 +1744,11 @@ class ProjectService {
     const nextNum = maxNum + 1;
     const sprintName = name?.trim() || `Sprint ${nextNum} - Execution & Backlog`;
 
-    const hasActive = project.sprints.some((s) => s.status === 'active');
-    const status = hasActive ? 'upcoming' : 'active';
+    // 1. Status Default: Manually created sprints always default to 'upcoming' (never auto-activated)
+    const status = 'upcoming';
 
     const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000));
-    const rawRemaining = Math.ceil((endMs - Date.now()) / 86400000);
-    const daysLeft = status === 'active' ? Math.max(0, Math.min(totalDays, rawRemaining)) : totalDays;
+    const daysLeft = totalDays;
 
     const newSprint = {
       id: `sprint-${crypto.randomBytes(4).toString('hex')}`,

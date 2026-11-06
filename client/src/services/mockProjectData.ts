@@ -119,15 +119,26 @@ export class ProjectDataService {
     const targetSprint = project.sprints.find((s) => s.id === sprintId);
     const targetNum = targetSprint?.number || 1;
 
+    const activeSprint = project.sprints.find((s) => s.status === 'active' && s.id !== sprintId);
+    const incompleteItems = (activeSprint?.items || []).filter((i) => i.status !== 'done');
+    const doneItems = (activeSprint?.items || []).filter((i) => i.status === 'done');
+
     project.sprints = project.sprints.map((s) => {
       if (s.id === sprintId) {
-        return { ...s, status: 'active' as const, daysLeft: 14 };
+        const existingIds = new Set((s.items || []).map((it) => it.id));
+        const uniqueRollover = incompleteItems.filter((it) => !existingIds.has(it.id));
+        return {
+          ...s,
+          status: 'active' as const,
+          daysLeft: 14,
+          items: [...(s.items || []), ...uniqueRollover],
+        };
       }
       if (s.status === 'active') {
         if ((s.number || 0) > targetNum) {
           return { ...s, status: 'upcoming' as const };
         }
-        return { ...s, status: 'completed' as const, daysLeft: 0 };
+        return { ...s, status: 'completed' as const, daysLeft: 0, items: doneItems };
       }
       return s;
     });
