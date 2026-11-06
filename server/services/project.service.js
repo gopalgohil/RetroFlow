@@ -1044,6 +1044,22 @@ class ProjectService {
         } else {
           s.status = 'completed';
           s.daysLeft = 0;
+
+          // Rollover incomplete items to target sprint
+          const incompleteItems = (s.items || []).filter((i) => i.status !== 'done');
+          const doneItems = (s.items || []).filter((i) => i.status === 'done');
+          s.items = doneItems;
+          s.completedStoryPoints = doneItems.reduce((acc, i) => acc + (Number(i.storyPoints) || 0), 0);
+          s.totalStoryPoints = s.completedStoryPoints;
+
+          if (incompleteItems.length > 0) {
+            const existingIds = new Set((targetSprint.items || []).map((it) => it.id));
+            const existingTitles = new Set((targetSprint.items || []).map((it) => (it.title || '').toLowerCase().trim()));
+            const uniqueRollover = incompleteItems.filter(
+              (it) => !existingIds.has(it.id) && !existingTitles.has((it.title || '').toLowerCase().trim())
+            );
+            targetSprint.items = [...(targetSprint.items || []), ...uniqueRollover];
+          }
         }
       }
     });

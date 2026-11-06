@@ -47,7 +47,7 @@ export const RetroNotFound: React.FC<RetroNotFoundProps> = memo(function RetroNo
               ← Back to Projects
             </Link>
             <Link
-              href="/dashboard?tab=sessions"
+              href="/dashboard/sessions"
               className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-[#0e1015] text-white text-xs font-bold shadow-xs hover:bg-slate-800 dark:hover:bg-[#12151c] dark:border dark:border-white/[0.08] transition-colors cursor-pointer"
             >
               ← Workspace Dashboard

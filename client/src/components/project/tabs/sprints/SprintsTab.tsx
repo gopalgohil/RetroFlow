@@ -65,6 +65,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [editingDatesSprint, setEditingDatesSprint] = useState<Sprint | null>(null);
   const [sprintToComplete, setSprintToComplete] = useState<Sprint | null>(null);
+  const [sprintToStart, setSprintToStart] = useState<Sprint | null>(null);
   const [sprintToReopen, setSprintToReopen] = useState<Sprint | null>(null);
   const [sprintToDelete, setSprintToDelete] = useState<Sprint | null>(null);
 
@@ -413,13 +414,57 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     setSprintToComplete(null);
   };
 
-  const handleReopenSprint = async (sprint: Sprint) => {
+  const handleStartSprint = async (sprint: Sprint) => {
+    const targetNum = sprint.number || 1;
     const updatedSprints = (project.sprints || []).map((s) => {
       if (s.id === sprint.id) {
         return {
           ...s,
           status: 'active' as const,
           daysLeft: project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14,
+        };
+      }
+      if (s.status === 'active') {
+        const isFuture = (s.number || 0) > targetNum;
+        return {
+          ...s,
+          status: (isFuture ? 'upcoming' : 'completed') as any,
+          daysLeft: isFuture ? s.daysLeft : 0,
+        };
+      }
+      return s;
+    });
+
+    const optimisticProject = { ...project, sprints: updatedSprints };
+    onProjectUpdated(optimisticProject);
+    setSprintToStart(null);
+
+    try {
+      const updated = await ProjectApiService.startSprint(project.id, sprint.id);
+      if (updated) onProjectUpdated(updated);
+    } catch (err) {
+      console.warn('[SprintsTab] API start sprint fallback to mock:', err);
+      const fallback = ProjectDataService.startSprint(project.id, sprint.id);
+      if (fallback) onProjectUpdated(fallback);
+    }
+  };
+
+  const handleReopenSprint = async (sprint: Sprint) => {
+    const targetNum = sprint.number || 1;
+    const updatedSprints = (project.sprints || []).map((s) => {
+      if (s.id === sprint.id) {
+        return {
+          ...s,
+          status: 'active' as const,
+          daysLeft: project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14,
+        };
+      }
+      if (s.status === 'active') {
+        const isFuture = (s.number || 0) > targetNum;
+        return {
+          ...s,
+          status: (isFuture ? 'upcoming' : 'completed') as any,
+          daysLeft: isFuture ? s.daysLeft : 0,
         };
       }
       return s;
@@ -537,6 +582,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
               deletingItemId={deletingItemId}
               onToggleExpand={toggleExpand}
               onCompleteSprint={(sp) => setSprintToComplete(sp)}
+              onStartSprint={(sp) => setSprintToStart(sp)}
               onReopenSprint={(sp) => setSprintToReopen(sp)}
               onEditDates={(sp) => setEditingDatesSprint(sp)}
               onDeleteSprint={(sp) => setSprintToDelete(sp)}
@@ -582,22 +628,57 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         />
       )}
 
-      {sprintToReopen && (
-        <ConfirmDialog
-          isOpen={Boolean(sprintToReopen)}
-          onClose={() => setSprintToReopen(null)}
-          onConfirm={() => {
-            if (sprintToReopen) {
-              handleReopenSprint(sprintToReopen);
+      {sprintToStart && (() => {
+        const currentlyActive = (project.sprints || []).find(
+          (s) => s.status === 'active' && s.id !== sprintToStart.id
+        );
+        return (
+          <ConfirmDialog
+            isOpen={Boolean(sprintToStart)}
+            onClose={() => setSprintToStart(null)}
+            onConfirm={() => {
+              if (sprintToStart) {
+                handleStartSprint(sprintToStart);
+              }
+            }}
+            title={`Start ${sprintToStart.name}?`}
+            message={
+              currentlyActive
+                ? `"${currentlyActive.name}" is currently active. Agile Scrum standards enforce strictly 1 active sprint at a time. Starting "${sprintToStart.name}" will automatically complete "${currentlyActive.name}" and roll over any incomplete tasks to this new sprint.`
+                : `Are you ready to activate "${sprintToStart.name}"? Live countdown tracking and sprint execution will begin immediately.`
             }
-          }}
-          title={`Reopen ${sprintToReopen.name}?`}
-          message={`Are you sure you want to reopen "${sprintToReopen.name}"? This will reactivate the sprint, restore live countdown tracking, and allow team members to continue updating items.`}
-          confirmLabel="Reopen Sprint"
-          cancelLabel="Cancel"
-          variant="primary"
-        />
-      )}
+            confirmLabel={currentlyActive ? `Start Sprint & Complete ${currentlyActive.name}` : 'Start Sprint'}
+            cancelLabel="Cancel"
+            variant={currentlyActive ? 'warning' : 'success'}
+          />
+        );
+      })()}
+
+      {sprintToReopen && (() => {
+        const currentlyActive = (project.sprints || []).find(
+          (s) => s.status === 'active' && s.id !== sprintToReopen.id
+        );
+        return (
+          <ConfirmDialog
+            isOpen={Boolean(sprintToReopen)}
+            onClose={() => setSprintToReopen(null)}
+            onConfirm={() => {
+              if (sprintToReopen) {
+                handleReopenSprint(sprintToReopen);
+              }
+            }}
+            title={`Reopen ${sprintToReopen.name}?`}
+            message={
+              currentlyActive
+                ? `"${currentlyActive.name}" is currently active. Agile Scrum standards enforce strictly 1 active sprint at a time. Reopening "${sprintToReopen.name}" will automatically return "${currentlyActive.name}" to Upcoming status so your team stays focused on one sprint.`
+                : `Are you sure you want to reopen "${sprintToReopen.name}"? This will reactivate the sprint, restore live countdown tracking, and allow team members to continue updating items.`
+            }
+            confirmLabel={currentlyActive ? `Reopen & Pause ${currentlyActive.name}` : 'Reopen Sprint'}
+            cancelLabel="Cancel"
+            variant={currentlyActive ? 'warning' : 'primary'}
+          />
+        );
+      })()}
 
       {sprintToDelete && (
         <ConfirmDialog

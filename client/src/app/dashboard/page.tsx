@@ -31,5 +31,5 @@ export default async function DashboardPage() {
     return <WaitingForApprovalView user={initialUser} />;
   }
 
-  return <DashboardClient initialUser={initialUser} />;
+  return <DashboardClient initialUser={initialUser} initialTab="projects" />;
 }

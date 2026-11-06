@@ -58,7 +58,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
     } else if (projectId || projectKey) {
       router.push(`/projects/${projectId || projectKey}?tab=retros`);
     } else {
-      router.push('/dashboard?tab=sessions');
+      router.push('/dashboard/sessions');
     }
   };
 
@@ -81,7 +81,7 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
 
         {!isGuest ? (
           <Link
-            href="/dashboard?tab=sessions"
+            href="/dashboard/sessions"
             title="Digiflux Retrospective Sessions"
             className="w-8 h-8 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white flex items-center justify-center p-1.5 shadow-xs shrink-0 select-none font-bold dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
           >

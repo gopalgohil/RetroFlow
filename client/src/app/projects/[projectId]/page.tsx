@@ -29,6 +29,7 @@ import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
 import { CreateRetroPayload } from '@/types/retro';
+import { TAB_TO_PATH, DashboardTab } from '@/hooks/useDashboardTabs';
 import { api, ENDPOINTS } from '@/lib/api';
 import { getRetroSocket } from '@/lib/socket';
 import {
@@ -548,7 +549,8 @@ function ProjectDetailContent() {
       <Sidebar
         activeTab="projects"
         setActiveTab={(t) => {
-          router.push(`/dashboard?tab=${t}`);
+          const path = TAB_TO_PATH[t as DashboardTab] || `/dashboard/${t === 'action_items' ? 'action-items' : t}`;
+          router.push(path);
         }}
         activeSessionsCount={activeSessionsCount}
         user={activeUser}
@@ -733,7 +735,7 @@ function ProjectDetailContent() {
                   if (typeof window !== 'undefined') {
                     localStorage.removeItem('retroflow_active_project_id');
                   }
-                  router.push('/dashboard?tab=projects');
+                  router.push('/dashboard/projects');
                 }}
                 className="w-full py-2.5 px-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a]"
               >

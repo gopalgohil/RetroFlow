@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar, Clock, Check, ChevronDown, ChevronUp, Pencil, RotateCcw, Trash2, MoreVertical } from 'lucide-react';
+import { Calendar, Clock, Check, ChevronDown, ChevronUp, Pencil, RotateCcw, Trash2, MoreVertical, Play } from 'lucide-react';
 import { Sprint } from '@/types/project';
 import { StatusPill, ProgressBar } from '@/components/ui';
 import { formatDateDMY } from '@/lib/dateUtils';
@@ -27,6 +27,7 @@ export interface SprintCardProps {
   deletingItemId?: string | null;
   onToggleExpand: (sprintId: string) => void;
   onCompleteSprint: (sprint: Sprint) => void;
+  onStartSprint?: (sprint: Sprint) => void;
   onReopenSprint?: (sprint: Sprint) => void;
   onEditDates: (sprint: Sprint) => void;
   onDeleteSprint?: (sprint: Sprint) => void;
@@ -62,6 +63,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
   deletingItemId = null,
   onToggleExpand,
   onCompleteSprint,
+  onStartSprint,
   onReopenSprint,
   onEditDates,
   onDeleteSprint,
@@ -203,14 +205,27 @@ export const SprintCard: React.FC<SprintCardProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {canManageProject && sprint.status !== 'completed' && (
+            {canManageProject && sprint.status === 'active' && (
               <button
                 type="button"
                 onClick={() => onCompleteSprint(sprint)}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                title="Complete and finish active tracking for this sprint"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Complete Sprint</span>
+              </button>
+            )}
+
+            {canManageProject && sprint.status === 'upcoming' && (
+              <button
+                type="button"
+                onClick={() => (onStartSprint ? onStartSprint(sprint) : onReopenSprint?.(sprint))}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4d9720] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                title="Start this sprint and begin execution"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Start Sprint</span>
               </button>
             )}
 
