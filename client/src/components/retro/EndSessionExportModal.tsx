@@ -822,16 +822,23 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                     <span>Sprint #{sp.number || 1}</span>
                                   )}
                                   {(() => {
-                                    if (sp.status === 'upcoming') {
-                                      const sStart = sp.startDate ? new Date(sp.startDate).getTime() : 0;
-                                      const sEnd = sp.endDate ? new Date(sp.endDate).getTime() : 0;
-                                      const duration = sStart && sEnd ? Math.max(1, Math.round((sEnd - sStart) / 86400000) + 1) : null;
-                                      return duration ? <span>• {duration}d duration</span> : null;
+                                    if (sp.status === 'completed') {
+                                      return <span>• Completed</span>;
                                     }
-                                    const remainingDays = sp.endDate
-                                      ? Math.max(0, Math.ceil((new Date(sp.endDate).getTime() - Date.now()) / 86400000))
-                                      : sp.daysLeft;
-                                    return remainingDays !== undefined ? <span>• {remainingDays}d left</span> : null;
+                                    const sStart = sp.startDate ? new Date(sp.startDate).getTime() : 0;
+                                    const sEnd = sp.endDate ? new Date(sp.endDate).getTime() : 0;
+                                    const totalDays = sStart && sEnd ? Math.max(1, Math.round((sEnd - sStart) / 86400000) + 1) : 14;
+
+                                    if (sp.status === 'upcoming') {
+                                      return <span>• {totalDays}d duration</span>;
+                                    }
+
+                                    // Active sprint: capped to total sprint duration so future calendar dates don't show unrealistic numbers
+                                    const rawRemaining = sp.endDate
+                                      ? Math.ceil((new Date(sp.endDate).getTime() - Date.now()) / 86400000)
+                                      : (sp.daysLeft ?? totalDays);
+                                    const daysRemaining = Math.max(1, Math.min(totalDays, rawRemaining));
+                                    return <span>• {daysRemaining}d left</span>;
                                   })()}
                                   {Array.isArray(sp.items) && (
                                     <span>• {sp.items.length} items</span>

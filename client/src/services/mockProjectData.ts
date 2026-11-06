@@ -367,8 +367,10 @@ export class ProjectDataService {
 
     project.sprints = project.sprints.map((s) => {
       if (s.id === sprintId) {
-        const endMs = new Date(payload.endDate).getTime();
-        const diffDays = Math.ceil((endMs - Date.now()) / 86400000);
+        const startMs = new Date(payload.startDate).getTime();
+        const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000));
+        const rawRemaining = Math.ceil((endMs - Date.now()) / 86400000);
+        const daysLeft = s.status === 'completed' ? 0 : Math.max(0, Math.min(totalDays, rawRemaining));
         const cappedItems = (s.items || []).map((item) => {
           if (item.dueDate) {
             const itemDueMs = new Date(item.dueDate).getTime();
@@ -383,7 +385,7 @@ export class ProjectDataService {
           ...s,
           startDate: payload.startDate,
           endDate: payload.endDate,
-          daysLeft: Math.max(0, diffDays),
+          daysLeft,
           goal: payload.goal !== undefined ? payload.goal : s.goal,
           name: payload.name !== undefined ? payload.name : s.name,
           items: cappedItems,
@@ -416,9 +418,11 @@ export class ProjectDataService {
     const hasActive = project.sprints.some((s) => s.status === 'active');
     const status: 'active' | 'upcoming' = hasActive ? 'upcoming' : 'active';
 
+    const startMs = new Date(payload.startDate).getTime();
     const endMs = new Date(payload.endDate).getTime();
-    const diffDays = Math.ceil((endMs - Date.now()) / 86400000);
-    const daysLeft = Math.max(0, diffDays);
+    const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000));
+    const rawRemaining = Math.ceil((endMs - Date.now()) / 86400000);
+    const daysLeft = status === 'active' ? Math.max(0, Math.min(totalDays, rawRemaining)) : totalDays;
 
     const newSprint: Sprint = {
       id: `sprint-${Date.now()}`,

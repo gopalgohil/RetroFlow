@@ -812,12 +812,18 @@ class ProjectService {
       const defaultManagerName = projectManager?.name || project.lead?.name || 'Project Manager';
 
       project.sprints.forEach((s) => {
-        if (s.startDate && s.endDate && s.status === 'active') {
+        if (s.status === 'completed') {
+          s.daysLeft = 0;
+        } else if (s.startDate && s.endDate && s.status === 'active') {
           const sEnd = new Date(s.endDate).getTime();
           const sStart = new Date(s.startDate).getTime();
           const totalDays = Math.max(1, Math.ceil((sEnd - sStart) / (1000 * 60 * 60 * 24)));
           const rawRemaining = Math.ceil((sEnd - Date.now()) / (1000 * 60 * 60 * 24));
           s.daysLeft = Math.max(0, Math.min(totalDays, rawRemaining));
+        } else if (s.startDate && s.endDate && s.status === 'upcoming') {
+          const sEnd = new Date(s.endDate).getTime();
+          const sStart = new Date(s.startDate).getTime();
+          s.daysLeft = Math.max(1, Math.ceil((sEnd - sStart) / (1000 * 60 * 60 * 24)));
         }
 
         if (Array.isArray(s.items)) {
@@ -1698,9 +1704,9 @@ class ProjectService {
     if (goal !== undefined) sprint.goal = goal;
     if (name !== undefined) sprint.name = name;
 
-    const nowMs = Date.now();
-    const diffDays = Math.ceil((endMs - nowMs) / 86400000);
-    sprint.daysLeft = Math.max(0, diffDays);
+    const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000));
+    const rawRemaining = Math.ceil((endMs - Date.now()) / 86400000);
+    sprint.daysLeft = sprint.status === 'completed' ? 0 : Math.max(0, Math.min(totalDays, rawRemaining));
 
     // Auto-cap: If any task dueDate exceeds the updated sprint endDate, cap it to sprint.endDate
     if (Array.isArray(sprint.items)) {
@@ -1741,9 +1747,9 @@ class ProjectService {
     const hasActive = project.sprints.some((s) => s.status === 'active');
     const status = hasActive ? 'upcoming' : 'active';
 
-    const nowMs = Date.now();
-    const diffDays = Math.ceil((endMs - nowMs) / 86400000);
-    const daysLeft = Math.max(0, diffDays);
+    const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000));
+    const rawRemaining = Math.ceil((endMs - Date.now()) / 86400000);
+    const daysLeft = status === 'active' ? Math.max(0, Math.min(totalDays, rawRemaining)) : totalDays;
 
     const newSprint = {
       id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
