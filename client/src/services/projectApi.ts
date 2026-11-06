@@ -101,7 +101,7 @@ export class ProjectApiService {
     search?: string;
   }): Promise<PaginatedProjectsResponse> {
     const page = options?.page || 1;
-    const limit = options?.limit || 6;
+    const limit = options?.limit || 8;
     const filter = options?.filter || 'all';
     const search = options?.search || '';
 

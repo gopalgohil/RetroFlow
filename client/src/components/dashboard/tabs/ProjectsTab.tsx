@@ -70,7 +70,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationMeta>({
     page: 1,
-    limit: 6,
+    limit: 8,
     totalItems: 0,
     totalPages: 1,
     hasNextPage: false,
@@ -166,7 +166,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
       try {
         const res = await ProjectApiService.getPaginatedProjects({
           page,
-          limit: 6,
+          limit: 8,
           filter: activeFilter,
           search: activeSearch,
         });

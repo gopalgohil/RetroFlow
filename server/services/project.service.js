@@ -89,7 +89,7 @@ class ProjectService {
 
     const {
       page = 1,
-      limit = 6,
+      limit = 8,
       filter = 'all',
       search = '',
       all = false,
@@ -194,7 +194,7 @@ class ProjectService {
 
     const isAll = all === true || all === 'true' || String(limit).toLowerCase() === 'all' || Number(limit) === 0;
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = isAll ? 1000 : Math.min(50, Math.max(1, parseInt(limit, 10) || 6));
+    const limitNum = isAll ? 1000 : Math.min(50, Math.max(1, parseInt(limit, 10) || 8));
     const skip = (pageNum - 1) * limitNum;
 
     const [allCount, managedCount, archivedCount, totalItems, rawProjects] = await Promise.all([
