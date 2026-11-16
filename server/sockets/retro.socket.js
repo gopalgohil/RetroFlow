@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { z } from 'zod';
 import RetroBoard from '../models/RetroBoard.js';
+import Project from '../models/Project.js';
 import User from '../models/User.js';
 import projectService from '../services/project.service.js';
 import retroService from '../services/retro.service.js';
@@ -221,10 +222,40 @@ export function initRetroSocket(io) {
           socket.user = currentUser;
         }
 
+        const session = await RetroBoard.findOne({ shareToken }).populate('projectId').lean();
+        if (!session) {
+          if (callback) callback({ error: 'Retrospective session not found' });
+          return;
+        }
+
+        let linkedProject = session.projectId && typeof session.projectId === 'object' ? session.projectId : null;
+        if (!linkedProject) {
+          linkedProject = await Project.findOne({
+            $or: [
+              ...(session.projectId ? [{ _id: session.projectId }] : []),
+              ...(session.projectKey ? [{ key: session.projectKey }] : []),
+              { 'retrospectives.shareToken': shareToken },
+            ],
+          }).select('lead members key name').lean();
+        }
+
+        const isAuthorized = checkCanAccessRetro(session, linkedProject, currentUser);
+        if (!isAuthorized) {
+          console.warn(
+            `[Socket Security] Unauthorized join:retro access blocked for ${
+              currentUser?.email || currentUser?.name || 'unauthenticated guest'
+            } on retro ${shareToken}`
+          );
+          if (callback) {
+            callback({
+              error: 'Access Denied: You must be an assigned member of this project to join this retrospective.',
+            });
+          }
+          return;
+        }
+
         const roomName = `retro:${shareToken}`;
         socket.join(roomName);
-
-        const session = await RetroBoard.findOne({ shareToken }).lean();
 
         if (callback) {
           callback({
@@ -504,6 +535,64 @@ export function initRetroSocket(io) {
               return true;
             }
           }
+        }
+      }
+
+      return false;
+    }
+
+    function checkCanAccessRetro(board, linkedProj, user) {
+      if (!user || user.isGuest) return false;
+      const userEmail = (user.email || '').toLowerCase().trim();
+      if (!userEmail) return false;
+
+      const userRole = (user.role || '').toLowerCase().trim();
+      const userProjectRole = (user.projectRole || '').toLowerCase().trim();
+      const isWsAdmin =
+        userRole === 'admin' ||
+        userRole.includes('admin') ||
+        userProjectRole === 'admin' ||
+        isSuperAdmin(userEmail);
+      if (isWsAdmin) return true;
+
+      if (board?.createdBy) {
+        const createdById =
+          typeof board.createdBy === 'object'
+            ? String(board.createdBy._id || board.createdBy.id || '')
+            : String(board.createdBy);
+        const createdByEmail =
+          typeof board.createdBy === 'object'
+            ? (board.createdBy.email || '').toLowerCase().trim()
+            : '';
+        if (
+          (user.id && createdById === String(user.id)) ||
+          (createdByEmail && createdByEmail === userEmail)
+        ) {
+          return true;
+        }
+      }
+
+      if (Array.isArray(board?.approvedMembers)) {
+        const isApproved = board.approvedMembers.some(
+          (m) => (typeof m === 'string' ? m : m.email || '').toLowerCase().trim() === userEmail
+        );
+        if (isApproved) return true;
+      }
+
+      const project =
+        linkedProj ||
+        ((board?.projectId && typeof board.projectId === 'object') ? board.projectId : null) ||
+        ((board?.project && typeof board.project === 'object') ? board.project : null);
+
+      if (project) {
+        const leadEmail = (project.lead?.email || '').toLowerCase().trim();
+        if (leadEmail && leadEmail === userEmail) return true;
+
+        if (Array.isArray(project.members)) {
+          const isMember = project.members.some(
+            (m) => (m.email || '').toLowerCase().trim() === userEmail
+          );
+          if (isMember) return true;
         }
       }
 
@@ -799,41 +888,72 @@ export function initRetroSocket(io) {
       }
     });
 
-    socket.on('session:end', async ({ shareToken, retroId }, callback) => {
+    socket.on('session:end', async (payload, callback) => {
       try {
+        const { shareToken, retroId } = payload || {};
         const query = shareToken ? { shareToken } : { _id: retroId };
-        const board = await RetroBoard.findOneAndUpdate(
-          query,
-          { $set: { status: 'completed' } },
-          { new: true }
-        );
+        const board = await RetroBoard.findOne(query).populate('projectId');
+        if (!board) {
+          if (callback) callback({ error: 'Retrospective session not found' });
+          return;
+        }
 
-        if (board) {
-          if (board.projectId || board.projectKey) {
-            const projectQuery = board.projectId
-              ? { _id: board.projectId }
-              : { key: board.projectKey };
+        let linkedProject = board.projectId && typeof board.projectId === 'object' ? board.projectId : null;
+        if (!linkedProject) {
+          linkedProject = await Project.findOne({
+            $or: [
+              ...(board.projectId ? [{ _id: board.projectId }] : []),
+              ...(board.projectKey ? [{ key: board.projectKey }] : []),
+              { 'retrospectives.shareToken': board.shareToken },
+            ],
+          }).lean();
+          if (linkedProject) {
+            board.projectId = linkedProject;
+          }
+        }
 
-            const updateSet = { 'retrospectives.$.status': 'completed' };
-            const m = await Project.updateOne(
-              { ...projectQuery, 'retrospectives.shareToken': board.shareToken },
+        const requester = getAuthenticatedUser(payload);
+        if (!checkAdminOrManager(board, requester)) {
+          console.warn(
+            `[Socket Security] Unauthorized session:end attempt blocked for user ${
+              requester?.email || requester?.name || 'unknown'
+            }`
+          );
+          if (callback) {
+            callback({
+              error: 'Permission denied: Only Project Lead, Managers, or Workspace Admins can end the session.',
+            });
+          }
+          return;
+        }
+
+        board.status = 'completed';
+        await board.save();
+
+        if (board.projectId || board.projectKey) {
+          const projectQuery = board.projectId && board.projectId._id
+            ? { _id: board.projectId._id }
+            : (board.projectId ? { _id: board.projectId } : { key: board.projectKey });
+
+          const updateSet = { 'retrospectives.$.status': 'completed' };
+          const m = await Project.updateOne(
+            { ...projectQuery, 'retrospectives.shareToken': board.shareToken },
+            { $set: updateSet }
+          );
+          if (!m || m.matchedCount === 0) {
+            await Project.updateOne(
+              { ...projectQuery, 'retrospectives.id': board._id.toString() },
               { $set: updateSet }
             );
-            if (!m || m.matchedCount === 0) {
-              await Project.updateOne(
-                { ...projectQuery, 'retrospectives.id': board._id.toString() },
-                { $set: updateSet }
-              );
-            }
           }
-
-          const roomName = `retro:${board.shareToken}`;
-          retroNamespace.to(roomName).emit('session:ended', {
-            status: 'completed',
-            retroId: board._id,
-            shareToken: board.shareToken,
-          });
         }
+
+        const roomName = `retro:${board.shareToken}`;
+        retroNamespace.to(roomName).emit('session:ended', {
+          status: 'completed',
+          retroId: board._id,
+          shareToken: board.shareToken,
+        });
 
         if (callback) callback({ success: true, status: 'completed' });
       } catch (err) {
@@ -842,41 +962,72 @@ export function initRetroSocket(io) {
       }
     });
 
-    socket.on('session:reopen', async ({ shareToken, retroId }, callback) => {
+    socket.on('session:reopen', async (payload, callback) => {
       try {
+        const { shareToken, retroId } = payload || {};
         const query = shareToken ? { shareToken } : { _id: retroId };
-        const board = await RetroBoard.findOneAndUpdate(
-          query,
-          { $set: { status: 'active' } },
-          { new: true }
-        );
+        const board = await RetroBoard.findOne(query).populate('projectId');
+        if (!board) {
+          if (callback) callback({ error: 'Retrospective session not found' });
+          return;
+        }
 
-        if (board) {
-          if (board.projectId || board.projectKey) {
-            const projectQuery = board.projectId
-              ? { _id: board.projectId }
-              : { key: board.projectKey };
+        let linkedProject = board.projectId && typeof board.projectId === 'object' ? board.projectId : null;
+        if (!linkedProject) {
+          linkedProject = await Project.findOne({
+            $or: [
+              ...(board.projectId ? [{ _id: board.projectId }] : []),
+              ...(board.projectKey ? [{ key: board.projectKey }] : []),
+              { 'retrospectives.shareToken': board.shareToken },
+            ],
+          }).lean();
+          if (linkedProject) {
+            board.projectId = linkedProject;
+          }
+        }
 
-            const updateSet = { 'retrospectives.$.status': 'active' };
-            const m = await Project.updateOne(
-              { ...projectQuery, 'retrospectives.shareToken': board.shareToken },
+        const requester = getAuthenticatedUser(payload);
+        if (!checkAdminOrManager(board, requester)) {
+          console.warn(
+            `[Socket Security] Unauthorized session:reopen attempt blocked for user ${
+              requester?.email || requester?.name || 'unknown'
+            }`
+          );
+          if (callback) {
+            callback({
+              error: 'Permission denied: Only Project Lead, Managers, or Workspace Admins can reopen the session.',
+            });
+          }
+          return;
+        }
+
+        board.status = 'active';
+        await board.save();
+
+        if (board.projectId || board.projectKey) {
+          const projectQuery = board.projectId && board.projectId._id
+            ? { _id: board.projectId._id }
+            : (board.projectId ? { _id: board.projectId } : { key: board.projectKey });
+
+          const updateSet = { 'retrospectives.$.status': 'active' };
+          const m = await Project.updateOne(
+            { ...projectQuery, 'retrospectives.shareToken': board.shareToken },
+            { $set: updateSet }
+          );
+          if (!m || m.matchedCount === 0) {
+            await Project.updateOne(
+              { ...projectQuery, 'retrospectives.id': board._id.toString() },
               { $set: updateSet }
             );
-            if (!m || m.matchedCount === 0) {
-              await Project.updateOne(
-                { ...projectQuery, 'retrospectives.id': board._id.toString() },
-                { $set: updateSet }
-              );
-            }
           }
-
-          const roomName = `retro:${board.shareToken}`;
-          retroNamespace.to(roomName).emit('session:reopened', {
-            status: 'active',
-            retroId: board._id,
-            shareToken: board.shareToken,
-          });
         }
+
+        const roomName = `retro:${board.shareToken}`;
+        retroNamespace.to(roomName).emit('session:reopened', {
+          status: 'active',
+          retroId: board._id,
+          shareToken: board.shareToken,
+        });
 
         if (callback) callback({ success: true, status: 'active' });
       } catch (err) {

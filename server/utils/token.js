@@ -1,11 +1,18 @@
 import jwt from 'jsonwebtoken';
+import env from '../config/env.js';
+
+const getJwtSecret = () => {
+  const secret = env.JWT_SECRET || process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('FATAL: JWT_SECRET environment variable is missing.');
+  }
+  return secret;
+};
 
 export const generateToken = (payload, expiresIn = '7d') => {
-  const secret = process.env.JWT_SECRET || 'retroflow_default_jwt_secret_dev_key_2026';
-  return jwt.sign(payload, secret, { expiresIn });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn });
 };
 
 export const verifyToken = (token) => {
-  const secret = process.env.JWT_SECRET || 'retroflow_default_jwt_secret_dev_key_2026';
-  return jwt.verify(token, secret);
+  return jwt.verify(token, getJwtSecret());
 };

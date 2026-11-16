@@ -715,6 +715,19 @@ class RetroService {
       throw ApiError.forbidden('Retrospective session not found or you do not have permission to edit it.');
     }
 
+    if (payload.status && payload.status !== retro.status) {
+      const canChangeStatus =
+        isAdmin ||
+        isManager ||
+        isCreator ||
+        (hasProjectPermission && (userProjectRole === 'Manager' || userProjectRole === 'Project Lead'));
+      if (!canChangeStatus) {
+        throw ApiError.forbidden(
+          'Permission denied: Only Project Lead, Managers, or Workspace Admins can complete or reopen a retrospective.'
+        );
+      }
+    }
+
     if (payload.topics) {
       payload.topics = payload.topics.map((t, idx) => ({
         topicId: t.topicId || crypto.randomUUID(),
