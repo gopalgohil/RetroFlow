@@ -81,14 +81,8 @@ export const ProjectDangerZone: React.FC<ProjectDangerZoneProps> = ({
 
       ProjectApiService.clearProjectsCache();
 
-      if (res && res.nextProjectId) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('retroflow_active_project_id', res.nextProjectId);
-        }
-        router.push(`/projects/${res.nextProjectId}`);
-      } else {
-        router.push('/dashboard?tab=projects');
-      }
+      // Return cleanly to the projects dashboard after deletion
+      router.push('/dashboard?tab=projects');
     } catch (err: any) {
       setDeleteError(err.message || 'Failed to delete project.');
       setIsDeleting(false);

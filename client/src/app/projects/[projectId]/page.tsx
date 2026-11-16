@@ -305,6 +305,19 @@ function ProjectDetailContent() {
       })
       .catch((err: any) => {
         if (isMounted) {
+          if (err?.status === 404 || err?.message?.toLowerCase().includes('not found')) {
+            setProject(null);
+            setProjectNotFoundError(true);
+            setAccessDeniedError(null);
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('retroflow_active_project_id');
+              localStorage.removeItem('retroflow_cached_active_project');
+              try {
+                sessionStorage.removeItem(`retroflow_cached_project_${projectId}`);
+              } catch {}
+            }
+            return;
+          }
           if (err?.message?.includes('Access Denied') || err?.status === 403) {
             setAccessDeniedError(
               err.message ||
@@ -315,15 +328,6 @@ function ProjectDetailContent() {
           const fallback = ProjectDataService.getProjectById(projectId);
           if (fallback) {
             setProject(fallback);
-          } else if (err?.status === 404 || err?.message?.toLowerCase().includes('not found')) {
-            setProject(null);
-            setProjectNotFoundError(true);
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('retroflow_active_project_id');
-              try {
-                sessionStorage.removeItem(`retroflow_cached_project_${projectId}`);
-              } catch {}
-            }
           }
         }
       })

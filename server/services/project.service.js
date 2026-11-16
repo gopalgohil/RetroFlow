@@ -2759,7 +2759,20 @@ class ProjectService {
       console.warn('[deleteProject] Failed to cascade delete RetroBoards:', cascadeErr);
     }
 
-    const nextProject = await Project.findOne().sort({ createdAt: -1 });
+    let nextProject = null;
+    if (currentUser) {
+      const email = currentUser.email?.toLowerCase().trim();
+      const isAdmin = currentUser.role?.toLowerCase() === 'admin' || isSuperAdmin(email);
+      const query = { _id: { $ne: project._id }, isArchived: { $ne: true } };
+      if (!isAdmin && email) {
+        query.$or = [
+          { 'lead.email': email },
+          { 'members.email': email },
+          ...(currentUser._id ? [{ createdBy: currentUser._id }] : []),
+        ];
+      }
+      nextProject = await Project.findOne(query).sort({ createdAt: -1 });
+    }
 
     return {
       deletedProjectId: project._id.toString(),
