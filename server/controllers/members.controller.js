@@ -26,6 +26,13 @@ class MembersController {
   });
 
   addWhitelistMember = asyncHandler(async (req, res) => {
+    const isAdmin =
+      req.user.role === 'admin' ||
+      isSuperAdmin(req.user.email);
+    if (!isAdmin) {
+      throw ApiError.forbidden('Only workspace administrators can whitelist members.');
+    }
+
     const result = await membersService.whitelistDeveloper(req.user._id, req.body.email);
     return ApiResponse.ok(
       res,
@@ -35,6 +42,13 @@ class MembersController {
   });
 
   removeWhitelistMember = asyncHandler(async (req, res) => {
+    const isAdmin =
+      req.user.role === 'admin' ||
+      isSuperAdmin(req.user.email);
+    if (!isAdmin) {
+      throw ApiError.forbidden('Only workspace administrators can remove workspace members.');
+    }
+
     const result = await membersService.removeWhitelistMember(req.user._id, req.params.email);
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     return ApiResponse.ok(
@@ -45,6 +59,13 @@ class MembersController {
   });
 
   bulkRemoveMembers = asyncHandler(async (req, res) => {
+    const isAdmin =
+      req.user.role === 'admin' ||
+      isSuperAdmin(req.user.email);
+    if (!isAdmin) {
+      throw ApiError.forbidden('Only workspace administrators can remove workspace members.');
+    }
+
     const { emails } = req.body || {};
     if (!Array.isArray(emails) || emails.length === 0) {
       throw new Error('Emails list is required for bulk removal.');
@@ -64,6 +85,13 @@ class MembersController {
   });
 
   updateMemberRole = asyncHandler(async (req, res) => {
+    const isAdmin =
+      req.user.role === 'admin' ||
+      isSuperAdmin(req.user.email);
+    if (!isAdmin) {
+      throw ApiError.forbidden('Only workspace administrators can update member roles.');
+    }
+
     const result = await membersService.updateMemberRole(
       req.user._id,
       req.params.email,
