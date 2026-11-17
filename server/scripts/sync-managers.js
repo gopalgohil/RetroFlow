@@ -33,7 +33,7 @@ async function run() {
     console.log(`Updated user ${email}:`, res);
   }
 
-  const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalgohel249@gmail.com').toLowerCase().trim();
+  const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalg@internal.digiflux.io').toLowerCase().trim();
   await User.updateOne(
     { email: adminEmail },
     { $set: { role: 'admin', projectRole: 'Manager' } }

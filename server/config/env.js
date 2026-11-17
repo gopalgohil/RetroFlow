@@ -11,7 +11,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(16, 'JWT_SECRET must be defined in environment variables (minimum 16 characters)'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   BREVO_API_KEY: z.string().optional(),
-  BREVO_SENDER_EMAIL: z.string().email().optional().default('gopalgohel249@gmail.com'),
+  BREVO_SENDER_EMAIL: z.string().email().optional().default('support@digiflux.io'),
   BREVO_SENDER_NAME: z.string().optional().default('Digiflux'),
 });
 

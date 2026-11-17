@@ -65,7 +65,10 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: emailValidation,
+  email: emailValidation.refine(
+    (val) => isAllowedCompanyEmail(val),
+    { message: 'Only official @digiflux.io or @internal.digiflux.io emails are allowed' }
+  ),
   password: z
     .string({ required_error: 'Password is required' })
     .min(1, 'Password is required'),

@@ -22,7 +22,7 @@ class EmailService {
 
   async sendEmail({ to, subject, htmlContent, textContent }) {
     const apiKey = env.BREVO_API_KEY || process.env.BREVO_API_KEY;
-    const senderEmail = env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || 'gopalgohel249@gmail.com';
+    const senderEmail = env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || 'support@digiflux.io';
     const senderName = env.BREVO_SENDER_NAME || process.env.BREVO_SENDER_NAME || 'Digiflux';
 
     if (!apiKey || apiKey === 'your_brevo_api_key_here') {
@@ -714,7 +714,7 @@ class EmailService {
 
   async notifyAdminNewUser({ user, reviewUrl }) {
     try {
-      const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalgohel249@gmail.com').toLowerCase().trim();
+      const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalg@internal.digiflux.io').toLowerCase().trim();
       const url = reviewUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard?tab=members`;
       const htmlContent = this.getAdminNewUserPendingTemplate({
         userName: user.name || 'New User',
@@ -755,7 +755,7 @@ class EmailService {
 
   async notifyUserRejected({ user, contactEmail }) {
     try {
-      const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalgohel249@gmail.com').toLowerCase().trim();
+      const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalg@internal.digiflux.io').toLowerCase().trim();
       const htmlContent = this.getUserAccountRejectedTemplate({
         userName: user.name || user.email.split('@')[0],
         userEmail: user.email,

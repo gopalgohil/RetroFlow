@@ -179,6 +179,10 @@ class AuthService {
   async login({ email, password }) {
     const normalizedEmail = email.toLowerCase().trim();
 
+    if (!isAllowedCompanyEmail(normalizedEmail)) {
+      throw ApiError.unauthorized('Access restricted: Only official @digiflux.io or @internal.digiflux.io accounts can sign in.');
+    }
+
     let user = await User.findOne({ email: normalizedEmail });
 
     if (!user && isSuperAdmin(normalizedEmail)) {
@@ -434,6 +438,14 @@ class AuthService {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+
+    if (!isAllowedCompanyEmail(normalizedEmail)) {
+      throw new ApiError(
+        403,
+        'Access restricted: Only official @digiflux.io or @internal.digiflux.io Google accounts can sign in.'
+      );
+    }
+
     let user = await User.findOne({ email: normalizedEmail });
 
     const isAdmin = Boolean(

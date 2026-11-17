@@ -105,7 +105,12 @@ export const verifyEmailSchema = z.object({
 export type VerifyEmailFormData = z.infer<typeof verifyEmailSchema>;
 
 export const loginSchema = z.object({
-  email: emailValidation,
+  email: emailValidation.refine(
+    (val) => isAllowedCompanyEmail(val),
+    {
+      message: 'Only official @digiflux.io or @internal.digiflux.io emails are allowed',
+    }
+  ),
   password: z
     .string()
     .min(1, 'Password is required'),
