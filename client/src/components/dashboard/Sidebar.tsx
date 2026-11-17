@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import {
   LayoutDashboard,
@@ -143,14 +142,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }`}
       >
         <div className="h-16 flex items-center pl-[38px] pr-6 border-b border-slate-200/80 dark:border-white/[0.08] shrink-0">
-          <Link
-            href="/dashboard"
-            onClick={() => {
-              setActiveTab('sessions');
-              if (onCloseMobile) onCloseMobile();
-            }}
-            className="flex items-center cursor-pointer select-none"
-            title="Go to Retrospective Sessions"
+          <div
+            className="flex items-center select-none"
+            title="Digiflux RetroFlow"
           >
             <Image
               src="/logo.svg"
@@ -161,7 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               priority
               unoptimized
             />
-          </Link>
+          </div>
         </div>
 
         <div className="px-3 pt-12 pb-6 flex-1 overflow-y-auto">
