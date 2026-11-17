@@ -7,6 +7,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { generateToken } from '../utils/token.js';
 import emailService from './email.service.js';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
+import { isAllowedCompanyEmail } from '../validations/auth.js';
 import env from '../config/env.js';
 
 const hashOtp = async (otp) => {
@@ -26,6 +27,10 @@ const verifyOtp = async (plainOtp, storedOtp) => {
 class AuthService {
   async register({ name, email, password }) {
     const normalizedEmail = email.toLowerCase().trim();
+
+    if (!isAllowedCompanyEmail(normalizedEmail) && !isSuperAdmin(normalizedEmail)) {
+      throw ApiError.forbidden('Only official @digiflux.io or @internal.digiflux.io emails are allowed to register.');
+    }
 
     let user = await User.findOne({ email: normalizedEmail });
 
@@ -462,6 +467,12 @@ class AuthService {
       user.lastLogin = new Date();
       await user.save();
     } else {
+      if (!isAllowedCompanyEmail(normalizedEmail) && !isAdmin) {
+        throw new ApiError(
+          403,
+          'Access restricted: Only official @digiflux.io or @internal.digiflux.io Google accounts can register.'
+        );
+      }
       isNewUser = true;
       const isPreApproved = Boolean(
         isAdmin ||

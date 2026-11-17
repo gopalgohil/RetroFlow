@@ -50,6 +50,14 @@ export function validateEmailAddress(email: string): { isValid: boolean; error?:
   return { isValid: true };
 }
 
+export const ALLOWED_EMAIL_DOMAINS = ['digiflux.io', 'internal.digiflux.io'] as const;
+
+export const isAllowedCompanyEmail = (email: string): boolean => {
+  if (!email || !email.includes('@')) return false;
+  const domain = email.trim().toLowerCase().split('@')[1];
+  return (ALLOWED_EMAIL_DOMAINS as readonly string[]).includes(domain);
+};
+
 export const signupSchema = z
   .object({
     fullName: z
@@ -58,7 +66,12 @@ export const signupSchema = z
       .min(2, 'Full name must be at least 2 characters long')
       .max(60, 'Full name must be under 60 characters')
       .regex(/^[a-zA-Z\s'-]+$/, 'Name can only contain letters, spaces, and hyphens'),
-    email: emailValidation,
+    email: emailValidation.refine(
+      (val) => isAllowedCompanyEmail(val),
+      {
+        message: 'Only official @digiflux.io or @internal.digiflux.io emails are allowed to register',
+      }
+    ),
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters long')

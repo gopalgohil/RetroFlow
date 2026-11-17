@@ -39,13 +39,24 @@ export const emailValidation = z
     message: 'Please provide a valid email address (e.g. name@example.com)',
   });
 
+export const ALLOWED_EMAIL_DOMAINS = ['digiflux.io', 'internal.digiflux.io'];
+
+export const isAllowedCompanyEmail = (email) => {
+  if (!email || typeof email !== 'string' || !email.includes('@')) return false;
+  const domain = email.trim().toLowerCase().split('@')[1];
+  return ALLOWED_EMAIL_DOMAINS.includes(domain);
+};
+
 export const registerSchema = z.object({
   name: z
     .string({ required_error: 'Full name is required' })
     .trim()
     .min(2, 'Name must be at least 2 characters')
     .max(60, 'Name must be under 60 characters'),
-  email: emailValidation,
+  email: emailValidation.refine(
+    (val) => isAllowedCompanyEmail(val),
+    { message: 'Only official @digiflux.io or @internal.digiflux.io emails are allowed to register' }
+  ),
   password: z
     .string({ required_error: 'Password is required' })
     .min(8, 'Password must be at least 8 characters')
