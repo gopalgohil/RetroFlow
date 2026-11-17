@@ -335,7 +335,9 @@ class MembersService {
     );
 
     if (user) {
-      const loginUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
+      const loginUrl = (env.CLIENT_URL && !env.CLIENT_URL.includes('localhost'))
+        ? `${env.CLIENT_URL}/login`
+        : 'https://retro.digiflux.click/login';
       emailService.notifyUserApproved({
         user,
         role: user.projectRole || assignedRole || 'Developer',

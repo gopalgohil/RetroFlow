@@ -6,7 +6,7 @@ dotenv.config();
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(5000),
-  CLIENT_URL: z.string().default('http://localhost:3000'),
+  CLIENT_URL: z.string().default('https://retro.digiflux.click'),
   MONGODB_URI: z.string().min(1, 'MONGODB_URI must be defined in environment variables'),
   JWT_SECRET: z.string().min(16, 'JWT_SECRET must be defined in environment variables (minimum 16 characters)'),
   JWT_EXPIRES_IN: z.string().default('7d'),

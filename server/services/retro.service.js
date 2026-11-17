@@ -922,7 +922,9 @@ class RetroService {
       { expiresIn: '7d' }
     );
 
-    const clientUrl = env.CLIENT_URL || 'http://localhost:3000';
+    const clientUrl = (env.CLIENT_URL && !env.CLIENT_URL.includes('localhost'))
+      ? env.CLIENT_URL
+      : 'https://retro.digiflux.click';
     const inviteUrl = `${clientUrl}/retro/${retro.shareToken}?invite=${magicToken}`;
     const senderName = retro.createdBy?.name || 'Your Workspace Admin';
 

@@ -1,6 +1,27 @@
 import env from '../config/env.js';
+import { getSuperAdminEmail } from '../config/admin.config.js';
 
 class EmailService {
+  getClientUrl() {
+    const raw = (process.env.CLIENT_URL || env.CLIENT_URL || '').trim().replace(/\/+$/, '');
+    if (raw && !raw.includes('localhost') && !raw.includes('127.0.0.1')) {
+      return raw;
+    }
+    return 'https://retro.digiflux.click';
+  }
+
+  cleanUrl(url, defaultPath = '/login') {
+    const clientUrl = this.getClientUrl();
+    if (!url || typeof url !== 'string') {
+      const normalizedPath = defaultPath.startsWith('/') ? defaultPath : `/${defaultPath}`;
+      return `${clientUrl}${normalizedPath}`;
+    }
+    let sanitized = url.trim();
+    if (sanitized.includes('localhost') || sanitized.includes('127.0.0.1')) {
+      sanitized = sanitized.replace(/^https?:\/\/[^\/]+/, clientUrl);
+    }
+    return sanitized.replace(/([^:])\/\/+/g, '$1/');
+  }
   _htmlToPlainText(html) {
     if (!html) return '';
     return html
@@ -271,6 +292,7 @@ class EmailService {
     isMagicInvite = true,
     recipientEmail = '',
   }) {
+    const cleanInviteUrl = this.cleanUrl(inviteUrl, '/login');
     const topicPillsHtml =
       topics && topics.length > 0
         ? topics
@@ -351,7 +373,7 @@ class EmailService {
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
               <tr>
                 <td align="center" style="background-color: #5cb028; border-radius: 10px; box-shadow: 0 4px 14px rgba(92, 176, 40, 0.3);">
-                  <a href="${inviteUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                  <a href="${cleanInviteUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
                     Join Live Retrospective Board &rarr;
                   </a>
                 </td>
@@ -364,7 +386,7 @@ class EmailService {
       <!-- Fallback Direct Link -->
       <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
         Or paste this link into your browser:<br />
-        <a href="${inviteUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${inviteUrl}</a>
+        <a href="${cleanInviteUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${cleanInviteUrl}</a>
       </p>
     `;
 
@@ -385,6 +407,7 @@ class EmailService {
     customMessage,
     recipientEmail,
   }) {
+    const cleanInviteUrl = this.cleanUrl(inviteUrl, '/dashboard');
     const bodyHtml = `
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="display: inline-block; width: 52px; height: 52px; line-height: 52px; border-radius: 16px; background-color: #eaf5e3; color: #2d6614; border: 1px solid #cdeac0; font-size: 20px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
@@ -434,7 +457,7 @@ class EmailService {
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 340px;">
               <tr>
                 <td align="center" style="background-color: #5cb028; border-radius: 10px; box-shadow: 0 4px 14px rgba(92, 176, 40, 0.3);">
-                  <a href="${inviteUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
+                  <a href="${cleanInviteUrl}" target="_blank" class="email-btn" style="display: block; width: 100%; box-sizing: border-box; background-color: #5cb028; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; padding: 13px 20px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; line-height: 1.2;">
                     Open Project Dashboard &rarr;
                   </a>
                 </td>
@@ -447,7 +470,7 @@ class EmailService {
       <!-- Fallback Direct Link -->
       <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0 0 16px 0; line-height: 1.5;">
         Or copy and paste this link in your browser:<br />
-        <a href="${inviteUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${inviteUrl}</a>
+        <a href="${cleanInviteUrl}" style="color: #3d8318; text-decoration: underline; word-break: break-all; font-weight: 600;">${cleanInviteUrl}</a>
       </p>
     `;
 
@@ -460,7 +483,7 @@ class EmailService {
 
   getAdminNewUserPendingTemplate({ userName, userEmail, registeredAt, reviewUrl }) {
     const formattedDate = registeredAt || new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-    const cleanReviewUrl = (reviewUrl || `${(env.CLIENT_URL || 'http://localhost:3000').replace(/\/+$/, '')}/admin/users`).replace(/([^:])\/\/+/g, '$1/');
+    const cleanReviewUrl = this.cleanUrl(reviewUrl, '/dashboard?tab=members');
     const bodyHtml = `
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
@@ -521,7 +544,7 @@ class EmailService {
   }
 
   getUserAccountApprovedTemplate({ userName, userEmail, role = 'Developer', loginUrl }) {
-    const cleanLoginUrl = (loginUrl || `${(env.CLIENT_URL || 'http://localhost:3000').replace(/\/+$/, '')}/login`).replace(/([^:])\/\/+/g, '$1/');
+    const cleanLoginUrl = this.cleanUrl(loginUrl, '/login');
     const bodyHtml = `
       <div style="text-align: center; margin-bottom: 28px;">
         <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #eaf5e3; color: #2d6614; border: 1px solid #cdeac0; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
@@ -623,7 +646,7 @@ class EmailService {
   }
 
   getUserWelcomeTemplate({ userName, userEmail, dashboardUrl }) {
-    const cleanUrl = (dashboardUrl || `${(env.CLIENT_URL || 'http://localhost:3000').replace(/\/+$/, '')}/login`).replace(/([^:])\/\/+/g, '$1/');
+    const cleanUrl = this.cleanUrl(dashboardUrl, '/login');
     const bodyHtml = `
       <div style="text-align: center; margin-bottom: 28px;">
         <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
@@ -695,7 +718,7 @@ class EmailService {
 
   async notifyUserWelcome({ user, dashboardUrl }) {
     try {
-      const url = dashboardUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
+      const url = this.cleanUrl(dashboardUrl, '/login');
       const htmlContent = this.getUserWelcomeTemplate({
         userName: user.name || user.email.split('@')[0],
         userEmail: user.email,
@@ -714,8 +737,8 @@ class EmailService {
 
   async notifyAdminNewUser({ user, reviewUrl }) {
     try {
-      const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalg@internal.digiflux.io').toLowerCase().trim();
-      const url = reviewUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard?tab=members`;
+      const adminEmail = getSuperAdminEmail();
+      const url = this.cleanUrl(reviewUrl, '/dashboard?tab=members');
       const htmlContent = this.getAdminNewUserPendingTemplate({
         userName: user.name || 'New User',
         userEmail: user.email,
@@ -735,7 +758,7 @@ class EmailService {
 
   async notifyUserApproved({ user, role, loginUrl }) {
     try {
-      const url = loginUrl || `${env.CLIENT_URL || 'http://localhost:3000'}/login`;
+      const url = this.cleanUrl(loginUrl, '/login');
       const htmlContent = this.getUserAccountApprovedTemplate({
         userName: user.name || user.email.split('@')[0],
         userEmail: user.email,
@@ -755,7 +778,7 @@ class EmailService {
 
   async notifyUserRejected({ user, contactEmail }) {
     try {
-      const adminEmail = (process.env.SUPER_ADMIN_EMAIL || 'gopalg@internal.digiflux.io').toLowerCase().trim();
+      const adminEmail = getSuperAdminEmail();
       const htmlContent = this.getUserAccountRejectedTemplate({
         userName: user.name || user.email.split('@')[0],
         userEmail: user.email,

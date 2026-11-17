@@ -2853,7 +2853,9 @@ class ProjectService {
     if (!project) throw new Error('Project not found');
     this.assertCanManage(project, currentUser);
 
-    const clientUrl = env.CLIENT_URL || 'http://localhost:3000';
+    const clientUrl = (env.CLIENT_URL && !env.CLIENT_URL.includes('localhost'))
+      ? env.CLIENT_URL
+      : 'https://retro.digiflux.click';
     const inviteUrl = `${clientUrl}/projects/${project._id || project.key}`;
     const senderName = currentUser?.name || project.lead?.name || 'Project Lead';
     const projectLead = project.lead?.name || 'Designated Lead';

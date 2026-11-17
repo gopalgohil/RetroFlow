@@ -129,7 +129,9 @@ class AuthService {
     });
 
     if (!isSuper) {
-      const reviewUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard?tab=members`;
+      const reviewUrl = (env.CLIENT_URL && !env.CLIENT_URL.includes('localhost'))
+        ? `${env.CLIENT_URL}/dashboard?tab=members`
+        : 'https://retro.digiflux.click/dashboard?tab=members';
       emailService.notifyAdminNewUser({ user, reviewUrl }).catch((err) => {
         console.error('[Brevo Admin Notification Error]', err.message);
       });
@@ -512,7 +514,9 @@ class AuthService {
           console.error('[Brevo User Welcome Notification Error]', err.message);
         });
 
-        const reviewUrl = `${env.CLIENT_URL || 'http://localhost:3000'}/dashboard?tab=members`;
+        const reviewUrl = (env.CLIENT_URL && !env.CLIENT_URL.includes('localhost'))
+          ? `${env.CLIENT_URL}/dashboard?tab=members`
+          : 'https://retro.digiflux.click/dashboard?tab=members';
         emailService.notifyAdminNewUser({ user, reviewUrl }).catch((err) => {
           console.error('[Brevo Admin Notification Error]', err.message);
         });
