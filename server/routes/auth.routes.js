@@ -16,6 +16,7 @@ const router = Router();
 
 router.post(
   '/register',
+  authLimiter,
   validate(registerSchema),
   authController.register
 );
@@ -43,6 +44,7 @@ router.post(
 
 router.post(
   '/google',
+  authLimiter,
   authController.googleAuth
 );
 
