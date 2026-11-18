@@ -15,6 +15,9 @@ import {
   FolderKanban,
   AlertTriangle,
   Clock,
+  MoreVertical,
+  Edit3,
+  User,
 } from 'lucide-react';
 import { TeamMember, PaginationMeta } from '@/types/retro';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -152,6 +155,106 @@ const MemberRoleDropdown: React.FC<MemberRoleDropdownProps> = ({
   );
 };
 
+interface MemberActionsMenuProps {
+  member: TeamMember;
+  onViewProfile: (m: TeamMember) => void;
+  onEditRole: (m: TeamMember) => void;
+  onRemove: (m: TeamMember) => void;
+  rowIndex: number;
+  totalRows: number;
+}
+
+const MemberActionsMenu: React.FC<MemberActionsMenuProps> = ({
+  member,
+  onViewProfile,
+  onEditRole,
+  onRemove,
+  rowIndex,
+  totalRows,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const openUpward = totalRows > 3 && rowIndex >= totalRows - 2;
+
+  return (
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="p-1.5 rounded-xl border border-slate-200/90 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18] bg-white dark:bg-[#12151c] text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-all cursor-pointer shadow-2xs hover:shadow-xs"
+        title="More actions"
+        aria-label="Member actions"
+      >
+        <MoreVertical className="w-4 h-4" />
+      </button>
+
+      {isOpen && (
+        <div
+          className={`absolute right-0 ${
+            openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          } z-50 w-48 rounded-2xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] py-1.5 animate-in fade-in zoom-in-95 duration-150 overflow-hidden flex flex-col`}
+        >
+          <div className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
+            Actions
+          </div>
+          <div className="py-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onViewProfile(member);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors cursor-pointer text-left"
+            >
+              <User className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+              <span>View Profile & Details</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onEditRole(member);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors cursor-pointer text-left"
+            >
+              <Edit3 className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
+              <span>Edit Role</span>
+            </button>
+
+            <div className="my-1 border-t border-slate-100 dark:border-white/[0.06]" />
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onRemove(member);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer text-left"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+              <span>Remove</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const MembersTab: React.FC<MembersTabProps> = ({
   members,
   pendingRequests = [],
@@ -182,6 +285,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({
   const [rejectingEmail, setRejectingEmail] = useState<string | null>(null);
   const [memberToReject, setMemberToReject] = useState<TeamMember | null>(null);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [memberToEditRole, setMemberToEditRole] = useState<TeamMember | null>(null);
+  const [selectedNewRole, setSelectedNewRole] = useState<string>('Developer');
 
   const handleRoleSelect = async (memberEmail: string, newRole: string) => {
     if (!onUpdateMemberRole) return;
@@ -558,15 +663,21 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               </button>
                             </div>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => setMemberToRemove(m)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:border-rose-300 dark:hover:border-rose-500/50 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
-                              title={`Remove ${m.name || m.email} from workspace`}
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 transition-colors" />
-                              <span>Remove</span>
-                            </button>
+                            <MemberActionsMenu
+                              member={m}
+                              onViewProfile={(mem) => setSelectedMember(mem)}
+                              onEditRole={(mem) => {
+                                setMemberToEditRole(mem);
+                                setSelectedNewRole(
+                                  mem.projectRole && mem.projectRole !== 'Unassigned'
+                                    ? mem.projectRole === 'QA Specialist' ? 'QA' : mem.projectRole
+                                    : 'Developer'
+                                );
+                              }}
+                              onRemove={(mem) => setMemberToRemove(mem)}
+                              rowIndex={index}
+                              totalRows={members.length}
+                            />
                           )}
                         </td>
                       )}
@@ -780,6 +891,88 @@ export const MembersTab: React.FC<MembersTabProps> = ({
               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 shrink-0">
                 Pending Approval
               </span>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {memberToEditRole && (
+        <Modal
+          isOpen={!!memberToEditRole}
+          onClose={() => setMemberToEditRole(null)}
+          title="Edit Member Role"
+          description={`Update workspace project role for ${memberToEditRole.name || memberToEditRole.email}`}
+          maxWidth="sm"
+          footer={
+            <>
+              <button
+                type="button"
+                onClick={() => setMemberToEditRole(null)}
+                className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#12151c] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={updatingRoleEmail === memberToEditRole.email}
+                onClick={async () => {
+                  if (!selectedNewRole || !memberToEditRole) return;
+                  await handleRoleSelect(memberToEditRole.email, selectedNewRole);
+                  setMemberToEditRole(null);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4d9720] dark:bg-[#88c958] dark:hover:bg-[#96dc63] text-white dark:text-[#08090a] text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                {updatingRoleEmail === memberToEditRole.email ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <span>Save Role</span>
+                )}
+              </button>
+            </>
+          }
+        >
+          <div className="space-y-4 py-2">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.08]">
+              <UserAvatar
+                name={memberToEditRole.name || memberToEditRole.email}
+                email={memberToEditRole.email}
+                avatar={memberToEditRole.avatar}
+                size="md"
+              />
+              <div className="min-w-0">
+                <p className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                  {memberToEditRole.name || memberToEditRole.email}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate">
+                  {memberToEditRole.email}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Select Project Role
+              </label>
+              <div className="grid grid-cols-1 gap-2">
+                {ROLE_OPTIONS.map((r) => {
+                  const isSelected = selectedNewRole === r;
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setSelectedNewRole(r)}
+                      className={`flex items-center justify-between p-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer text-left ${
+                        isSelected
+                          ? 'border-[#5cb028] dark:border-[#88c958] bg-[#5cb028]/10 dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] ring-2 ring-[#5cb028]/20'
+                          : 'border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <span>{r}</span>
+                      {isSelected && <Check className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </Modal>
