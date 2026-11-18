@@ -318,10 +318,10 @@ export const MembersTab: React.FC<MembersTabProps> = ({
             <thead className="bg-slate-50/80 dark:bg-[#12151c]/70 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/60 dark:border-white/[0.08]">
               <tr>
                 <th className="px-6 py-3.5">Member Name</th>
+                <th className="px-6 py-3.5">Email Address</th>
                 <th className="px-6 py-3.5">Assigned Projects</th>
                 <th className="px-6 py-3.5">Project Role</th>
                 <th className="px-6 py-3.5">Status</th>
-                <th className="px-6 py-3.5 text-right">Activity</th>
                 {isAdmin && (
                   <th className="px-6 py-3.5 text-right">Actions</th>
                 )}
@@ -333,10 +333,10 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                   <tr key={idx} className="animate-pulse">
                     <td className="px-6 py-4 flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-200/80 dark:bg-white/[0.06] shrink-0" />
-                      <div className="space-y-1.5">
-                        <div className="h-3.5 w-28 bg-slate-200/80 dark:bg-white/[0.06] rounded-md" />
-                        <div className="h-2.5 w-16 bg-slate-100 dark:bg-white/[0.03] rounded-md" />
-                      </div>
+                      <div className="h-3.5 w-28 bg-slate-200/80 dark:bg-white/[0.06] rounded-md" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-3.5 w-36 bg-slate-100 dark:bg-white/[0.06] rounded-md" />
                     </td>
                     <td className="px-6 py-4">
                       <div className="h-6 w-24 bg-slate-100 dark:bg-white/[0.06] rounded-lg" />
@@ -346,9 +346,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                     </td>
                     <td className="px-6 py-4">
                       <div className="h-5 w-14 bg-slate-100 dark:bg-white/[0.06] rounded-full" />
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="h-4 w-12 bg-slate-100 dark:bg-white/[0.06] rounded ml-auto" />
                     </td>
                     {isAdmin && (
                       <td className="px-6 py-4 text-right">
@@ -395,28 +392,23 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               status="online"
                             />
                           </div>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <p className="font-bold text-slate-900 dark:text-white group-hover/member:text-[#88c958] transition-colors">
-                                {m.name || m.email}
-                              </p>
-                              {isSelf && (
-                                <span className="text-[10px] font-semibold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/15 px-1.5 py-0.5 rounded">
-                                  You
-                                </span>
-                              )}
-                            </div>
-                            {isPrimaryOwner || (isSelf && isAdmin) ? (
-                              <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                                Admin
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-medium text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/15 px-1.5 py-0.5 rounded">
-                                {m.projectRole && m.projectRole !== 'Unassigned' ? m.projectRole : 'Developer'}
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-slate-900 dark:text-white group-hover/member:text-[#88c958] transition-colors">
+                              {m.name || m.email}
+                            </p>
+                            {isSelf && (
+                              <span className="text-[10px] font-semibold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/15 px-1.5 py-0.5 rounded">
+                                You
                               </span>
                             )}
                           </div>
                         </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <span className="text-slate-600 dark:text-slate-300 font-medium text-xs select-all">
+                          {m.email}
+                        </span>
                       </td>
 
                       <td className="px-6 py-4">
@@ -516,10 +508,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                             Active
                           </span>
                         )}
-                      </td>
-
-                      <td className="px-6 py-4 text-right">
-                        <span className="text-slate-400 dark:text-slate-500 text-[11px] font-mono">Synced</span>
                       </td>
 
                       {isAdmin && (
