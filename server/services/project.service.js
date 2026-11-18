@@ -1114,9 +1114,25 @@ class ProjectService {
     completedSprint.completedStoryPoints = doneItems.reduce((acc, i) => acc + (Number(i.storyPoints) || 0), 0);
     completedSprint.totalStoryPoints = completedSprint.completedStoryPoints;
 
-    // Calculate Next Sprint Dates (Next Month 1st -> Next Month Last Day)
-    const refDate = completedSprint.endDate ? new Date(completedSprint.endDate) : new Date();
-    const nextDates = getNextMonthlySprintDates(refDate);
+    // Calculate Next Sprint Dates: Start from the FOLLOWING DAY of completion
+    const today = new Date();
+    const nextStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1));
+    const currentMonthEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+    const daysRemainingInMonth = Math.ceil((currentMonthEnd.getTime() - nextStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    let nextEnd;
+    if (daysRemainingInMonth >= 7) {
+      nextEnd = currentMonthEnd;
+    } else {
+      nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 2, 0));
+    }
+
+    const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / (1000 * 60 * 60 * 24)));
+    const nextDates = {
+      startDate: nextStart.toISOString().split('T')[0],
+      endDate: nextEnd.toISOString().split('T')[0],
+      daysLeft: totalDays,
+    };
 
     const nextNum = (completedSprint.number || 0) + 1;
     // Check if next sprint already exists (either by number nextNum or status upcoming)
@@ -1125,9 +1141,10 @@ class ProjectService {
 
     if (nextSprint) {
       nextSprint.status = 'active';
-      nextSprint.startDate = nextSprint.startDate || nextDates.startDate;
-      nextSprint.endDate = nextSprint.endDate || nextDates.endDate;
-      nextSprint.daysLeft = nextDates.daysLeft;
+      nextSprint.startDate = nextDates.startDate;
+      nextSprint.endDate = nextSprint.endDate && new Date(nextSprint.endDate) > new Date(nextDates.startDate) ? nextSprint.endDate : nextDates.endDate;
+      const calculatedDays = Math.max(1, Math.ceil((new Date(nextSprint.endDate).getTime() - new Date(nextSprint.startDate).getTime()) / 86400000));
+      nextSprint.daysLeft = calculatedDays;
     } else {
       nextSprint = {
         id: `sprint-${crypto.randomBytes(4).toString('hex')}`,

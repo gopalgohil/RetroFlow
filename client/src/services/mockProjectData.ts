@@ -178,26 +178,22 @@ export class ProjectDataService {
 
     const incompleteItems = ((completedSprint as Sprint).items || []).filter((i) => i.status !== 'done');
 
-    // Smart Next Sprint calculation: Check if current month still has days left (>= 7 days)
-    const ref = (completedSprint as Sprint).endDate ? new Date((completedSprint as Sprint).endDate) : new Date();
-    const currentMonthEnd = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 0));
-    const nextDay = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth(), ref.getUTCDate() + 1));
+    // Smart Next Sprint calculation: Start from the FOLLOWING DAY of completion
+    const today = new Date();
+    const nextDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1));
+    const currentMonthEnd = new Date(Date.UTC(nextDay.getUTCFullYear(), nextDay.getUTCMonth() + 1, 0));
     const daysRemainingInMonth = Math.ceil((currentMonthEnd.getTime() - nextDay.getTime()) / 86400000) + 1;
 
-    let nextStart: Date;
+    let nextStart: Date = nextDay;
     let nextEnd: Date;
     if (daysRemainingInMonth >= 7) {
-      nextStart = nextDay;
       nextEnd = currentMonthEnd;
     } else {
-      nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
-      nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+      nextEnd = new Date(Date.UTC(nextDay.getUTCFullYear(), nextDay.getUTCMonth() + 2, 0));
     }
 
     const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / 86400000));
-    const now = new Date();
-    const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000);
-    const daysLeft = Math.max(1, Math.min(totalDays, rawDiff));
+    const daysLeft = totalDays;
     const nextStartDate = nextStart.toISOString().split('T')[0];
     const nextEndDate = nextEnd.toISOString().split('T')[0];
 
@@ -207,9 +203,9 @@ export class ProjectDataService {
 
     if (nextSprint) {
       nextSprint.status = 'active';
-      nextSprint.startDate = nextSprint.startDate || nextStartDate;
-      nextSprint.endDate = nextSprint.endDate || nextEndDate;
-      nextSprint.daysLeft = daysLeft;
+      nextSprint.startDate = nextStartDate;
+      nextSprint.endDate = nextSprint.endDate && new Date(nextSprint.endDate) > new Date(nextStartDate) ? nextSprint.endDate : nextEndDate;
+      nextSprint.daysLeft = Math.max(1, Math.ceil((new Date(nextSprint.endDate).getTime() - new Date(nextSprint.startDate).getTime()) / 86400000));
     } else {
       nextSprint = {
         id: `sprint-${Date.now()}`,

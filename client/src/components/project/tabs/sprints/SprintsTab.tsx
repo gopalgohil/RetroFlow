@@ -656,8 +656,12 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
             }
           }}
           title={`Complete ${sprintToComplete.name}?`}
-          message="Completing this sprint will finish active tracking and mark all current tickets as completed for this sprint cycle."
-          confirmLabel="Complete Sprint"
+          message={`Completing this sprint will finish active tracking. The next sprint will automatically start from the following day (${(() => {
+            const tmrw = new Date();
+            tmrw.setDate(tmrw.getDate() + 1);
+            return tmrw.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+          })()}) and carry over any unfinished action items.`}
+          confirmLabel="Complete Sprint & Start Next"
           variant="success"
         />
       )}
