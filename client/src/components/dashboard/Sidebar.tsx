@@ -35,7 +35,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onCloseMobile,
 }) => {
-  const activeUser = user || {
+  const cachedUser = React.useMemo(() => {
+    if (user?.email) return user;
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('retroflow_user');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return user || null;
+  }, [user]);
+
+  const activeUser = cachedUser || {
     name: '',
     email: '',
     role: 'member',
@@ -85,10 +96,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, []);
 
   const canViewMembers =
-    isMounted &&
-    (propCanViewMembers !== undefined
+    propCanViewMembers !== undefined
       ? propCanViewMembers
-      : (isAdmin || isManager) && !isProjectLead && !isDevOrQAOrDevOps);
+      : (isAdmin || isManager) && !isProjectLead && !isDevOrQAOrDevOps;
 
   const navItems = [
     {
