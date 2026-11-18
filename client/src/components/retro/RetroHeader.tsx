@@ -146,7 +146,14 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
         )}
 
         <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#12151c] text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-white/[0.08]">
-          <span className="w-2 h-2 rounded-full bg-[#5cb028] dark:bg-[#88c958] shrink-0" />
+          <span
+            className={`w-2 h-2 rounded-full shrink-0 transition-colors ${
+              socketConnected
+                ? 'bg-[#5cb028] dark:bg-[#88c958]'
+                : 'bg-amber-500 animate-pulse'
+            }`}
+            title={socketConnected ? 'Live Connection Active' : 'Connecting to live session...'}
+          />
           <span
             className="truncate max-w-[130px]"
             title={verifiedGuestEmail ? `${currentAuthorName} (${verifiedGuestEmail})` : currentAuthorName}

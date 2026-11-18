@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, use } from 'react';
-import { ShieldAlert, Lock } from 'lucide-react';
+import { ShieldAlert, Lock, WifiOff } from 'lucide-react';
 import { useRetroSession } from '@/hooks/useRetroSession';
 import {
   RetroHeader,
@@ -143,6 +143,25 @@ export default function LiveRetroBoardPage({
         }
         onReopenSession={session.isFacilitator ? session.reopenSession : undefined}
       />
+
+      {!session.socketConnected && (
+        <div className="bg-amber-500/10 dark:bg-amber-950/40 border-b border-amber-300/80 dark:border-amber-700/50 px-4 py-2 sm:px-6 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200 animate-in fade-in transition-all">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+            <WifiOff className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span className="font-bold">Live connection interrupted</span>
+            <span className="hidden sm:inline text-amber-700 dark:text-amber-300">
+              — Reconnecting to live retrospective session...
+            </span>
+          </div>
+          <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 shrink-0">
+            Reconnecting
+          </span>
+        </div>
+      )}
 
       {isClosed && (
         <div className="bg-slate-100 dark:bg-white/[0.04] border-b border-slate-200 dark:border-white/[0.08] px-4 py-2 sm:px-6 flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 animate-in fade-in">
