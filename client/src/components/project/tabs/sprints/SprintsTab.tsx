@@ -112,12 +112,13 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
   const [statusCounts, setStatusCounts] = useState<{
     all: number;
     active: number;
-    upcoming: number;
+    pending: number;
+    upcoming?: number;
     completed: number;
   }>({
     all: allSprints.length,
     active: allSprints.filter((s) => s.status === 'active').length,
-    upcoming: allSprints.filter((s) => s.status === 'upcoming').length,
+    pending: allSprints.filter((s) => s.status === 'pending' || s.status === 'upcoming').length,
     completed: allSprints.filter((s) => s.status === 'completed').length,
   });
 
@@ -125,13 +126,14 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
     const freshAll = project.sprints || [];
     const freshFiltered = freshAll.filter((s) => {
       if (filter === 'all') return true;
+      if (filter === 'pending') return s.status === 'pending' || s.status === 'upcoming';
       return s.status === filter;
     });
 
     setStatusCounts({
       all: freshAll.length,
       active: freshAll.filter((s) => s.status === 'active').length,
-      upcoming: freshAll.filter((s) => s.status === 'upcoming').length,
+      pending: freshAll.filter((s) => s.status === 'pending' || s.status === 'upcoming').length,
       completed: freshAll.filter((s) => s.status === 'completed').length,
     });
 
@@ -176,7 +178,14 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
       if (res && res.sprints) {
         setPaginatedSprints(res.sprints);
         if (res.pagination) setSprintPagination(res.pagination);
-        if (res.statusCounts) setStatusCounts(res.statusCounts);
+        if (res.statusCounts) {
+          setStatusCounts({
+            all: res.statusCounts.all,
+            active: res.statusCounts.active,
+            pending: res.statusCounts.pending ?? res.statusCounts.upcoming ?? 0,
+            completed: res.statusCounts.completed,
+          });
+        }
       } else {
         const filtered = (project.sprints || []).filter((s) => (tab === 'all' ? true : s.status === tab));
         setPaginatedSprints(filtered.slice(0, sprintLimit));
@@ -238,7 +247,14 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
       if (res && res.sprints) {
         setPaginatedSprints(res.sprints);
         if (res.pagination) setSprintPagination(res.pagination);
-        if (res.statusCounts) setStatusCounts(res.statusCounts);
+        if (res.statusCounts) {
+          setStatusCounts({
+            all: res.statusCounts.all,
+            active: res.statusCounts.active,
+            pending: res.statusCounts.pending ?? res.statusCounts.upcoming ?? 0,
+            completed: res.statusCounts.completed,
+          });
+        }
       } else {
         const filtered = (project.sprints || []).filter((s) => (filter === 'all' ? true : s.status === filter));
         const start = (newPage - 1) * sprintLimit;
@@ -448,7 +464,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         const isFuture = (s.number || 0) > targetNum;
         return {
           ...s,
-          status: (isFuture ? 'upcoming' : 'completed') as any,
+          status: (isFuture ? 'pending' : 'completed') as any,
           daysLeft: isFuture ? s.daysLeft : 0,
           items: doneItems,
         };
@@ -484,7 +500,7 @@ export const SprintsTab: React.FC<SprintsTabProps> = ({
         const isFuture = (s.number || 0) > targetNum;
         return {
           ...s,
-          status: (isFuture ? 'upcoming' : 'completed') as any,
+          status: (isFuture ? 'pending' : 'completed') as any,
           daysLeft: isFuture ? s.daysLeft : 0,
         };
       }

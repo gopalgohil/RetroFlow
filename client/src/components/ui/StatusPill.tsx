@@ -7,6 +7,7 @@ export type StatusPillType =
   | 'at_risk'
   | 'delayed'
   | 'active'
+  | 'pending'
   | 'upcoming'
   | 'completed'
   | 'draft'
@@ -82,11 +83,12 @@ export const StatusPill: React.FC<StatusPillProps> = ({
           defaultLabel: 'Bug',
           hasDot: false,
         };
+      case 'pending':
       case 'upcoming':
         return {
-          pill: 'bg-[#eaf5e3] dark:bg-[#88c958]/10 text-[#3d8318] dark:text-[#88c958] border-[#cdeac0] dark:border-[#88c958]/30',
-          dot: 'bg-[#88c958]',
-          defaultLabel: status || 'Upcoming',
+          pill: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30',
+          dot: 'bg-amber-400',
+          defaultLabel: 'Pending',
           hasDot: false,
         };
       case 'developer':

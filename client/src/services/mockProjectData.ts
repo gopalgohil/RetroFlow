@@ -136,7 +136,7 @@ export class ProjectDataService {
       }
       if (s.status === 'active') {
         if ((s.number || 0) > targetNum) {
-          return { ...s, status: 'upcoming' as const };
+          return { ...s, status: 'pending' as const };
         }
         return { ...s, status: 'completed' as const, daysLeft: 0, items: doneItems };
       }
@@ -199,7 +199,7 @@ export class ProjectDataService {
 
     const nextNum = ((completedSprint as Sprint).number || 0) + 1;
     let nextSprint = project.sprints.find((s) => s.number === nextNum && s.id !== (completedSprint as Sprint).id) ||
-                     project.sprints.find((s) => s.status === 'upcoming');
+                     project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming');
 
     if (nextSprint) {
       nextSprint.status = 'active';
@@ -344,7 +344,7 @@ export class ProjectDataService {
     project.sprints = (project.sprints || []).filter((s) => s.id !== sprintId);
 
     if (!project.sprints.some((s) => s.status === 'active')) {
-      const nextUpcoming = project.sprints.find((s) => s.status === 'upcoming');
+      const nextUpcoming = project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming');
       if (nextUpcoming) {
         nextUpcoming.status = 'active';
       }
@@ -422,8 +422,8 @@ export class ProjectDataService {
     const nextNum = maxNum + 1;
     const sprintName = payload.name?.trim() || `Sprint ${nextNum} - Execution & Backlog`;
 
-    // 1. Status Default: Manually created sprints always default to 'upcoming'
-    const status: 'upcoming' = 'upcoming';
+    // 1. Status Default: Manually created sprints always default to 'pending'
+    const status: 'pending' = 'pending';
 
     const startMs = new Date(payload.startDate).getTime();
     const endMs = new Date(payload.endDate).getTime();
@@ -527,7 +527,7 @@ export class ProjectDataService {
     const project = projects[projIndex];
     let sprint = project.sprints.find((s) => s.id === targetSprintId);
     if (!sprint) {
-      sprint = project.sprints.find((s) => s.status === 'upcoming') ||
+      sprint = project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming') ||
                project.sprints.find((s) => s.status === 'active') ||
                project.sprints[0];
     }
@@ -581,7 +581,7 @@ export class ProjectDataService {
       0
     );
 
-    if (sprint.status === 'upcoming') {
+    if (sprint.status === 'pending' || sprint.status === 'upcoming') {
       sprint.status = 'active';
       sprint.daysLeft = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
     }

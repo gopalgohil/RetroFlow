@@ -98,7 +98,7 @@ class RetroService {
           id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
           name: `Sprint ${sprintNum} - Execution & Backlog`,
           number: sprintNum,
-          status: linkedProject.sprints.length === 0 ? 'active' : 'upcoming',
+          status: linkedProject.sprints.length === 0 ? 'active' : 'pending',
           startDate: payload.startDate
             ? new Date(payload.startDate).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],

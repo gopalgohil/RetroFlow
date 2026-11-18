@@ -54,7 +54,7 @@ export interface Sprint {
   projectId: string;
   name: string;
   number: number;
-  status: 'active' | 'upcoming' | 'completed';
+  status: 'active' | 'pending' | 'completed' | 'upcoming';
   startDate: string;
   endDate: string;
   goal: string;

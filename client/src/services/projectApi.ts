@@ -284,13 +284,13 @@ export class ProjectApiService {
   ): Promise<{
     sprints: Sprint[];
     pagination: PaginationMeta;
-    statusCounts?: { all: number; active: number; upcoming: number; completed: number };
+    statusCounts?: { all: number; active: number; pending?: number; upcoming?: number; completed: number };
   }> {
     const res = await api.get<
       ApiResponseWrapper<{
         sprints: Sprint[];
         pagination: PaginationMeta;
-        statusCounts?: { all: number; active: number; upcoming: number; completed: number };
+        statusCounts?: { all: number; active: number; pending?: number; upcoming?: number; completed: number };
       }>
     >(`${ENDPOINTS.PROJECTS}/${projectId}/sprints`, { params: options });
     return res.data;

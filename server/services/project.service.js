@@ -349,7 +349,7 @@ class ProjectService {
               id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
               name: `Sprint ${sprintNum} - Execution & Backlog`,
               number: sprintNum,
-              status: project.sprints.length === 0 ? 'active' : 'upcoming',
+              status: project.sprints.length === 0 ? 'active' : 'pending',
               startDate: retroItem.startDate || (liveBoard.startDate ? new Date(liveBoard.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
               endDate: retroItem.endDate || (liveBoard.endDate ? new Date(liveBoard.endDate).toISOString().split('T')[0] : new Date(Date.now() + cadenceDays * 86400000).toISOString().split('T')[0]),
               goal: `${retroItem.title || `Sprint ${sprintNum}`} deliverables and retrospective action items.`,
@@ -421,7 +421,7 @@ class ProjectService {
             if (targetSprint && targetSprint.status === 'completed' && card.status !== 'done') {
               const activeOrUpcoming =
                 project.sprints.find((s) => s.status === 'active' && s.id !== targetSprint.id) ||
-                project.sprints.find((s) => s.status === 'upcoming');
+                project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming');
               if (activeOrUpcoming) {
                 targetSprint = activeOrUpcoming;
               }
@@ -433,7 +433,7 @@ class ProjectService {
               } else {
                 targetSprint =
                   project.sprints.find((s) => s.status === 'active' && s.id !== sprint.id) ||
-                  project.sprints.find((s) => s.status === 'upcoming') ||
+                  project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming') ||
                   project.sprints.find((s) => s.number === sprintNum + 1);
               }
             }
@@ -820,7 +820,7 @@ class ProjectService {
           const totalDays = Math.max(1, Math.ceil((sEnd - sStart) / (1000 * 60 * 60 * 24)));
           const rawRemaining = Math.ceil((sEnd - Date.now()) / (1000 * 60 * 60 * 24));
           s.daysLeft = Math.max(0, Math.min(totalDays, rawRemaining));
-        } else if (s.startDate && s.endDate && s.status === 'upcoming') {
+        } else if (s.startDate && s.endDate && (s.status === 'pending' || s.status === 'upcoming')) {
           const sEnd = new Date(s.endDate).getTime();
           const sStart = new Date(s.startDate).getTime();
           s.daysLeft = Math.max(1, Math.ceil((sEnd - sStart) / (1000 * 60 * 60 * 24)));
@@ -1060,9 +1060,9 @@ class ProjectService {
         s.daysLeft = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
       } else if (s.status === 'active') {
         // If the other active sprint is a FUTURE sprint (e.g. Sprint 3 when reopening Sprint 2),
-        // mark it 'upcoming', NOT 'completed'!
+        // mark it 'pending', NOT 'completed'!
         if ((s.number || 0) > targetNum) {
-          s.status = 'upcoming';
+          s.status = 'pending';
         } else {
           s.status = 'completed';
           s.daysLeft = 0;
@@ -1135,9 +1135,9 @@ class ProjectService {
     };
 
     const nextNum = (completedSprint.number || 0) + 1;
-    // Check if next sprint already exists (either by number nextNum or status upcoming)
+    // Check if next sprint already exists (either by number nextNum or status pending/upcoming)
     let nextSprint = project.sprints.find((s) => s.number === nextNum && s.id !== completedSprint.id) ||
-      project.sprints.find((s) => s.status === 'upcoming');
+      project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming');
 
     if (nextSprint) {
       nextSprint.status = 'active';
@@ -1507,7 +1507,7 @@ class ProjectService {
     const [deletedSprint] = project.sprints.splice(sprintIndex, 1);
 
     if (deletedSprint.status === 'active') {
-      const nextSprint = project.sprints.find((s) => s.status === 'upcoming');
+      const nextSprint = project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming');
       if (nextSprint) {
         nextSprint.status = 'active';
       }
@@ -1601,17 +1601,23 @@ class ProjectService {
 
     const allSprints = Array.isArray(project.sprints) ? [...project.sprints] : [];
 
+    const pendingCount = allSprints.filter((s) => s.status === 'pending' || s.status === 'upcoming').length;
     const statusCounts = {
       all: allSprints.length,
       active: allSprints.filter((s) => s.status === 'active').length,
-      upcoming: allSprints.filter((s) => s.status === 'upcoming').length,
+      pending: pendingCount,
+      upcoming: pendingCount,
       completed: allSprints.filter((s) => s.status === 'completed').length,
     };
 
     let filtered = allSprints;
 
     if (status && status !== 'all') {
-      filtered = filtered.filter((s) => s.status === status);
+      if (status === 'pending' || status === 'upcoming') {
+        filtered = filtered.filter((s) => s.status === 'pending' || s.status === 'upcoming');
+      } else {
+        filtered = filtered.filter((s) => s.status === status);
+      }
     }
 
     if (search && search.trim()) {
@@ -1761,8 +1767,8 @@ class ProjectService {
     const nextNum = maxNum + 1;
     const sprintName = name?.trim() || `Sprint ${nextNum} - Execution & Backlog`;
 
-    // 1. Status Default: Manually created sprints always default to 'upcoming' (never auto-activated)
-    const status = 'upcoming';
+    // 1. Status Default: Manually created sprints always default to 'pending' (never auto-activated)
+    const status = 'pending';
 
     const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000));
     const daysLeft = totalDays;
@@ -1955,7 +1961,7 @@ class ProjectService {
       }
 
       if (!sprint) {
-        sprint = project.sprints.find((s) => s.status === 'upcoming');
+        sprint = project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming');
       }
 
       if (!sprint) {
@@ -1997,7 +2003,7 @@ class ProjectService {
       }
     }
 
-    if (sprint && sprint.status === 'upcoming') {
+    if (sprint && (sprint.status === 'pending' || sprint.status === 'upcoming')) {
       sprint.status = 'active';
       let refDate = new Date();
       if (items[0]?.sourceRetroId) {

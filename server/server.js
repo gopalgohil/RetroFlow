@@ -124,6 +124,21 @@ let server;
 const startServer = async () => {
   await database.connect();
 
+  // One-time automatic migration: Update legacy 'upcoming' sprints to 'pending'
+  try {
+    const Project = (await import('./models/Project.js')).default;
+    const res = await Project.updateMany(
+      { 'sprints.status': 'upcoming' },
+      { $set: { 'sprints.$[elem].status': 'pending' } },
+      { arrayFilters: [{ 'elem.status': 'upcoming' }] }
+    );
+    if (res && res.modifiedCount > 0) {
+      console.log(`[Migration] Updated ${res.modifiedCount} project(s) containing 'upcoming' sprints to 'pending'.`);
+    }
+  } catch (migErr) {
+    console.warn('[Migration] Sprint status update note:', migErr.message);
+  }
+
   cronService.initMonthlyRetroCron(io);
 
   server = httpServer.listen(PORT, () => {

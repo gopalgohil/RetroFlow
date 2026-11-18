@@ -3,14 +3,15 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 
-export type SprintFilterTab = 'all' | 'active' | 'upcoming' | 'completed';
+export type SprintFilterTab = 'all' | 'active' | 'pending' | 'completed';
 
 export interface SprintFilterBarProps {
   filter: SprintFilterTab;
   statusCounts: {
     all: number;
     active: number;
-    upcoming: number;
+    pending?: number;
+    upcoming?: number;
     completed: number;
   };
   onFilterChange: (tab: SprintFilterTab) => void;
@@ -27,10 +28,11 @@ export const SprintFilterBar: React.FC<SprintFilterBarProps> = ({
   canManageProject = true,
   onCreateSprint,
 }) => {
+  const pendingTotal = statusCounts.pending ?? statusCounts.upcoming ?? 0;
   const tabs: { id: SprintFilterTab; label: string }[] = [
     { id: 'all', label: `All Sprints (${statusCounts.all})` },
     { id: 'active', label: `Active (${statusCounts.active})` },
-    { id: 'upcoming', label: `Upcoming (${statusCounts.upcoming})` },
+    { id: 'pending', label: `Pending (${pendingTotal})` },
     { id: 'completed', label: `Completed (${statusCounts.completed})` },
   ];
 

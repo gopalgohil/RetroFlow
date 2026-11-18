@@ -97,7 +97,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
 
   const sprintTimeLabel = React.useMemo(() => {
     if (sprint.status === 'completed') return null;
-    if (sprint.status === 'upcoming') {
+    if (sprint.status === 'pending' || sprint.status === 'upcoming') {
       return `${totalSprintDays} days duration`;
     }
     // Active sprint
@@ -219,7 +219,7 @@ export const SprintCard: React.FC<SprintCardProps> = ({
               </button>
             )}
 
-            {canManageProject && sprint.status === 'upcoming' && (
+            {canManageProject && (sprint.status === 'pending' || sprint.status === 'upcoming') && (
               <button
                 type="button"
                 onClick={() => (onStartSprint ? onStartSprint(sprint) : onReopenSprint?.(sprint))}

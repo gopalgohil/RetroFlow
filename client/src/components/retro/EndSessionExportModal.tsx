@@ -140,7 +140,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       (s) =>
         s.number === nextSprintNum ||
         s.name.toLowerCase().includes(`sprint ${nextSprintNum}`)
-    ) || targetProj.sprints?.find((s) => s.status === 'upcoming');
+    ) || targetProj.sprints?.find((s) => s.status === 'pending' || s.status === 'upcoming');
 
     if (!targetSprint && sprintId) {
       const explicit = targetProj.sprints?.find((s) => s.id === sprintId);
@@ -242,7 +242,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       projectId: selectedProject?.id || '',
       name: `Sprint ${nextSprintNum} - Execution & Backlog`,
       number: nextSprintNum,
-      status: 'upcoming' as const,
+      status: 'pending' as const,
       startDate: nextStart.toISOString().split('T')[0],
       endDate: nextEnd.toISOString().split('T')[0],
       goal: `Sprint ${nextSprintNum} deliverables and retrospective action items.`,
@@ -751,8 +751,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                           className={`w-2 h-2 rounded-full shrink-0 ${
                             currentSprint.status === 'active'
                               ? 'bg-emerald-500 animate-pulse ring-2 ring-emerald-500/20'
-                              : currentSprint.status === 'upcoming'
-                              ? 'bg-sky-500'
+                              : (currentSprint.status === 'pending' || currentSprint.status === 'upcoming')
+                              ? 'bg-amber-500'
                               : 'bg-slate-400'
                           }`}
                         />
@@ -804,12 +804,12 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                     className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider ${
                                       sp.status === 'active'
                                         ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                                        : sp.status === 'upcoming'
-                                        ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30'
+                                        : (sp.status === 'pending' || sp.status === 'upcoming')
+                                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
                                         : 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30'
                                     }`}
                                   >
-                                    {sp.status}
+                                    {sp.status === 'upcoming' ? 'pending' : sp.status}
                                   </span>
                                 </div>
 
@@ -829,7 +829,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                                     const sEnd = sp.endDate ? new Date(sp.endDate).getTime() : 0;
                                     const totalDays = sStart && sEnd ? Math.max(1, Math.round((sEnd - sStart) / 86400000) + 1) : 14;
 
-                                    if (sp.status === 'upcoming') {
+                                    if (sp.status === 'pending' || sp.status === 'upcoming') {
                                       return <span>• {totalDays}d duration</span>;
                                     }
 

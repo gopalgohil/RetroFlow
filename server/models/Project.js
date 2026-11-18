@@ -83,8 +83,8 @@ const sprintSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'upcoming', 'completed'],
-      default: 'upcoming',
+      enum: ['active', 'pending', 'completed', 'upcoming'],
+      default: 'pending',
     },
     startDate: {
       type: String,
