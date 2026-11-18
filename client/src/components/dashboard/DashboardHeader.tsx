@@ -16,6 +16,7 @@ interface DashboardHeaderProps {
   isAdmin?: boolean;
   isLoading?: boolean;
   user?: { name?: string; email?: string; role?: string; projectRole?: string } | null;
+  currentProject?: any;
   onLogout?: () => void;
   onUserUpdated?: (updated: { name: string; email: string; role?: string; projectRole?: string }) => void;
   isSessionsTab?: boolean;
@@ -24,6 +25,7 @@ interface DashboardHeaderProps {
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onOpenMobileMenu,
   user,
+  currentProject,
   isAdmin,
   onLogout,
   onUserUpdated,
@@ -100,7 +102,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <Menu className="w-5 h-5" />
           </button>
 
-          <ProjectSwitcher user={activeUser} />
+          <ProjectSwitcher user={activeUser} currentProject={currentProject} />
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">

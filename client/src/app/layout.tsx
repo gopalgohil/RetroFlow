@@ -57,6 +57,10 @@ export default function RootLayout({
                   if (r === 'true' && !document.cookie.includes('retroflow_rejected=true')) {
                     document.cookie = 'retroflow_rejected=true; path=/; max-age=2592000; SameSite=Lax';
                   }
+                  var ap = localStorage.getItem('retroflow_cached_active_project');
+                  if (ap && !document.cookie.includes('retroflow_active_project=')) {
+                    document.cookie = 'retroflow_active_project=' + encodeURIComponent(ap) + '; path=/; max-age=2592000; SameSite=Lax';
+                  }
                 } catch (e) {}
               })();
             `,

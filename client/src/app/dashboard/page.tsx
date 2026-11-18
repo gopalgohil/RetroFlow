@@ -16,6 +16,14 @@ export default async function DashboardPage() {
     } catch {}
   }
 
+  const projectCookie = cookieStore.get('retroflow_active_project')?.value;
+  let initialProject: any = null;
+  if (projectCookie) {
+    try {
+      initialProject = JSON.parse(decodeURIComponent(projectCookie));
+    } catch {}
+  }
+
   if (isRejectedCookie || initialUser?.status === 'rejected') {
     return <RejectedView user={initialUser || undefined} />;
   }
@@ -31,5 +39,5 @@ export default async function DashboardPage() {
     return <WaitingForApprovalView user={initialUser} />;
   }
 
-  return <DashboardClient initialUser={initialUser} />;
+  return <DashboardClient initialUser={initialUser} initialProject={initialProject} />;
 }

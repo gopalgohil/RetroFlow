@@ -25,9 +25,10 @@ import { CheckCircle2 } from 'lucide-react';
 
 interface DashboardClientProps {
   initialUser?: any;
+  initialProject?: any;
 }
 
-function DashboardContent({ initialUser }: DashboardClientProps) {
+function DashboardContent({ initialUser, initialProject }: DashboardClientProps) {
   const router = useRouter();
 
   const { activeTab, switchTab, isTransitioning } = useDashboardTabs();
@@ -389,6 +390,7 @@ function DashboardContent({ initialUser }: DashboardClientProps) {
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
           isAdmin={isAdmin}
           user={activeUser}
+          currentProject={initialProject}
           onLogout={handleLogout}
           onUserUpdated={(updated) => setCurrentUser((prev) => ({ ...(prev || {}), ...updated }))}
           isSessionsTab={activeTab === 'sessions'}
@@ -533,7 +535,7 @@ function DashboardContent({ initialUser }: DashboardClientProps) {
   );
 }
 
-function DashboardFallback({ initialUser }: DashboardClientProps) {
+function DashboardFallback({ initialUser, initialProject }: DashboardClientProps) {
   const [user] = useState<{
     name?: string;
     email?: string;
@@ -607,6 +609,7 @@ function DashboardFallback({ initialUser }: DashboardClientProps) {
             onOpenMobileMenu={() => {}}
             isAdmin={isWorkspaceAdmin}
             user={activeUser}
+            currentProject={initialProject}
             isSessionsTab={true}
           />
           <main className="flex-1 px-3.5 sm:px-5 lg:px-6 xl:px-6 2xl:px-8 py-5 sm:py-6 lg:py-8 w-full space-y-6 sm:space-y-8">
@@ -620,10 +623,10 @@ function DashboardFallback({ initialUser }: DashboardClientProps) {
   return <DashboardLayoutSkeleton />;
 }
 
-export default function DashboardClient({ initialUser }: DashboardClientProps) {
+export default function DashboardClient({ initialUser, initialProject }: DashboardClientProps) {
   return (
-    <Suspense fallback={<DashboardFallback initialUser={initialUser} />}>
-      <DashboardContent initialUser={initialUser} />
+    <Suspense fallback={<DashboardFallback initialUser={initialUser} initialProject={initialProject} />}>
+      <DashboardContent initialUser={initialUser} initialProject={initialProject} />
     </Suspense>
   );
 }

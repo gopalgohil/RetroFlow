@@ -40,12 +40,13 @@ const isUserMemberOfProject = (
   proj: Project | null | undefined,
   targetUser: { id?: string; _id?: string; email?: string; role?: string } | null | undefined
 ): boolean => {
-  if (!proj || !targetUser) return false;
+  if (!proj) return false;
+  if (!targetUser) return true;
   const userRole = (targetUser.role || '').toLowerCase();
   const userEmail = (targetUser.email || '').toLowerCase().trim();
   const userId = targetUser.id || targetUser._id;
   if (userRole === 'admin') return true;
-  if (!userEmail && !userId) return false;
+  if (!userEmail && !userId) return true;
 
   if (userEmail && proj.lead?.email?.toLowerCase().trim() === userEmail) return true;
 
@@ -62,7 +63,8 @@ const STORAGE_CACHED_ACTIVE_PROJ = 'retroflow_cached_active_project';
 const STORAGE_CACHED_PROJS_LIST = 'retroflow_cached_projects_list';
 const EVENT_ACTIVE_PROJ_CHANGED = 'retroflow_active_project_changed';
 
-const getInitialActiveProject = (): Project | null => {
+const getInitialActiveProject = (passedProject?: Project | null): Project | null => {
+  if (passedProject) return passedProject;
   if (typeof window === 'undefined') return null;
   try {
     const userRaw = localStorage.getItem('retroflow_user');
@@ -159,7 +161,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [projects, setProjects] = useState<Project[]>(getInitialProjects);
-  const [cachedActiveProject, setCachedActiveProject] = useState<Project | null>(getInitialActiveProject);
+  const [cachedActiveProject, setCachedActiveProject] = useState<Project | null>(() => currentProject || getInitialActiveProject(currentProject));
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     email?: string;
@@ -167,7 +169,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     role?: string;
     projectRole?: string;
   } | null>(getInitialUser);
-  const [activeStoredProjectId, setActiveStoredProjectId] = useState<string | null>(getInitialActiveProjectId);
+  const [activeStoredProjectId, setActiveStoredProjectId] = useState<string | null>(() => currentProject?.id || getInitialActiveProjectId());
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -248,7 +250,6 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
     }
     if (
       validatedCachedProject &&
-      list.length > 0 &&
       !list.some(
         (p) =>
           p.id === validatedCachedProject.id ||
@@ -272,6 +273,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
         p.id === resolvedProjectId || p.key?.toLowerCase() === resolvedProjectId.toLowerCase()
     ) ||
     (currentProject && isUserMemberOfProject(currentProject, effectiveUser) ? currentProject : null) ||
+    validatedCachedProject ||
     (allProjects.length > 0 ? allProjects[0] : null) ||
     null;
 
@@ -310,7 +312,9 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
           setCachedActiveProject(matched);
           setActiveStoredProjectId(matched.id);
           try {
-            localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, JSON.stringify(matched));
+            const jsonStr = JSON.stringify(matched);
+            localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, jsonStr);
+            document.cookie = `retroflow_active_project=${encodeURIComponent(jsonStr)}; path=/; max-age=2592000; SameSite=Lax`;
             localStorage.setItem(STORAGE_ACTIVE_PROJ_ID, matched.id);
           } catch {}
         }
@@ -325,10 +329,12 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   useEffect(() => {
     if (activeProject && typeof window !== 'undefined' && isUserMemberOfProject(activeProject, effectiveUser)) {
       try {
-        localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, JSON.stringify(activeProject));
+        const jsonStr = JSON.stringify(activeProject);
+        localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, jsonStr);
+        document.cookie = `retroflow_active_project=${encodeURIComponent(jsonStr)}; path=/; max-age=2592000; SameSite=Lax`;
         if (activeProject.id) {
           localStorage.setItem(STORAGE_ACTIVE_PROJ_ID, activeProject.id);
-          sessionStorage.setItem(`retroflow_cached_project_${activeProject.id}`, JSON.stringify(activeProject));
+          sessionStorage.setItem(`retroflow_cached_project_${activeProject.id}`, jsonStr);
         }
       } catch {}
     }
@@ -354,10 +360,12 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
   const handleSelect = (project: Project) => {
     if (typeof window !== 'undefined') {
+      const jsonStr = JSON.stringify(project);
       localStorage.setItem(STORAGE_ACTIVE_PROJ_ID, project.id);
-      localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, JSON.stringify(project));
+      localStorage.setItem(STORAGE_CACHED_ACTIVE_PROJ, jsonStr);
+      document.cookie = `retroflow_active_project=${encodeURIComponent(jsonStr)}; path=/; max-age=2592000; SameSite=Lax`;
       try {
-        sessionStorage.setItem(`retroflow_cached_project_${project.id}`, JSON.stringify(project));
+        sessionStorage.setItem(`retroflow_cached_project_${project.id}`, jsonStr);
       } catch {}
       window.dispatchEvent(new CustomEvent(EVENT_ACTIVE_PROJ_CHANGED, { detail: project }));
     }
@@ -411,7 +419,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
           type="button"
           suppressHydrationWarning
           onClick={() => setIsOpen((prev) => !prev)}
-          className={`group flex items-center gap-2.5 px-3 py-1.5 rounded-xl border transition-all text-left cursor-pointer ${
+          className={`group flex items-center gap-2.5 px-3 py-1.5 rounded-xl border transition-all text-left cursor-pointer min-h-[42px] ${
             isOpen
               ? 'bg-white dark:bg-[#12151c] border-[#88c958] ring-2 ring-[#88c958]/20 shadow-xs'
               : 'bg-white/80 dark:bg-[#12151c]/80 hover:bg-white dark:hover:bg-[#12151c] border-slate-200/90 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18] shadow-2xs'
@@ -426,8 +434,8 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
                 size="sm"
               />
             ) : (
-              <div className="w-7 h-7 rounded-lg bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shrink-0">
-                <FolderKanban className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
+              <div className="w-8 h-8 rounded-xl bg-[#eaf5e3] dark:bg-[#88c958]/15 border border-[#cdeac0] dark:border-[#88c958]/30 text-[#3d8318] dark:text-[#88c958] flex items-center justify-center shrink-0">
+                <FolderKanban className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
               </div>
             )}
           </div>
