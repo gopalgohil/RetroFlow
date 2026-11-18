@@ -59,6 +59,7 @@ class ProjectController {
   createProject = asyncHandler(async (req, res) => {
     const user = req.user;
     if (!user) {
+      console.warn('⚠️ [PROJECT_CREATION_FAILED] Unauthenticated user attempt');
       return res.status(401).json({
         success: false,
         message: 'Authentication required to initialize a project.',
@@ -79,6 +80,12 @@ class ProjectController {
     }
 
     if (!canCreate) {
+      console.warn('⚠️ [PROJECT_CREATION_FAILED] Permission denied: User is neither Admin nor Manager', {
+        userId: user._id,
+        userEmail: user.email,
+        userRole: user.projectRole || user.role,
+        attemptedPayload: { name: req.body?.name, key: req.body?.key },
+      });
       return res.status(403).json({
         success: false,
         message:
@@ -86,8 +93,30 @@ class ProjectController {
       });
     }
 
-    const project = await projectService.createProject(req.body, user._id);
-    return ApiResponse.created(res, project, 'Agile project initialized successfully');
+    try {
+      const project = await projectService.createProject(req.body, user._id);
+      console.log('✅ [PROJECT_CREATED]', {
+        userId: user._id,
+        userEmail: user.email,
+        userRole: user.projectRole || user.role,
+        projectId: project._id,
+        projectKey: project.key,
+        projectName: project.name,
+        timestamp: new Date().toISOString(),
+      });
+      return ApiResponse.created(res, project, 'Agile project initialized successfully');
+    } catch (error) {
+      console.error('❌ [PROJECT_CREATION_FAILED]', {
+        userId: user._id,
+        userEmail: user.email,
+        userRole: user.projectRole || user.role,
+        attemptedPayload: { name: req.body?.name, key: req.body?.key },
+        errorMessage: error.message,
+        statusCode: error.statusCode || 500,
+        timestamp: new Date().toISOString(),
+      });
+      throw error;
+    }
   });
 
   updateProject = asyncHandler(async (req, res) => {

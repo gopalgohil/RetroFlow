@@ -1,6 +1,15 @@
 import { ApiError } from '../utils/ApiError.js';
 import { ZodError } from 'zod';
 
+const sanitizePayload = (body) => {
+  if (!body || typeof body !== 'object') return undefined;
+  const copy = { ...body };
+  ['password', 'token', 'otp', 'newPassword', 'confirmPassword'].forEach((k) => {
+    if (k in copy) copy[k] = '[REDACTED]';
+  });
+  return copy;
+};
+
 export const errorHandler = (err, req, res, next) => {
   let error = err;
 
@@ -49,8 +58,30 @@ export const errorHandler = (err, req, res, next) => {
     timestamp: new Date().toISOString(),
   };
 
+  const userContext = req.user
+    ? {
+        userId: req.user._id || req.user.id,
+        userEmail: req.user.email,
+        userRole: req.user.projectRole || req.user.role,
+      }
+    : 'Unauthenticated / Guest';
+
+  const logContext = {
+    endpoint: `${req.method} ${req.originalUrl}`,
+    statusCode: error.statusCode,
+    message: error.message,
+    user: userContext,
+    ...(req.body && Object.keys(req.body).length > 0 ? { payload: sanitizePayload(req.body) } : {}),
+    timestamp: new Date().toISOString(),
+  };
+
   if (error.statusCode >= 500) {
-    console.error(`[Unhandled Exception] ${req.method} ${req.originalUrl}:`, err);
+    console.error(`❌ [SERVER_ERROR] ${req.method} ${req.originalUrl}:`, {
+      ...logContext,
+      stack: err.stack,
+    });
+  } else if (error.statusCode >= 400) {
+    console.warn(`⚠️ [CLIENT_ERROR] ${req.method} ${req.originalUrl} (${error.statusCode}):`, logContext);
   }
 
   return res.status(error.statusCode).json(response);
