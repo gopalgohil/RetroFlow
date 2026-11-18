@@ -208,6 +208,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSubmit, onGoogleSignUp
           onCopy={(e) => e.preventDefault()}
           onCut={(e) => e.preventDefault()}
           error={fieldErrors.password}
+          helperText={!fieldErrors.password ? 'Must be 8+ characters with uppercase, lowercase, number & special character' : undefined}
           required
           autoComplete="new-password"
         />

@@ -297,7 +297,7 @@ export const ForgotPasswordForm: React.FC = () => {
             onCopy={(e) => e.preventDefault()}
             onCut={(e) => e.preventDefault()}
             error={fieldErrors.password}
-            helperText={!fieldErrors.password ? 'Must contain letters and numbers' : undefined}
+            helperText={!fieldErrors.password ? 'Must be 8+ characters with uppercase, lowercase, number & special character' : undefined}
             required
           />
 

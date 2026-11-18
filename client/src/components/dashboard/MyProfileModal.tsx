@@ -218,8 +218,16 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
       setPasswordErrorMessage('Please enter your current password.');
       return;
     }
-    if (newPassword.length < 8) {
-      setPasswordErrorMessage('New password must be at least 8 characters long.');
+    if (
+      newPassword.length < 8 ||
+      !/[a-z]/.test(newPassword) ||
+      !/[A-Z]/.test(newPassword) ||
+      !/[0-9]/.test(newPassword) ||
+      !/[^A-Za-z0-9]/.test(newPassword)
+    ) {
+      setPasswordErrorMessage(
+        'New password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+      );
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -436,7 +444,7 @@ export const MyProfileModal: React.FC<MyProfileModalProps> = ({
               <div className="p-3.5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 text-amber-900 dark:text-amber-200 text-xs">
                 <p className="font-bold">Password Security Requirements</p>
                 <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
-                  Must be at least 8 characters long. After changing, remember to use your new password on subsequent logins.
+                  Must be at least 8 characters long with uppercase, lowercase, number, and special character. After changing, remember to use your new password on subsequent logins.
                 </p>
               </div>
 

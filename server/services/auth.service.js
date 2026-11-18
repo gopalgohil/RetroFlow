@@ -408,8 +408,16 @@ class AuthService {
     if (!currentPassword || !newPassword) {
       throw ApiError.badRequest('Current password and new password are required.');
     }
-    if (newPassword.length < 8) {
-      throw ApiError.badRequest('New password must be at least 8 characters long.');
+    if (
+      newPassword.length < 8 ||
+      !/[a-z]/.test(newPassword) ||
+      !/[A-Z]/.test(newPassword) ||
+      !/[0-9]/.test(newPassword) ||
+      !/[^A-Za-z0-9]/.test(newPassword)
+    ) {
+      throw ApiError.badRequest(
+        'New password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+      );
     }
 
     let user = null;
