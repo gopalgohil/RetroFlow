@@ -264,20 +264,64 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [showToast]
   );
 
-  const [members, setMembers] = useState<TeamMember[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<TeamMember[]>([]);
-  const [membersPagination, setMembersPagination] = useState<PaginationMeta>({
-    page: 1,
-    limit: 5,
-    totalItems: 0,
-    totalPages: 1,
-    hasNextPage: false,
-    hasPrevPage: false,
+  const [members, setMembers] = useState<TeamMember[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('retroflow_cached_members');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return [];
+  });
+  const [pendingRequests, setPendingRequests] = useState<TeamMember[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('retroflow_cached_pending_members');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch {}
+    }
+    return [];
+  });
+  const [membersPagination, setMembersPagination] = useState<PaginationMeta>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('retroflow_cached_members_pagination');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && typeof parsed.totalItems === 'number') return parsed;
+        }
+      } catch {}
+    }
+    return {
+      page: 1,
+      limit: 10,
+      totalItems: 0,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
+    };
   });
   const [membersPage, setMembersPage] = useState<number>(1);
   const [membersLimit, setMembersLimit] = useState<number>(10);
   const [membersSearch, setMembersSearch] = useState<string>('');
-  const [isMembersLoading, setIsMembersLoading] = useState(false);
+  const [isMembersLoading, setIsMembersLoading] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('retroflow_cached_members');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return false;
+        }
+      } catch {}
+    }
+    return activeTab === 'members';
+  });
   const membersAbortRef = useRef<AbortController | null>(null);
   const removedMemberEmailsRef = useRef<Set<string>>(new Set());
 
@@ -339,14 +383,21 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
             const sanitized = filterRemoved(res.data);
             setMembers(sanitized);
             setPendingRequests([]);
-            setMembersPagination({
+            const newPagination: PaginationMeta = {
               page: pageToUse,
               limit: limitToUse,
               totalItems: sanitized.length,
               totalPages: Math.ceil(sanitized.length / limitToUse) || 1,
               hasNextPage: false,
               hasPrevPage: false,
-            });
+            };
+            setMembersPagination(newPagination);
+            if (!searchToUse && typeof window !== 'undefined') {
+              try {
+                localStorage.setItem('retroflow_cached_members', JSON.stringify(sanitized));
+                localStorage.setItem('retroflow_cached_members_pagination', JSON.stringify(newPagination));
+              } catch {}
+            }
           } else if (res.data.members && Array.isArray(res.data.members)) {
             const sanitizedMembers = filterRemoved(res.data.members);
             const sanitizedPending =
@@ -362,12 +413,25 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
               const newTotal = Math.max(0, (res.data.pagination.totalItems || 0) - removedCount);
               const newLimit = res.data.pagination.limit || limitToUse;
               const newPages = Math.max(1, Math.ceil(newTotal / newLimit));
-              setMembersPagination({
+              const newPagination: PaginationMeta = {
                 ...res.data.pagination,
                 totalItems: newTotal,
                 totalPages: newPages,
                 hasNextPage: (res.data.pagination.page || pageToUse) < newPages,
-              });
+              };
+              setMembersPagination(newPagination);
+              if (!searchToUse && typeof window !== 'undefined') {
+                try {
+                  localStorage.setItem('retroflow_cached_members_pagination', JSON.stringify(newPagination));
+                } catch {}
+              }
+            }
+
+            if (!searchToUse && typeof window !== 'undefined') {
+              try {
+                localStorage.setItem('retroflow_cached_members', JSON.stringify(sanitizedMembers));
+                localStorage.setItem('retroflow_cached_pending_members', JSON.stringify(sanitizedPending));
+              } catch {}
             }
           }
         }
@@ -638,23 +702,22 @@ export function useDashboardData(activeTab: DashboardTab, searchQuery: string) {
     [showToast]
   );
 
-  const prevTabRef = useRef<string>(activeTab);
-  const initialMountFetchDoneRef = useRef<boolean>(false);
+  const prevTabRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Initial fetch to populate active sessions count badge in sidebar or when searchQuery changes
     fetchSessions();
-    initialMountFetchDoneRef.current = true;
   }, [fetchSessions]);
 
   useEffect(() => {
-    // Avoid double fetching on initial mount if activeTab is already 'sessions'
-    if (!initialMountFetchDoneRef.current) return;
-
-    if (activeTab === 'sessions' && prevTabRef.current !== 'sessions') {
-      fetchSessions();
-    } else if (activeTab === 'members' && prevTabRef.current !== 'members') {
-      fetchMembers();
+    if (activeTab === 'sessions') {
+      if (prevTabRef.current !== 'sessions') {
+        fetchSessions();
+      }
+    } else if (activeTab === 'members') {
+      if (prevTabRef.current !== 'members') {
+        fetchMembers();
+      }
     }
     prevTabRef.current = activeTab;
   }, [activeTab, fetchSessions, fetchMembers]);

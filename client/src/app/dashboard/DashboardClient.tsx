@@ -221,7 +221,7 @@ function DashboardContent({ initialUser }: DashboardClientProps) {
   const isCurrentTabLoading =
     isTransitioning ||
     (activeTab === 'sessions' && isSessionsLoading && sessions.length === 0 && !searchQuery) ||
-    (activeTab === 'members' && isMembersLoading && !membersSearch);
+    (activeTab === 'members' && isMembersLoading && members.length === 0 && !membersSearch);
 
   const isPendingApproval = Boolean(
     activeUser.email &&

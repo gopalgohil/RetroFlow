@@ -251,7 +251,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
 
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-  if (isLoading && !searchQuery && !localSearch.trim() && currentPage === 1) {
+  if (isLoading && !searchQuery && !localSearch.trim() && currentPage === 1 && members.length === 0) {
     return <MembersSkeleton isAdmin={isAdmin} />;
   }
 
