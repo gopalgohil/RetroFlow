@@ -24,21 +24,14 @@ export default function HomePage() {
             />
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <ThemeToggle />
 
             <Link
               href="/login"
-              className="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl theme-nav-link transition-colors"
+              className="ml-1 sm:ml-2 px-5 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm font-bold bg-[#5cb028] hover:bg-[#4e9921] text-white rounded-xl shadow-md shadow-[#5cb028]/20 transition-all duration-200 hover:scale-105 cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a] dark:shadow-[#88c958]/20"
             >
               Sign In
-            </Link>
-
-            <Link
-              href="/signup"
-              className="px-4 py-2 text-xs sm:text-sm font-bold bg-[#5cb028] hover:bg-[#4e9921] text-white rounded-xl shadow-md shadow-[#5cb028]/20 transition-all duration-200 hover:scale-105 dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a] dark:shadow-[#88c958]/20"
-            >
-              Get Started Free
             </Link>
           </div>
         </div>
@@ -67,17 +60,11 @@ export default function HomePage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 sm:pt-3">
             <Link
-              href="/signup"
+              href="/login"
               className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white font-bold text-sm sm:text-base shadow-lg shadow-[#5cb028]/25 hover:shadow-xl hover:shadow-[#5cb028]/35 transition-all duration-200 flex items-center justify-center gap-2 dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a] dark:shadow-[#88c958]/25 dark:hover:shadow-[#88c958]/35 hover:scale-105"
             >
-              <span>Start Free Retrospective</span>
+              <span>Launch Workspace</span>
               <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/login"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl border font-bold text-sm sm:text-base transition-colors duration-200 theme-btn-secondary hover:scale-105"
-            >
-              Sign In to Workspace
             </Link>
           </div>
         </div>
