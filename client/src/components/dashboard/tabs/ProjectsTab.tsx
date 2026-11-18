@@ -308,25 +308,16 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/[0.08]">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Projects
-            </h1>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-white/[0.08]">
-              {tabCounts.all || pagination.totalItems} {tabCounts.all === 1 ? 'Project' : 'Projects'}
-            </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30">
-              {isWorkspaceAdmin ? 'Admin' : isManager ? 'Manager' : isLead ? 'Lead' : 'Member'}
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            {isWorkspaceAdmin
-              ? 'All Scrum & Kanban projects across your organization workspace.'
-              : isManager
-              ? 'Projects and sprint initiatives managed by your team.'
-              : 'Delivery projects and sprint initiatives assigned to you.'}
-          </p>
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Projects
+          </h1>
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-white/[0.08]">
+            {tabCounts.all || pagination.totalItems} {tabCounts.all === 1 ? 'Project' : 'Projects'}
+          </span>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30">
+            {isWorkspaceAdmin ? 'Admin' : isManager ? 'Manager' : isLead ? 'Lead' : 'Member'}
+          </span>
         </div>
 
         {canCreateProject && (
