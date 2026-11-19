@@ -272,6 +272,26 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
     }
   };
 
+  const handleUpdateDueDate = async (
+    sprintId: string,
+    itemId: string,
+    newDueDate: string | null
+  ) => {
+    try {
+      const updated = await ProjectApiService.updateSprintItemDueDate(
+        project.id,
+        sprintId,
+        itemId,
+        newDueDate
+      );
+      if (updated && onProjectUpdated) {
+        onProjectUpdated(updated);
+      }
+    } catch (err: any) {
+      console.error('[RetrosTab] Failed to update due date:', err);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {canManageProject && (paginationMeta.totalItems > 0 || (project.retrospectives?.length || 0) > 0) && (
@@ -332,6 +352,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                   onDelete={(r) => setDeletingRetro(r)}
                   onUpdateItemStatus={handleUpdateItemStatus}
                   onUpdateAssignee={handleUpdateAssignee}
+                  onUpdateDueDate={handleUpdateDueDate}
                 />
               ))
             )}
