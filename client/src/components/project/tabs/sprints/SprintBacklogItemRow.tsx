@@ -273,7 +273,6 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                         ? item.dueDate.split('T')[0]
                         : (sprintStartDate ? sprintStartDate.split('T')[0] : undefined)
                     }
-                    max={sprintEndDate ? sprintEndDate.split('T')[0] : undefined}
                     value={item.dueDate ? item.dueDate.split('T')[0] : ''}
                     disabled={isUpdating || isDeleting}
                     onClick={(e) => {

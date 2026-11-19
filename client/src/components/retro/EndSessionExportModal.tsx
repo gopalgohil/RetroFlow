@@ -134,27 +134,21 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
 
     const match = (sprintName || '').match(/sprint\s*(\d+)/i) || (retroTitle || '').match(/sprint\s*(\d+)/i) || (sprintName || retroTitle || '').match(/\d+/);
     const currentSprintNum = match ? parseInt(match[1] || match[0], 10) : 1;
-    const nextSprintNum = currentSprintNum + 1;
 
-    let targetSprint = targetProj.sprints?.find(
-      (s) =>
-        s.number === nextSprintNum ||
-        s.name.toLowerCase().includes(`sprint ${nextSprintNum}`)
-    ) || targetProj.sprints?.find((s) => s.status === 'pending' || s.status === 'upcoming');
-
-    if (!targetSprint && sprintId) {
-      const explicit = targetProj.sprints?.find((s) => s.id === sprintId);
-      if (explicit && explicit.number !== currentSprintNum) {
-        targetSprint = explicit;
-      }
+    // By default, target the current retrospective's sprint
+    let targetSprint = null;
+    if (sprintId) {
+      targetSprint = targetProj.sprints?.find((s) => s.id === sprintId);
     }
-
     if (!targetSprint) {
-      targetSprint = {
-        id: `sprint-auto-${nextSprintNum}`,
-        name: `Sprint ${nextSprintNum} - Execution & Backlog`,
-        number: nextSprintNum,
-      } as any;
+      targetSprint = targetProj.sprints?.find(
+        (s) =>
+          s.number === currentSprintNum ||
+          s.name.toLowerCase().includes(`sprint ${currentSprintNum}`)
+      );
+    }
+    if (!targetSprint) {
+      targetSprint = targetProj.sprints?.find((s) => s.status === 'active') || targetProj.sprints?.[0];
     }
 
     if (targetSprint) {
@@ -257,13 +251,15 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   }, [retroTitle, sprintName, selectedProject, retroEndDate]);
 
   const sprintOptions = useMemo(() => {
-    // Rule: Completed sprints cannot accept new action items!
-    // Only Active or Pending/Upcoming sprints can receive deliverables.
-    const activeOrUpcoming = (selectedProject?.sprints || []).filter(
-      (s) => s.status !== 'completed'
+    // Current retro's sprint should always be available, plus active and upcoming sprints
+    const match = (sprintName || '').match(/sprint\s*(\d+)/i) || (retroTitle || '').match(/sprint\s*(\d+)/i) || (sprintName || retroTitle || '').match(/\d+/);
+    const currentSprintNum = match ? parseInt(match[1] || match[0], 10) : 1;
+
+    const availableSprints = (selectedProject?.sprints || []).filter(
+      (s) => s.status !== 'completed' || s.number === currentSprintNum || s.id === sprintId
     );
 
-    const list = [...activeOrUpcoming];
+    const list = [...availableSprints];
     if (
       nextSprint &&
       !list.some((s) => s.id === nextSprint.id || (nextSprint.number && s.number === nextSprint.number))
@@ -271,19 +267,22 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
       list.push(nextSprint);
     }
     return list;
-  }, [selectedProject, nextSprint]);
+  }, [selectedProject, nextSprint, sprintName, retroTitle, sprintId]);
 
   const currentSprint = useMemo(() => {
     if (!sprintOptions || sprintOptions.length === 0) return nextSprint;
+    const match = (sprintName || '').match(/sprint\s*(\d+)/i) || (retroTitle || '').match(/sprint\s*(\d+)/i) || (sprintName || retroTitle || '').match(/\d+/);
+    const currentSprintNum = match ? parseInt(match[1] || match[0], 10) : 1;
+
     const targetId = selectedSprintId || suggestedSprint?.id;
     return (
-      sprintOptions.find((s) => s.id === targetId && s.status !== 'completed') ||
+      sprintOptions.find((s) => s.id === targetId) ||
+      sprintOptions.find((s) => s.number === currentSprintNum) ||
       sprintOptions.find((s) => s.status === 'active') ||
       sprintOptions.find((s) => s.status === 'pending' || s.status === 'upcoming') ||
-      sprintOptions.find((s) => s.id === nextSprint?.id) ||
       sprintOptions[0]
     );
-  }, [sprintOptions, selectedSprintId, suggestedSprint, nextSprint]);
+  }, [sprintOptions, selectedSprintId, suggestedSprint, nextSprint, sprintName, retroTitle]);
 
   const sprintMinDate = currentSprint?.startDate ? currentSprint.startDate.split('T')[0] : '';
   const sprintMaxDate = currentSprint?.endDate ? currentSprint.endDate.split('T')[0] : '';
@@ -413,9 +412,8 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
         };
       });
 
-    if (sprintMinDate && sprintMaxDate) {
+    if (sprintMinDate) {
       const sStartMs = new Date(sprintMinDate).getTime();
-      const sEndMs = new Date(sprintMaxDate).getTime();
 
       for (const item of itemsToExport) {
         if (item.dueDate) {
@@ -423,10 +421,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
           const dueMs = new Date(itemDue).getTime();
           if (dueMs < sStartMs) {
             alert(`Due date for "${item.text.slice(0, 35)}..." cannot be earlier than sprint start date (${sprintMinDate}).`);
-            return;
-          }
-          if (dueMs > sEndMs) {
-            alert(`Due date for "${item.text.slice(0, 35)}..." cannot exceed sprint end date (${sprintMaxDate}).`);
             return;
           }
         }
@@ -1008,9 +1002,7 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                             <div
                               className="flex items-center gap-1.5"
                               title={
-                                sprintMinDate && sprintMaxDate
-                                  ? `Task Deadline (Must be between ${sprintMinDate} and ${sprintMaxDate})`
-                                  : 'Task Deadline (Defaults to sprint end date)'
+                                'Task Deadline (Can be set to any future date, including next month)'
                               }
                             >
                               <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
@@ -1020,7 +1012,6 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
                               <input
                                 type="date"
                                 min={sprintMinDate || undefined}
-                                max={sprintMaxDate || undefined}
                                 value={cfg.dueDate || sprintMaxDate || ''}
                                 onChange={(e) =>
                                   handleUpdateItemConfig(card.id, {

@@ -517,37 +517,20 @@ class ProjectService {
               continue;
             }
 
-            // Determine target sprint for this card
-            let targetSprint = null;
-            if (card.assignedSprintName) {
-              targetSprint = project.sprints.find(
+            // Determine target sprint for this card:
+            // Action items created in this retro board stay in this retro's sprint (sprint)
+            let targetSprint = sprint;
+            if (card.assignedSprintId && card.assignedSprintId !== sprint.id) {
+              const explicit = project.sprints.find((s) => s.id === card.assignedSprintId);
+              if (explicit) targetSprint = explicit;
+            } else if (card.assignedSprintName && !card.assignedSprintName.toLowerCase().startsWith(`sprint ${sprintNum}`)) {
+              const explicit = project.sprints.find(
                 (s) => s.name?.toLowerCase().trim() === card.assignedSprintName.toLowerCase().trim()
               );
-            }
-            if (!targetSprint && card.assignedSprintId) {
-              targetSprint = project.sprints.find((s) => s.id === card.assignedSprintId);
+              if (explicit) targetSprint = explicit;
             }
 
-            // If target sprint is completed and item is not done, route to the current active sprint
-            if (targetSprint && targetSprint.status === 'completed' && card.status !== 'done') {
-              const activeOrUpcoming =
-                project.sprints.find((s) => s.status === 'active' && s.id !== targetSprint.id) ||
-                project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming');
-              if (activeOrUpcoming) {
-                targetSprint = activeOrUpcoming;
-              }
-            }
-
-            if (!targetSprint) {
-              if (sprint.status !== 'completed') {
-                targetSprint = sprint;
-              } else {
-                targetSprint =
-                  project.sprints.find((s) => s.status === 'active' && s.id !== sprint.id) ||
-                  project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming') ||
-                  project.sprints.find((s) => s.number === sprintNum + 1);
-              }
-            }
+            if (!targetSprint) targetSprint = sprint;
 
             if (!targetSprint) continue;
             targetSprint.items = targetSprint.items || [];
@@ -1855,18 +1838,6 @@ class ProjectService {
     const rawRemaining = Math.ceil((endMs - Date.now()) / 86400000);
     sprint.daysLeft = sprint.status === 'completed' ? 0 : Math.max(0, Math.min(totalDays, rawRemaining));
 
-    // Auto-cap: If any task dueDate exceeds the updated sprint endDate, cap it to sprint.endDate
-    if (Array.isArray(sprint.items)) {
-      sprint.items.forEach((item) => {
-        if (item.dueDate) {
-          const itemDueMs = new Date(item.dueDate).getTime();
-          if (!isNaN(itemDueMs) && itemDueMs > endMs) {
-            item.dueDate = endDate;
-          }
-        }
-      });
-    }
-
     project.markModified('sprints');
 
     // Also sync dates with matching retrospective if present
@@ -2083,27 +2054,26 @@ class ProjectService {
         const sourceTitle = items[0]?.sourceRetroTitle || '';
         const match = sourceTitle.match(/sprint\s*(\d+)/i);
         if (match) {
-          sprintNum = parseInt(match[1], 10) + 1;
+          sprintNum = parseInt(match[1], 10);
         } else if (items[0]?.sourceRetroId) {
           const retroEntry = project.retrospectives?.find(
             (r) => r.id === items[0].sourceRetroId || r.shareToken === items[0].sourceRetroId
           );
           if (retroEntry?.sprintName) {
             const sMatch = retroEntry.sprintName.match(/sprint\s*(\d+)/i) || retroEntry.sprintName.match(/\d+/);
-            if (sMatch) sprintNum = parseInt(sMatch[1] || sMatch[0], 10) + 1;
+            if (sMatch) sprintNum = parseInt(sMatch[1] || sMatch[0], 10);
           }
         }
       }
 
       if (sprintNum) {
-        // Retro action items target Sprint N+1 (Next Sprint)
         sprint = project.sprints.find(
           (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
         );
       }
 
       if (!sprint) {
-        sprint = project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming');
+        sprint = project.sprints.find((s) => s.status === 'active') || project.sprints.find((s) => s.status === 'pending' || s.status === 'upcoming');
       }
 
       if (!sprint) {
@@ -2340,6 +2310,7 @@ class ProjectService {
               card.assignedTo = it.assignee;
               card.assignedSprintName = sprint.name;
               card.isExportedToActionItems = true;
+              if (it.dueDate) card.dueDate = it.dueDate;
             }
           }
           retroBoardDoc.markModified('cards');
