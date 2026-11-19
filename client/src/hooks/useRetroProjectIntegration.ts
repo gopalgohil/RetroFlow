@@ -54,13 +54,15 @@ export function useRetroProjectIntegration(): UseRetroProjectIntegrationReturn {
       const project = projects.find((p) => p.id === projectId || p.key === projectId);
       if (!project) return null;
 
-      const upcoming = project.sprints?.find((s) => s.status === 'pending' || s.status === 'upcoming');
-      if (upcoming) return upcoming;
-
       const active = project.sprints?.find((s) => s.status === 'active');
       if (active) return active;
 
-      return project.sprints?.[0] || null;
+      const upcoming = project.sprints?.find((s) => s.status === 'pending' || s.status === 'upcoming');
+      if (upcoming) return upcoming;
+
+      // Do NOT suggest completed sprints for new action items
+      const nonCompleted = (project.sprints || []).find((s) => s.status !== 'completed');
+      return nonCompleted || null;
     },
     [projects]
   );

@@ -255,7 +255,13 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   }, [retroTitle, sprintName, selectedProject, retroEndDate]);
 
   const sprintOptions = useMemo(() => {
-    const list = [...(selectedProject?.sprints || [])];
+    // Rule: Completed sprints cannot accept new action items!
+    // Only Active or Pending/Upcoming sprints can receive deliverables.
+    const activeOrUpcoming = (selectedProject?.sprints || []).filter(
+      (s) => s.status !== 'completed'
+    );
+
+    const list = [...activeOrUpcoming];
     if (
       nextSprint &&
       !list.some((s) => s.id === nextSprint.id || (nextSprint.number && s.number === nextSprint.number))
@@ -269,7 +275,9 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     if (!sprintOptions || sprintOptions.length === 0) return nextSprint;
     const targetId = selectedSprintId || suggestedSprint?.id;
     return (
-      sprintOptions.find((s) => s.id === targetId) ||
+      sprintOptions.find((s) => s.id === targetId && s.status !== 'completed') ||
+      sprintOptions.find((s) => s.status === 'active') ||
+      sprintOptions.find((s) => s.status === 'pending' || s.status === 'upcoming') ||
       sprintOptions.find((s) => s.id === nextSprint?.id) ||
       sprintOptions[0]
     );

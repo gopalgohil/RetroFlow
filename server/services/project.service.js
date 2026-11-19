@@ -277,6 +277,38 @@ class ProjectService {
         hasChanges = true;
       }
 
+      // Clean up orphan sprints left over from deleted retrospectives
+      if (project.retrospectives.length === 0) {
+        if (project.sprints && project.sprints.length > 0) {
+          project.sprints = [];
+          hasChanges = true;
+        }
+      } else {
+        const activeRetroSprintNums = new Set(
+          project.retrospectives.map((r) => {
+            const m = (r.sprintName || r.title || '').match(/\d+/);
+            return m ? parseInt(m[0], 10) : null;
+          }).filter(Boolean)
+        );
+        const maxRetroNum = Math.max(...Array.from(activeRetroSprintNums), 0);
+        const prevSprintsCount = project.sprints?.length || 0;
+        project.sprints = (project.sprints || []).filter((sp) => {
+          if (activeRetroSprintNums.has(sp.number)) return true;
+          // Keep active/pending target sprint for upcoming work
+          if (sp.number === maxRetroNum + 1 && (sp.status === 'active' || sp.status === 'pending' || sp.status === 'upcoming')) {
+            return true;
+          }
+          // If sprint has items from an active retro, keep it
+          if (Array.isArray(sp.items) && sp.items.some((it) => it.sourceRetroId && project.retrospectives.some((r) => r.id === it.sourceRetroId || r.shareToken === it.sourceRetroId))) {
+            return true;
+          }
+          return false;
+        });
+        if (project.sprints.length !== prevSprintsCount) {
+          hasChanges = true;
+        }
+      }
+
       for (const retroItem of project.retrospectives) {
         const liveBoard = boardMap.get(retroItem.shareToken) || boardMap.get(retroItem.id);
         if (liveBoard) {
@@ -2880,12 +2912,38 @@ class ProjectService {
     this.assertCanManage(project, currentUser);
 
     const initialCount = project.retrospectives?.length || 0;
+    const targetRetro = (project.retrospectives || []).find(
+      (r) => r.id === retroIdOrToken || r.shareToken === retroIdOrToken
+    );
     project.retrospectives = (project.retrospectives || []).filter(
       (r) => r.id !== retroIdOrToken && r.shareToken !== retroIdOrToken
     );
 
     if (project.retrospectives.length === initialCount) {
       throw new Error(`Retrospective "${retroIdOrToken}" not found in project ${project.name}`);
+    }
+
+    // Also clean up any sprint linked to this deleted retrospective
+    const retroSprintNum =
+      (targetRetro?.title || '').match(/\b(?:sprint|cycle)\s*(\d+)\b/i)?.[1] ||
+      (targetRetro?.sprintName || '').match(/\b(?:sprint|cycle)\s*(\d+)\b/i)?.[1];
+
+    if (project.retrospectives.length === 0) {
+      project.sprints = [];
+    } else {
+      project.sprints = (project.sprints || []).filter((sp) => {
+        if (sp.retrospectiveId && (sp.retrospectiveId === targetRetro?.id || sp.retrospectiveId === targetRetro?.shareToken || sp.retrospectiveId === retroIdOrToken)) {
+          return false;
+        }
+        if (targetRetro?.sprintName && sp.name?.toLowerCase().trim() === targetRetro.sprintName.toLowerCase().trim()) {
+          return false;
+        }
+        const spNum = (sp.name || '').match(/\b(?:sprint|cycle)\s*(\d+)\b/i)?.[1];
+        if (retroSprintNum && spNum && retroSprintNum === spNum) {
+          return false;
+        }
+        return true;
+      });
     }
 
     await project.save();
