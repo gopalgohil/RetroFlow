@@ -52,8 +52,12 @@ export const OverviewKpiGrid: React.FC<OverviewKpiGridProps> = ({
     ? Math.ceil((new Date(effectiveEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : (activeSprint?.daysLeft ?? 0);
 
-  const isCompleted = activeSprint?.status === 'completed' || (linkedRetro && linkedRetro.status === 'completed');
-  const daysRemaining = activeSprint && !isCompleted ? Math.max(0, Math.min(totalSprintDays, rawRemaining)) : 0;
+  const hasNewerActiveSprint = (project?.sprints || []).some(
+    (s) => s.status === 'active' && (s.number || 0) > (activeSprint?.number || 0)
+  );
+  const isExpired = rawRemaining <= 0;
+  const isTrulyCompleted = hasNewerActiveSprint || isExpired;
+  const daysRemaining = activeSprint && !isTrulyCompleted ? Math.max(0, Math.min(totalSprintDays, rawRemaining)) : 0;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

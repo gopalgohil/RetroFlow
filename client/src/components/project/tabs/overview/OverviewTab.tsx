@@ -41,6 +41,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   const activeSprint =
     (project.sprints || []).find((s) => s.status === 'active') ||
+    (project.sprints || []).find((s) => {
+      const endMs = s.endDate ? new Date(s.endDate).getTime() : 0;
+      return endMs >= Date.now();
+    }) ||
     project.activeSprint ||
     (project.sprints || [])[0];
 

@@ -423,19 +423,32 @@ class ProjectService {
               const sStart = new Date(sprint.startDate).getTime();
               const totalDays = Math.max(1, Math.ceil((sEnd - sStart) / 86400000));
               const rawRemaining = Math.ceil((sEnd - Date.now()) / 86400000);
-              const computedDays = sprint.status === 'completed' ? 0 : Math.max(0, Math.min(totalDays, rawRemaining));
-              if (sprint.daysLeft !== computedDays) {
-                sprint.daysLeft = computedDays;
-                hasChanges = true;
+              const hasNewerActiveSprint = (project.sprints || []).some(
+                (s) => (s.number || 0) > (sprint.number || 0) && s.status === 'active'
+              );
+              const isPastEnd = rawRemaining <= 0;
+
+              if (hasNewerActiveSprint || isPastEnd) {
+                if (sprint.status !== 'completed') {
+                  sprint.status = 'completed';
+                  hasChanges = true;
+                }
+                if (sprint.daysLeft !== 0) {
+                  sprint.daysLeft = 0;
+                  hasChanges = true;
+                }
+              } else {
+                // Sprint cycle duration is still ongoing until next sprint starts or end date passes
+                if (sprint.status !== 'active') {
+                  sprint.status = 'active';
+                  hasChanges = true;
+                }
+                const computedDays = Math.max(0, Math.min(totalDays, rawRemaining));
+                if (sprint.daysLeft !== computedDays) {
+                  sprint.daysLeft = computedDays;
+                  hasChanges = true;
+                }
               }
-            }
-            if (retroItem.status === 'completed' && sprint.status !== 'completed') {
-              sprint.status = 'completed';
-              sprint.daysLeft = 0;
-              hasChanges = true;
-            } else if (retroItem.status === 'active' && sprint.status !== 'active') {
-              sprint.status = 'active';
-              hasChanges = true;
             }
           }
 
