@@ -521,11 +521,22 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                     (project.sprints || []).find((s) => s.status === 'active') ||
                     project.activeSprint ||
                     (project.sprints || [])[0];
-                  const linkedRetro = project.retrospectives?.find((r) => r.status === 'active');
-                  const sprintEndDate = linkedRetro?.endDate || activeSprint?.endDate;
-                  const computedDaysLeft = sprintEndDate
-                    ? Math.max(0, Math.ceil((new Date(sprintEndDate).getTime() - Date.now()) / 86400000))
+                  const linkedRetro = project.retrospectives?.find((r) => {
+                    const sNum = activeSprint?.number;
+                    const rMatch = (r.sprintName || r.title || '').match(/\d+/);
+                    return rMatch && sNum ? parseInt(rMatch[0], 10) === sNum : false;
+                  }) || project.retrospectives?.find((r) => r.status === 'active');
+                  const effectiveStartDate = linkedRetro?.startDate || activeSprint?.startDate;
+                  const effectiveEndDate = linkedRetro?.endDate || activeSprint?.endDate;
+                  const totalSprintDays = effectiveStartDate && effectiveEndDate
+                    ? Math.max(1, Math.ceil((new Date(effectiveEndDate).getTime() - new Date(effectiveStartDate).getTime()) / 86400000))
+                    : 14;
+                  const rawRemaining = effectiveEndDate
+                    ? Math.ceil((new Date(effectiveEndDate).getTime() - Date.now()) / 86400000)
                     : (activeSprint?.daysLeft ?? 0);
+                  const computedDaysLeft = activeSprint?.status === 'completed' || rawRemaining <= 0
+                    ? 0
+                    : Math.max(0, Math.min(totalSprintDays, rawRemaining));
 
                   const managerMember = project.members?.find(
                     (m) => (m.role || '').toLowerCase() === 'manager'
@@ -688,11 +699,22 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
               (project.sprints || []).find((s) => s.status === 'active') ||
               project.activeSprint ||
               (project.sprints || [])[0];
-            const linkedRetro = project.retrospectives?.find((r) => r.status === 'active');
-            const sprintEndDate = linkedRetro?.endDate || activeSprint?.endDate;
-            const computedDaysLeft = sprintEndDate
-              ? Math.max(0, Math.ceil((new Date(sprintEndDate).getTime() - Date.now()) / 86400000))
+            const linkedRetro = project.retrospectives?.find((r) => {
+              const sNum = activeSprint?.number;
+              const rMatch = (r.sprintName || r.title || '').match(/\d+/);
+              return rMatch && sNum ? parseInt(rMatch[0], 10) === sNum : false;
+            }) || project.retrospectives?.find((r) => r.status === 'active');
+            const effectiveStartDate = linkedRetro?.startDate || activeSprint?.startDate;
+            const effectiveEndDate = linkedRetro?.endDate || activeSprint?.endDate;
+            const totalSprintDays = effectiveStartDate && effectiveEndDate
+              ? Math.max(1, Math.ceil((new Date(effectiveEndDate).getTime() - new Date(effectiveStartDate).getTime()) / 86400000))
+              : 14;
+            const rawRemaining = effectiveEndDate
+              ? Math.ceil((new Date(effectiveEndDate).getTime() - Date.now()) / 86400000)
               : (activeSprint?.daysLeft ?? 0);
+            const computedDaysLeft = activeSprint?.status === 'completed' || rawRemaining <= 0
+              ? 0
+              : Math.max(0, Math.min(totalSprintDays, rawRemaining));
 
             const userEmail = currentUser?.email?.toLowerCase().trim();
             const managerMember = project.members?.find(
