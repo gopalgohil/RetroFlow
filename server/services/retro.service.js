@@ -95,14 +95,28 @@ class RetroService {
       if (!targetSprint) {
         const cadenceDays =
           linkedProject.cadence === '1_week' ? 7 : linkedProject.cadence === '3_weeks' ? 21 : 14;
-        const sStart = payload.startDate
-          ? new Date(payload.startDate).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0];
+        let sStart = payload.startDate ? new Date(payload.startDate).toISOString().split('T')[0] : null;
+        if (!sStart) {
+          const allEndDates = [];
+          (linkedProject.retrospectives || []).forEach((r) => {
+            if (r.endDate) allEndDates.push(new Date(r.endDate));
+          });
+          (linkedProject.sprints || []).forEach((s) => {
+            if (s.endDate) allEndDates.push(new Date(s.endDate));
+          });
+          allEndDates.sort((a, b) => b.getTime() - a.getTime());
+          if (allEndDates.length > 0 && !isNaN(allEndDates[0].getTime())) {
+            const nextDay = new Date(Date.UTC(allEndDates[0].getUTCFullYear(), allEndDates[0].getUTCMonth(), allEndDates[0].getUTCDate() + 1));
+            sStart = nextDay.toISOString().split('T')[0];
+          } else {
+            sStart = new Date().toISOString().split('T')[0];
+          }
+        }
         const sEnd = payload.endDate
           ? new Date(payload.endDate).toISOString().split('T')[0]
           : (() => {
-              const sDate = payload.startDate ? new Date(payload.startDate) : new Date();
-              return new Date(Date.UTC(sDate.getFullYear(), sDate.getMonth() + 1, 0)).toISOString().split('T')[0];
+              const sDate = new Date(sStart);
+              return new Date(sDate.getTime() + cadenceDays * 86400000).toISOString().split('T')[0];
             })();
         const totalDays = Math.max(1, Math.ceil((new Date(sEnd).getTime() - new Date(sStart).getTime()) / 86400000));
         const rawRemaining = Math.ceil((new Date(sEnd).getTime() - Date.now()) / 86400000);

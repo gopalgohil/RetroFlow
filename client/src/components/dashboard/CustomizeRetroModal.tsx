@@ -30,6 +30,8 @@ export interface ProjectRetroContext {
   sprintName?: string;
   members: Array<{ name: string; email: string; role: string }>;
   retrospectives?: any[];
+  sprints?: any[];
+  cadence?: string;
 }
 
 interface CustomizeRetroModalProps {
@@ -177,13 +179,43 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setBackgroundTheme(initialData.backgroundTheme || 'standard');
       setTopics(initialData.topics || []);
     } else if (projectContext) {
-      const sprintTag = projectContext.sprintName || 'Sprint 14';
+      const sprintTag = projectContext.sprintName || 'Sprint 1';
       setTitle(`${projectContext.name} - ${sprintTag} Retrospective`);
       setDescription(`Agile feedback & sprint retrospective for ${projectContext.name} (${projectContext.key}).`);
       setScheduledDate(getLocalDateTimeString());
-      const today = new Date().toISOString().split('T')[0];
-      setStartDate(today);
-      setEndDate(getEndOfMonthString(today));
+
+      // INDUSTRY STANDARD: Sprints are sequential and non-overlapping.
+      // Auto-suggest starting date as the day AFTER previous sprint/retro ended.
+      const allEndDates: Date[] = [];
+      (projectContext.retrospectives || []).forEach((r) => {
+        if (r.endDate) {
+          const d = new Date(r.endDate);
+          if (!isNaN(d.getTime())) allEndDates.push(d);
+        }
+      });
+      (projectContext.sprints || []).forEach((s) => {
+        if (s.endDate) {
+          const d = new Date(s.endDate);
+          if (!isNaN(d.getTime())) allEndDates.push(d);
+        }
+      });
+      allEndDates.sort((a, b) => b.getTime() - a.getTime());
+
+      let defaultStartStr = new Date().toISOString().split('T')[0];
+      if (allEndDates.length > 0) {
+        const latestEnd = allEndDates[0];
+        const nextDay = new Date(Date.UTC(latestEnd.getUTCFullYear(), latestEnd.getUTCMonth(), latestEnd.getUTCDate() + 1));
+        defaultStartStr = nextDay.toISOString().split('T')[0];
+      }
+
+      setStartDate(defaultStartStr);
+
+      const cadenceDays =
+        projectContext.cadence === '1_week' ? 7 : projectContext.cadence === '3_weeks' ? 21 : 14;
+      const sDateObj = new Date(defaultStartStr);
+      const computedEndObj = new Date(sDateObj.getTime() + cadenceDays * 86400000);
+      setEndDate(computedEndObj.toISOString().split('T')[0]);
+
       setRevealMode(false);
       setVotingLimit(1);
       setApprovalRequired(true); 
@@ -343,6 +375,19 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
 
   const todayStr = React.useMemo(() => new Date().toISOString().split('T')[0], []);
 
+  const latestCompletedSprintEndDate = React.useMemo(() => {
+    if (!projectContext) return null;
+    const allEndDates: string[] = [];
+    (projectContext.retrospectives || []).forEach((r) => {
+      if (r.endDate) allEndDates.push(r.endDate);
+    });
+    (projectContext.sprints || []).forEach((s) => {
+      if (s.endDate) allEndDates.push(s.endDate);
+    });
+    allEndDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    return allEndDates[0] || null;
+  }, [projectContext]);
+
   const dateValidation = React.useMemo(() => {
     if (!startDate && !endDate) {
       return {
@@ -382,18 +427,29 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       };
     }
 
+    if (!initialData && latestCompletedSprintEndDate && startDate <= latestCompletedSprintEndDate) {
+      return {
+        isValid: false,
+        error: `Starting date (${startDate}) overlaps with previous sprint (ends on ${latestCompletedSprintEndDate}). Sprints must start after previous sprint ends.`,
+        field: 'startDate' as const,
+      };
+    }
+
     return {
       isValid: true,
       error: null,
       field: null,
     };
-  }, [startDate, endDate, initialData, todayStr]);
+  }, [startDate, endDate, initialData, todayStr, latestCompletedSprintEndDate]);
 
   const handleStartDateChange = (newStart: string) => {
     setStartDate(newStart);
     setErrorMessage(null);
     if (newStart) {
-      setEndDate(getEndOfMonthString(newStart));
+      const cadenceDays =
+        projectContext?.cadence === '1_week' ? 7 : projectContext?.cadence === '3_weeks' ? 21 : 14;
+      const computedEndObj = new Date(new Date(newStart).getTime() + cadenceDays * 86400000);
+      setEndDate(computedEndObj.toISOString().split('T')[0]);
     }
   };
 
@@ -646,7 +702,9 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between min-h-[18px]">
                     <span className="whitespace-nowrap">Starting Date <span className="text-rose-500">*</span></span>
-                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap">(Present date)</span>
+                    <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                      {latestCompletedSprintEndDate ? `(Follows ${latestCompletedSprintEndDate})` : '(Present date)'}
+                    </span>
                   </label>
                   <div className="relative">
                     <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -675,9 +733,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                     <span className="whitespace-nowrap">Ending Date <span className="text-rose-500">*</span></span>
                     <span
                       className="text-[10px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap"
-                      title="Defaults to month end: Jan 31, Feb 28, Nov 30"
                     >
-                      (Month end)
+                      ({projectContext?.cadence === '1_week' ? '1-Week' : projectContext?.cadence === '3_weeks' ? '3-Weeks' : '2-Weeks'} Cycle)
                     </span>
                   </label>
                   <div className="relative">

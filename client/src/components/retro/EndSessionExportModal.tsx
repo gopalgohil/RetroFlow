@@ -228,10 +228,12 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     const retroSprintNum = match ? parseInt(match[1] || match[0], 10) : (selectedProject?.retrospectives?.length || 1);
     const nextSprintNum = retroSprintNum + 1;
 
-    // Next sprint dates derived from retroEndDate (e.g. 2026-01-31 -> 2026-02-01 to 2026-02-28)
+    // Next sprint dates derived from retroEndDate: sequential start following day after retroEndDate
     const ref = retroEndDate ? new Date(retroEndDate) : new Date();
-    const nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() + 1, 1));
-    const nextEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
+    const nextStart = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth(), ref.getUTCDate() + 1));
+    const cadenceDays =
+      selectedProject?.cadence === '1_week' ? 7 : selectedProject?.cadence === '3_weeks' ? 21 : 14;
+    const nextEnd = new Date(nextStart.getTime() + cadenceDays * 86400000);
     const totalDays = Math.max(1, Math.ceil((nextEnd.getTime() - nextStart.getTime()) / 86400000));
     const now = new Date();
     const rawDiff = Math.ceil((nextEnd.getTime() - now.getTime()) / 86400000);

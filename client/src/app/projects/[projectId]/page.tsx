@@ -919,6 +919,8 @@ function ProjectDetailContent() {
               sprintName: `Sprint ${(project.retrospectives?.length || 0) + 1}`,
               members: project.members,
               retrospectives: project.retrospectives,
+              sprints: project.sprints,
+              cadence: project.cadence,
             }
             : null
         }

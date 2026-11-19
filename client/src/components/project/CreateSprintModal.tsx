@@ -51,13 +51,23 @@ export const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
     if (referenceSprint?.endDate) {
       baseRefDate = new Date(referenceSprint.endDate);
     } else {
-      // Find latest sprint endDate if any
-      const sortedByEnd = [...existingSprints]
-        .filter((s) => !!s.endDate)
-        .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
+      const allEndDates: Date[] = [];
+      (existingSprints || []).forEach((s) => {
+        if (s.endDate) {
+          const d = new Date(s.endDate);
+          if (!isNaN(d.getTime())) allEndDates.push(d);
+        }
+      });
+      (project.retrospectives || []).forEach((r) => {
+        if (r.endDate) {
+          const d = new Date(r.endDate);
+          if (!isNaN(d.getTime())) allEndDates.push(d);
+        }
+      });
+      allEndDates.sort((a, b) => b.getTime() - a.getTime());
 
-      if (sortedByEnd.length > 0) {
-        baseRefDate = new Date(sortedByEnd[0].endDate);
+      if (allEndDates.length > 0) {
+        baseRefDate = allEndDates[0];
       } else {
         baseRefDate = new Date();
       }
@@ -68,18 +78,10 @@ export const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
     const nextStartStr = nextStart.toISOString().split('T')[0];
     setStartDate(nextStartStr);
 
-    // Smart End Date: check if current month has >= 7 days left, or month end, or 14-day cadence
-    const currentMonthEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 1, 0));
-    const daysLeftInMonth = Math.ceil((currentMonthEnd.getTime() - nextStart.getTime()) / 86400000) + 1;
-
-    let defaultEnd: Date;
-    if (daysLeftInMonth >= 7) {
-      // End at end of month
-      defaultEnd = currentMonthEnd;
-    } else {
-      // Or end at next month's end
-      defaultEnd = new Date(Date.UTC(nextStart.getUTCFullYear(), nextStart.getUTCMonth() + 2, 0));
-    }
+    // Smart End Date: based on project cadence (e.g. 14 days or 7 days)
+    const cadenceDays =
+      project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
+    const defaultEnd = new Date(nextStart.getTime() + cadenceDays * 86400000);
 
     setEndDate(defaultEnd.toISOString().split('T')[0]);
   }, [isOpen, referenceSprint, project]);
