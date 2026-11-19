@@ -12,6 +12,8 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  UserPlus,
+  UserX,
 } from 'lucide-react';
 import { Project, ProjectRetroLink, BacklogItem } from '@/types/project';
 import { formatRetroDateRange } from '@/lib/dateUtils';
@@ -31,7 +33,22 @@ export interface RetroCardProps {
     itemId: string,
     newStatus: 'todo' | 'in_progress' | 'done'
   ) => Promise<void>;
+  onUpdateAssignee?: (
+    sprintId: string,
+    itemId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
+  ) => Promise<void>;
 }
+
+const getInitials = (name?: string, avatar?: string): string => {
+  if (avatar && avatar.length <= 3) return avatar.toUpperCase();
+  if (!name) return '??';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+};
 
 export const RetroCard: React.FC<RetroCardProps> = ({
   retro,
@@ -44,6 +61,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
   onEdit,
   onDelete,
   onUpdateItemStatus,
+  onUpdateAssignee,
 }) => {
   const isActive = retro.status === 'active';
   const isCompleted = retro.status === 'completed';
@@ -51,6 +69,8 @@ export const RetroCard: React.FC<RetroCardProps> = ({
   // Default state: Active sprint is open, Completed sprint is collapsed
   const [isBacklogExpanded, setIsBacklogExpanded] = useState<boolean>(() => isActive);
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+  const [openStatusItemId, setOpenStatusItemId] = useState<string | null>(null);
+  const [openAssigneeItemId, setOpenAssigneeItemId] = useState<string | null>(null);
 
   const dateDisplay = formatRetroDateRange(
     retro.startDate,
@@ -65,6 +85,8 @@ export const RetroCard: React.FC<RetroCardProps> = ({
     currentUser?.role?.toLowerCase() === 'manager' ||
     currentUser?.projectRole?.toLowerCase() === 'manager'
   );
+
+  const members = project?.members || [];
 
   // Sprint rollover & scoping logic
   const { committedItems, relatedSprintId } = useMemo(() => {
@@ -88,24 +110,16 @@ export const RetroCard: React.FC<RetroCardProps> = ({
 
     const targetSprintId = matchedSprint?.id || project.sprints[0]?.id;
 
-    // Rollover separation:
-    // If completed: show DONE tasks
-    // If active: show TO DO and IN PROGRESS tasks
-    const allAssigned = (matchedSprint?.items || []).filter((item) => {
-      return Boolean(item.assignee?.name || item.assignee?.email);
-    });
-
     if (isCompleted) {
-      // Completed retro shows DONE tasks (historical completion record)
-      const doneItems = allAssigned.filter((it) => it.status === 'done');
+      // Completed retro shows DONE tasks
+      const doneItems = (matchedSprint?.items || []).filter((it) => it.status === 'done');
       return {
         committedItems: doneItems,
         relatedSprintId: targetSprintId,
       };
     } else {
-      // Active retro shows in-progress & to-do tasks (current sprint backlog)
-      // plus any tasks done in the current active sprint
-      const activeItems = allAssigned.filter((it) => it.status !== 'done' || matchedSprint?.status === 'active');
+      // Active retro shows in-progress & to-do tasks
+      const activeItems = (matchedSprint?.items || []).filter((it) => it.status !== 'done' || matchedSprint?.status === 'active');
       return {
         committedItems: activeItems,
         relatedSprintId: targetSprintId,
@@ -121,12 +135,29 @@ export const RetroCard: React.FC<RetroCardProps> = ({
     : isCompleted ? 100 : 0;
 
   const handleStatusChange = async (itemId: string, newStatus: 'todo' | 'in_progress' | 'done') => {
+    setOpenStatusItemId(null);
     if (!onUpdateItemStatus || !relatedSprintId) return;
     setUpdatingItemId(itemId);
     try {
       await onUpdateItemStatus(relatedSprintId, itemId, newStatus);
     } catch (err) {
       console.error('[RetroCard] Status update error:', err);
+    } finally {
+      setUpdatingItemId(null);
+    }
+  };
+
+  const handleAssigneeChange = async (
+    itemId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
+  ) => {
+    setOpenAssigneeItemId(null);
+    if (!onUpdateAssignee || !relatedSprintId) return;
+    setUpdatingItemId(itemId);
+    try {
+      await onUpdateAssignee(relatedSprintId, itemId, assignee);
+    } catch (err) {
+      console.error('[RetroCard] Assignee update error:', err);
     } finally {
       setUpdatingItemId(null);
     }
@@ -314,10 +345,13 @@ export const RetroCard: React.FC<RetroCardProps> = ({
           {committedItems.length > 0 ? (
             committedItems.map((item, idx) => {
               const isItemUpdating = updatingItemId === item.id;
+              const isStatusMenuOpen = openStatusItemId === item.id;
+              const isAssigneeMenuOpen = openAssigneeItemId === item.id;
+
               return (
                 <div
                   key={item.id || `item-${idx}`}
-                  className="p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+                  className="p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 relative"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="w-6 h-6 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-black flex items-center justify-center shrink-0">
@@ -328,9 +362,13 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                         {item.title}
                       </p>
                       <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">
-                        {item.assignee?.name && (
+                        {item.assignee?.name ? (
                           <span className="px-1.5 py-0.2 rounded bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/15 dark:text-[#88c958] font-bold">
                             Assignee: {item.assignee.name}
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.2 rounded bg-slate-200 dark:bg-white/[0.08] text-slate-600 dark:text-slate-400 font-medium">
+                            Unassigned
                           </span>
                         )}
                         {item.dueDate && (
@@ -343,25 +381,22 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                     </div>
                   </div>
 
-                  {/* Status Dropdown (Admin/Manager) or Read-Only Badge */}
-                  <div className="shrink-0 flex items-center gap-2">
+                  {/* Right Side: Status Dropdown & Circular Avatar */}
+                  <div className="shrink-0 flex items-center gap-2.5">
                     {isItemUpdating && (
                       <Loader2 className="w-3.5 h-3.5 animate-spin text-[#88c958]" />
                     )}
 
-                    {isAdminOrManager ? (
-                      <div className="relative inline-block">
-                        <select
-                          value={item.status || 'todo'}
-                          disabled={isItemUpdating}
-                          onChange={(e) =>
-                            handleStatusChange(
-                              item.id,
-                              e.target.value as 'todo' | 'in_progress' | 'done'
-                            )
-                          }
-                          title="Click to update task status (TODO ➔ IN PROGRESS ➔ DONE)"
-                          className={`appearance-none pl-2.5 pr-7 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer border shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#88c958]/30 ${
+                    {/* Status Dropdown Menu (Styled exactly as in the user screenshot) */}
+                    <div className="relative">
+                      {isAdminOrManager ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenAssigneeItemId(null);
+                            setOpenStatusItemId((prev) => (prev === item.id ? null : item.id));
+                          }}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer border shadow-2xs ${
                             item.status === 'done'
                               ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100/90'
                               : item.status === 'in_progress'
@@ -369,46 +404,187 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                               : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800 hover:bg-amber-100/90'
                           }`}
                         >
-                          <option
-                            value="todo"
-                            className="text-slate-800 dark:text-slate-200 bg-white dark:bg-[#0e1015] font-bold py-1"
-                          >
-                            ○ TO DO
-                          </option>
-                          <option
-                            value="in_progress"
-                            className="text-sky-700 dark:text-sky-400 bg-white dark:bg-[#0e1015] font-bold py-1"
-                          >
-                            ◑ IN PROGRESS
-                          </option>
-                          <option
-                            value="done"
-                            className="text-emerald-700 dark:text-emerald-400 bg-white dark:bg-[#0e1015] font-bold py-1"
-                          >
-                            ● DONE
-                          </option>
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                          <ChevronDown className="w-3 h-3 opacity-60 text-current" />
-                        </div>
-                      </div>
-                    ) : (
-                      <span
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-                          item.status === 'done'
-                            ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
+                          <span>
+                            {item.status === 'done'
+                              ? 'Done'
+                              : item.status === 'in_progress'
+                              ? 'In Progress'
+                              : 'To Do'}
+                          </span>
+                          <ChevronDown className="w-3 h-3 opacity-60" />
+                        </button>
+                      ) : (
+                        <span
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                            item.status === 'done'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
+                              : item.status === 'in_progress'
+                              ? 'bg-sky-100 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60'
+                              : 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60'
+                          }`}
+                        >
+                          {item.status === 'done'
+                            ? 'DONE'
                             : item.status === 'in_progress'
-                            ? 'bg-sky-100 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60'
-                            : 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60'
-                        }`}
-                      >
-                        {item.status === 'done'
-                          ? 'DONE'
-                          : item.status === 'in_progress'
-                          ? 'IN PROGRESS'
-                          : 'TO DO'}
-                      </span>
-                    )}
+                            ? 'IN PROGRESS'
+                            : 'TO DO'}
+                        </span>
+                      )}
+
+                      {/* Floating Status Dropdown Popup */}
+                      {isStatusMenuOpen && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-40"
+                            onClick={() => setOpenStatusItemId(null)}
+                          />
+                          <div className="absolute right-0 top-full mt-1.5 w-36 bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.12] rounded-2xl shadow-xl z-50 p-1 animate-in fade-in zoom-in-95 duration-100">
+                            <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-white/[0.08]">
+                              Update Status
+                            </div>
+                            <div className="py-1 space-y-0.5">
+                              {[
+                                { id: 'todo', label: 'To Do' },
+                                { id: 'in_progress', label: 'In Progress' },
+                                { id: 'done', label: 'Done' },
+                              ].map((opt) => {
+                                const isCurrent = (item.status || 'todo') === opt.id;
+                                return (
+                                  <button
+                                    key={opt.id}
+                                    type="button"
+                                    onClick={() =>
+                                      handleStatusChange(
+                                        item.id,
+                                        opt.id as 'todo' | 'in_progress' | 'done'
+                                      )
+                                    }
+                                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-xs font-bold transition-colors cursor-pointer ${
+                                      isCurrent
+                                        ? 'bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958]'
+                                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.06]'
+                                    }`}
+                                  >
+                                    <span>{opt.label}</span>
+                                    {isCurrent && (
+                                      <Check className="w-3.5 h-3.5 text-[#3d8318] dark:text-[#88c958] stroke-[2.5]" />
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Circular Avatar / Initials on Right Side (with reassign / unassign popup) */}
+                    <div className="relative">
+                      {isAdminOrManager ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenStatusItemId(null);
+                            setOpenAssigneeItemId((prev) => (prev === item.id ? null : item.id));
+                          }}
+                          title={
+                            item.assignee?.name
+                              ? `Assigned to: ${item.assignee.name}\nClick to reassign or unassign`
+                              : 'Click to assign task to team member'
+                          }
+                          className="flex items-center rounded-full p-0.5 hover:ring-2 hover:ring-[#88c958]/80 transition-all cursor-pointer select-none"
+                        >
+                          {item.assignee?.name ? (
+                            <div className="flex items-center -space-x-2">
+                              {/* If manager/givenBy exists, show overlapping circle like M AD */}
+                              {item.givenBy && item.givenBy !== item.assignee.name && (
+                                <div className="w-7 h-7 rounded-full bg-[#488e1e] text-white dark:bg-[#72ad46] dark:text-[#08090a] text-[10px] font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs">
+                                  {getInitials(item.givenBy)}
+                                </div>
+                              )}
+                              <div className="w-7 h-7 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-[10px] font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs">
+                                {getInitials(item.assignee.name, item.assignee.avatar)}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-7 h-7 rounded-full border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-400 dark:text-slate-500 hover:border-[#88c958] hover:text-[#88c958] flex items-center justify-center text-xs font-bold transition-colors">
+                              <UserPlus className="w-3.5 h-3.5" />
+                            </div>
+                          )}
+                        </button>
+                      ) : (
+                        item.assignee?.name && (
+                          <div
+                            className="w-7 h-7 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-[10px] font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs select-none"
+                            title={`Assigned to: ${item.assignee.name}`}
+                          >
+                            {getInitials(item.assignee.name, item.assignee.avatar)}
+                          </div>
+                        )
+                      )}
+
+                      {/* Floating Assignee Dropdown Popup */}
+                      {isAssigneeMenuOpen && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-40"
+                            onClick={() => setOpenAssigneeItemId(null)}
+                          />
+                          <div className="absolute right-0 top-full mt-1.5 w-56 max-h-64 overflow-y-auto bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.12] rounded-2xl shadow-xl z-50 p-1 animate-in fade-in zoom-in-95 duration-100">
+                            <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-white/[0.08]">
+                              Assign Member
+                            </div>
+                            <div className="py-1 space-y-0.5">
+                              {members.map((member) => {
+                                const isSelected =
+                                  item.assignee?.name?.toLowerCase().trim() ===
+                                  member.name?.toLowerCase().trim();
+                                return (
+                                  <button
+                                    key={member.id || member.email || member.name}
+                                    type="button"
+                                    onClick={() =>
+                                      handleAssigneeChange(item.id, {
+                                        name: member.name,
+                                        email: member.email,
+                                        avatar: member.avatar,
+                                      })
+                                    }
+                                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                                      isSelected
+                                        ? 'bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] font-bold'
+                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06]'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <div className="w-5 h-5 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-[9px] font-black flex items-center justify-center shrink-0">
+                                        {getInitials(member.name, member.avatar)}
+                                      </div>
+                                      <span className="truncate">{member.name}</span>
+                                    </div>
+                                    {isSelected && (
+                                      <Check className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] shrink-0" />
+                                    )}
+                                  </button>
+                                );
+                              })}
+
+                              {/* Unassign Task Button (Removes task assignment) */}
+                              {item.assignee?.name && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAssigneeChange(item.id, null)}
+                                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-left text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors border-t border-slate-100 dark:border-white/[0.08] mt-1 pt-1.5 cursor-pointer font-bold"
+                                >
+                                  <UserX className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                                  <span>Unassign task</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

@@ -252,6 +252,26 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
     }
   };
 
+  const handleUpdateAssignee = async (
+    sprintId: string,
+    itemId: string,
+    assignee: { name: string; email?: string; avatar?: string } | null
+  ) => {
+    try {
+      const updated = await ProjectApiService.updateSprintItemAssignee(
+        project.id,
+        sprintId,
+        itemId,
+        assignee
+      );
+      if (updated && onProjectUpdated) {
+        onProjectUpdated(updated);
+      }
+    } catch (err: any) {
+      console.error('[RetrosTab] Failed to update assignee:', err);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {canManageProject && (paginationMeta.totalItems > 0 || (project.retrospectives?.length || 0) > 0) && (
@@ -311,6 +331,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                   onEdit={handleOpenEdit}
                   onDelete={(r) => setDeletingRetro(r)}
                   onUpdateItemStatus={handleUpdateItemStatus}
+                  onUpdateAssignee={handleUpdateAssignee}
                 />
               ))
             )}
