@@ -5,7 +5,6 @@ import { Menu, LogOut, ChevronDown, User as UserIcon } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui';
 import { LogoutConfirmModal } from './LogoutConfirmModal';
 import { MyProfileModal } from './MyProfileModal';
-import { ProjectSwitcher } from '@/components/navigation/ProjectSwitcher';
 
 interface DashboardHeaderProps {
   searchQuery?: string;
@@ -101,8 +100,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           >
             <Menu className="w-5 h-5" />
           </button>
-
-          <ProjectSwitcher user={activeUser} currentProject={currentProject} />
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">

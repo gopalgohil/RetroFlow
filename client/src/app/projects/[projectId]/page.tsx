@@ -10,7 +10,6 @@ import {
   MyProfileModal,
   LogoutConfirmModal,
 } from '@/components/dashboard';
-import { ProjectSwitcher } from '@/components/navigation/ProjectSwitcher';
 import {
   OverviewTab,
   SprintsTab,
@@ -572,13 +571,6 @@ function ProjectDetailContent() {
             >
               <Menu className="w-5 h-5" />
             </button>
-
-            <ProjectSwitcher
-              currentProjectId={projectId}
-              currentProject={project}
-              onSelectProject={handleSelectProject}
-              user={currentUser}
-            />
           </div>
 
           <div className="flex items-center gap-2.5">
@@ -1008,9 +1000,7 @@ function ProjectDetailFallback() {
 
       <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
         <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#08090a]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08] px-4 sm:px-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <ProjectSwitcher user={activeUser} />
-          </div>
+          <div className="flex items-center gap-3" />
 
           <div className="flex items-center gap-2.5">
             <ThemeToggle />
