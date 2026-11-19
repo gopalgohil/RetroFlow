@@ -53,15 +53,21 @@ export const CreateSprintModal: React.FC<CreateSprintModalProps> = ({
     } else {
       const allEndDates: Date[] = [];
       (existingSprints || []).forEach((s) => {
-        if (s.endDate) {
-          const d = new Date(s.endDate);
-          if (!isNaN(d.getTime())) allEndDates.push(d);
+        if ((nextNum && (s.number || 0) < nextNum) || s.status === 'completed') {
+          if (s.endDate) {
+            const d = new Date(s.endDate);
+            if (!isNaN(d.getTime())) allEndDates.push(d);
+          }
         }
       });
       (project.retrospectives || []).forEach((r) => {
-        if (r.endDate) {
-          const d = new Date(r.endDate);
-          if (!isNaN(d.getTime())) allEndDates.push(d);
+        const match = (r.sprintName || r.title || '').match(/\d+/);
+        const rNum = match ? parseInt(match[0], 10) : 0;
+        if ((nextNum && rNum < nextNum) || r.status === 'completed') {
+          if (r.endDate) {
+            const d = new Date(r.endDate);
+            if (!isNaN(d.getTime())) allEndDates.push(d);
+          }
         }
       });
       allEndDates.sort((a, b) => b.getTime() - a.getTime());

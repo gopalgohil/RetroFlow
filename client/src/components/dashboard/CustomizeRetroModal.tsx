@@ -179,31 +179,40 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
       setBackgroundTheme(initialData.backgroundTheme || 'standard');
       setTopics(initialData.topics || []);
     } else if (projectContext) {
-      const sprintTag = projectContext.sprintName || 'Sprint 1';
-      setTitle(`${projectContext.name} - ${sprintTag} Retrospective`);
-      setDescription(`Agile feedback & sprint retrospective for ${projectContext.name} (${projectContext.key}).`);
+      const match = (projectContext.sprintName || '').match(/\d+/);
+      const sprintNum = match ? parseInt(match[0], 10) : ((projectContext.retrospectives?.length || 0) + 1);
+      const sprintTag = projectContext.sprintName || `Sprint ${sprintNum}`;
+      setTitle(`${sprintTag} Retrospective`);
+      setDescription(`Continuous alignment session for Engineering & Product team (${projectContext.name}).`);
       setScheduledDate(getLocalDateTimeString());
 
       // INDUSTRY STANDARD: Sprints are sequential and non-overlapping.
       // Auto-suggest starting date as the day AFTER previous sprint/retro ended.
-      const allEndDates: Date[] = [];
+      const allPrevEndDates: Date[] = [];
       (projectContext.retrospectives || []).forEach((r) => {
-        if (r.endDate) {
-          const d = new Date(r.endDate);
-          if (!isNaN(d.getTime())) allEndDates.push(d);
+        const rMatch = (r.sprintName || r.title || '').match(/\d+/);
+        const rNum = rMatch ? parseInt(rMatch[0], 10) : 0;
+        if ((sprintNum && rNum < sprintNum) || r.status === 'completed') {
+          if (r.endDate) {
+            const d = new Date(r.endDate);
+            if (!isNaN(d.getTime())) allPrevEndDates.push(d);
+          }
         }
       });
       (projectContext.sprints || []).forEach((s) => {
-        if (s.endDate) {
-          const d = new Date(s.endDate);
-          if (!isNaN(d.getTime())) allEndDates.push(d);
+        const sNum = s.number || 0;
+        if (sprintNum && sNum < sprintNum) {
+          if (s.endDate) {
+            const d = new Date(s.endDate);
+            if (!isNaN(d.getTime())) allPrevEndDates.push(d);
+          }
         }
       });
-      allEndDates.sort((a, b) => b.getTime() - a.getTime());
+      allPrevEndDates.sort((a, b) => b.getTime() - a.getTime());
 
       let defaultStartStr = new Date().toISOString().split('T')[0];
-      if (allEndDates.length > 0) {
-        const latestEnd = allEndDates[0];
+      if (allPrevEndDates.length > 0) {
+        const latestEnd = allPrevEndDates[0];
         const nextDay = new Date(Date.UTC(latestEnd.getUTCFullYear(), latestEnd.getUTCMonth(), latestEnd.getUTCDate() + 1));
         defaultStartStr = nextDay.toISOString().split('T')[0];
       }
@@ -248,9 +257,8 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           order: 2,
         },
       ]);
-      const defaultTitle = projectContext?.sprintName
-        ? `${projectContext.sprintName} Retrospective`
-        : 'Sprint 1 Retrospective';
+    } else {
+      const defaultTitle = 'Sprint 1 Retrospective';
       setTitle(defaultTitle);
       setDescription('Continuous alignment session for Engineering & Product team');
       setScheduledDate(getLocalDateTimeString());
@@ -375,18 +383,42 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
 
   const todayStr = React.useMemo(() => new Date().toISOString().split('T')[0], []);
 
+  const currentSprintNum = React.useMemo(() => {
+    const match = (projectContext?.sprintName || '').match(/\d+/);
+    return match ? parseInt(match[0], 10) : ((projectContext?.retrospectives?.length || 0) + 1);
+  }, [projectContext?.sprintName, projectContext?.retrospectives]);
+
   const latestCompletedSprintEndDate = React.useMemo(() => {
     if (!projectContext) return null;
     const allEndDates: string[] = [];
+
     (projectContext.retrospectives || []).forEach((r) => {
-      if (r.endDate) allEndDates.push(r.endDate);
+      const match = (r.sprintName || r.title || '').match(/\d+/);
+      const rNum = match ? parseInt(match[0], 10) : 0;
+      if ((currentSprintNum && rNum < currentSprintNum) || r.status === 'completed') {
+        if (r.endDate) allEndDates.push(r.endDate);
+      }
     });
+
     (projectContext.sprints || []).forEach((s) => {
-      if (s.endDate) allEndDates.push(s.endDate);
+      const sNum = s.number || 0;
+      if (currentSprintNum && sNum < currentSprintNum) {
+        if (s.endDate) allEndDates.push(s.endDate);
+      }
     });
+
+    if (allEndDates.length === 0) {
+      (projectContext.retrospectives || []).forEach((r) => {
+        if (r.status === 'completed' && r.endDate) allEndDates.push(r.endDate);
+      });
+      (projectContext.sprints || []).forEach((s) => {
+        if (s.status === 'completed' && s.endDate) allEndDates.push(s.endDate);
+      });
+    }
+
     allEndDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
     return allEndDates[0] || null;
-  }, [projectContext]);
+  }, [projectContext, currentSprintNum]);
 
   const dateValidation = React.useMemo(() => {
     if (!startDate && !endDate) {
