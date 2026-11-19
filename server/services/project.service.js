@@ -327,14 +327,7 @@ class ProjectService {
           const actionCards = Array.isArray(liveBoard.cards)
             ? liveBoard.cards.filter((c) => actionTopicIds.has(c.topicId) && !c.isSprintRemoved)
             : [];
-          const actionItemsCount = actionCards.filter(
-            (c) =>
-              c.assignedTo &&
-              typeof c.assignedTo === 'object' &&
-              c.assignedTo.name &&
-              c.assignedTo.name.trim() !== '' &&
-              c.assignedTo.name.trim().toLowerCase() !== 'unassigned'
-          ).length;
+          const actionItemsCount = actionCards.length;
 
           const topicsCount = (liveBoard.topics || []).length;
 

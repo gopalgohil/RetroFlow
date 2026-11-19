@@ -52,10 +52,10 @@ export const OverviewRecentRetros: React.FC<OverviewRecentRetrosProps> = ({
                     )}
                   </span>
                   <span>•</span>
-                  <span>{retro.cardsCount} cards</span>
+                  <span>{retro.cardsCount || 0} cards</span>
                   <span>•</span>
                   <span className="text-[#88c958] font-semibold">
-                    {retro.actionItemsCount} action items
+                    {retro.actionItemsCount || 0} action items
                   </span>
                 </div>
               </div>

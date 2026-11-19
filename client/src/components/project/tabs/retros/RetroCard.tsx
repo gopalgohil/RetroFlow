@@ -346,9 +346,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
         <div className="p-2.5 rounded-xl bg-[#88c958]/10 dark:bg-[#88c958]/15 border border-[#88c958]/30 text-center">
           <span className="text-[10px] text-[#3d8318] dark:text-[#88c958] uppercase font-bold block">Action Items</span>
           <span className="text-xs font-black text-[#3d8318] dark:text-[#88c958]">
-            {committedItems.length > 0
-              ? `${committedItems.length} Assigned to Backlog`
-              : `${retro.actionItemsCount || 0} Items`}
+            {Math.max(retro.actionItemsCount || 0, committedItems.length)} Items
           </span>
         </div>
       </div>
