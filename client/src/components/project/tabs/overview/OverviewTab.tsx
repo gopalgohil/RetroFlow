@@ -40,8 +40,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         );
 
   const activeSprint =
-    project.activeSprint ||
     (project.sprints || []).find((s) => s.status === 'active') ||
+    project.activeSprint ||
     (project.sprints || [])[0];
 
   const totalTasks = activeSprint?.items?.length || 0;

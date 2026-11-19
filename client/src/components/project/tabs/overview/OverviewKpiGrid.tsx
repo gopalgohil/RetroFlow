@@ -26,27 +26,41 @@ export const OverviewKpiGrid: React.FC<OverviewKpiGridProps> = ({
   leadRoleLabel,
   leadDisplayName,
 }) => {
-  const totalSprintDays = activeSprint?.startDate && activeSprint?.endDate
+  // Dynamically link with the active or matching retrospective to ensure timeline dates and remaining days are 100% synchronized
+  const linkedRetro = project?.retrospectives?.find((r) => {
+    if (!activeSprint) return false;
+    const sMatch = activeSprint.name?.match(/\d+/);
+    const sNum = activeSprint.number || (sMatch ? parseInt(sMatch[0], 10) : null);
+    const rMatch = (r.sprintName || r.title || '').match(/\d+/);
+    const rNum = rMatch ? parseInt(rMatch[0], 10) : null;
+    return Boolean(sNum && rNum && sNum === rNum);
+  }) || project?.retrospectives?.find((r) => r.status === 'active');
+
+  const effectiveStartDate = linkedRetro?.startDate || activeSprint?.startDate;
+  const effectiveEndDate = linkedRetro?.endDate || activeSprint?.endDate;
+
+  const totalSprintDays = effectiveStartDate && effectiveEndDate
     ? Math.max(
         1,
         Math.ceil(
-          (new Date(activeSprint.endDate).getTime() - new Date(activeSprint.startDate).getTime()) / (1000 * 60 * 60 * 24)
+          (new Date(effectiveEndDate).getTime() - new Date(effectiveStartDate).getTime()) / (1000 * 60 * 60 * 24)
         )
       )
-    : 30;
+    : (activeSprint?.daysLeft && activeSprint.daysLeft > 0 ? activeSprint.daysLeft : 14);
 
-  const rawRemaining = activeSprint?.endDate
-    ? Math.ceil((new Date(activeSprint.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  const rawRemaining = effectiveEndDate
+    ? Math.ceil((new Date(effectiveEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : (activeSprint?.daysLeft ?? 0);
 
-  const daysRemaining = activeSprint ? Math.max(0, Math.min(totalSprintDays, rawRemaining)) : 0;
+  const isCompleted = activeSprint?.status === 'completed' || (linkedRetro && linkedRetro.status === 'completed');
+  const daysRemaining = activeSprint && !isCompleted ? Math.max(0, Math.min(totalSprintDays, rawRemaining)) : 0;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
       <MetricCard
         title="Sprint Timeline"
-        value={activeSprint ? `${daysRemaining} Days` : 'No Sprint'}
+        value={activeSprint ? `${daysRemaining} Day${daysRemaining !== 1 ? 's' : ''}` : 'No Sprint'}
         unit={activeSprint ? 'remaining' : ''}
         icon={<Clock className="w-4 h-4" />}
         variant={activeSprint ? 'indigo' : 'default'}
@@ -55,7 +69,7 @@ export const OverviewKpiGrid: React.FC<OverviewKpiGridProps> = ({
             ? {
                 current: activeSprint.completedStoryPoints ?? 0,
                 total: activeSprint.totalStoryPoints || 1,
-                label: activeSprint.name ? activeSprint.name.split(' - ')[0] : 'Sprint Active',
+                label: activeSprint.name ? activeSprint.name.split(' - ')[0] : (linkedRetro?.title || 'Sprint Active'),
               }
             : undefined
         }

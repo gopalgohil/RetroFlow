@@ -95,28 +95,51 @@ class RetroService {
       if (!targetSprint) {
         const cadenceDays =
           linkedProject.cadence === '1_week' ? 7 : linkedProject.cadence === '3_weeks' ? 21 : 14;
+        const sStart = payload.startDate
+          ? new Date(payload.startDate).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0];
+        const sEnd = payload.endDate
+          ? new Date(payload.endDate).toISOString().split('T')[0]
+          : (() => {
+              const sDate = payload.startDate ? new Date(payload.startDate) : new Date();
+              return new Date(Date.UTC(sDate.getFullYear(), sDate.getMonth() + 1, 0)).toISOString().split('T')[0];
+            })();
+        const totalDays = Math.max(1, Math.ceil((new Date(sEnd).getTime() - new Date(sStart).getTime()) / 86400000));
+        const rawRemaining = Math.ceil((new Date(sEnd).getTime() - Date.now()) / 86400000);
+
         targetSprint = {
           id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
           name: `Sprint ${sprintNum} - Execution & Backlog`,
           number: sprintNum,
           status: linkedProject.sprints.length === 0 ? 'active' : 'pending',
-          startDate: payload.startDate
-            ? new Date(payload.startDate).toISOString().split('T')[0]
-            : new Date().toISOString().split('T')[0],
-          endDate: payload.endDate
-            ? new Date(payload.endDate).toISOString().split('T')[0]
-            : (() => {
-                const sDate = payload.startDate ? new Date(payload.startDate) : new Date();
-                return new Date(Date.UTC(sDate.getFullYear(), sDate.getMonth() + 1, 0)).toISOString().split('T')[0];
-              })(),
+          startDate: sStart,
+          endDate: sEnd,
           goal: `Sprint ${sprintNum} deliverables and retrospective action items.`,
-          daysLeft: cadenceDays,
+          daysLeft: Math.max(0, Math.min(totalDays, rawRemaining)),
           totalStoryPoints: 0,
           completedStoryPoints: 0,
           openBlockers: 0,
           items: [],
         };
         linkedProject.sprints.push(targetSprint);
+      } else {
+        // If target sprint already exists, sync its dates and status with the newly created retro
+        if (payload.startDate) {
+          targetSprint.startDate = new Date(payload.startDate).toISOString().split('T')[0];
+        }
+        if (payload.endDate) {
+          targetSprint.endDate = new Date(payload.endDate).toISOString().split('T')[0];
+        }
+        if (targetSprint.startDate && targetSprint.endDate) {
+          const sEnd = new Date(targetSprint.endDate).getTime();
+          const sStart = new Date(targetSprint.startDate).getTime();
+          const totalDays = Math.max(1, Math.ceil((sEnd - sStart) / 86400000));
+          const rawRemaining = Math.ceil((sEnd - Date.now()) / 86400000);
+          targetSprint.daysLeft = targetSprint.status === 'completed' ? 0 : Math.max(0, Math.min(totalDays, rawRemaining));
+        }
+        if (payload.status === 'active' || !targetSprint.status || targetSprint.status === 'pending') {
+          targetSprint.status = 'active';
+        }
       }
     }
 

@@ -518,9 +518,14 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
               <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05] text-sm">
                 {displayedProjects.map((project) => {
                   const activeSprint =
-                    project.activeSprint ||
                     (project.sprints || []).find((s) => s.status === 'active') ||
+                    project.activeSprint ||
                     (project.sprints || [])[0];
+                  const linkedRetro = project.retrospectives?.find((r) => r.status === 'active');
+                  const sprintEndDate = linkedRetro?.endDate || activeSprint?.endDate;
+                  const computedDaysLeft = sprintEndDate
+                    ? Math.max(0, Math.ceil((new Date(sprintEndDate).getTime() - Date.now()) / 86400000))
+                    : (activeSprint?.daysLeft ?? 0);
 
                   const managerMember = project.members?.find(
                     (m) => (m.role || '').toLowerCase() === 'manager'
@@ -589,7 +594,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                                 {activeSprint.name.split(' - ')[0]}
                               </span>
                               <span className="text-xs font-bold text-[#5cb028] dark:text-[#88c958] shrink-0 ml-2">
-                                {activeSprint.daysLeft}d left
+                                {computedDaysLeft}d left
                               </span>
                             </div>
                             <ProgressBar
@@ -680,9 +685,14 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
           {displayedProjects.map((project) => {
             const activeSprint =
-              project.activeSprint ||
               (project.sprints || []).find((s) => s.status === 'active') ||
+              project.activeSprint ||
               (project.sprints || [])[0];
+            const linkedRetro = project.retrospectives?.find((r) => r.status === 'active');
+            const sprintEndDate = linkedRetro?.endDate || activeSprint?.endDate;
+            const computedDaysLeft = sprintEndDate
+              ? Math.max(0, Math.ceil((new Date(sprintEndDate).getTime() - Date.now()) / 86400000))
+              : (activeSprint?.daysLeft ?? 0);
 
             const userEmail = currentUser?.email?.toLowerCase().trim();
             const managerMember = project.members?.find(
@@ -769,7 +779,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                           {activeSprint.name.split(' - ')[0]}
                         </span>
                         <span className="text-xs font-bold text-[#5cb028] dark:text-[#88c958]">
-                          {activeSprint.daysLeft} days left
+                          {computedDaysLeft} days left
                         </span>
                       </div>
 

@@ -382,17 +382,25 @@ class ProjectService {
             (s) => s.number === sprintNum || s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)
           );
 
+          const retroStart = retroItem.startDate || (liveBoard && liveBoard.startDate ? new Date(liveBoard.startDate).toISOString().split('T')[0] : null);
+          const retroEnd = retroItem.endDate || (liveBoard && liveBoard.endDate ? new Date(liveBoard.endDate).toISOString().split('T')[0] : null);
+
           if (!sprint) {
             const cadenceDays = project.cadence === '1_week' ? 7 : project.cadence === '3_weeks' ? 21 : 14;
+            const sStart = retroStart || new Date().toISOString().split('T')[0];
+            const sEnd = retroEnd || new Date(Date.now() + cadenceDays * 86400000).toISOString().split('T')[0];
+            const totalDays = Math.max(1, Math.ceil((new Date(sEnd).getTime() - new Date(sStart).getTime()) / 86400000));
+            const rawRemaining = Math.ceil((new Date(sEnd).getTime() - Date.now()) / 86400000);
+
             sprint = {
               id: `sprint-${crypto.randomBytes(4).toString('hex')}`,
               name: `Sprint ${sprintNum} - Execution & Backlog`,
               number: sprintNum,
-              status: project.sprints.length === 0 ? 'active' : 'pending',
-              startDate: retroItem.startDate || (liveBoard.startDate ? new Date(liveBoard.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
-              endDate: retroItem.endDate || (liveBoard.endDate ? new Date(liveBoard.endDate).toISOString().split('T')[0] : new Date(Date.now() + cadenceDays * 86400000).toISOString().split('T')[0]),
+              status: retroItem.status === 'completed' ? 'completed' : (project.sprints.length === 0 || retroItem.status === 'active' ? 'active' : 'pending'),
+              startDate: sStart,
+              endDate: sEnd,
               goal: `${retroItem.title || `Sprint ${sprintNum}`} deliverables and retrospective action items.`,
-              daysLeft: cadenceDays,
+              daysLeft: retroItem.status === 'completed' ? 0 : Math.max(0, Math.min(totalDays, rawRemaining)),
               totalStoryPoints: 0,
               completedStoryPoints: 0,
               openBlockers: 0,
@@ -400,6 +408,35 @@ class ProjectService {
             };
             project.sprints.push(sprint);
             hasChanges = true;
+          } else {
+            // Sprint exists: ALWAYS sync dates with retrospective dates so daysLeft and timeline are dynamic!
+            if (retroStart && sprint.startDate !== retroStart) {
+              sprint.startDate = retroStart;
+              hasChanges = true;
+            }
+            if (retroEnd && sprint.endDate !== retroEnd) {
+              sprint.endDate = retroEnd;
+              hasChanges = true;
+            }
+            if (sprint.startDate && sprint.endDate) {
+              const sEnd = new Date(sprint.endDate).getTime();
+              const sStart = new Date(sprint.startDate).getTime();
+              const totalDays = Math.max(1, Math.ceil((sEnd - sStart) / 86400000));
+              const rawRemaining = Math.ceil((sEnd - Date.now()) / 86400000);
+              const computedDays = sprint.status === 'completed' ? 0 : Math.max(0, Math.min(totalDays, rawRemaining));
+              if (sprint.daysLeft !== computedDays) {
+                sprint.daysLeft = computedDays;
+                hasChanges = true;
+              }
+            }
+            if (retroItem.status === 'completed' && sprint.status !== 'completed') {
+              sprint.status = 'completed';
+              sprint.daysLeft = 0;
+              hasChanges = true;
+            } else if (retroItem.status === 'active' && sprint.status !== 'active') {
+              sprint.status = 'active';
+              hasChanges = true;
+            }
           }
 
           sprint.items = sprint.items || [];
@@ -930,6 +967,8 @@ class ProjectService {
           });
         }
       });
+      const activeSprint = project.sprints.find((s) => s.status === 'active') || project.sprints[0] || null;
+      project.activeSprint = activeSprint;
     }
 
     const isAdmin = Boolean(
@@ -1829,6 +1868,24 @@ class ProjectService {
     }
 
     project.markModified('sprints');
+
+    // Also sync dates with matching retrospective if present
+    const matchingRetro = (project.retrospectives || []).find((r) => {
+      const match = (r.sprintName || r.title || '').match(/\d+/);
+      return match && parseInt(match[0], 10) === sprint.number;
+    });
+    if (matchingRetro) {
+      matchingRetro.startDate = startDate;
+      matchingRetro.endDate = endDate;
+      project.markModified('retrospectives');
+      try {
+        await RetroBoard.updateOne(
+          { $or: [{ _id: matchingRetro.id }, { shareToken: matchingRetro.shareToken }] },
+          { $set: { startDate: new Date(startDate), endDate: new Date(endDate) } }
+        );
+      } catch {}
+    }
+
     await project.save();
     return project;
   }
@@ -2977,6 +3034,31 @@ class ProjectService {
     if (payload.sprintName) retro.sprintName = payload.sprintName.trim();
     if (payload.status) retro.status = payload.status;
 
+    // Sync with matching sprint in project.sprints
+    let sprintNum = 1;
+    const sMatch = (retro.sprintName || retro.title || '').match(/\d+/);
+    if (sMatch) sprintNum = parseInt(sMatch[0], 10);
+    const matchingSprint = project.sprints?.find((s) => s.number === sprintNum);
+    if (matchingSprint) {
+      if (payload.startDate !== undefined) matchingSprint.startDate = payload.startDate;
+      if (payload.endDate !== undefined) matchingSprint.endDate = payload.endDate;
+      if (matchingSprint.startDate && matchingSprint.endDate) {
+        const sEnd = new Date(matchingSprint.endDate).getTime();
+        const sStart = new Date(matchingSprint.startDate).getTime();
+        const totalDays = Math.max(1, Math.ceil((sEnd - sStart) / 86400000));
+        const rawRemaining = Math.ceil((sEnd - Date.now()) / 86400000);
+        matchingSprint.daysLeft = matchingSprint.status === 'completed' ? 0 : Math.max(0, Math.min(totalDays, rawRemaining));
+      }
+      if (payload.status === 'completed' && matchingSprint.status !== 'completed') {
+        matchingSprint.status = 'completed';
+        matchingSprint.daysLeft = 0;
+      } else if (payload.status === 'active' && matchingSprint.status !== 'active') {
+        matchingSprint.status = 'active';
+      }
+      project.markModified('sprints');
+    }
+
+    project.markModified('retrospectives');
     await project.save();
 
     try {
