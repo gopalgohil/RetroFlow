@@ -20,6 +20,8 @@ export interface RetrosTabProps {
   onCreateRetroClick?: () => void;
   onProjectUpdated?: (updatedProject: Project) => void;
   canManageProject?: boolean;
+  canMarkDone?: boolean;
+  currentUser?: any;
 }
 
 export const RetrosTab: React.FC<RetrosTabProps> = ({
@@ -27,6 +29,8 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
   onCreateRetroClick,
   onProjectUpdated,
   canManageProject = true,
+  canMarkDone = false,
+  currentUser = null,
 }) => {
   const [invitingSession, setInvitingSession] = useState<ShareInviteSession | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
@@ -228,6 +232,26 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
     });
   };
 
+  const handleUpdateItemStatus = async (
+    sprintId: string,
+    itemId: string,
+    newStatus: 'todo' | 'in_progress' | 'done'
+  ) => {
+    try {
+      const updated = await ProjectApiService.updateSprintItemStatus(
+        project.id,
+        sprintId,
+        itemId,
+        newStatus
+      );
+      if (updated && onProjectUpdated) {
+        onProjectUpdated(updated);
+      }
+    } catch (err: any) {
+      console.error('[RetrosTab] Failed to update sprint item status:', err);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {canManageProject && (paginationMeta.totalItems > 0 || (project.retrospectives?.length || 0) > 0) && (
@@ -280,10 +304,13 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                   retro={retro}
                   project={project}
                   canManageProject={canManageProject}
+                  canMarkDone={canMarkDone}
+                  currentUser={currentUser}
                   isCopied={copiedToken === retro.shareToken}
                   onShare={handleShareClick}
                   onEdit={handleOpenEdit}
                   onDelete={(r) => setDeletingRetro(r)}
+                  onUpdateItemStatus={handleUpdateItemStatus}
                 />
               ))
             )}

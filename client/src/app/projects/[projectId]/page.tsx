@@ -885,6 +885,8 @@ function ProjectDetailContent() {
                       onCreateRetroClick={() => setIsCreateRetroOpen(true)}
                       onProjectUpdated={(up) => setProject({ ...up })}
                       canManageProject={canShare}
+                      canMarkDone={Boolean(isWorkspaceAdmin || isManager)}
+                      currentUser={activeUser}
                     />
                   )}
 
