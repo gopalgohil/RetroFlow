@@ -295,7 +295,14 @@ class ProjectService {
           const actionCards = Array.isArray(liveBoard.cards)
             ? liveBoard.cards.filter((c) => actionTopicIds.has(c.topicId) && !c.isSprintRemoved)
             : [];
-          const actionItemsCount = actionCards.length;
+          const actionItemsCount = actionCards.filter(
+            (c) =>
+              c.assignedTo &&
+              typeof c.assignedTo === 'object' &&
+              c.assignedTo.name &&
+              c.assignedTo.name.trim() !== '' &&
+              c.assignedTo.name.trim().toLowerCase() !== 'unassigned'
+          ).length;
 
           const topicsCount = (liveBoard.topics || []).length;
 
@@ -371,7 +378,22 @@ class ProjectService {
             actionCards.map((c) => (c.text || '').toLowerCase().trim()).filter(Boolean)
           );
 
-          // Clean up cards from retro sprint if they were deleted from the retro board
+          const assignedOrExportedCardIds = new Set(
+            actionCards
+              .filter((c) => {
+                const isAssigned = Boolean(
+                  c.assignedTo &&
+                  typeof c.assignedTo === 'object' &&
+                  c.assignedTo.name &&
+                  c.assignedTo.name.trim() !== '' &&
+                  c.assignedTo.name.trim().toLowerCase() !== 'unassigned'
+                );
+                return isAssigned || c.isExportedToActionItems || c.assignedSprintName;
+              })
+              .map((c) => c.cardId)
+          );
+
+          // Clean up cards from retro sprint if they were deleted or unassigned from the retro board
           const prevCount = sprint.items.length;
           sprint.items = sprint.items.filter((it) => {
             const cleanId = (it.id || '').replace(/^act-/, '');
@@ -392,7 +414,14 @@ class ProjectService {
               activeCardIds.has(it.id) ||
               activeCardTitles.has(cardTitle);
 
-            return isStillActiveActionCard;
+            if (!isStillActiveActionCard) return false;
+
+            // Only keep items in sprint backlog that are explicitly assigned or exported
+            const isAssignedOrExported =
+              assignedOrExportedCardIds.has(cleanId) ||
+              assignedOrExportedCardIds.has(it.cardId);
+
+            return isAssignedOrExported;
           });
 
           if (sprint.items.length !== prevCount) {
@@ -405,6 +434,19 @@ class ProjectService {
             if (!cardTitle) continue;
 
             const cleanCardId = card.cardId;
+
+            // Only process cards that are assigned or explicitly exported to sprint
+            const isCardAssigned = Boolean(
+              card.assignedTo &&
+              typeof card.assignedTo === 'object' &&
+              card.assignedTo.name &&
+              card.assignedTo.name.trim() !== '' &&
+              card.assignedTo.name.trim().toLowerCase() !== 'unassigned'
+            );
+
+            if (!isCardAssigned && !card.isExportedToActionItems && !card.assignedSprintName) {
+              continue;
+            }
 
             // Determine target sprint for this card
             let targetSprint = null;
@@ -473,8 +515,16 @@ class ProjectService {
                   it.title.toLowerCase().trim() === cardTitle.toLowerCase())
             );
 
-            let assigneeName = card.assignedTo?.name || card.author || 'Assigned Member';
-            let assigneeEmail = card.assignedTo?.email || card.authorEmail || undefined;
+            const hasValidAssignee = Boolean(
+              card.assignedTo &&
+              typeof card.assignedTo === 'object' &&
+              card.assignedTo.name &&
+              card.assignedTo.name.trim() !== '' &&
+              card.assignedTo.name.trim().toLowerCase() !== 'unassigned'
+            );
+
+            let assigneeName = hasValidAssignee ? card.assignedTo.name.trim() : null;
+            let assigneeEmail = (hasValidAssignee && card.assignedTo.email) ? card.assignedTo.email.trim() : undefined;
             const mentionMatch = cardTitle.match(/@([a-zA-Z0-9._-]+)/);
             if (mentionMatch) {
               const handle = mentionMatch[1].toLowerCase().trim();
@@ -537,7 +587,10 @@ class ProjectService {
 
             if (existingItem) {
               let changed = false;
-              if (assigneeName && (!existingItem.assignee?.name || existingItem.assignee.name !== assigneeName || existingItem.assignee.name.includes('@') || existingItem.assignee.avatar?.length < 2)) {
+              if (!assigneeName && existingItem.assignee) {
+                existingItem.assignee = null;
+                changed = true;
+              } else if (assigneeName && (!existingItem.assignee?.name || existingItem.assignee.name !== assigneeName || existingItem.assignee.name.includes('@') || existingItem.assignee.avatar?.length < 2)) {
                 existingItem.assignee = {
                   ...(existingItem.assignee || {}),
                   name: assigneeName,
@@ -566,7 +619,7 @@ class ProjectService {
               if (changed) {
                 hasChanges = true;
               }
-            } else if (card.isExportedToActionItems || card.assignedSprintName || (card.assignedTo && card.assignedTo.name)) {
+            } else if (card.isExportedToActionItems || card.assignedSprintName || assigneeName) {
               targetSprint.items.push({
                 id: `act-${cleanCardId || crypto.randomUUID().slice(0, 8)}`,
                 cardId: cleanCardId,
@@ -577,11 +630,11 @@ class ProjectService {
                 status: card.status || 'todo',
                 dueDate: card.dueDate || targetSprint.endDate || null,
                 storyPoints: 3,
-                assignee: {
+                assignee: assigneeName ? {
                   name: assigneeName,
                   email: assigneeEmail,
                   avatar: getInitials(assigneeName),
-                },
+                } : null,
                 givenBy: managerName,
                 managerName: managerName,
                 sourceRetroId: retroItem.id || retroItem.shareToken || liveBoard._id?.toString(),
@@ -2429,25 +2482,41 @@ class ProjectService {
           continue;
         }
 
-        let directAssigneeName = card.assignedTo?.name || card.author || 'Assigned Member';
-        let directAssigneeEmail = card.assignedTo?.email || card.authorEmail || undefined;
+        // Rule: Retro cards are only ideas/notes until Admin or Manager explicitly assigns them to a member.
+        // Unassigned cards must NEVER appear in the Dashboard's Action Items tab!
+        const hasExplicitAssignee = Boolean(
+          card.assignedTo &&
+          typeof card.assignedTo === 'object' &&
+          card.assignedTo.name &&
+          card.assignedTo.name.trim() !== '' &&
+          card.assignedTo.name.trim().toLowerCase() !== 'unassigned'
+        );
 
-        const mentionMatch = (card.text || '').match(/@([a-zA-Z0-9._-]+)/);
-        if (mentionMatch) {
-          const mentionedHandle = mentionMatch[1].toLowerCase().trim();
-          const candidateMembers = [...(matchingProject?.members || [])];
-          if (matchingProject?.lead) candidateMembers.push(matchingProject.lead);
+        if (!hasExplicitAssignee) {
+          continue;
+        }
 
-          const matchedMember = candidateMembers.find(
-            (m) =>
-              (m.email && m.email.toLowerCase().includes(mentionedHandle)) ||
-              (m.name && m.name.toLowerCase().includes(mentionedHandle))
-          );
-          if (matchedMember) {
-            directAssigneeName = matchedMember.name;
-            directAssigneeEmail = matchedMember.email;
-          } else {
-            directAssigneeName = mentionMatch[1].trim();
+        let directAssigneeName = card.assignedTo.name.trim();
+        let directAssigneeEmail = card.assignedTo.email ? card.assignedTo.email.trim() : undefined;
+
+        if (!directAssigneeName) {
+          const mentionMatch = (card.text || '').match(/@([a-zA-Z0-9._-]+)/);
+          if (mentionMatch) {
+            const mentionedHandle = mentionMatch[1].toLowerCase().trim();
+            const candidateMembers = [...(matchingProject?.members || [])];
+            if (matchingProject?.lead) candidateMembers.push(matchingProject.lead);
+
+            const matchedMember = candidateMembers.find(
+              (m) =>
+                (m.email && m.email.toLowerCase().includes(mentionedHandle)) ||
+                (m.name && m.name.toLowerCase().includes(mentionedHandle))
+            );
+            if (matchedMember) {
+              directAssigneeName = matchedMember.name;
+              directAssigneeEmail = matchedMember.email;
+            } else {
+              directAssigneeName = mentionMatch[1].trim();
+            }
           }
         }
 
