@@ -50,18 +50,43 @@ export const RetroCard: React.FC<RetroCardProps> = ({
     retro.scheduledDate || (retro as any).createdAt
   );
 
-  // Find related sprint
-  const relatedSprint = (project?.sprints || []).find((s) => {
-    if (s.retrospectiveId && (s.retrospectiveId === retro.id || s.retrospectiveId === retro.shareToken)) return true;
-    if (retro.sprintName && s.name && s.name.toLowerCase().includes(retro.sprintName.toLowerCase())) return true;
-    if (retro.title && s.name && s.name.toLowerCase().includes(retro.title.toLowerCase())) return true;
-    return false;
-  });
+  // Find all items linked to this retro across all sprints or matching sprint
+  const committedItems: BacklogItem[] = React.useMemo(() => {
+    if (!project?.sprints) return [];
 
-  // Filter ONLY items that are assigned by manager/admin
-  const committedItems: BacklogItem[] = (relatedSprint?.items || []).filter((item) => {
-    return Boolean(item.assignee?.name || item.assignee?.email);
-  });
+    // Extract sprint number e.g. "1" from "Sprint 1 Retrospective"
+    const retroSprintNum =
+      (retro.title || '').match(/\b(?:sprint|cycle)\s*(\d+)\b/i)?.[1] ||
+      (retro.sprintName || '').match(/\b(?:sprint|cycle)\s*(\d+)\b/i)?.[1];
+
+    const allItems: BacklogItem[] = [];
+    const seenIds = new Set<string>();
+
+    for (const sprint of project.sprints) {
+      const sprintNum = (sprint.name || '').match(/\b(?:sprint|cycle)\s*(\d+)\b/i)?.[1];
+      const isRelatedSprint =
+        (retroSprintNum && sprintNum && retroSprintNum === sprintNum) ||
+        (sprint.retrospectiveId && (sprint.retrospectiveId === retro.id || sprint.retrospectiveId === retro.shareToken)) ||
+        (retro.sprintName && sprint.name && sprint.name.toLowerCase().includes(retro.sprintName.toLowerCase())) ||
+        (retro.title && sprint.name && (retro.title.toLowerCase().includes(sprint.name.toLowerCase()) || sprint.name.toLowerCase().includes(retro.title.toLowerCase())));
+
+      for (const item of sprint.items || []) {
+        const itemMatchesRetro =
+          (item.sourceRetroId && (item.sourceRetroId === retro.id || item.sourceRetroId === retro.shareToken)) ||
+          (item.sourceRetroTitle && retro.title && item.sourceRetroTitle.toLowerCase().trim() === retro.title.toLowerCase().trim());
+
+        if (itemMatchesRetro || isRelatedSprint) {
+          const key = item.id || item.title;
+          if (!seenIds.has(key)) {
+            seenIds.add(key);
+            allItems.push(item);
+          }
+        }
+      }
+    }
+
+    return allItems;
+  }, [project?.sprints, retro]);
 
   return (
     <div className="w-full p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs hover:border-[#88c958]/60 dark:hover:border-[#88c958]/60 transition-all space-y-4">

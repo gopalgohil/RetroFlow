@@ -49,11 +49,12 @@ class RetroService {
       const todayMidnight = new Date(new Date().setHours(0, 0, 0, 0));
 
       const existingMonthlyRetro = (linkedProject.retrospectives || []).find((r) => {
+        if (r.status === 'completed' || r.status === 'closed') return false;
         const rDate = r.startDate || r.scheduledDate ? new Date(r.startDate || r.scheduledDate) : null;
         const rEndDate = r.endDate ? new Date(r.endDate) : null;
         const isSameMonth = rDate && rDate >= startOfMonth && rDate <= endOfMonth;
         const isNotExpired = rEndDate ? rEndDate >= todayMidnight : true;
-        return isSameMonth && isNotExpired;
+        return isSameMonth && isNotExpired && r.status === 'active';
       });
 
       if (existingMonthlyRetro) {

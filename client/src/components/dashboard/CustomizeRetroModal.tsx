@@ -411,11 +411,12 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     const todayMidnight = new Date(new Date().setHours(0, 0, 0, 0));
 
     return projectContext.retrospectives.find((r: any) => {
+      if (r.status === 'completed' || r.status === 'closed') return false;
       const rDate = r.startDate || r.scheduledDate ? new Date(r.startDate || r.scheduledDate) : null;
       const rEndDate = r.endDate ? new Date(r.endDate) : null;
       const isSameMonth = rDate && rDate >= startOfMonth && rDate <= endOfMonth;
       const isNotExpired = rEndDate ? rEndDate >= todayMidnight : true;
-      return isSameMonth && isNotExpired;
+      return isSameMonth && isNotExpired && r.status === 'active';
     });
   }, [initialData, projectContext]);
 
