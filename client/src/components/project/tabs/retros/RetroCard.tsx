@@ -14,6 +14,7 @@ import {
   Loader2,
   UserPlus,
   UserX,
+  MoreVertical,
 } from 'lucide-react';
 import { Project, ProjectRetroLink, BacklogItem } from '@/types/project';
 import { formatRetroDateRange } from '@/lib/dateUtils';
@@ -71,6 +72,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [openStatusItemId, setOpenStatusItemId] = useState<string | null>(null);
   const [openAssigneeItemId, setOpenAssigneeItemId] = useState<string | null>(null);
+  const [isCardMenuOpen, setIsCardMenuOpen] = useState(false);
 
   const dateDisplay = formatRetroDateRange(
     retro.startDate,
@@ -242,45 +244,54 @@ export const RetroCard: React.FC<RetroCardProps> = ({
             </Link>
 
             {canManageProject && (
-              <button
-                type="button"
-                onClick={() => onShare(retro)}
-                title="Share or Invite Teammates"
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer bg-[#88c958]/10 dark:bg-[#88c958]/15 hover:bg-[#88c958]/20 dark:hover:bg-[#88c958]/25 text-[#3d8318] dark:text-[#88c958] border-[#88c958]/30 dark:border-[#88c958]/40 hover:border-[#88c958]/60 shadow-2xs whitespace-nowrap"
-              >
-                {isCopied ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsCardMenuOpen((prev) => !prev)}
+                  title="More sprint actions"
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-white/[0.08]"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+
+                {isCardMenuOpen && (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
-                    <span className="text-emerald-700 dark:text-emerald-400 font-bold">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
-                    <span>Share / Invite</span>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsCardMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.12] rounded-2xl shadow-xl z-50 p-1 animate-in fade-in zoom-in-95 duration-100">
+                      <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-white/[0.08]">
+                        Sprint Actions
+                      </div>
+                      <div className="py-1 space-y-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCardMenuOpen(false);
+                            onEdit(retro);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Edit Details</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCardMenuOpen(false);
+                            onDelete(retro);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer border-t border-slate-100 dark:border-white/[0.08] mt-1 pt-1.5"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                          <span>Delete Retrospective</span>
+                        </button>
+                      </div>
+                    </div>
                   </>
                 )}
-              </button>
-            )}
-
-            {canManageProject && (
-              <div className="flex items-center gap-1 pl-1">
-                <button
-                  type="button"
-                  onClick={() => onEdit(retro)}
-                  title="Edit Retrospective Details"
-                  className="p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
-                >
-                  <Edit3 className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onDelete(retro)}
-                  title="Delete Retrospective"
-                  className="p-2 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
               </div>
             )}
           </div>
