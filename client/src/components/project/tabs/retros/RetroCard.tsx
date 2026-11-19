@@ -284,14 +284,28 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                       <div className="py-1 space-y-0.5">
                         <button
                           type="button"
+                          disabled={isCompleted}
                           onClick={() => {
+                            if (isCompleted) return;
                             setIsCardMenuOpen(false);
                             onEdit(retro);
                           }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                          title={isCompleted ? 'Completed sprint retrospective cannot be edited' : 'Edit retrospective details'}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs font-semibold transition-colors ${
+                            isCompleted
+                              ? 'opacity-40 text-slate-400 dark:text-slate-600 cursor-not-allowed select-none bg-slate-50/50 dark:bg-white/[0.02]'
+                              : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] cursor-pointer'
+                          }`}
                         >
-                          <Edit3 className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Edit Details</span>
+                          <div className="flex items-center gap-2.5">
+                            <Edit3 className={`w-3.5 h-3.5 ${isCompleted ? 'text-slate-400 dark:text-slate-600' : 'text-slate-400'}`} />
+                            <span>Edit Details</span>
+                          </div>
+                          {isCompleted && (
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 bg-slate-200/60 dark:bg-white/[0.08] px-1.5 py-0.5 rounded">
+                              Disabled
+                            </span>
+                          )}
                         </button>
 
                         <button

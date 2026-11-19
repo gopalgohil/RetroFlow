@@ -99,6 +99,10 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
   }, [currentPage, fetchRetrosPage]);
 
   const handleOpenEdit = async (retro: ProjectRetroLink) => {
+    if (retro.status === 'completed') {
+      alert('Completed retrospective sessions cannot be edited.');
+      return;
+    }
     const identifier = retro.id || retro.shareToken;
     try {
       const res = await api.get(`/api/retros/${identifier}`);

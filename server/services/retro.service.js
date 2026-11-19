@@ -753,6 +753,10 @@ class RetroService {
       throw ApiError.forbidden('Retrospective session not found or you do not have permission to edit it.');
     }
 
+    if (retro.status === 'completed' && payload.status !== 'active') {
+      throw ApiError.forbidden('Closed or completed retrospective sessions cannot be edited.');
+    }
+
     if (payload.status && payload.status !== retro.status) {
       const canChangeStatus =
         isAdmin ||
