@@ -7,6 +7,11 @@ const backlogItemSchema = new mongoose.Schema(
       type: String,
       default: () => `item-${crypto.randomUUID().slice(0, 8)}`,
     },
+    cardId: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     title: {
       type: String,
       required: [true, 'Item title is required'],

@@ -462,6 +462,22 @@ class ProjectService {
               .map((c) => c.cardId)
           );
 
+          const assignedOrExportedCardTitles = new Set(
+            actionCards
+              .filter((c) => {
+                const isAssigned = Boolean(
+                  c.assignedTo &&
+                  typeof c.assignedTo === 'object' &&
+                  c.assignedTo.name &&
+                  c.assignedTo.name.trim() !== '' &&
+                  c.assignedTo.name.trim().toLowerCase() !== 'unassigned'
+                );
+                return isAssigned || c.isExportedToActionItems || c.assignedSprintName;
+              })
+              .map((c) => (c.text || '').toLowerCase().trim())
+              .filter(Boolean)
+          );
+
           // Clean up cards from retro sprint if they were deleted or unassigned from the retro board
           const prevCount = sprint.items.length;
           sprint.items = sprint.items.filter((it) => {
@@ -488,7 +504,8 @@ class ProjectService {
             // Only keep items in sprint backlog that are explicitly assigned or exported
             const isAssignedOrExported =
               assignedOrExportedCardIds.has(cleanId) ||
-              assignedOrExportedCardIds.has(it.cardId);
+              assignedOrExportedCardIds.has(it.cardId) ||
+              assignedOrExportedCardTitles.has(cardTitle);
 
             return isAssignedOrExported;
           });
@@ -885,6 +902,7 @@ class ProjectService {
           project.markModified('sprints');
           await project.save();
         }
+        await this.syncProjectRetrospectives(project);
       }
     } catch (err) {
       console.warn('[syncCardAssigneeToSprint] Sync warning:', err?.message || err);

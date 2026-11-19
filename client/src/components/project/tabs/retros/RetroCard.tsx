@@ -118,6 +118,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
     const matchedSprint = project.sprints.find((s) => {
       const sNum = (s.name || '').match(/\b(?:sprint|cycle)\s*(\d+)\b/i)?.[1];
       if (retroSprintNum && sNum && retroSprintNum === sNum) return true;
+      if (s.number && retroSprintNum && s.number.toString() === retroSprintNum) return true;
       if (s.retrospectiveId && (s.retrospectiveId === retro.id || s.retrospectiveId === retro.shareToken)) return true;
       if (retro.sprintName && s.name && s.name.toLowerCase().includes(retro.sprintName.toLowerCase())) return true;
       if (retro.title && s.name && (retro.title.toLowerCase().includes(s.name.toLowerCase()) || s.name.toLowerCase().includes(retro.title.toLowerCase()))) return true;
@@ -126,22 +127,12 @@ export const RetroCard: React.FC<RetroCardProps> = ({
 
     const targetSprintId = matchedSprint?.id || project.sprints[0]?.id;
 
-    if (isCompleted) {
-      // Completed retro shows DONE tasks
-      const doneItems = (matchedSprint?.items || []).filter((it) => it.status === 'done');
-      return {
-        committedItems: doneItems,
-        relatedSprintId: targetSprintId,
-      };
-    } else {
-      // Active retro shows in-progress & to-do tasks
-      const activeItems = (matchedSprint?.items || []).filter((it) => it.status !== 'done' || matchedSprint?.status === 'active');
-      return {
-        committedItems: activeItems,
-        relatedSprintId: targetSprintId,
-      };
-    }
-  }, [project?.sprints, retro, isCompleted]);
+    // Show all committed items of this sprint (TODO, IN PROGRESS, and DONE)
+    return {
+      committedItems: matchedSprint?.items || [],
+      relatedSprintId: targetSprintId,
+    };
+  }, [project?.sprints, retro]);
 
   // Progress calculation
   const totalCount = committedItems.length;
@@ -667,9 +658,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
           ) : (
             <div className="p-3.5 rounded-xl bg-slate-50/60 dark:bg-[#12151c]/60 border border-dashed border-slate-200 dark:border-white/[0.06] text-center">
               <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-                {isCompleted
-                  ? 'No completed deliverables recorded for this sprint.'
-                  : 'No action items committed to sprint backlog yet. When manager assigns items, they will appear here.'}
+                No action items committed to sprint backlog yet. When manager assigns items, they will appear here.
               </p>
             </div>
           )}
