@@ -263,7 +263,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 lg:gap-4.5 2xl:gap-5 min-h-[190px]">
+          <div className="space-y-4 sm:space-y-5 min-h-[190px]">
             {isLoadingRetros ? (
               Array.from({
                 length: Math.min(
@@ -278,6 +278,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
                 <RetroCard
                   key={retro.id || retro.shareToken}
                   retro={retro}
+                  project={project}
                   canManageProject={canManageProject}
                   isCopied={copiedToken === retro.shareToken}
                   onShare={handleShareClick}

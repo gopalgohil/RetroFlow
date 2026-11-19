@@ -408,7 +408,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                   </span>
                 </div>
 
-                {onReassignCard && canManageActionItems && (
+                {!isClosed && onReassignCard && canManageActionItems && (
                   <button
                     type="button"
                     onClick={(e) => {

@@ -69,7 +69,7 @@ function ProjectDetailContent() {
   const [accessDeniedError, setAccessDeniedError] = useState<string | null>(null);
   const [projectNotFoundError, setProjectNotFoundError] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'sprints' | 'retros' | 'team'>(
-    (tabParam as any) || 'overview'
+    tabParam === 'sprints' ? 'retros' : ((tabParam as any) || 'overview')
   );
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCreateRetroOpen, setIsCreateRetroOpen] = useState(false);
@@ -258,10 +258,11 @@ function ProjectDetailContent() {
   };
 
   const handleTabChange = (newTab: 'overview' | 'sprints' | 'retros' | 'team') => {
-    if (newTab === activeTab) return;
+    const targetTab = newTab === 'sprints' ? 'retros' : newTab;
+    if (targetTab === activeTab) return;
     setIsTabTransitioning(true);
-    setActiveTab(newTab);
-    const url = `/projects/${projectId}?tab=${newTab}`;
+    setActiveTab(targetTab);
+    const url = `/projects/${projectId}?tab=${targetTab}`;
     window.history.pushState(null, '', url);
     setTimeout(() => {
       setIsTabTransitioning(false);
@@ -798,15 +799,15 @@ function ProjectDetailContent() {
 
                 <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#12151c] p-2 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shrink-0">
                   <div className="px-3 py-1.5 text-center">
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold block">Sprints</span>
-                    <span className="text-sm font-extrabold text-slate-800 dark:text-white">{project.sprints.length}</span>
-                  </div>
-                  <div className="h-6 w-px bg-slate-200 dark:border-white/[0.08]" />
-                  <div className="px-3 py-1.5 text-center">
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold block">Retros</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold block">Sprints & Retros</span>
                     <span className="text-sm font-extrabold text-[#3d8318] dark:text-[#88c958]">
                       {project.retrospectives.length}
                     </span>
+                  </div>
+                  <div className="h-6 w-px bg-slate-200 dark:border-white/[0.08]" />
+                  <div className="px-3 py-1.5 text-center">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold block">Members</span>
+                    <span className="text-sm font-extrabold text-slate-800 dark:text-white">{project.members.length}</span>
                   </div>
                 </div>
               </div>
@@ -814,8 +815,7 @@ function ProjectDetailContent() {
               <div className="w-full mt-6 pt-2 border-t border-slate-100 dark:border-white/[0.08] flex items-center gap-1 overflow-x-auto">
                 {[
                   { id: 'overview', label: 'Overview', icon: Activity },
-                  { id: 'sprints', label: 'Sprints & Backlog', icon: Layers, count: project.sprints.length },
-                  { id: 'retros', label: 'Retrospectives', icon: Sparkles, count: project.retrospectives.length },
+                  { id: 'retros', label: 'Sprints & Retros', icon: Sparkles, count: project.retrospectives.length },
                   {
                     id: 'team',
                     label: canManageProject ? 'Team & Settings' : 'Team Directory',

@@ -204,21 +204,10 @@ export const RetroHeader: React.FC<RetroHeaderProps> = memo(function RetroHeader
 
         {isClosed && (
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-300 text-xs font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-              <span>Completed</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-300 text-xs font-bold shadow-2xs">
+              <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+              <span>Completed (Read-Only)</span>
             </span>
-
-            {isFacilitator && onReopenSession && (
-              <button
-                onClick={onReopenSession}
-                title="Reopen Retrospective Session"
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0e1015] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-slate-600 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Reopen</span>
-              </button>
-            )}
           </div>
         )}
       </div>
