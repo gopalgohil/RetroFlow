@@ -34,7 +34,7 @@ export const OverviewRecentRetros: React.FC<OverviewRecentRetrosProps> = ({
       </div>
 
       <div className="space-y-2">
-        {retrospectives.slice(0, 3).map((retro) => (
+        {retrospectives.slice(0, 4).map((retro) => (
           <div
             key={retro.id}
             className="p-3 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.08] flex items-center justify-between hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors"

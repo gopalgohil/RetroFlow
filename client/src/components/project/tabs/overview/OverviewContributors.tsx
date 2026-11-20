@@ -32,13 +32,13 @@ export const OverviewContributors: React.FC<OverviewContributorsProps> = ({
           onClick={onViewTeam}
           className="text-xs font-bold text-[#88c958] hover:text-[#76b349] flex items-center gap-1 cursor-pointer"
         >
-          <span>{canManageProject ? 'Manage Team' : 'View Team Directory'}</span>
+          <span>View All ({members.length})</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
         </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        {members.slice(0, 4).map((member) => (
+        {members.slice(0, 6).map((member) => (
           <div
             key={member.id}
             className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.08] flex items-center gap-2.5"
