@@ -1651,7 +1651,7 @@ class ProjectService {
   async getSprintItems(
     idOrKey,
     sprintId,
-    { page = 1, limit = 10, status = 'all', search = '' } = {},
+    { page = 1, limit = 5, status = 'all', search = '' } = {},
     currentUser = null
   ) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
@@ -1703,7 +1703,7 @@ class ProjectService {
 
     const totalItems = items.length;
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+    const limitNum = Math.max(1, parseInt(limit, 10) || 5);
     const totalPages = Math.ceil(totalItems / limitNum) || 1;
 
     const startIndex = (pageNum - 1) * limitNum;

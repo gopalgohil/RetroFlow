@@ -11,6 +11,8 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   UserPlus,
   UserX,
@@ -18,6 +20,7 @@ import {
   Pencil,
 } from 'lucide-react';
 import { Project, ProjectRetroLink, BacklogItem } from '@/types/project';
+import { ProjectApiService } from '@/services/projectApi';
 import { formatRetroDateRange } from '@/lib/dateUtils';
 
 export interface RetroCardProps {
@@ -141,12 +144,59 @@ export const RetroCard: React.FC<RetroCardProps> = ({
     ? Math.round((doneCount / totalCount) * 100)
     : isCompleted ? 100 : 0;
 
+  // Pagination for action items (5 items per page)
+  const ITEMS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingItems, setIsLoadingItems] = useState(false);
+  const [paginatedItems, setPaginatedItems] = useState<BacklogItem[] | null>(null);
+
+  const totalItemsCount = committedItems.length;
+  const totalPages = Math.ceil(totalItemsCount / ITEMS_PER_PAGE) || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItemsCount);
+
+  const displayItems =
+    paginatedItems && paginatedItems.length > 0
+      ? paginatedItems
+      : committedItems.slice(startIndex, endIndex);
+
+  const handlePageChange = async (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages || newPage === currentPage || isLoadingItems) {
+      return;
+    }
+    setCurrentPage(newPage);
+    if (!project?.id || !relatedSprintId) {
+      setPaginatedItems(null);
+      return;
+    }
+    setIsLoadingItems(true);
+    try {
+      const res = await ProjectApiService.getSprintItems(project.id, relatedSprintId, {
+        page: newPage,
+        limit: ITEMS_PER_PAGE,
+      });
+      if (res?.items && Array.isArray(res.items)) {
+        setPaginatedItems(res.items);
+      } else {
+        setPaginatedItems(null);
+      }
+    } catch (err) {
+      console.warn('[RetroCard] Backend pagination fallback to local slice:', err);
+      setPaginatedItems(null);
+    } finally {
+      setIsLoadingItems(false);
+    }
+  };
+
   const handleStatusChange = async (itemId: string, newStatus: 'todo' | 'in_progress' | 'done') => {
     setOpenStatusItemId(null);
     if (!onUpdateItemStatus || !relatedSprintId) return;
     setUpdatingItemId(itemId);
     try {
       await onUpdateItemStatus(relatedSprintId, itemId, newStatus);
+      setPaginatedItems((prev) =>
+        prev ? prev.map((it) => (it.id === itemId ? { ...it, status: newStatus } : it)) : null
+      );
     } catch (err) {
       console.error('[RetroCard] Status update error:', err);
     } finally {
@@ -163,6 +213,9 @@ export const RetroCard: React.FC<RetroCardProps> = ({
     setUpdatingItemId(itemId);
     try {
       await onUpdateAssignee(relatedSprintId, itemId, assignee);
+      setPaginatedItems((prev) =>
+        prev ? prev.map((it) => (it.id === itemId ? { ...it, assignee: assignee || undefined } : it)) : null
+      );
     } catch (err) {
       console.error('[RetroCard] Assignee update error:', err);
     } finally {
@@ -175,6 +228,9 @@ export const RetroCard: React.FC<RetroCardProps> = ({
     setUpdatingItemId(itemId);
     try {
       await onUpdateDueDate(relatedSprintId, itemId, newDueDate);
+      setPaginatedItems((prev) =>
+        prev ? prev.map((it) => (it.id === itemId ? { ...it, dueDate: newDueDate || undefined } : it)) : null
+      );
     } catch (err) {
       console.error('[RetroCard] Due date update error:', err);
     } finally {
@@ -358,21 +414,22 @@ export const RetroCard: React.FC<RetroCardProps> = ({
       {/* Accordion Content (Collapsible) */}
       {isBacklogExpanded && (
         <div className="space-y-2 pt-1 animate-in fade-in duration-150">
-          {committedItems.length > 0 ? (
-            committedItems.map((item, idx) => {
-              const isItemUpdating = updatingItemId === item.id;
-              const isStatusMenuOpen = openStatusItemId === item.id;
-              const isAssigneeMenuOpen = openAssigneeItemId === item.id;
+          {totalItemsCount > 0 ? (
+            <>
+              {displayItems.map((item, idx) => {
+                const isItemUpdating = updatingItemId === item.id;
+                const isStatusMenuOpen = openStatusItemId === item.id;
+                const isAssigneeMenuOpen = openAssigneeItemId === item.id;
 
-              return (
-                <div
-                  key={item.id || `item-${idx}`}
-                  className="p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 relative"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="w-6 h-6 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-black flex items-center justify-center shrink-0">
-                      {idx + 1}
-                    </span>
+                return (
+                  <div
+                    key={item.id || `item-${startIndex + idx}`}
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 relative"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="w-6 h-6 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-black flex items-center justify-center shrink-0">
+                        {startIndex + idx + 1}
+                      </span>
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
                         {item.title}
@@ -642,7 +699,56 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                   </div>
                 </div>
               );
-            })
+            })}
+
+            {totalPages > 1 && (
+              <div className="pt-3 pb-1 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-white/[0.06] mt-2">
+                <div>
+                  Showing <strong className="text-slate-800 dark:text-white font-bold">{startIndex + 1}</strong> to{' '}
+                  <strong className="text-slate-800 dark:text-white font-bold">{endIndex}</strong> of{' '}
+                  <strong className="text-slate-800 dark:text-white font-bold">{totalItemsCount}</strong> Action Items
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage <= 1 || isLoadingItems}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#12151c] text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-white/[0.05] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs text-[11px]"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Prev</span>
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => handlePageChange(p)}
+                      disabled={isLoadingItems}
+                      className={`min-w-[28px] h-7 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        p === currentPage
+                          ? 'bg-[#5cb028] text-white shadow-2xs dark:bg-[#88c958] dark:text-[#08090a]'
+                          : 'bg-white dark:bg-[#12151c] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages || isLoadingItems}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#12151c] text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-white/[0.05] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs text-[11px]"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
           ) : (
             <div className="p-3.5 rounded-xl bg-slate-50/60 dark:bg-[#12151c]/60 border border-dashed border-slate-200 dark:border-white/[0.06] text-center">
               <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
