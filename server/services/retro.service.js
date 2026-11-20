@@ -41,26 +41,13 @@ class RetroService {
     let sprintLabel = payload.sprintName || null;
 
     if (linkedProject) {
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth();
-      const startOfMonth = new Date(currentYear, currentMonth, 1);
-      const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
-      const todayMidnight = new Date(new Date().setHours(0, 0, 0, 0));
+      const activeRetro = (linkedProject.retrospectives || []).find(
+        (r) => r.status !== 'completed' && r.status !== 'closed'
+      );
 
-      const existingMonthlyRetro = (linkedProject.retrospectives || []).find((r) => {
-        if (r.status === 'completed' || r.status === 'closed') return false;
-        const rDate = r.startDate || r.scheduledDate ? new Date(r.startDate || r.scheduledDate) : null;
-        const rEndDate = r.endDate ? new Date(r.endDate) : null;
-        const isSameMonth = rDate && rDate >= startOfMonth && rDate <= endOfMonth;
-        const isNotExpired = rEndDate ? rEndDate >= todayMidnight : true;
-        return isSameMonth && isNotExpired && r.status === 'active';
-      });
-
-      if (existingMonthlyRetro) {
-        const monthName = now.toLocaleString('en-US', { month: 'long' });
+      if (activeRetro) {
         const err = new Error(
-          `Project "${linkedProject.name}" already has an active retrospective for ${monthName} ("${existingMonthlyRetro.title}"). In accordance with company policy, only 1 retrospective per project per month is allowed until month-end.`
+          `Project "${linkedProject.name}" already has an active retrospective session ("${activeRetro.title}"). Please end or complete the current active session before creating a new sprint retrospective.`
         );
         err.statusCode = 400;
         throw err;

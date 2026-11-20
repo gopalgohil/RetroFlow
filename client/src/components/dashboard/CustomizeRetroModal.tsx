@@ -489,23 +489,13 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const hasEmptyTopic = topics.some((t) => !t.title.trim());
   const isTopicsCountValid = topics.length >= MIN_RETRO_TOPICS && topics.length <= MAX_RETRO_TOPICS;
 
-  const activeMonthlyRetro = useMemo(() => {
+  const activeRetro = useMemo(() => {
     if (initialData || !projectContext?.retrospectives) return null;
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-    const startOfMonth = new Date(currentYear, currentMonth, 1);
-    const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
-    const todayMidnight = new Date(new Date().setHours(0, 0, 0, 0));
-
-    return projectContext.retrospectives.find((r: any) => {
-      if (r.status === 'completed' || r.status === 'closed') return false;
-      const rDate = r.startDate || r.scheduledDate ? new Date(r.startDate || r.scheduledDate) : null;
-      const rEndDate = r.endDate ? new Date(r.endDate) : null;
-      const isSameMonth = rDate && rDate >= startOfMonth && rDate <= endOfMonth;
-      const isNotExpired = rEndDate ? rEndDate >= todayMidnight : true;
-      return isSameMonth && isNotExpired && r.status === 'active';
-    });
+    return (
+      projectContext.retrospectives.find(
+        (r: any) => r.status !== 'completed' && r.status !== 'closed'
+      ) || null
+    );
   }, [initialData, projectContext]);
 
   const isFormValid =
@@ -514,11 +504,13 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
     isTopicsCountValid &&
     !hasOverLimitTopic &&
     !hasEmptyTopic &&
-    !activeMonthlyRetro;
+    !activeRetro;
 
   const handleSave = async () => {
-    if (!initialData && activeMonthlyRetro) {
-      setErrorMessage(`Project "${projectContext?.name}" already has an active retrospective for this month (${activeMonthlyRetro.title}). In accordance with company policy, only 1 retrospective per project per month is allowed until month-end.`);
+    if (!initialData && activeRetro) {
+      setErrorMessage(
+        `Project "${projectContext?.name}" already has an active retrospective session (${activeRetro.title}). Pehle current sprint ko end session (complete) karein.`
+      );
       return;
     }
     if (!title.trim()) {
@@ -652,15 +644,15 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           </div>
         )}
 
-        {activeMonthlyRetro && (
+        {activeRetro && (
           <div className="mx-6 mt-3.5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5 shadow-2xs">
             <span className="text-sm shrink-0 mt-0.5">⚠️</span>
             <div>
               <p className="font-extrabold">
-                {projectContext?.name} already has an active retrospective for this month ({activeMonthlyRetro.title})
+                {projectContext?.name} already has an active retrospective session ({activeRetro.title})
               </p>
               <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">
-                In accordance with company policy, 1 retrospective per project per month is allowed until month-end. You can manage, export, or delete the current session to make changes.
+                Pehle current active sprint retrospective session ko "End Session" (complete) karein, uske baad hi naya sprint retrospective create ho sakega.
               </p>
             </div>
           </div>
@@ -1042,10 +1034,10 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
           <button
             type="button"
             onClick={handleSave}
-            disabled={isSubmitting || !isFormValid}
+            disabled={isSubmitting || !isFormValid || Boolean(activeRetro)}
             title={
-              activeMonthlyRetro
-                ? `Project already has an active retrospective for this month (${activeMonthlyRetro.title}). Company policy permits 1 retro per month.`
+              activeRetro
+                ? `Project already has an active retrospective session (${activeRetro.title}). Please complete the active sprint before creating a new one.`
                 : !isFormValid
                 ? !title.trim()
                   ? 'Please provide a session title'
@@ -1056,7 +1048,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
             }
             className="px-6 py-2.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-md shadow-[#5cb028]/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all hover:scale-[1.02] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a]"
           >
-            {isSubmitting ? 'Saving...' : initialData ? 'Save Changes' : activeMonthlyRetro ? 'Monthly Limit Reached' : 'Create & Open Board →'}
+            {isSubmitting ? 'Saving...' : initialData ? 'Save Changes' : activeRetro ? 'Active Sprint In Progress' : 'Create & Open Board →'}
           </button>
         </div>
       </div>
