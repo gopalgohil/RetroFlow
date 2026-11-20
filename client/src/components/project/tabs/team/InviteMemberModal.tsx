@@ -13,6 +13,8 @@ export interface InviteMemberModalProps {
   onClose: () => void;
   project: Project;
   onProjectUpdated: (updated: Project) => void;
+  currentUserRole?: string;
+  isAdmin?: boolean;
 }
 
 const DEFAULT_WORKSPACE_MEMBERS: Array<{ id: string; name: string; email: string }> = [];
@@ -22,7 +24,33 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   onClose,
   project,
   onProjectUpdated,
+  currentUserRole,
+  isAdmin,
 }) => {
+  const [isAdminUser, setIsAdminUser] = useState(
+    isAdmin ?? (currentUserRole?.toLowerCase() === 'admin')
+  );
+
+  useEffect(() => {
+    if (isAdmin !== undefined) {
+      setIsAdminUser(isAdmin);
+      return;
+    }
+    if (currentUserRole) {
+      setIsAdminUser(currentUserRole.toLowerCase() === 'admin');
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('retroflow_user');
+        if (saved) {
+          const u = JSON.parse(saved);
+          setIsAdminUser(u?.role?.toLowerCase() === 'admin');
+        }
+      } catch {}
+    }
+  }, [isAdmin, currentUserRole, isOpen]);
+
   const [inviteName, setInviteName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<ProjectMemberRole>('Developer');
@@ -236,10 +264,19 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           >
             <option value="Developer" className="dark:bg-[#12151c]">Developer</option>
             <option value="QA" className="dark:bg-[#12151c]">QA</option>
-            <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
             <option value="DevOps" className="dark:bg-[#12151c]">DevOps</option>
-            <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
+            {isAdminUser && (
+              <>
+                <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
+                <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
+              </>
+            )}
           </select>
+          {!isAdminUser && (
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 pt-0.5">
+              Note: Only workspace administrators can assign Manager or Project Lead roles.
+            </p>
+          )}
         </div>
 
         {inviteError && (

@@ -23,6 +23,7 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
   currentUserRole = 'Developer',
 }) => {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const isAdmin = currentUserRole?.toLowerCase() === 'admin';
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
@@ -31,6 +32,8 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         canManageProject={canManageProject}
         onInviteClick={() => setIsInviteOpen(true)}
         onProjectUpdated={onProjectUpdated}
+        currentUserRole={currentUserRole}
+        isAdmin={isAdmin}
       />
 
       <ProjectGeneralSettings
@@ -52,6 +55,8 @@ export const TeamSettingsTab: React.FC<TeamSettingsTabProps> = ({
         onClose={() => setIsInviteOpen(false)}
         project={project}
         onProjectUpdated={onProjectUpdated}
+        currentUserRole={currentUserRole}
+        isAdmin={isAdmin}
       />
     </div>
   );

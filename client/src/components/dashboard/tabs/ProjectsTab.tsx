@@ -970,6 +970,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
       <CreateProjectModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        isAdmin={isWorkspaceAdmin}
         onProjectCreated={(newProj) => {
           ProjectApiService.clearProjectsCache();
           fetchProjects(1);

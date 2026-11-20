@@ -28,6 +28,7 @@ interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onProjectCreated: (project: Project) => void;
+  isAdmin?: boolean;
 }
 
 interface WorkspaceMemberOption {
@@ -47,7 +48,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   isOpen,
   onClose,
   onProjectCreated,
+  isAdmin,
 }) => {
+  const [isAdminUser, setIsAdminUser] = useState(isAdmin ?? false);
   const [name, setName] = useState('');
   const [key, setKey] = useState('');
   const [isKeyManuallyEdited, setIsKeyManuallyEdited] = useState(false);
@@ -122,7 +125,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     let currentUser: any = null;
     try {
       const savedUser = localStorage.getItem('retroflow_user');
-      if (savedUser) currentUser = JSON.parse(savedUser);
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        if (isAdmin !== undefined) {
+          setIsAdminUser(isAdmin);
+        } else if (currentUser?.role) {
+          setIsAdminUser(currentUser.role.toLowerCase() === 'admin');
+        }
+      }
     } catch {}
 
     MembersApiService.getWorkspaceMembers()
@@ -943,9 +953,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 >
                   <option value="Developer" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Developer</option>
                   <option value="QA" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">QA</option>
-                  <option value="Manager" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Manager</option>
                   <option value="DevOps" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">DevOps</option>
-                  <option value="Project Lead" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Project Lead</option>
+                  {isAdminUser && (
+                    <>
+                      <option value="Manager" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Manager</option>
+                      <option value="Project Lead" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white">Project Lead</option>
+                    </>
+                  )}
                 </select>
               </div>
 
@@ -989,9 +1003,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                     >
                       <option value="Developer" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">Developer</option>
                       <option value="QA" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">QA</option>
-                      <option value="Manager" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">Manager</option>
                       <option value="DevOps" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">DevOps</option>
-                      <option value="Project Lead" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">Project Lead</option>
+                      {isAdminUser && (
+                        <>
+                          <option value="Manager" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">Manager</option>
+                          <option value="Project Lead" className="bg-white dark:bg-[#12151c] text-slate-900 dark:text-white font-medium">Project Lead</option>
+                        </>
+                      )}
                     </select>
                     <ChevronDown className="w-3 h-3 text-[#88c958] absolute right-1 pointer-events-none" />
                   </div>

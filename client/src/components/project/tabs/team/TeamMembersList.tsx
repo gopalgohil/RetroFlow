@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, UserPlus, Check, Trash2, X, Loader2 } from 'lucide-react';
 import { Project, ProjectMemberRole } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
@@ -12,6 +12,8 @@ export interface TeamMembersListProps {
   canManageProject?: boolean;
   onInviteClick: () => void;
   onProjectUpdated: (updated: Project) => void;
+  currentUserRole?: string;
+  isAdmin?: boolean;
 }
 
 export const TeamMembersList: React.FC<TeamMembersListProps> = ({
@@ -19,7 +21,33 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
   canManageProject = false,
   onInviteClick,
   onProjectUpdated,
+  currentUserRole,
+  isAdmin,
 }) => {
+  const [isAdminUser, setIsAdminUser] = useState(
+    isAdmin ?? (currentUserRole?.toLowerCase() === 'admin')
+  );
+
+  useEffect(() => {
+    if (isAdmin !== undefined) {
+      setIsAdminUser(isAdmin);
+      return;
+    }
+    if (currentUserRole) {
+      setIsAdminUser(currentUserRole.toLowerCase() === 'admin');
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('retroflow_user');
+        if (saved) {
+          const u = JSON.parse(saved);
+          setIsAdminUser(u?.role?.toLowerCase() === 'admin');
+        }
+      } catch {}
+    }
+  }, [isAdmin, currentUserRole]);
+
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
 
   const [memberToRemove, setMemberToRemove] = useState<Project['members'][0] | null>(null);
@@ -167,43 +195,58 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
                 <td className="px-6 py-4 font-medium text-slate-500 dark:text-slate-400">{member.email}</td>
                 <td className="px-6 py-4">
                   {canManageProject ? (
-                    <div className="relative inline-block">
-                      <select
-                        value={member.role}
-                        disabled={updatingMemberId === member.id}
-                        onChange={(e) => handleRoleChange(member, e.target.value as ProjectMemberRole)}
-                        className={`text-xs font-bold rounded-lg px-2.5 py-1 pr-6 border cursor-pointer appearance-none transition-all focus:outline-none focus:ring-1 focus:ring-[#88c958] ${
-                          member.role === 'Manager'
-                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/60'
-                            : member.role === 'Project Lead'
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
-                            : member.role === 'QA'
-                            ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800/60'
-                            : member.role === 'DevOps'
-                            ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-800/60'
-                            : 'bg-slate-100 dark:bg-[#141720] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/[0.08]'
-                        } ${updatingMemberId === member.id ? 'opacity-50 cursor-wait' : ''}`}
-                        title="Change project member role dynamically"
-                      >
-                        {project.lead.email.toLowerCase() === member.email.toLowerCase() ? (
-                          <>
-                            <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
-                            <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
-                          </>
-                        ) : (
-                          <>
-                            <option value="Developer" className="dark:bg-[#12151c]">Developer</option>
-                            <option value="QA" className="dark:bg-[#12151c]">QA</option>
-                            <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
-                            <option value="DevOps" className="dark:bg-[#12151c]">DevOps</option>
-                            <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
-                          </>
-                        )}
-                      </select>
-                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 text-slate-400 text-[10px]">
-                        ▾
-                      </span>
-                    </div>
+                    (() => {
+                      const isLeadMember = project.lead.email.toLowerCase() === member.email.toLowerCase();
+                      const isManagerOrLead = member.role === 'Manager' || member.role === 'Project Lead';
+
+                      if (!isAdminUser && (isLeadMember || isManagerOrLead)) {
+                        return <StatusPill status={member.role} />;
+                      }
+
+                      return (
+                        <div className="relative inline-block">
+                          <select
+                            value={member.role}
+                            disabled={updatingMemberId === member.id}
+                            onChange={(e) => handleRoleChange(member, e.target.value as ProjectMemberRole)}
+                            className={`text-xs font-bold rounded-lg px-2.5 py-1 pr-6 border cursor-pointer appearance-none transition-all focus:outline-none focus:ring-1 focus:ring-[#88c958] ${
+                              member.role === 'Manager'
+                                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/60'
+                                : member.role === 'Project Lead'
+                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
+                                : member.role === 'QA'
+                                ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800/60'
+                                : member.role === 'DevOps'
+                                ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-800/60'
+                                : 'bg-slate-100 dark:bg-[#141720] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/[0.08]'
+                            } ${updatingMemberId === member.id ? 'opacity-50 cursor-wait' : ''}`}
+                            title="Change project member role dynamically"
+                          >
+                            {isLeadMember ? (
+                              <>
+                                <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
+                                <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
+                              </>
+                            ) : (
+                              <>
+                                <option value="Developer" className="dark:bg-[#12151c]">Developer</option>
+                                <option value="QA" className="dark:bg-[#12151c]">QA</option>
+                                <option value="DevOps" className="dark:bg-[#12151c]">DevOps</option>
+                                {isAdminUser && (
+                                  <>
+                                    <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
+                                    <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
+                                  </>
+                                )}
+                              </>
+                            )}
+                          </select>
+                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 text-slate-400 text-[10px]">
+                            ▾
+                          </span>
+                        </div>
+                      );
+                    })()
                   ) : (
                     <StatusPill status={member.role} />
                   )}
@@ -219,7 +262,7 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
                 </td>
                 {canManageProject && (
                   <td className="px-6 py-4 text-right">
-                    {project.lead.email.toLowerCase() === member.email.toLowerCase() ? (
+                    {project.lead.email.toLowerCase() === member.email.toLowerCase() || (!isAdminUser && (member.role === 'Manager' || member.role === 'Project Lead')) ? (
                       <span
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 select-none"
                         title="Designated Project Manager / Lead cannot be removed"

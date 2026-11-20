@@ -1075,6 +1075,11 @@ class ProjectService {
 
     const creatorEmail = creatorUser?.email?.toLowerCase().trim();
 
+    const isCreatorAdmin = creatorUser && (
+      creatorUser.role?.toLowerCase() === 'admin' ||
+      isSuperAdmin(creatorUser.email?.toLowerCase())
+    );
+
     const members = [
       {
         id: `m-lead-${Date.now()}`,
@@ -1084,19 +1089,25 @@ class ProjectService {
         avatar: leadAvatar,
         joinedAt: new Date(),
       },
-      ...otherMembers.map((m, idx) => ({
-        id: `m-${Date.now()}-${idx}`,
-        name: m.name,
-        email: m.email,
-        role: m.role || 'Developer',
-        avatar: m.name
-          .split(' ')
-          .map((n) => n[0])
-          .join('')
-          .toUpperCase()
-          .slice(0, 2),
-        joinedAt: new Date(),
-      })),
+      ...otherMembers.map((m, idx) => {
+        let assignedRole = m.role || 'Developer';
+        if (!isCreatorAdmin && (assignedRole === 'Manager' || assignedRole === 'Project Lead')) {
+          assignedRole = 'Developer';
+        }
+        return {
+          id: `m-${Date.now()}-${idx}`,
+          name: m.name,
+          email: m.email,
+          role: assignedRole,
+          avatar: m.name
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2),
+          joinedAt: new Date(),
+        };
+      }),
     ];
 
     if (
@@ -1940,6 +1951,18 @@ class ProjectService {
     if (!project) throw new Error('Project not found');
     this.assertCanManage(project, currentUser);
 
+    const isAdmin =
+      currentUser &&
+      (currentUser.role?.toLowerCase() === 'admin' ||
+        isSuperAdmin(currentUser.email?.toLowerCase()));
+
+    const requestedRole = memberData.role || 'Developer';
+    if (!isAdmin && (requestedRole === 'Manager' || requestedRole === 'Project Lead')) {
+      const error = new Error('Access Denied: Only workspace administrators can assign Manager or Project Lead roles.');
+      error.statusCode = 403;
+      throw error;
+    }
+
     const email = memberData.email.toLowerCase().trim();
     const existing = project.members.find((m) => m.email.toLowerCase() === email);
     if (existing) {
@@ -1957,7 +1980,7 @@ class ProjectService {
       id: `m-${crypto.randomUUID().slice(0, 8)}`,
       name: memberData.name.trim(),
       email,
-      role: memberData.role || 'Developer',
+      role: requestedRole,
       avatar,
       joinedAt: new Date(),
     });
@@ -1976,7 +1999,7 @@ class ProjectService {
     try {
       await User.updateOne(
         { email, role: { $ne: 'admin' } },
-        { $set: { projectRole: memberData.role || 'Developer' } }
+        { $set: { projectRole: requestedRole } }
       );
     } catch (err) {
       console.error('[addMember] Failed to sync role to User:', err);
@@ -1989,6 +2012,11 @@ class ProjectService {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
     this.assertCanManage(project, currentUser);
+
+    const isAdmin =
+      currentUser &&
+      (currentUser.role?.toLowerCase() === 'admin' ||
+        isSuperAdmin(currentUser.email?.toLowerCase()));
 
     const identifier = memberIdOrEmail.toLowerCase().trim();
     const memberIndex = project.members.findIndex(
@@ -2003,6 +2031,12 @@ class ProjectService {
 
     if (project.lead?.email?.toLowerCase() === memberToRemove.email.toLowerCase()) {
       throw new Error('Cannot remove the designated Project Lead from the project.');
+    }
+
+    if (!isAdmin && (memberToRemove.role === 'Manager' || memberToRemove.role === 'Project Lead')) {
+      const error = new Error('Access Denied: Only workspace administrators can remove a Manager or Project Lead from the project.');
+      error.statusCode = 403;
+      throw error;
     }
 
     project.members.splice(memberIndex, 1);
@@ -2025,10 +2059,27 @@ class ProjectService {
     if (!project) throw new Error('Project not found');
     this.assertCanManage(project, currentUser);
 
+    const isAdmin =
+      currentUser &&
+      (currentUser.role?.toLowerCase() === 'admin' ||
+        isSuperAdmin(currentUser.email?.toLowerCase()));
+
+    if (!isAdmin && (newRole === 'Manager' || newRole === 'Project Lead')) {
+      const error = new Error('Access Denied: Only workspace administrators can assign Manager or Project Lead roles.');
+      error.statusCode = 403;
+      throw error;
+    }
+
     const member = project.members.find(
       (m) => m.id === memberIdOrEmail || m.email.toLowerCase() === memberIdOrEmail.toLowerCase()
     );
     if (!member) throw new Error('Member not found in this project');
+
+    if (!isAdmin && (member.role === 'Manager' || member.role === 'Project Lead')) {
+      const error = new Error('Access Denied: Only workspace administrators can modify the role of a Manager or Project Lead.');
+      error.statusCode = 403;
+      throw error;
+    }
 
     if (
       project.lead?.email?.toLowerCase() === member.email.toLowerCase() &&

@@ -585,6 +585,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
       <CreateProjectModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        isAdmin={isAdmin}
         onProjectCreated={handleProjectCreated}
       />
     </>
