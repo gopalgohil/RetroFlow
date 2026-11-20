@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, use } from 'react';
-import { ShieldAlert, Lock, WifiOff } from 'lucide-react';
+import { ShieldAlert, WifiOff } from 'lucide-react';
 import { useRetroSession } from '@/hooks/useRetroSession';
 import {
   RetroHeader,
@@ -163,20 +163,6 @@ export default function LiveRetroBoardPage({
         </div>
       )}
 
-      {isClosed && (
-        <div className="bg-slate-100 dark:bg-white/[0.04] border-b border-slate-200 dark:border-white/[0.08] px-4 py-2 sm:px-6 flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
-            <span className="font-bold">Retrospective Session Completed (Read-Only)</span>
-            <span className="hidden sm:inline text-slate-500 dark:text-slate-400">
-              — This retrospective session has been ended and marked completed by the manager. New feedback is locked.
-            </span>
-          </div>
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-slate-200/80 dark:bg-white/[0.08] text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-white/[0.1]">
-            COMPLETED
-          </span>
-        </div>
-      )}
 
       <main className="flex-1 p-3 sm:p-4 md:p-5 overflow-x-auto w-full">
         {(() => {
