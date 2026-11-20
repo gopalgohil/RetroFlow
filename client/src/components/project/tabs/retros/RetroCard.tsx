@@ -214,17 +214,15 @@ export const RetroCard: React.FC<RetroCardProps> = ({
             <h4 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug truncate">
               {retro.title}
             </h4>
+
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-[#88c958]/15 dark:bg-[#88c958]/20 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30 shadow-2xs shrink-0">
+              {Math.max(retro.actionItemsCount || 0, committedItems.length)} Action Items
+            </span>
           </div>
 
-          <p className="text-xs text-slate-400 dark:text-slate-500 font-medium flex items-center gap-2">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-              {dateDisplay}
-            </span>
-            <span>•</span>
-            <span className={isCompleted ? 'text-slate-500 dark:text-slate-400' : 'text-emerald-600 dark:text-emerald-400 font-semibold'}>
-              {isCompleted ? 'Sprint cycle closed' : 'Sprint cycle active'}
-            </span>
+          <p className="text-xs text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+            <span>{dateDisplay}</span>
           </p>
         </div>
 
@@ -329,33 +327,11 @@ export const RetroCard: React.FC<RetroCardProps> = ({
         </div>
       </div>
 
-      {/* 3 Metric Pills */}
-      <div className="grid grid-cols-3 gap-2.5 pt-1">
-        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-100 dark:border-white/[0.08] text-center">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold block">Topics</span>
-          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-            {retro.topicsCount || 3} Columns
-          </span>
-        </div>
-        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-100 dark:border-white/[0.08] text-center">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold block">Feedback Thoughts</span>
-          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-            {retro.cardsCount || 0} Cards
-          </span>
-        </div>
-        <div className="p-2.5 rounded-xl bg-[#88c958]/10 dark:bg-[#88c958]/15 border border-[#88c958]/30 text-center">
-          <span className="text-[10px] text-[#3d8318] dark:text-[#88c958] uppercase font-bold block">Action Items</span>
-          <span className="text-xs font-black text-[#3d8318] dark:text-[#88c958]">
-            {Math.max(retro.actionItemsCount || 0, committedItems.length)} Items
-          </span>
-        </div>
-      </div>
-
       {/* Accordion Toggle Header */}
       <button
         type="button"
         onClick={() => setIsBacklogExpanded((prev) => !prev)}
-        className="w-full pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between text-xs cursor-pointer group hover:opacity-90 transition-opacity"
+        className="w-full pt-3.5 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between text-xs cursor-pointer group hover:opacity-90 transition-opacity"
       >
         <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
           <span>📋</span>
