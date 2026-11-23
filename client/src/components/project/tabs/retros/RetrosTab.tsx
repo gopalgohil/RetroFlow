@@ -91,12 +91,30 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
         setIsLoadingRetros(false);
       }
     },
-    [project.id, project.retrospectives]
+    [project.id]
   );
 
   useEffect(() => {
     fetchRetrosPage(currentPage);
   }, [currentPage, fetchRetrosPage]);
+
+  // Sync retros list seamlessly when project updates without destroying RetroCards or flashing skeletons
+  useEffect(() => {
+    if (project.retrospectives && project.retrospectives.length > 0) {
+      setPaginatedRetros((prev) => {
+        if (prev.length === 0) {
+          const start = (currentPage - 1) * ITEMS_PER_PAGE;
+          return project.retrospectives.slice(start, start + ITEMS_PER_PAGE);
+        }
+        return prev.map((item) => {
+          const match = project.retrospectives?.find(
+            (r) => (r.id && r.id === item.id) || (r.shareToken && r.shareToken === item.shareToken)
+          );
+          return match ? { ...item, ...match } : item;
+        });
+      });
+    }
+  }, [project.retrospectives, currentPage]);
 
   const handleOpenEdit = async (retro: ProjectRetroLink) => {
     if (retro.status === 'completed') {

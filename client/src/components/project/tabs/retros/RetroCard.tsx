@@ -84,8 +84,32 @@ export const RetroCard: React.FC<RetroCardProps> = ({
   const isActive = retro.status === 'active';
   const isCompleted = retro.status === 'completed';
 
-  // Default state: Active sprint is open, Completed sprint is collapsed
-  const [isBacklogExpanded, setIsBacklogExpanded] = useState<boolean>(() => isActive);
+  // Persist backlog accordion expanded state so status updates or re-renders never collapse it unexpectedly
+  const retroKey = `retro_backlog_open_${retro.id || retro.shareToken || retro.title}`;
+  const [isBacklogExpanded, setIsBacklogExpanded] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = sessionStorage.getItem(retroKey);
+        if (saved !== null) {
+          return saved === 'true';
+        }
+      } catch {}
+    }
+    return isActive;
+  });
+
+  const handleToggleBacklog = () => {
+    setIsBacklogExpanded((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem(retroKey, String(next));
+        } catch {}
+      }
+      return next;
+    });
+  };
+
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
   const [openStatusItemId, setOpenStatusItemId] = useState<string | null>(null);
   const [openAssigneeItemId, setOpenAssigneeItemId] = useState<string | null>(null);
@@ -386,7 +410,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
       {/* Accordion Toggle Header */}
       <button
         type="button"
-        onClick={() => setIsBacklogExpanded((prev) => !prev)}
+        onClick={handleToggleBacklog}
         className="w-full pt-3.5 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between text-xs cursor-pointer group hover:opacity-90 transition-opacity"
       >
         <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
@@ -503,7 +527,8 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                       {isAdminOrManager ? (
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setOpenAssigneeItemId(null);
                             setOpenStatusItemId((prev) => (prev === item.id ? null : item.id));
                           }}
@@ -547,9 +572,15 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                         <>
                           <div
                             className="fixed inset-0 z-40"
-                            onClick={() => setOpenStatusItemId(null)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenStatusItemId(null);
+                            }}
                           />
-                          <div className="absolute right-0 top-full mt-1.5 w-36 bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.12] rounded-2xl shadow-xl z-50 p-1 animate-in fade-in zoom-in-95 duration-100">
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute right-0 top-full mt-1.5 w-36 bg-white dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.12] rounded-2xl shadow-xl z-50 p-1 animate-in fade-in zoom-in-95 duration-100"
+                          >
                             <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-white/[0.08]">
                               Update Status
                             </div>
@@ -564,12 +595,13 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                                   <button
                                     key={opt.id}
                                     type="button"
-                                    onClick={() =>
+                                    onClick={(e) => {
+                                      e.stopPropagation();
                                       handleStatusChange(
                                         item.id,
                                         opt.id as 'todo' | 'in_progress' | 'done'
-                                      )
-                                    }
+                                      );
+                                    }}
                                     className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-xs font-bold transition-colors cursor-pointer ${
                                       isCurrent
                                         ? 'bg-[#eaf5e3] dark:bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958]'
@@ -594,7 +626,8 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                       {isAdminOrManager ? (
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setOpenStatusItemId(null);
                             setOpenAssigneeItemId((prev) => (prev === item.id ? null : item.id));
                           }}
