@@ -451,20 +451,20 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                     className="p-3 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 relative"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className="w-6 h-6 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-black flex items-center justify-center shrink-0">
+                      <span className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs sm:text-sm font-black flex items-center justify-center shrink-0 tabular-nums">
                         {startIndex + idx + 1}
                       </span>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                      <p className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-white truncate leading-snug">
                         {item.title}
                       </p>
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                         {item.assignee?.name ? (
-                          <span className="px-2 py-0.5 rounded-md bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/15 dark:text-[#88c958] font-bold text-[10px]">
+                          <span className="px-2.5 py-0.5 rounded-md bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/15 dark:text-[#88c958] font-bold text-xs">
                             Assignee: {item.assignee.name}
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-white/[0.08] text-slate-600 dark:text-slate-400 font-medium text-[10px]">
+                          <span className="px-2.5 py-0.5 rounded-md bg-slate-200 dark:bg-white/[0.08] text-slate-600 dark:text-slate-400 font-medium text-xs">
                             Unassigned
                           </span>
                         )}
@@ -472,15 +472,15 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                         {item.status === 'done' ? (
                           <>
                             <span
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
                               title={`Completed on ${formatDisplayDate(item.completedAt || (item as any).updatedAt || item.createdAt)}`}
                             >
-                              <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                               <span>Completed: {formatDisplayDate(item.completedAt || (item as any).updatedAt || item.createdAt)}</span>
                             </span>
                             {item.dueDate && (
-                              <span className="text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 text-[10px]">
-                                <Calendar className="w-3 h-3 opacity-60" />
+                              <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 text-xs">
+                                <Calendar className="w-3.5 h-3.5 opacity-60" />
                                 <span>Due: {formatDisplayDate(item.dueDate)}</span>
                               </span>
                             )}
@@ -490,11 +490,11 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                             {isAdminOrManager && onUpdateDueDate ? (
                               <label
                                 title="Click to set or change due date"
-                                className="relative inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-all border border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 shadow-2xs group/due"
+                                className="relative inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold cursor-pointer transition-all border border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 shadow-2xs group/due"
                               >
-                                <Calendar className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                                <Calendar className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                                 <span>{item.dueDate ? `Due: ${formatDisplayDate(item.dueDate)}` : '+ Due Date'}</span>
-                                <Pencil className="w-2.5 h-2.5 opacity-60 group-hover/due:opacity-100 transition-opacity ml-0.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                                <Pencil className="w-3 h-3 opacity-60 group-hover/due:opacity-100 transition-opacity ml-0.5 text-amber-600 dark:text-amber-400 shrink-0" />
                                 <input
                                   type="date"
                                   value={item.dueDate ? item.dueDate.split('T')[0] : ''}
@@ -505,8 +505,8 @@ export const RetroCard: React.FC<RetroCardProps> = ({
                                 />
                               </label>
                             ) : item.dueDate ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08]">
-                                <Calendar className="w-3 h-3 opacity-60" />
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08]">
+                                <Calendar className="w-3.5 h-3.5 opacity-60" />
                                 <span>Due: {formatDisplayDate(item.dueDate)}</span>
                               </span>
                             ) : null}

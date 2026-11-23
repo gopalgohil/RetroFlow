@@ -211,33 +211,33 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
       <div className="group p-3 bg-white dark:bg-[#0e1015] rounded-xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
         <div className="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
           <span
-            className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 text-xs font-black flex items-center justify-center shrink-0 tabular-nums select-none mt-0.5 sm:mt-0 shadow-2xs"
+            className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-black flex items-center justify-center shrink-0 tabular-nums select-none mt-0.5 sm:mt-0 shadow-2xs"
             title={typeof itemIndex === 'number' ? `Item #${itemIndex}` : 'Item'}
           >
             {typeof itemIndex === 'number' ? itemIndex : '1'}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
+            <p className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-white leading-snug">
               {item.title}
             </p>
-            <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[10px]">
+            <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">
               {item.sourceRetroTitle && (
-                <span className="text-[#88c958] flex items-center gap-1 font-medium">
-                  <Sparkles className="w-2.5 h-2.5" />
+                <span className="text-[#88c958] flex items-center gap-1 font-medium text-xs">
+                  <Sparkles className="w-3.5 h-3.5" />
                   From Retro: {item.sourceRetroTitle}
                 </span>
               )}
               {isDone ? (
                 <>
                   <span
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                     title={
                       isAdminOrManager
                         ? `Completed on ${formatDueDate(completedDateStr)} by ${completedByName}`
                         : `Completed on ${formatDueDate(completedDateStr)}`
                     }
                   >
-                    <Check className="w-2.5 h-2.5 shrink-0" />
+                    <Check className="w-3.5 h-3.5 shrink-0" />
                     <span>
                       {isAdminOrManager
                         ? `Completed: ${formatDueDate(completedDateStr)} · by ${completedByName}`
@@ -245,8 +245,8 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                     </span>
                   </span>
                   {item.dueDate && (
-                    <span className="text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 text-[10px]">
-                      <Calendar className="w-2.5 h-2.5 opacity-60" />
+                    <span className="text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1.5 text-xs">
+                      <Calendar className="w-3.5 h-3.5 opacity-60" />
                       Due: {formatDueDate(item.dueDate)}
                     </span>
                   )}
@@ -262,16 +262,16 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
                       } catch {}
                     }
                   }}
-                  className={`relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] cursor-pointer transition-colors ${
+                  className={`relative inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs cursor-pointer transition-colors ${
                     dueBadgeInfo
                       ? dueBadgeInfo.badgeClass
                       : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 font-bold'
                   }`}
                 >
                   {dueBadgeInfo?.isOverdue ? (
-                    <AlertCircle className="w-2.5 h-2.5 shrink-0 text-rose-600 dark:text-rose-400 animate-pulse" />
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600 dark:text-rose-400 animate-pulse" />
                   ) : (
-                    <Calendar className="w-2.5 h-2.5 shrink-0" />
+                    <Calendar className="w-3.5 h-3.5 shrink-0" />
                   )}
                   <span>
                     {dueBadgeInfo?.label || (item.dueDate ? `Due: ${formatDueDate(item.dueDate)}` : '+ Due Date')}
@@ -302,12 +302,12 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
               ) : dueBadgeInfo ? (
                 <span
                   title={dueBadgeInfo.tooltip}
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] ${dueBadgeInfo.badgeClass}`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium ${dueBadgeInfo.badgeClass}`}
                 >
                   {dueBadgeInfo.isOverdue ? (
-                    <AlertCircle className="w-2.5 h-2.5 shrink-0 text-rose-600 dark:text-rose-400" />
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600 dark:text-rose-400" />
                   ) : (
-                    <Calendar className="w-2.5 h-2.5" />
+                    <Calendar className="w-3.5 h-3.5 shrink-0" />
                   )}
                   {dueBadgeInfo.label}
                 </span>
