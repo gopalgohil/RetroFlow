@@ -80,7 +80,7 @@ class AuthService {
     const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
     await emailService.sendEmail({
       to: user.email,
-      subject: 'Digiflux - Verify Your Email Address',
+      subject: 'Digiflux - Your 6-Digit Verification Code',
       htmlContent: emailHtml,
     });
 
@@ -168,7 +168,7 @@ class AuthService {
     const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
     await emailService.sendEmail({
       to: user.email,
-      subject: 'Digiflux - Your New Verification Code',
+      subject: 'Digiflux - Your 6-Digit Verification Code',
       htmlContent: emailHtml,
     });
 
@@ -236,7 +236,7 @@ class AuthService {
       const emailHtml = emailService.getSignupVerificationTemplate(otp, user.name);
       await emailService.sendEmail({
         to: user.email,
-        subject: 'Digiflux - Complete Your Email Verification',
+        subject: 'Digiflux - Your 6-Digit Verification Code',
         htmlContent: emailHtml,
       });
 

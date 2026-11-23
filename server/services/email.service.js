@@ -72,7 +72,11 @@ class EmailService {
           subject,
           htmlContent,
           textContent: plainText,
-          tags: ['transactional'],
+          tags: ['transactional', 'otp'],
+          headers: {
+            'X-Mailin-Tag': 'transactional-otp',
+            'X-Auto-Response-Suppress': 'OOF, AutoReply',
+          },
         }),
       });
 
@@ -251,13 +255,13 @@ class EmailService {
   getSignupVerificationTemplate(otpCode, recipientName = 'Agile Teammate') {
     const bodyHtml = `
       <h1 class="main-heading" style="font-size: 20px; line-height: 26px; font-weight: 800; color: #0f172a; margin: 0 0 10px 0;">
-        Verify Your Email Address
+        Account Registration Verification
       </h1>
       <p style="font-size: 14px; line-height: 22px; color: #334155; margin: 0 0 12px 0;">
-        Welcome to Digiflux, <strong>${recipientName}</strong>!
+        Hello <strong>${recipientName}</strong>,
       </p>
       <p style="font-size: 14px; line-height: 22px; color: #334155; margin: 0 0 20px 0;">
-        To complete your account registration, please enter this 6-digit verification code:
+        Thank you for registering with Digiflux. Enter the 6-digit verification code below to confirm your account:
       </p>
 
       <!-- OTP Code Box (Dotted/Dashed Green Border, Light Mode Theme) -->
@@ -272,12 +276,12 @@ class EmailService {
       </table>
 
       <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin: 16px 0 0 0;">
-        ⏱ This code is valid for <strong>10 minutes</strong>. Once verified, you will be able to log in to your account.
+        ⏱ This code is valid for <strong>10 minutes</strong>. If you did not initiate this request, no action is needed — your account is safe.
       </p>
     `;
     return this._wrapEmail({
-      title: 'Verify Your Email - Digiflux',
-      preheader: 'Your 6-digit verification code to activate your account.',
+      title: 'Account Verification - Digiflux',
+      preheader: 'Your 6-digit verification code for your Digiflux account.',
       bodyHtml,
     });
   }
