@@ -256,6 +256,21 @@ function ProjectDetailContent() {
       });
   };
 
+  const handleProjectUpdated = (up: Project) => {
+    if (!up) return;
+    setProject({ ...up });
+    try {
+      sessionStorage.setItem(`retroflow_cached_project_${up.id}`, JSON.stringify(up));
+      if (up.key) {
+        sessionStorage.setItem(`retroflow_cached_project_${up.key}`, JSON.stringify(up));
+      }
+      localStorage.setItem('retroflow_cached_active_project', JSON.stringify(up));
+    } catch { }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('retroflow_active_project_changed', { detail: up }));
+    }
+  };
+
   const handleTabChange = (newTab: 'overview' | 'sprints' | 'retros' | 'team') => {
     const targetTab = newTab === 'sprints' ? 'retros' : newTab;
     if (targetTab === activeTab) return;
@@ -440,11 +455,12 @@ function ProjectDetailContent() {
 
         const updatedRetros = [newRetroLink, ...(project.retrospectives || [])];
         const updatedProject = { ...project, retrospectives: updatedRetros };
-        setProject(updatedProject);
+        handleProjectUpdated(updatedProject);
 
-        ProjectApiService.getProjectById(project.id)
+        ProjectApiService.clearProjectsCache();
+        ProjectApiService.getProjectById(project.id, true)
           .then((p) => {
-            if (p) setProject(p);
+            if (p) handleProjectUpdated(p);
           })
           .catch(() => { });
       }
@@ -864,7 +880,7 @@ function ProjectDetailContent() {
                   {activeTab === 'sprints' && (
                     <SprintsTab
                       project={project}
-                      onProjectUpdated={(up) => setProject({ ...up })}
+                      onProjectUpdated={handleProjectUpdated}
                       canManageProject={canManageProject}
                       canMarkDone={Boolean(isWorkspaceAdmin || isManager)}
                       currentUser={activeUser}
@@ -875,7 +891,7 @@ function ProjectDetailContent() {
                     <RetrosTab
                       project={project}
                       onCreateRetroClick={() => setIsCreateRetroOpen(true)}
-                      onProjectUpdated={(up) => setProject({ ...up })}
+                      onProjectUpdated={handleProjectUpdated}
                       canManageProject={canShare}
                       canMarkDone={Boolean(isWorkspaceAdmin || isManager)}
                       currentUser={activeUser}
@@ -885,7 +901,7 @@ function ProjectDetailContent() {
                   {activeTab === 'team' && (
                     <TeamSettingsTab
                       project={project}
-                      onProjectUpdated={(up) => setProject({ ...up })}
+                      onProjectUpdated={handleProjectUpdated}
                       canManageProject={canManageProject}
                       canDeleteProject={canDeleteProject}
                       currentUserRole={currentUserRole}

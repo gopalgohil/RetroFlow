@@ -778,32 +778,71 @@ class RetroService {
 
     if (retro.projectId || retro.projectKey) {
       try {
-        const projectQuery = retro.projectId
-          ? { _id: retro.projectId }
-          : { key: retro.projectKey };
+        const pQuery = retro.projectId
+          ? (mongoose.Types.ObjectId.isValid(retro.projectId)
+              ? { $or: [{ _id: retro.projectId }, { key: String(retro.projectId).toUpperCase() }] }
+              : { key: String(retro.projectId).toUpperCase() })
+          : { key: String(retro.projectKey).toUpperCase() };
 
-        const updateSet = {
-          'retrospectives.$.title': retro.title,
-          'retrospectives.$.scheduledDate': retro.scheduledDate,
-          'retrospectives.$.startDate': retro.startDate
-            ? new Date(retro.startDate).toISOString().split('T')[0]
-            : null,
-          'retrospectives.$.endDate': retro.endDate
-            ? new Date(retro.endDate).toISOString().split('T')[0]
-            : null,
-          'retrospectives.$.status': retro.status,
-        };
+        const linkedProject = await Project.findOne(pQuery);
+        if (linkedProject) {
+          const retroStartStr = retro.startDate ? new Date(retro.startDate).toISOString().split('T')[0] : null;
+          const retroEndStr = retro.endDate ? new Date(retro.endDate).toISOString().split('T')[0] : null;
 
-        const tokenMatch = await Project.updateOne(
-          { ...projectQuery, 'retrospectives.shareToken': retro.shareToken },
-          { $set: updateSet }
-        );
+          let sprintNum = 1;
+          const sMatch = (retro.sprintName || retro.title || '').match(/\d+/);
+          if (sMatch) sprintNum = parseInt(sMatch[0], 10);
 
-        if (!tokenMatch || tokenMatch.matchedCount === 0) {
-          await Project.updateOne(
-            { ...projectQuery, 'retrospectives.id': retro._id.toString() },
-            { $set: updateSet }
+          // 1. Sync in retrospectives array
+          let retroItem = (linkedProject.retrospectives || []).find(
+            (r) =>
+              (r.shareToken && r.shareToken === retro.shareToken) ||
+              (r.id && (r.id === retro._id.toString() || r.id === retro.id))
           );
+          if (!retroItem) {
+            retroItem = (linkedProject.retrospectives || []).find((r) => {
+              const m = (r.sprintName || r.title || '').match(/\d+/);
+              return m && parseInt(m[0], 10) === sprintNum;
+            });
+          }
+
+          if (retroItem) {
+            retroItem.title = retro.title;
+            retroItem.scheduledDate = retro.scheduledDate;
+            retroItem.startDate = retroStartStr;
+            retroItem.endDate = retroEndStr;
+            retroItem.status = retro.status;
+            if (retro.sprintName) retroItem.sprintName = retro.sprintName;
+            linkedProject.markModified('retrospectives');
+          }
+
+          // 2. Sync in sprints array
+          const matchingSprint = (linkedProject.sprints || []).find(
+            (s) => s.number === sprintNum || (s.name && s.name.toLowerCase().startsWith(`sprint ${sprintNum}`))
+          );
+          if (matchingSprint) {
+            if (retroStartStr) matchingSprint.startDate = retroStartStr;
+            if (retroEndStr) matchingSprint.endDate = retroEndStr;
+            if (matchingSprint.startDate && matchingSprint.endDate) {
+              const sEnd = new Date(matchingSprint.endDate).getTime();
+              const sStart = new Date(matchingSprint.startDate).getTime();
+              const totalDays = Math.max(1, Math.ceil((sEnd - sStart) / 86400000));
+              const rawRemaining = Math.ceil((sEnd - Date.now()) / 86400000);
+              matchingSprint.daysLeft = matchingSprint.status === 'completed' ? 0 : Math.max(0, Math.min(totalDays, rawRemaining));
+            }
+            if (retro.status === 'completed' && matchingSprint.status !== 'completed') {
+              matchingSprint.status = 'completed';
+              matchingSprint.daysLeft = 0;
+            } else if (retro.status === 'active' && matchingSprint.status !== 'active') {
+              matchingSprint.status = 'active';
+            }
+            linkedProject.markModified('sprints');
+          }
+
+          await linkedProject.save();
+
+          // Full sync with helper to keep action counts and timeline dynamic
+          await projectService.syncProjectRetrospectives(linkedProject);
         }
       } catch (err) {
         console.warn('[updateRetro] Project sync warning:', err);

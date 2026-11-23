@@ -3084,7 +3084,7 @@ class ProjectService {
     let sprintNum = 1;
     const sMatch = (retro.sprintName || retro.title || '').match(/\d+/);
     if (sMatch) sprintNum = parseInt(sMatch[0], 10);
-    const matchingSprint = project.sprints?.find((s) => s.number === sprintNum);
+    const matchingSprint = project.sprints?.find((s) => s.number === sprintNum || (s.name && s.name.toLowerCase().startsWith(`sprint ${sprintNum}`)));
     if (matchingSprint) {
       if (payload.startDate !== undefined) matchingSprint.startDate = payload.startDate;
       if (payload.endDate !== undefined) matchingSprint.endDate = payload.endDate;

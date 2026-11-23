@@ -165,8 +165,64 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
     if (!editingBoard) return;
     const identifier = editingBoard._id || editingBoard.shareToken;
 
+    // 1. Optimistic immediate update so UI updates instantly across all tabs without reload
+    const sMatch = (payload.sprintName || payload.title || '').match(/\d+/);
+    const sprintNum = sMatch ? parseInt(sMatch[0], 10) : 1;
+    const sStart = payload.startDate ? new Date(payload.startDate).toISOString().split('T')[0] : (payload.startDate || null);
+    const sEnd = payload.endDate ? new Date(payload.endDate).toISOString().split('T')[0] : (payload.endDate || null);
+
+    const updatedRetros = (project.retrospectives || []).map((r) => {
+      if (
+        (r.id && (r.id === identifier || r.id === editingBoard._id)) ||
+        (r.shareToken && (r.shareToken === identifier || r.shareToken === editingBoard.shareToken))
+      ) {
+        return {
+          ...r,
+          title: payload.title || r.title,
+          scheduledDate: payload.scheduledDate || r.scheduledDate,
+          startDate: sStart || r.startDate,
+          endDate: sEnd || r.endDate,
+          sprintName: payload.sprintName || r.sprintName,
+        };
+      }
+      return r;
+    });
+
+    const updatedSprints = (project.sprints || []).map((sp) => {
+      const spMatch = sp.name?.match(/\d+/);
+      const spNum = sp.number || (spMatch ? parseInt(spMatch[0], 10) : null);
+      if (spNum === sprintNum) {
+        let daysLeft = sp.daysLeft;
+        if (sStart && sEnd) {
+          const endMs = new Date(sEnd).getTime();
+          const startMs = new Date(sStart).getTime();
+          const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000));
+          const rawRemaining = Math.ceil((endMs - Date.now()) / 86400000);
+          daysLeft = sp.status === 'completed' ? 0 : Math.max(0, Math.min(totalDays, rawRemaining));
+        }
+        return {
+          ...sp,
+          startDate: sStart || sp.startDate,
+          endDate: sEnd || sp.endDate,
+          daysLeft,
+        };
+      }
+      return sp;
+    });
+
+    const optimisticProject: Project = {
+      ...project,
+      retrospectives: updatedRetros,
+      sprints: updatedSprints,
+    };
+
+    if (onProjectUpdated) {
+      onProjectUpdated(optimisticProject);
+    }
+
     try {
       await api.put(`/api/retros/${identifier}`, payload);
+      ProjectApiService.clearProjectsCache();
       const updatedProject = await ProjectApiService.getProjectById(project.id, true);
       if (updatedProject && onProjectUpdated) {
         onProjectUpdated(updatedProject);
@@ -175,6 +231,7 @@ export const RetrosTab: React.FC<RetrosTabProps> = ({
     } catch (err) {
       console.warn('[RetrosTab] PUT retro failed, falling back to project API & local cache:', err);
       try {
+        ProjectApiService.clearProjectsCache();
         const updated = await ProjectApiService.updateProjectRetro(project.id, identifier, {
           title: payload.title,
           scheduledDate: payload.scheduledDate,

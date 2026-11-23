@@ -153,7 +153,7 @@ export class ProjectApiService {
       return cached.data;
     }
 
-    if (this.inFlightProjectById.has(cleanKey)) {
+    if (!forceRefresh && this.inFlightProjectById.has(cleanKey)) {
       return this.inFlightProjectById.get(cleanKey)!;
     }
 
@@ -331,10 +331,12 @@ export class ProjectApiService {
     sprintId: string,
     payload: { startDate: string; endDate: string; goal?: string; name?: string }
   ): Promise<Project> {
+    this.clearProjectsCache();
     const res = await api.patch<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/sprints/${sprintId}/dates`,
       payload
     );
+    this.clearProjectsCache();
     return res.data;
   }
 
@@ -430,9 +432,11 @@ export class ProjectApiService {
   }
 
   static async deleteProjectRetro(projectId: string, retroId: string): Promise<Project> {
+    this.clearProjectsCache();
     const res = await api.delete<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/retros/${retroId}`
     );
+    this.clearProjectsCache();
     return res.data;
   }
 
@@ -441,10 +445,12 @@ export class ProjectApiService {
     retroId: string,
     payload: { title?: string; scheduledDate?: string; startDate?: string | null; endDate?: string | null; sprintName?: string }
   ): Promise<Project> {
+    this.clearProjectsCache();
     const res = await api.patch<ApiResponseWrapper<Project>>(
       `${ENDPOINTS.PROJECTS}/${projectId}/retros/${retroId}`,
       payload
     );
+    this.clearProjectsCache();
     return res.data;
   }
 
