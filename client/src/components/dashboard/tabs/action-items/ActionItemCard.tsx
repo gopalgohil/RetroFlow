@@ -139,36 +139,53 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const target = new Date(item.dueDate);
-    target.setHours(0, 0, 0, 0);
+
+    const dateParts = item.dueDate.split('T')[0].split('-');
+    let target: Date;
+    let dateFormatted = '';
+
+    if (dateParts.length === 3) {
+      const year = parseInt(dateParts[0], 10);
+      const month = parseInt(dateParts[1], 10) - 1;
+      const day = parseInt(dateParts[2], 10);
+      target = new Date(year, month, day);
+      dateFormatted = target.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+    } else {
+      target = new Date(item.dueDate);
+      target.setHours(0, 0, 0, 0);
+      dateFormatted = target.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+    }
 
     const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
       const daysAgo = Math.abs(diffDays);
       return {
-        label: `Overdue (${daysAgo}d)`,
+        label: `${dateFormatted} · Overdue (${daysAgo}d)`,
         className: 'text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/40 font-bold',
         isOverdue: true,
       };
     }
     if (diffDays === 0) {
       return {
-        label: 'Due Today',
+        label: `${dateFormatted} · Due Today`,
         className: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/40 font-bold',
       };
     }
     if (diffDays <= 3) {
       return {
-        label: `Due in ${diffDays}d`,
-        className: 'text-amber-600 dark:text-amber-400 bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-800/30',
+        label: `${dateFormatted} · In ${diffDays} day${diffDays > 1 ? 's' : ''}`,
+        className: 'text-amber-600 dark:text-amber-400 bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-800/30 font-medium',
       };
     }
     return {
-      label: `Due: ${new Date(item.dueDate).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      })}`,
+      label: `Due: ${dateFormatted}`,
       className: 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.04] border-slate-200/70 dark:border-white/[0.06]',
     };
   }, [item.dueDate, isDone]);

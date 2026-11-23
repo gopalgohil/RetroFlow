@@ -168,32 +168,42 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
       target.setHours(0, 0, 0, 0);
 
       const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      const formattedDate = formatDueDate(item.dueDate);
 
       if (diffDays < 0) {
         const daysAgo = Math.abs(diffDays);
         return {
-          label: `Due: ${formatDueDate(item.dueDate)} · Overdue (${daysAgo}d)`,
+          label: `${formattedDate} · Overdue (${daysAgo}d)`,
           badgeClass:
             'bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25 border border-rose-500/30 font-bold',
           isOverdue: true,
-          tooltip: `Task is OVERDUE by ${daysAgo} day${daysAgo > 1 ? 's' : ''}! Deadline was ${formatDueDate(item.dueDate)}. Click to change.`,
+          tooltip: `Task is OVERDUE by ${daysAgo} day${daysAgo > 1 ? 's' : ''}! Deadline was ${formattedDate}. Click to change.`,
         };
       }
       if (diffDays === 0) {
         return {
-          label: `Due: ${formatDueDate(item.dueDate)} · Due Today`,
+          label: `${formattedDate} · Due Today`,
           badgeClass:
             'bg-amber-500/15 text-amber-700 dark:text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 font-bold',
           isOverdue: false,
-          tooltip: `Due today! (${formatDueDate(item.dueDate)}). Click to change.`,
+          tooltip: `Due today! (${formattedDate}). Click to change.`,
+        };
+      }
+      if (diffDays <= 3) {
+        return {
+          label: `${formattedDate} · In ${diffDays} day${diffDays > 1 ? 's' : ''}`,
+          badgeClass:
+            'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 font-bold',
+          isOverdue: false,
+          tooltip: `Target deadline: ${formattedDate} (In ${diffDays} day${diffDays > 1 ? 's' : ''}). Click to change.`,
         };
       }
       return {
-        label: `Due: ${formatDueDate(item.dueDate)}`,
+        label: `Due: ${formattedDate}`,
         badgeClass:
-          'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 font-bold',
+          'bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/[0.08]',
         isOverdue: false,
-        tooltip: `Target deadline: ${formatDueDate(item.dueDate)}. Click to change.`,
+        tooltip: `Target deadline: ${formattedDate}. Click to change.`,
       };
     }, [item.dueDate, isDone]);
 
