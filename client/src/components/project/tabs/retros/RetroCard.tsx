@@ -166,7 +166,7 @@ export const RetroCard: React.FC<RetroCardProps> = ({
   const doneCount = committedItems.filter((it) => it.status === 'done').length;
   const percentComplete = totalCount > 0
     ? Math.round((doneCount / totalCount) * 100)
-    : isCompleted ? 100 : 0;
+    : 0;
 
   // Pagination for action items (5 items per page)
   const ITEMS_PER_PAGE = 5;
