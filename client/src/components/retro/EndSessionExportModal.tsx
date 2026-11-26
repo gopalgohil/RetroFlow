@@ -135,20 +135,20 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
     const match = (sprintName || '').match(/sprint\s*(\d+)/i) || (retroTitle || '').match(/sprint\s*(\d+)/i) || (sprintName || retroTitle || '').match(/\d+/);
     const currentSprintNum = match ? parseInt(match[1] || match[0], 10) : 1;
 
-    // By default, target the current retrospective's sprint
-    let targetSprint = null;
-    if (sprintId) {
-      targetSprint = targetProj.sprints?.find((s) => s.id === sprintId);
+    // By default, target the active sprint in the project
+    let targetSprint = targetProj.sprints?.find((s) => s.status === 'active');
+    if (!targetSprint && sprintId) {
+      targetSprint = targetProj.sprints?.find((s) => s.id === sprintId && s.status !== 'completed');
     }
     if (!targetSprint) {
       targetSprint = targetProj.sprints?.find(
         (s) =>
-          s.number === currentSprintNum ||
-          s.name.toLowerCase().includes(`sprint ${currentSprintNum}`)
+          s.status !== 'completed' &&
+          (s.number === currentSprintNum || s.name.toLowerCase().includes(`sprint ${currentSprintNum}`))
       );
     }
     if (!targetSprint) {
-      targetSprint = targetProj.sprints?.find((s) => s.status === 'active') || targetProj.sprints?.[0];
+      targetSprint = targetProj.sprints?.find((s) => s.status !== 'completed') || targetProj.sprints?.[0];
     }
 
     if (targetSprint) {
@@ -251,38 +251,35 @@ export const EndSessionExportModal: React.FC<EndSessionExportModalProps> = ({
   }, [retroTitle, sprintName, selectedProject, retroEndDate]);
 
   const sprintOptions = useMemo(() => {
-    // Current retro's sprint should always be available, plus active and upcoming sprints
-    const match = (sprintName || '').match(/sprint\s*(\d+)/i) || (retroTitle || '').match(/sprint\s*(\d+)/i) || (sprintName || retroTitle || '').match(/\d+/);
-    const currentSprintNum = match ? parseInt(match[1] || match[0], 10) : 1;
-
+    // Only non-completed sprints (prioritizing active and upcoming/pending sprints)
     const availableSprints = (selectedProject?.sprints || []).filter(
-      (s) => s.status !== 'completed' || s.number === currentSprintNum || s.id === sprintId
+      (s) => s.status !== 'completed'
     );
 
     const list = [...availableSprints];
+    // If no active or pending sprints exist, provide the auto-generated next sprint
     if (
+      list.length === 0 &&
       nextSprint &&
       !list.some((s) => s.id === nextSprint.id || (nextSprint.number && s.number === nextSprint.number))
     ) {
       list.push(nextSprint);
     }
     return list;
-  }, [selectedProject, nextSprint, sprintName, retroTitle, sprintId]);
+  }, [selectedProject, nextSprint]);
 
   const currentSprint = useMemo(() => {
     if (!sprintOptions || sprintOptions.length === 0) return nextSprint;
-    const match = (sprintName || '').match(/sprint\s*(\d+)/i) || (retroTitle || '').match(/sprint\s*(\d+)/i) || (sprintName || retroTitle || '').match(/\d+/);
-    const currentSprintNum = match ? parseInt(match[1] || match[0], 10) : 1;
 
     const targetId = selectedSprintId || suggestedSprint?.id;
     return (
-      sprintOptions.find((s) => s.id === targetId) ||
-      sprintOptions.find((s) => s.number === currentSprintNum) ||
+      sprintOptions.find((s) => s.id === targetId && s.status !== 'completed') ||
       sprintOptions.find((s) => s.status === 'active') ||
+      sprintOptions.find((s) => s.id === targetId) ||
       sprintOptions.find((s) => s.status === 'pending' || s.status === 'upcoming') ||
       sprintOptions[0]
     );
-  }, [sprintOptions, selectedSprintId, suggestedSprint, nextSprint, sprintName, retroTitle]);
+  }, [sprintOptions, selectedSprintId, suggestedSprint, nextSprint]);
 
   const sprintMinDate = currentSprint?.startDate ? currentSprint.startDate.split('T')[0] : '';
   const sprintMaxDate = currentSprint?.endDate ? currentSprint.endDate.split('T')[0] : '';
