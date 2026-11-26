@@ -2028,14 +2028,30 @@ class ProjectService {
 
     const memberToRemove = project.members[memberIndex];
 
-    if (project.lead?.email?.toLowerCase() === memberToRemove.email.toLowerCase()) {
-      throw new Error('Cannot remove the designated Project Lead from the project.');
-    }
-
     if (!isAdmin && (memberToRemove.role === 'Manager' || memberToRemove.role === 'Project Lead')) {
       const error = new Error('Access Denied: Only workspace administrators can remove a Manager or Project Lead from the project.');
       error.statusCode = 403;
       throw error;
+    }
+
+    if (!isAdmin && project.lead?.email?.toLowerCase() === memberToRemove.email.toLowerCase()) {
+      throw new Error('Cannot remove the designated Project Lead from the project.');
+    }
+
+    // If Admin removes the current project lead, reassign project.lead to another manager/member if available
+    if (project.lead?.email?.toLowerCase() === memberToRemove.email.toLowerCase()) {
+      const remainingManager = project.members.find(
+        (m, idx) => idx !== memberIndex && (m.role === 'Manager' || m.role === 'Project Lead')
+      );
+      const nextLead = remainingManager || project.members.find((m, idx) => idx !== memberIndex);
+      if (nextLead) {
+        project.lead = {
+          id: nextLead.id || 'lead-auto',
+          name: nextLead.name,
+          email: nextLead.email.toLowerCase().trim(),
+          avatar: nextLead.avatar || nextLead.name.slice(0, 2).toUpperCase(),
+        };
+      }
     }
 
     project.members.splice(memberIndex, 1);
@@ -2081,11 +2097,31 @@ class ProjectService {
     }
 
     if (
+      !isAdmin &&
       project.lead?.email?.toLowerCase() === member.email.toLowerCase() &&
       newRole !== 'Manager' &&
       newRole !== 'Project Lead'
     ) {
       throw new Error('Designated project lead must remain a Manager or Project Lead');
+    }
+
+    // If Admin changes the designated project lead's role to a non-manager role, reassign lead if another manager exists
+    if (
+      project.lead?.email?.toLowerCase() === member.email.toLowerCase() &&
+      newRole !== 'Manager' &&
+      newRole !== 'Project Lead'
+    ) {
+      const anotherManager = project.members.find(
+        (m) => m.email.toLowerCase() !== member.email.toLowerCase() && (m.role === 'Manager' || m.role === 'Project Lead')
+      );
+      if (anotherManager) {
+        project.lead = {
+          id: anotherManager.id || 'lead-auto',
+          name: anotherManager.name,
+          email: anotherManager.email.toLowerCase().trim(),
+          avatar: anotherManager.avatar || anotherManager.name.slice(0, 2).toUpperCase(),
+        };
+      }
     }
 
     member.role = newRole;

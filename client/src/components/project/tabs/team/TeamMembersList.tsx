@@ -222,7 +222,15 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
                             } ${updatingMemberId === member.id ? 'opacity-50 cursor-wait' : ''}`}
                             title="Change project member role dynamically"
                           >
-                            {isLeadMember ? (
+                            {isAdminUser ? (
+                              <>
+                                <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
+                                <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
+                                <option value="Developer" className="dark:bg-[#12151c]">Developer</option>
+                                <option value="QA" className="dark:bg-[#12151c]">QA</option>
+                                <option value="DevOps" className="dark:bg-[#12151c]">DevOps</option>
+                              </>
+                            ) : isLeadMember ? (
                               <>
                                 <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
                                 <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
@@ -232,12 +240,6 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
                                 <option value="Developer" className="dark:bg-[#12151c]">Developer</option>
                                 <option value="QA" className="dark:bg-[#12151c]">QA</option>
                                 <option value="DevOps" className="dark:bg-[#12151c]">DevOps</option>
-                                {isAdminUser && (
-                                  <>
-                                    <option value="Manager" className="dark:bg-[#12151c]">Manager</option>
-                                    <option value="Project Lead" className="dark:bg-[#12151c]">Project Lead</option>
-                                  </>
-                                )}
                               </>
                             )}
                           </select>
@@ -262,10 +264,10 @@ export const TeamMembersList: React.FC<TeamMembersListProps> = ({
                 </td>
                 {canManageProject && (
                   <td className="px-6 py-4 text-right">
-                    {project.lead.email.toLowerCase() === member.email.toLowerCase() || (!isAdminUser && (member.role === 'Manager' || member.role === 'Project Lead')) ? (
+                    {!isAdminUser && (project.lead.email.toLowerCase() === member.email.toLowerCase() || member.role === 'Manager' || member.role === 'Project Lead') ? (
                       <span
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 select-none"
-                        title="Designated Project Manager / Lead cannot be removed"
+                        title="Designated Project Manager / Lead cannot be removed by non-admins"
                       >
                         {member.role === 'Project Lead' ? 'Lead' : 'Manager'}
                       </span>
