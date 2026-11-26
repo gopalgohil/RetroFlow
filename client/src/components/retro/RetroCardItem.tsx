@@ -256,7 +256,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                   isClosed
                     ? `Session is closed (${card.votes || 0} votes)`
                     : card.hasVoted
-                    ? 'You voted for this thought. Click to unlike'
+                    ? 'You voted for this thought'
                     : 'Click to vote for this thought (1 vote per card)'
                 }
                 style={{
@@ -298,8 +298,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                   <div className="space-y-1.5 max-h-36 overflow-y-auto pr-0.5">
                     {card.voters.map((voter, idx) => {
                       const cleanName = voter.trim();
-                      const initials =
-                        cleanName.length > 3 ? cleanName.slice(0, 3) : cleanName;
+                      const initial = (cleanName.charAt(0) || 'U').toUpperCase();
                       const isMe =
                         currentAuthorName &&
                         cleanName.toLowerCase() === currentAuthorName.toLowerCase();
@@ -316,9 +315,9 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                       return (
                         <div key={idx} className="flex items-center gap-2">
                           <div
-                            className={`w-6 h-6 rounded-full bg-gradient-to-tr ${gradientClass} text-white flex items-center justify-center font-bold text-[9px] shrink-0 shadow-2xs capitalize`}
+                            className={`w-6 h-6 rounded-full bg-gradient-to-tr ${gradientClass} text-white flex items-center justify-center font-bold text-[10px] shrink-0 shadow-2xs`}
                           >
-                            {initials}
+                            {initial}
                           </div>
                           <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">
                             {cleanName}
