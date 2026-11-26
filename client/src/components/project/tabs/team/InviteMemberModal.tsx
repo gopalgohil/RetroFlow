@@ -139,7 +139,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Invite Member to ${project.key}`}
+      title={`Add Team Member to ${project.key}`}
       description="Grant workspace collaboration permissions"
       icon={<UserPlus className="w-5 h-5" />}
       maxWidth="md"
@@ -157,7 +157,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
             onClick={handleInviteSubmit}
             className="px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#76b349] dark:text-[#08090a]"
           >
-            Send Invitation
+            Add Team Member
           </button>
         </>
       }
