@@ -650,23 +650,36 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                       <td className="py-5 px-5 sm:px-6 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {project.isArchived ? (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleRestoreProject(project.id);
-                              }}
-                              disabled={restoringProjectId === project.id}
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 text-sm font-bold transition-all disabled:opacity-50 cursor-pointer"
-                            >
-                              {restoringProjectId === project.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <RotateCcw className="w-4 h-4" />
+                            <>
+                              {isManagerOrAdmin && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleRestoreProject(project.id);
+                                  }}
+                                  disabled={restoringProjectId === project.id}
+                                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 text-sm font-bold transition-all disabled:opacity-50 cursor-pointer"
+                                >
+                                  {restoringProjectId === project.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <RotateCcw className="w-4 h-4" />
+                                  )}
+                                  <span>Restore</span>
+                                </button>
                               )}
-                              <span>Restore</span>
-                            </button>
+                              <Link
+                                href={`/projects/${project.id}`}
+                                onClick={() => handleSaveActiveProject(project)}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-slate-600 dark:text-slate-300 text-sm font-semibold transition-all"
+                                title="View Read-Only Project Dashboard"
+                              >
+                                <span>View</span>
+                                <ArrowRight className="w-4 h-4" />
+                              </Link>
+                            </>
                           ) : (
                             <Link
                               href={`/projects/${project.id}`}
@@ -854,32 +867,46 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                 <div className="w-full">
                   {project.isArchived ? (
                     <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleRestoreProject(project.id);
-                        }}
-                        disabled={restoringProjectId === project.id}
-                        className="flex-1 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                      >
-                        {restoringProjectId === project.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <RotateCcw className="w-4 h-4" />
-                        )}
-                        <span>{restoringProjectId === project.id ? 'Restoring...' : 'Restore Project'}</span>
-                      </button>
-                      <Link
-                        href={`/projects/${project.id}`}
-                        onClick={() => handleSaveActiveProject(project)}
-                        className="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-slate-600 dark:text-slate-300 text-sm font-semibold flex items-center gap-1 shrink-0"
-                        title="View Read-Only Project Dashboard"
-                      >
-                        <span>View</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
+                      {isManagerOrAdmin ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleRestoreProject(project.id);
+                            }}
+                            disabled={restoringProjectId === project.id}
+                            className="flex-1 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                          >
+                            {restoringProjectId === project.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <RotateCcw className="w-4 h-4" />
+                            )}
+                            <span>{restoringProjectId === project.id ? 'Restoring...' : 'Restore Project'}</span>
+                          </button>
+                          <Link
+                            href={`/projects/${project.id}`}
+                            onClick={() => handleSaveActiveProject(project)}
+                            className="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-slate-600 dark:text-slate-300 text-sm font-semibold flex items-center gap-1 shrink-0"
+                            title="View Read-Only Project Dashboard"
+                          >
+                            <span>View</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </Link>
+                        </>
+                      ) : (
+                        <Link
+                          href={`/projects/${project.id}`}
+                          onClick={() => handleSaveActiveProject(project)}
+                          className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-slate-600 dark:text-slate-300 text-sm font-semibold flex items-center justify-center gap-1.5 transition-all"
+                          title="View Read-Only Project Dashboard"
+                        >
+                          <span>View Project</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      )}
                     </div>
                   ) : (
                     <Link

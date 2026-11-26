@@ -3004,7 +3004,27 @@ class ProjectService {
   async archiveProject(idOrKey, isArchived = true, currentUser = null) {
     const project = await this.getProjectByIdOrKey(idOrKey, currentUser);
     if (!project) throw new Error('Project not found');
-    this.assertCanManage(project, currentUser);
+    
+    // Only Workspace Admins and Managers can archive or restore projects
+    const isAdmin =
+      currentUser?.role?.toLowerCase() === 'admin' ||
+      isSuperAdmin(currentUser?.email?.toLowerCase());
+
+    const email = currentUser?.email?.toLowerCase()?.trim();
+    const isProjectMemberManager = Boolean(
+      email &&
+      Array.isArray(project.members) &&
+      project.members.some(
+        (m) => m.email?.toLowerCase()?.trim() === email && m.role?.toLowerCase()?.includes('manager')
+      )
+    );
+    const isProjectManager = isProjectMemberManager || (project.lead?.email?.toLowerCase()?.trim() === email);
+
+    if (!isAdmin && !isProjectManager) {
+      const error = new Error('Access Denied: Only Workspace Admins and Managers can archive or restore projects.');
+      error.statusCode = 403;
+      throw error;
+    }
 
     project.isArchived = isArchived;
     if (isArchived) {
