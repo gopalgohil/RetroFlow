@@ -300,12 +300,9 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 )}
 
                 {card.hasVoted && (
-                  <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-white/[0.08] text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <Check className="w-3 h-3" />
-                      <span>You liked this</span>
-                    </div>
-                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-normal">Click to unlike</span>
+                  <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-white/[0.08] text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <Check className="w-3 h-3" />
+                    <span>You liked this</span>
                   </div>
                 )}
               </div>
