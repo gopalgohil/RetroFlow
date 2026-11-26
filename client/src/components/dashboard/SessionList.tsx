@@ -53,7 +53,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   searchQuery = '',
   onSearchChange,
 }) => {
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('active');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
   const projectDropdownRef = useRef<HTMLDivElement>(null);
@@ -191,10 +191,6 @@ export const SessionList: React.FC<SessionListProps> = ({
     return projectScopedSessions.filter((s) => {
       if (activeFilter === 'active' && s.status !== 'active') return false;
       if (activeFilter === 'completed' && s.status !== 'completed') return false;
-      if (activeFilter === 'upcoming') {
-        const isUpcoming = new Date(s.scheduledDate) > new Date();
-        if (!isUpcoming) return false;
-      }
       return true;
     });
   }, [projectScopedSessions, activeFilter]);
@@ -207,7 +203,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
   const paginatedSessions = filteredSessions.slice(startIndex, endIndex);
 
-  const handleTabClick = (tabId: 'all' | 'active' | 'upcoming' | 'completed') => {
+  const handleTabClick = (tabId: 'all' | 'active' | 'completed') => {
     if (tabId === activeFilter) return;
     setIsFilterLoading(true);
     setActiveFilter(tabId);
@@ -269,13 +265,6 @@ export const SessionList: React.FC<SessionListProps> = ({
     () => projectScopedSessions.filter((s) => s.status === 'active').length,
     [projectScopedSessions]
   );
-  const upcomingCount = React.useMemo(
-    () =>
-      projectScopedSessions.filter(
-        (s) => new Date(s.scheduledDate) > new Date() && s.status !== 'completed'
-      ).length,
-    [projectScopedSessions]
-  );
   const completedCount = React.useMemo(
     () => projectScopedSessions.filter((s) => s.status === 'completed').length,
     [projectScopedSessions]
@@ -284,7 +273,6 @@ export const SessionList: React.FC<SessionListProps> = ({
 
   const tabs = [
     { id: 'active', label: 'Active Sessions', count: activeCount },
-    { id: 'upcoming', label: 'Upcoming', count: upcomingCount },
     { id: 'completed', label: 'Completed', count: completedCount },
     { id: 'all', label: 'All Sessions', count: allCount },
   ];
