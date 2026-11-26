@@ -66,6 +66,8 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(card.text);
+  const [editError, setEditError] = useState<string | null>(null);
+  const MAX_CARD_CHARS = 500;
   const [isDragging, setIsDragging] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isReassignOpen, setIsReassignOpen] = useState(false);
@@ -88,11 +90,13 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   const handleStartEdit = () => {
     if (isClosed) return;
     setEditText(card.text);
+    setEditError(null);
     setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
     setEditText(card.text);
+    setEditError(null);
     setIsEditing(false);
   };
 
@@ -100,6 +104,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
     if (isClosed) return;
     const trimmed = editText.trim();
     if (!trimmed) return;
+    if (trimmed.length > MAX_CARD_CHARS) {
+      setEditError(`Character limit reached. Max ${MAX_CARD_CHARS} characters allowed.`);
+      return;
+    }
+    setEditError(null);
     onUpdate(card.id, trimmed);
     setIsEditing(false);
   };
@@ -173,9 +182,15 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
         <div className="space-y-2 animate-in fade-in duration-150">
           <textarea
             autoFocus
-            rows={2}
+            rows={4}
+            maxLength={MAX_CARD_CHARS}
             value={editText}
-            onChange={(e) => setEditText(e.target.value)}
+            onChange={(e) => {
+              setEditText(e.target.value);
+              if (editError && e.target.value.length <= MAX_CARD_CHARS) {
+                setEditError(null);
+              }
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -184,26 +199,50 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
                 handleCancelEdit();
               }
             }}
-            className="w-full text-sm text-slate-800 dark:text-slate-100 p-2 rounded-lg border border-[#88c958] bg-white dark:bg-[#141720] focus:outline-none focus:ring-1 focus:ring-[#88c958] resize-none shadow-inner"
+            className="w-full min-h-[96px] max-h-[220px] text-sm text-slate-800 dark:text-slate-100 p-2.5 rounded-lg border border-[#88c958] bg-white dark:bg-[#141720] focus:outline-none focus:ring-1 focus:ring-[#88c958] resize-y overflow-y-auto shadow-inner"
             placeholder="Update your feedback..."
           />
-          <div className="flex items-center justify-end gap-1.5">
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="px-2.5 py-1 rounded text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveEdit}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
-            >
-              <Check className="w-3.5 h-3.5" />
-              <span>Save</span>
-            </button>
+          <div className="flex items-center justify-between gap-2 pt-0.5">
+            <div className="text-[11px] font-medium flex items-center gap-1.5">
+              <span
+                className={
+                  editText.length >= MAX_CARD_CHARS
+                    ? 'text-rose-500 font-bold'
+                    : editText.length >= MAX_CARD_CHARS - 50
+                    ? 'text-amber-500 font-semibold'
+                    : 'text-slate-400 dark:text-slate-500'
+                }
+              >
+                {editText.length}/{MAX_CARD_CHARS}
+              </span>
+              {editText.length >= MAX_CARD_CHARS && (
+                <span className="text-rose-500 font-semibold text-[10px]">
+                  (Maximum limit reached)
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="px-2.5 py-1 rounded text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEdit}
+                disabled={!editText.trim() || editText.length > MAX_CARD_CHARS}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded bg-[#5cb028] hover:bg-[#4e9921] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-xs cursor-pointer transition-colors dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Save</span>
+              </button>
+            </div>
           </div>
+          {editError && (
+            <p className="text-[11px] text-rose-500 font-medium">{editError}</p>
+          )}
         </div>
       ) : (
         <>

@@ -85,6 +85,8 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 }) {
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [cardText, setCardText] = useState('');
+  const [cardInputError, setCardInputError] = useState<string | null>(null);
+  const MAX_CARD_CHARS = 500;
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
   const [dragTargetId, setDragTargetId] = useState<string | null>(null);
   const [dropPosition, setDropPosition] = useState<'above' | 'below' | null>(null);
@@ -114,6 +116,11 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
     if (isClosed || !canAddCard) return;
     const trimmed = cardText.trim();
     if (!trimmed) return;
+    if (trimmed.length > MAX_CARD_CHARS) {
+      setCardInputError(`Character limit reached. Max ${MAX_CARD_CHARS} characters allowed (${trimmed.length}/${MAX_CARD_CHARS}).`);
+      return;
+    }
+    setCardInputError(null);
     onAddCard(topic.topicId, trimmed);
     setCardText('');
     setIsInputOpen(false);
@@ -121,6 +128,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
 
   const handleCancelInput = () => {
     setCardText('');
+    setCardInputError(null);
     setIsInputOpen(false);
   };
 
@@ -394,12 +402,18 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
         )}
 
         {isInputOpen && canAddCard && (
-          <div className="p-2.5 rounded-xl bg-white dark:bg-[#12151c] border-2 border-[#88c958] shadow-sm space-y-2 animate-in fade-in duration-150">
+          <div className="p-3 rounded-xl bg-white dark:bg-[#12151c] border-2 border-[#88c958] shadow-sm space-y-2 animate-in fade-in duration-150">
             <textarea
               autoFocus
-              rows={2}
+              rows={4}
+              maxLength={MAX_CARD_CHARS}
               value={cardText}
-              onChange={(e) => setCardText(e.target.value)}
+              onChange={(e) => {
+                setCardText(e.target.value);
+                if (cardInputError && e.target.value.length <= MAX_CARD_CHARS) {
+                  setCardInputError(null);
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -409,24 +423,51 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
                 }
               }}
               placeholder="Write a thought or feedback..."
-              className="w-full text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent focus:outline-none resize-none"
+              className="w-full min-h-[96px] max-h-[220px] text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent focus:outline-none resize-y overflow-y-auto"
             />
-            <div className="flex items-center justify-end gap-1.5 pt-1">
-              <button
-                type="button"
-                onClick={handleCancelInput}
-                className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#141720] cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmitCard}
-                className="px-3 py-1.5 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
-              >
-                Add Card
-              </button>
+
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-white/[0.06]">
+              <div className="text-[11px] font-medium flex items-center gap-1.5">
+                <span
+                  className={
+                    cardText.length >= MAX_CARD_CHARS
+                      ? 'text-rose-500 font-bold'
+                      : cardText.length >= MAX_CARD_CHARS - 50
+                      ? 'text-amber-500 font-semibold'
+                      : 'text-slate-400 dark:text-slate-500'
+                  }
+                >
+                  {cardText.length}/{MAX_CARD_CHARS}
+                </span>
+                {cardText.length >= MAX_CARD_CHARS && (
+                  <span className="text-rose-500 font-semibold text-[10px]">
+                    (Maximum limit reached)
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleCancelInput}
+                  className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#141720] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmitCard}
+                  disabled={!cardText.trim() || cardText.length > MAX_CARD_CHARS}
+                  className="px-3 py-1.5 rounded-lg bg-[#5cb028] hover:bg-[#4e9921] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-xs cursor-pointer transition-colors dark:bg-[#88c958] dark:hover:bg-[#76b846] dark:text-[#08090a]"
+                >
+                  Add Card
+                </button>
+              </div>
             </div>
+
+            {cardInputError && (
+              <p className="text-[11px] text-rose-500 font-medium">{cardInputError}</p>
+            )}
           </div>
         )}
       </div>
