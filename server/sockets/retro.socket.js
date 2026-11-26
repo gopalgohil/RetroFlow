@@ -419,6 +419,26 @@ export function initRetroSocket(io) {
           return;
         }
 
+        // Only allow assignedTo on action item cards
+        if (assignedTo !== undefined && assignedTo !== null) {
+          const actionTopics = (existingBoard.topics || []).filter((t) => {
+            const title = (t.title || '').toLowerCase();
+            return (
+              title.includes('action') ||
+              title.includes('deliverable') ||
+              title.includes('task') ||
+              t.topicId === 'topic-3'
+            );
+          });
+          const actionTopicIds = new Set(actionTopics.map((t) => t.topicId));
+          if (actionTopicIds.size > 0 && !actionTopicIds.has(targetCard.topicId)) {
+            if (callback) {
+              callback({ error: 'Only Action Items can be assigned to team members.' });
+            }
+            return;
+          }
+        }
+
         const updatedTime = new Date();
         const setUpdates = {
           'cards.$.updatedAt': updatedTime,

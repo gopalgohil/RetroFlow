@@ -90,10 +90,11 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
   const [dropPosition, setDropPosition] = useState<'above' | 'below' | null>(null);
   const [isColumnDragOver, setIsColumnDragOver] = useState(false);
 
-  const isActionColumn =
+  const isActionColumn = Boolean(
     (topic.title || '').toLowerCase().includes('action') ||
     topic.icon === 'target' ||
-    (topic.topicId && topic.topicId.toLowerCase().includes('action'));
+    (topic.topicId && topic.topicId.toLowerCase().includes('action'))
+  );
 
   const unexportedActionItemsCount = isActionColumn
     ? cards.filter(
@@ -366,6 +367,7 @@ export const RetroColumn: React.FC<RetroColumnProps> = memo(function RetroColumn
             isDragTarget={dragTargetId === card.id}
             dropPosition={dragTargetId === card.id ? dropPosition : null}
             isClosed={isClosed}
+            isActionColumn={isActionColumn}
             projectMembers={projectMembers}
             canManageActionItems={canManageActionItems}
             onReassignCard={onReassignCard}

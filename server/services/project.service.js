@@ -871,7 +871,6 @@ class ProjectService {
         $or: [
           ...(retro.projectId ? [{ _id: retro.projectId }] : []),
           { 'sprints.items.cardId': cardId },
-          { 'sprints.items.title': card.text },
         ],
       });
 
@@ -881,7 +880,7 @@ class ProjectService {
           for (const item of sprint.items || []) {
             if (
               item.cardId === cardId ||
-              (item.title && item.title.toLowerCase().trim() === normText)
+              (item.sourceRetroId && (item.sourceRetroId === retroIdentifier || item.sourceRetroId === retro.shareToken) && item.title && item.title.toLowerCase().trim() === normText)
             ) {
               item.assignee = (assignedTo && assignedTo.name) ? {
                 name: assignedTo.name || '',
@@ -2374,13 +2373,54 @@ class ProjectService {
         const retroBoardDoc = await RetroBoard.findOne(retroQuery);
         if (retroBoardDoc) {
           retroBoardDoc.cards = retroBoardDoc.cards || [];
-          for (const it of newItems) {
-            const card = retroBoardDoc.cards.find(
-              (c) =>
-                (it.cardId && (c.cardId === it.cardId || (c._id && c._id.toString() === it.cardId))) ||
-                (it.id && (c.cardId === it.id || (c._id && c._id.toString() === it.id))) ||
-                (c.text && it.title && c.text.trim().toLowerCase() === it.title.trim().toLowerCase())
+
+          // Identify Action Items column / topics
+          const actionTopics = (retroBoardDoc.topics || []).filter((t) => {
+            const title = (t.title || '').toLowerCase();
+            return (
+              title.includes('action') ||
+              title.includes('deliverable') ||
+              title.includes('task') ||
+              t.topicId === 'topic-3'
             );
+          });
+          const actionTopicIds = new Set(actionTopics.map((t) => t.topicId));
+
+          // 1. Sanitize any non-action cards that might have erroneously received assignedTo
+          for (const card of retroBoardDoc.cards) {
+            if (actionTopicIds.size > 0 && !actionTopicIds.has(card.topicId)) {
+              if (card.assignedTo || card.assignedSprintName || card.isExportedToActionItems) {
+                card.assignedTo = undefined;
+                card.assignedSprintName = undefined;
+                card.isExportedToActionItems = false;
+              }
+            }
+          }
+
+          // 2. Export / assign ONLY action items cards, matching strictly by cardId first
+          for (const it of newItems) {
+            const targetCardId = it.cardId || it.id;
+            const card = retroBoardDoc.cards.find(
+              (c) => {
+                // Must be in an action topic if action topics exist
+                if (actionTopicIds.size > 0 && !actionTopicIds.has(c.topicId)) {
+                  return false;
+                }
+                if (targetCardId && (c.cardId === targetCardId || (c._id && c._id.toString() === targetCardId))) {
+                  return true;
+                }
+                return false;
+              }
+            ) || retroBoardDoc.cards.find(
+              (c) => {
+                // Fallback to text match only within action topics
+                if (actionTopicIds.size > 0 && !actionTopicIds.has(c.topicId)) {
+                  return false;
+                }
+                return Boolean(c.text && it.title && c.text.trim().toLowerCase() === it.title.trim().toLowerCase());
+              }
+            );
+
             if (card) {
               card.assignedTo = it.assignee;
               card.assignedSprintName = sprint.name;

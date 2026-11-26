@@ -18,6 +18,7 @@ export interface RetroCardItemProps {
   isDragTarget?: boolean;
   dropPosition?: 'above' | 'below' | null;
   isClosed?: boolean;
+  isActionColumn?: boolean;
   projectMembers?: Array<{ id?: string; name: string; email?: string; avatar?: string; role?: string }>;
   canManageActionItems?: boolean;
   onReassignCard?: (
@@ -49,6 +50,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
   isDragTarget = false,
   dropPosition = null,
   isClosed = false,
+  isActionColumn = false,
   projectMembers = [],
   canManageActionItems = false,
   onReassignCard,
@@ -395,7 +397,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             {card.text}
           </p>
 
-          {card.assignedTo?.name && (
+          {isActionColumn && card.assignedTo?.name && (
             <div ref={reassignDropdownRef} className="relative">
               <div
                 className="flex items-center justify-between gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold text-emerald-700 dark:text-emerald-400 select-none shadow-2xs"
@@ -489,7 +491,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
               <span className="truncate font-medium">by {card.author}</span>
             </div>
 
-            {card.assignedTo?.name ? (
+            {isActionColumn && card.assignedTo?.name ? (
               <div
                 className="flex items-center gap-1 font-bold text-[#3d8318] dark:text-[#88c958] bg-[#eaf5e3] dark:bg-[#88c958]/15 px-1.5 py-0.5 rounded border border-[#cdeac0] dark:border-[#88c958]/30 shrink-0 select-none"
                 title={`Assigned to: ${card.assignedTo.name}${card.assignedSprintName ? ` (${card.assignedSprintName})` : ''}`}
