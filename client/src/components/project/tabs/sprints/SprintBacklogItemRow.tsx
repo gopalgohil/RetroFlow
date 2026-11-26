@@ -217,7 +217,7 @@ export const SprintBacklogItemRow: React.FC<SprintBacklogItemRowProps> = React.m
             {typeof itemIndex === 'number' ? itemIndex : '1'}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-white leading-snug">
+            <p className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-white leading-snug break-words break-all">
               {item.title}
             </p>
             <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">

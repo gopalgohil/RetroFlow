@@ -393,7 +393,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = memo(function RetroCa
             </div>
           </div>
 
-          <p className="text-sm text-slate-800 dark:text-slate-100 leading-relaxed break-words font-medium py-1">
+          <p className="text-sm text-slate-800 dark:text-slate-100 leading-relaxed break-words break-all font-medium py-1">
             {card.text}
           </p>
 

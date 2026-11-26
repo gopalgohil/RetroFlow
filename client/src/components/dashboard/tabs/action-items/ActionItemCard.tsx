@@ -218,7 +218,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
         <div className="space-y-2 flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <h4
-              className={`text-base sm:text-[17px] font-bold tracking-tight select-text leading-snug ${
+              className={`text-base sm:text-[17px] font-bold tracking-tight select-text leading-snug break-words break-all min-w-0 ${
                 isDone
                   ? 'line-through text-slate-400 dark:text-slate-500 font-medium'
                   : 'text-slate-900 dark:text-white'

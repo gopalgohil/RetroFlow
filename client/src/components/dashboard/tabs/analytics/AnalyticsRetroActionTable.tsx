@@ -533,7 +533,7 @@ export const AnalyticsRetroActionTable: React.FC<AnalyticsRetroActionTableProps>
                                               <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                             )}
                                             <p
-                                              className={`text-sm sm:text-base font-bold leading-snug break-words ${
+                                              className={`text-sm sm:text-base font-bold leading-snug break-words break-all min-w-0 flex-1 ${
                                                 isDone
                                                   ? 'text-slate-600 dark:text-slate-300 font-semibold line-through decoration-slate-400 dark:decoration-slate-500'
                                                   : 'text-slate-900 dark:text-white font-extrabold'
