@@ -20,6 +20,7 @@ import {
 import { RetroBoard, CreateRetroPayload } from '@/types/retro';
 import { useDashboardTabs } from '@/hooks/useDashboardTabs';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { useSidebar } from '@/context/SidebarContext';
 import { api, ENDPOINTS } from '@/lib/api';
 import { CheckCircle2 } from 'lucide-react';
 
@@ -30,6 +31,7 @@ interface DashboardClientProps {
 
 function DashboardContent({ initialUser, initialProject }: DashboardClientProps) {
   const router = useRouter();
+  const { isCollapsed } = useSidebar();
 
   const { activeTab, switchTab, isTransitioning } = useDashboardTabs();
 
@@ -380,7 +382,7 @@ function DashboardContent({ initialUser, initialProject }: DashboardClientProps)
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
         <DashboardHeader
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -536,6 +538,7 @@ function DashboardContent({ initialUser, initialProject }: DashboardClientProps)
 }
 
 function DashboardFallback({ initialUser, initialProject }: DashboardClientProps) {
+  const { isCollapsed } = useSidebar();
   const [user] = useState<{
     name?: string;
     email?: string;
@@ -604,7 +607,7 @@ function DashboardFallback({ initialUser, initialProject }: DashboardClientProps
           isAdmin={isWorkspaceAdmin}
           isOpen={false}
         />
-        <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
+        <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
           <DashboardHeader
             onOpenMobileMenu={() => {}}
             isAdmin={isWorkspaceAdmin}

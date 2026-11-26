@@ -24,6 +24,7 @@ import {
   TeamTabSkeleton,
 } from '@/components/project/ProjectSkeletons';
 import { ThemeToggle } from '@/components/ui';
+import { useSidebar } from '@/context/SidebarContext';
 import { Project } from '@/types/project';
 import { ProjectApiService } from '@/services/projectApi';
 import { ProjectDataService } from '@/services/mockProjectData';
@@ -53,6 +54,7 @@ function ProjectDetailContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { isCollapsed } = useSidebar();
 
   const projectId = (params?.projectId as string) || 'proj-pgi';
   const tabParam = searchParams.get('tab') || 'overview';
@@ -578,7 +580,7 @@ function ProjectDetailContent() {
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
         <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#08090a]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08] px-4 sm:px-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
@@ -955,6 +957,7 @@ function ProjectDetailContent() {
 }
 
 function ProjectDetailFallback() {
+  const { isCollapsed } = useSidebar();
   const [user, setUser] = useState<{
     name: string;
     email: string;
@@ -1014,7 +1017,7 @@ function ProjectDetailFallback() {
         isOpen={false}
       />
 
-      <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
         <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#08090a]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08] px-4 sm:px-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3" />
 
