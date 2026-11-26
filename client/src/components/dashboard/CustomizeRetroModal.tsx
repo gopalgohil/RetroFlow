@@ -509,7 +509,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
   const handleSave = async () => {
     if (!initialData && activeRetro) {
       setErrorMessage(
-        `Project "${projectContext?.name}" already has an active retrospective session (${activeRetro.title}). Pehle current sprint ko end session (complete) karein.`
+        `Project "${projectContext?.name}" already has an active retrospective session (${activeRetro.title}). Please complete or end the current session before creating a new one.`
       );
       return;
     }
@@ -652,7 +652,7 @@ export const CustomizeRetroModal: React.FC<CustomizeRetroModalProps> = ({
                 {projectContext?.name} already has an active retrospective session ({activeRetro.title})
               </p>
               <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">
-                Pehle current active sprint retrospective session ko "End Session" (complete) karein, uske baad hi naya sprint retrospective create ho sakega.
+                Please complete the current active sprint retrospective session using "End Session" before starting a new one.
               </p>
             </div>
           </div>
