@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 import jwt from 'jsonwebtoken';
 import env from '../config/env.js';
+import { isAllowedCompanyEmail } from '../validations/auth.js';
 
 class RetroService {
   async createRetro(userId, payload) {
@@ -972,6 +973,10 @@ class RetroService {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+
+    if (!isAllowedCompanyEmail(normalizedEmail)) {
+      throw ApiError.badRequest('Only official @digiflux.io or @internal.digiflux.io emails are allowed for invitations.');
+    }
 
     if (!retro.approvedMembers.includes(normalizedEmail)) {
       retro.approvedMembers.push(normalizedEmail);

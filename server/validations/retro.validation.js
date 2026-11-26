@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { emailValidation } from './auth.js';
+import { emailValidation, isAllowedCompanyEmail } from './auth.js';
 
 const topicValidationSchema = z.object({
   topicId: z.string().optional(),
@@ -77,6 +77,9 @@ export const updateRetroSchema = baseRetroSchema.partial().refine(
 );
 
 export const inviteTeammateSchema = z.object({
-  email: emailValidation,
+  email: emailValidation.refine(
+    (val) => isAllowedCompanyEmail(val),
+    { message: 'Only official @digiflux.io or @internal.digiflux.io emails are allowed for invitations' }
+  ),
   message: z.string().trim().max(300).optional(),
 });

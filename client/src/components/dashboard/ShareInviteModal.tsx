@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 import { api, ENDPOINTS } from '@/lib/api';
-import { validateEmailAddress } from '@/lib/validations/auth';
+import { validateEmailAddress, isAllowedCompanyEmail } from '@/lib/validations/auth';
 
 export interface ShareInviteSession {
   _id: string;
@@ -72,6 +72,11 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
     const emailCheck = validateEmailAddress(trimmedEmail);
     if (!emailCheck.isValid) {
       setErrorMessage(emailCheck.error || 'Please enter a valid email address.');
+      return;
+    }
+
+    if (!isAllowedCompanyEmail(trimmedEmail)) {
+      setErrorMessage('Only official @digiflux.io or @internal.digiflux.io emails are allowed.');
       return;
     }
 
@@ -158,7 +163,7 @@ export const ShareInviteModal: React.FC<ShareInviteModalProps> = ({
             <div>
               <input
                 type="email"
-                placeholder="developer@company.com"
+                placeholder="developer@digiflux.io or developer@internal.digiflux.io"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isSending}
