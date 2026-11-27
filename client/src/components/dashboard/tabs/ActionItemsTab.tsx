@@ -344,7 +344,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
           />
         ) : (
           <div className="rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs">
-            <div className="hidden md:grid grid-cols-[minmax(0,1fr)_11rem_10rem_8.5rem] gap-4 px-5 py-2.5 border-b border-slate-200/80 dark:border-white/[0.08] text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <div className="hidden md:grid grid-cols-[minmax(0,1fr)_11rem_10rem_9rem] gap-4 px-5 py-2.5 border-b border-slate-200/80 dark:border-white/[0.08] text-xs font-semibold text-slate-500 dark:text-slate-400">
               <span>Action item</span>
               <span>Assignee</span>
               <span>Due</span>

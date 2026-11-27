@@ -209,7 +209,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
 
   return (
     <div
-      className={`group relative px-4 sm:px-5 py-4 transition-colors first:rounded-t-2xl last:rounded-b-2xl grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_11rem_10rem_8.5rem] md:items-center gap-3 md:gap-4 ${
+      className={`group relative px-4 sm:px-5 py-4 transition-colors first:rounded-t-2xl last:rounded-b-2xl grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_11rem_10rem_9rem] md:items-center gap-3 md:gap-4 ${
         urgency?.isOverdue
           ? 'bg-rose-50/40 dark:bg-rose-950/10 hover:bg-rose-50/70 dark:hover:bg-rose-950/20'
           : 'hover:bg-slate-50/80 dark:hover:bg-white/[0.02]'
@@ -335,7 +335,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
             onClick={() => setIsStatusOpen((prev) => !prev)}
             aria-haspopup="menu"
             aria-expanded={isStatusOpen}
-            className={`w-32 inline-flex items-center justify-between gap-2 pl-3 pr-2.5 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
+            className={`w-36 whitespace-nowrap inline-flex items-center justify-between gap-2 pl-3 pr-2.5 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
               !canMarkDone && isDone ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'
             } ${
               isDone
