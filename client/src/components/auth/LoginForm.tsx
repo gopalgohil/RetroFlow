@@ -30,6 +30,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     password: '',
   });
 
+  // Already signed in: skip the form and go straight to the dashboard.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('retroflow_token')) {
+        router.replace('/dashboard');
+      }
+    } catch {}
+  }, [router]);
+
   const [isVerifiedParam, setIsVerifiedParam] = useState(initialVerified);
   const [isResetSuccessParam, setIsResetSuccessParam] = useState(initialReset);
 
@@ -212,8 +221,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
       <AuthHeader
-        title="Welcome back"
-        subtitle="Enter your credentials to access your workspace"
+        title="Sign in to RetroFlow"
+        subtitle="Use your @digiflux.io or @internal.digiflux.io account"
       />
 
       {isVerifiedParam && !generalError && (
