@@ -220,10 +220,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
-      <AuthHeader
-        title="Sign in to RetroFlow"
-        subtitle="Use your @digiflux.io or @internal.digiflux.io account"
-      />
+      <AuthHeader title="Sign in to RetroFlow" />
 
       {isVerifiedParam && !generalError && (
         <Alert variant="success">
