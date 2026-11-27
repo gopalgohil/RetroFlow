@@ -33,7 +33,14 @@ const baseRetroSchema = z.object({
     .array(topicValidationSchema)
     .min(1, 'At least one topic column is required')
     .max(6, 'Maximum 6 topic columns are allowed'),
-  approvedMembers: z.array(emailValidation).optional().default([]),
+  approvedMembers: z
+    .array(
+      emailValidation.refine((val) => isAllowedCompanyEmail(val), {
+        message: 'Only official @digiflux.io or @internal.digiflux.io emails can be approved members',
+      })
+    )
+    .optional()
+    .default([]),
   projectId: z.string().optional().nullable(),
   projectKey: z.string().optional().nullable(),
   sprintId: z.string().optional().nullable(),

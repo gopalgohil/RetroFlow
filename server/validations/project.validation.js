@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { emailValidation } from './auth.js';
+import { emailValidation, isAllowedCompanyEmail } from './auth.js';
+
+const COMPANY_EMAIL_MESSAGE = 'Only official @digiflux.io or @internal.digiflux.io emails are allowed';
+const companyEmailValidation = emailValidation.refine((val) => isAllowedCompanyEmail(val), {
+  message: COMPANY_EMAIL_MESSAGE,
+});
 
 const memberInputSchema = z.object({
   name: z
@@ -7,7 +12,7 @@ const memberInputSchema = z.object({
     .trim()
     .min(2, 'Name must be at least 2 characters')
     .max(80, 'Name must be under 80 characters'),
-  email: emailValidation,
+  email: companyEmailValidation,
   role: z
     .enum(['Manager', 'Developer', 'QA', 'QA / Tester', 'DevOps', 'Project Lead', 'Viewer'])
     .default('Developer'),
@@ -39,7 +44,10 @@ export const createProjectSchema = z.object({
     .object({
       id: z.string().optional(),
       name: z.string().min(2, 'Lead name is required'),
-      email: z.string().email('Valid lead email is required'),
+      email: z
+        .string()
+        .email('Valid lead email is required')
+        .refine((val) => isAllowedCompanyEmail(val), { message: COMPANY_EMAIL_MESSAGE }),
       role: z.enum(['Manager', 'Developer', 'QA', 'QA / Tester', 'DevOps', 'Project Lead', 'Viewer']).optional().default('Manager'),
       avatar: z.string().optional(),
     })
@@ -184,7 +192,7 @@ export const updateSprintDatesSchema = z
 
 export const inviteProjectMembersSchema = z.object({
   emails: z
-    .array(emailValidation)
+    .array(companyEmailValidation)
     .min(1, 'At least one email address must be selected to send invitations'),
   message: z.string().trim().max(500).optional(),
 });

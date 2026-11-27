@@ -1061,6 +1061,9 @@ class RetroService {
     if (!normalizedEmail) {
       throw ApiError.badRequest('Invalid token payload: missing email.');
     }
+    if (!isAllowedCompanyEmail(normalizedEmail)) {
+      throw ApiError.forbidden('Only official @digiflux.io or @internal.digiflux.io emails can accept invitations.');
+    }
 
     const isApproved =
       Array.isArray(retro.approvedMembers) &&
@@ -1144,6 +1147,9 @@ class RetroService {
     const normalizedEmail = email ? email.toLowerCase().trim() : '';
     if (!normalizedEmail) {
       throw ApiError.badRequest('Valid email address is required to join this retrospective session.');
+    }
+    if (!isAllowedCompanyEmail(normalizedEmail)) {
+      throw ApiError.forbidden('Only official @digiflux.io or @internal.digiflux.io emails can join retrospective sessions.');
     }
 
     const retro = await RetroBoard.findOne({ shareToken });

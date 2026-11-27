@@ -7,6 +7,7 @@ import projectService from '../services/project.service.js';
 import retroService from '../services/retro.service.js';
 import { isSuperAdmin } from '../config/admin.config.js';
 import { verifyToken } from '../utils/token.js';
+import { isAllowedCompanyEmail } from '../validations/auth.js';
 
 const joinRetroSchema = z.object({
   shareToken: z.string().min(1, 'Missing shareToken'),
@@ -107,7 +108,7 @@ export function initRetroSocket(io) {
       if (token) {
         try {
           const decoded = verifyToken(token);
-          if (decoded) {
+          if (decoded && isAllowedCompanyEmail(decoded.email)) {
             const email = (decoded.email || '').toLowerCase().trim();
             let userName = decoded.name;
             if (!userName || (email && userName === email.split('@')[0])) {
@@ -151,7 +152,7 @@ export function initRetroSocket(io) {
       if (tokenCandidate) {
         try {
           const decoded = verifyToken(tokenCandidate);
-          if (decoded) {
+          if (decoded && isAllowedCompanyEmail(decoded.email)) {
             const email = (decoded.email || '').toLowerCase().trim();
             let userName = decoded.name;
             if (socket.user?.name && (!userName || userName === email.split('@')[0])) {
@@ -169,21 +170,9 @@ export function initRetroSocket(io) {
         } catch (e) {}
       }
 
-      if (socket.user && (socket.user.email || socket.user.name)) {
+      // socket.user is only ever set from a verified company-email token.
+      if (socket.user && socket.user.email && isAllowedCompanyEmail(socket.user.email)) {
         return socket.user;
-      }
-
-      if (currentUser && (currentUser.email || currentUser.name)) {
-        return currentUser;
-      }
-
-      if (payload?.author || payload?.authorEmail) {
-        return {
-          name: (payload.author || 'Teammate').trim(),
-          email: (payload.authorEmail || '').toLowerCase().trim(),
-          role: (payload.role || 'developer').toLowerCase().trim(),
-          isGuest: true,
-        };
       }
 
       return null;
@@ -219,7 +208,6 @@ export function initRetroSocket(io) {
                 isGuest: true,
               }
             : { name: 'Teammate', email: '', role: 'developer', isGuest: true };
-          socket.user = currentUser;
         }
 
         const session = await RetroBoard.findOne({ shareToken }).populate('projectId').lean();
@@ -318,10 +306,14 @@ export function initRetroSocket(io) {
         const { shareToken, topicId, text } = parsed.data;
 
         const authUser = getAuthenticatedUser(payload);
-        let authorName = (authUser?.name || payload?.author || currentUser?.name || 'Developer').trim();
-        const authorEmail = authUser?.email
-          ? authUser.email.toLowerCase().trim()
-          : (payload?.authorEmail || '').toLowerCase().trim();
+        if (!authUser) {
+          if (callback) {
+            callback({ error: 'Authentication required to add cards. Please log in with your company account.' });
+          }
+          return;
+        }
+        let authorName = (authUser.name || 'Developer').trim();
+        const authorEmail = authUser.email.toLowerCase().trim();
 
         if (authorEmail && (!authorName || authorName === authorEmail.split('@')[0] || authorName === 'Developer' || authorName === 'Teammate')) {
           const dbUser = await User.findOne({ email: authorEmail }).select('name').lean();
@@ -824,11 +816,17 @@ export function initRetroSocket(io) {
           return;
         }
 
-        const { shareToken, cardId, voter, voterEmail } = parsed.data;
+        const { shareToken, cardId } = parsed.data;
 
         const authUser = getAuthenticatedUser(payload);
-        const voterName = (authUser?.name || voter || 'Developer').trim();
-        const normalizedEmail = (authUser?.email || voterEmail || '').toLowerCase().trim();
+        if (!authUser) {
+          if (callback) {
+            callback({ error: 'Authentication required to vote. Please log in with your company account.' });
+          }
+          return;
+        }
+        const voterName = (authUser.name || 'Developer').trim();
+        const normalizedEmail = authUser.email.toLowerCase().trim();
         const voterIdentifier = normalizedEmail || voterName;
 
         const cardDoc = await RetroBoard.findOne(

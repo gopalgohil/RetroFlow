@@ -5,6 +5,7 @@ import Project from '../models/Project.js';
 import RetroBoard from '../models/RetroBoard.js';
 import { ApiError } from '../utils/ApiError.js';
 import { generateToken } from '../utils/token.js';
+import { verifyFirebaseIdToken } from '../utils/firebaseToken.js';
 import emailService from './email.service.js';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
 import { isAllowedCompanyEmail } from '../validations/auth.js';
@@ -442,10 +443,24 @@ class AuthService {
     return { success: true, message: 'Password updated successfully.' };
   }
 
-  async googleAuth({ email, name, avatar, googleId }) {
-    if (!email) {
-      throw ApiError.badRequest('Email is required for Google authentication.');
+  async googleAuth({ token: idToken, name: bodyName, avatar: bodyAvatar }) {
+    // Never trust the email sent by the client: read it from a verified Firebase ID token.
+    let firebaseUser;
+    try {
+      firebaseUser = await verifyFirebaseIdToken(idToken);
+    } catch (err) {
+      console.warn('[Google Auth] Firebase ID token verification failed:', err.message);
+      throw ApiError.unauthorized('Google sign-in could not be verified. Please try again.');
     }
+
+    const email = firebaseUser.email;
+    if (!email || firebaseUser.email_verified !== true) {
+      throw ApiError.unauthorized('Your Google account email is not verified.');
+    }
+
+    const name = firebaseUser.name || bodyName;
+    const avatar = firebaseUser.picture || bodyAvatar;
+    const googleId = firebaseUser.sub;
 
     const normalizedEmail = email.toLowerCase().trim();
 

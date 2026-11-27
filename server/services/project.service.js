@@ -9,6 +9,7 @@ import emailService from './email.service.js';
 import { generateToken } from '../utils/token.js';
 import { ApiError } from '../utils/ApiError.js';
 import { isSuperAdmin, getSuperAdminEmail } from '../config/admin.config.js';
+import { isAllowedCompanyEmail } from '../validations/auth.js';
 import { getRetroNamespace } from '../sockets/retro.socket.js';
 
 function matchesAssignee(assigneeEmail, assigneeName, targetEmail, targetName, contextText = '') {
@@ -3313,6 +3314,9 @@ class ProjectService {
     const normalizedEmail = decoded.email?.toLowerCase().trim();
     if (!normalizedEmail) {
       throw ApiError.badRequest('Invalid token payload: missing email.');
+    }
+    if (!isAllowedCompanyEmail(normalizedEmail)) {
+      throw ApiError.forbidden('Only official @digiflux.io or @internal.digiflux.io emails can accept invitations.');
     }
 
     const matchedMember = project.members?.find(

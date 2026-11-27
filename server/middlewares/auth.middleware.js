@@ -4,6 +4,10 @@ import { asyncHandler } from './asyncHandler.js';
 import { verifyToken } from '../utils/token.js';
 import User from '../models/User.js';
 import { isSuperAdmin } from '../config/admin.config.js';
+import { isAllowedCompanyEmail } from '../validations/auth.js';
+
+const COMPANY_EMAIL_ONLY_MESSAGE =
+  'Access restricted: Only official @digiflux.io or @internal.digiflux.io accounts are allowed.';
 
 export const protect = asyncHandler(async (req, res, next) => {
   let token;
@@ -31,6 +35,10 @@ export const protect = asyncHandler(async (req, res, next) => {
       throw ApiError.unauthorized('User account not found or session has expired. Please log in again.');
     }
 
+    if (!isAllowedCompanyEmail(user.email)) {
+      throw ApiError.forbidden(COMPANY_EMAIL_ONLY_MESSAGE);
+    }
+
     req.user = user;
     next();
   } catch (error) {
@@ -53,6 +61,18 @@ export const optionalAuth = asyncHandler(async (req, res, next) => {
   }
 
   if (token) {
+    let decodedToken = null;
+    try {
+      decodedToken = verifyToken(token);
+    } catch {
+      decodedToken = null;
+    }
+
+    // A valid token for a non-company email is rejected instead of being treated as a user.
+    if (decodedToken && !isAllowedCompanyEmail(decodedToken.email)) {
+      throw ApiError.forbidden(COMPANY_EMAIL_ONLY_MESSAGE);
+    }
+
     try {
       const decoded = verifyToken(token);
       let user = null;
