@@ -27,7 +27,18 @@ interface ActionItemsFiltersProps {
   };
   hasActiveFilters: boolean;
   onResetFilters: () => void;
+  sortMode: ActionItemsSortMode;
+  onSortChange: (mode: ActionItemsSortMode) => void;
 }
+
+export type ActionItemsSortMode = 'smart' | 'dueDate' | 'priority' | 'newest';
+
+const SORT_OPTIONS: Array<{ value: ActionItemsSortMode; label: string }> = [
+  { value: 'smart', label: 'Sort: Most urgent' },
+  { value: 'dueDate', label: 'Sort: Due date' },
+  { value: 'priority', label: 'Sort: Priority' },
+  { value: 'newest', label: 'Sort: Newest' },
+];
 
 const PRIORITY_OPTIONS = [
   { value: 'all', label: 'All Priorities' },
@@ -51,6 +62,8 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
   statusCounts,
   hasActiveFilters,
   onResetFilters,
+  sortMode,
+  onSortChange,
 }) => {
   const counts = statusCounts || metrics;
 
@@ -100,6 +113,7 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
           {searchQuery && (
             <button
               onClick={() => onSearchChange('')}
+              aria-label="Clear search"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm font-bold cursor-pointer"
             >
               ✕
@@ -112,7 +126,7 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
             <button
               type="button"
               onClick={() => setIsProjectOpen((prev) => !prev)}
-              className="inline-flex items-center justify-between gap-2 pl-3.5 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/[0.16] focus:outline-hidden cursor-pointer"
+              className="inline-flex items-center justify-between gap-2 pl-3.5 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] text-sm font-semibold text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/[0.16] focus:outline-hidden cursor-pointer"
             >
               <span className="max-w-[180px] truncate">{projectLabel}</span>
               <ChevronDown
@@ -134,7 +148,7 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
                       onProjectChange('all');
                       setIsProjectOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors cursor-pointer text-left ${
+                    className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium transition-colors cursor-pointer text-left ${
                       selectedProject === 'all'
                         ? 'bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/15 dark:text-[#88c958] font-bold'
                         : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05]'
@@ -155,7 +169,7 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
                           onProjectChange(p.key);
                           setIsProjectOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors cursor-pointer text-left ${
+                        className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium transition-colors cursor-pointer text-left ${
                           isSelected
                             ? 'bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/15 dark:text-[#88c958] font-bold'
                             : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05]'
@@ -177,7 +191,7 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
             <button
               type="button"
               onClick={() => setIsPriorityOpen((prev) => !prev)}
-              className="inline-flex items-center justify-between gap-2 pl-3.5 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/[0.16] focus:outline-hidden cursor-pointer"
+              className="inline-flex items-center justify-between gap-2 pl-3.5 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] text-sm font-semibold text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/[0.16] focus:outline-hidden cursor-pointer"
             >
               <span>{priorityLabel}</span>
               <ChevronDown
@@ -203,7 +217,7 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
                           onPriorityChange(item.value);
                           setIsPriorityOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors cursor-pointer text-left ${
+                        className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium transition-colors cursor-pointer text-left ${
                           isSelected
                             ? 'bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/15 dark:text-[#88c958] font-bold'
                             : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05]'
@@ -220,6 +234,19 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
               </div>
             )}
           </div>
+
+          <select
+            value={sortMode}
+            onChange={(e) => onSortChange(e.target.value as ActionItemsSortMode)}
+            aria-label="Sort action items"
+            className="pl-3 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] text-sm font-semibold text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/[0.16] focus:outline-hidden focus:ring-2 focus:ring-[#88c958]/20 cursor-pointer"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
 
           {hasActiveFilters && (
             <button
@@ -245,7 +272,7 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
             <button
               key={tab.id}
               onClick={() => onStatusChange(tab.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+              className={`px-3.5 py-1.5 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
                 isActive
                   ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#12151c]'
@@ -253,7 +280,7 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
             >
               <span>{tab.label}</span>
               <span
-                className={`px-1.5 py-0.2 rounded-full text-xs font-black ${
+                className={`min-w-[20px] px-1.5 rounded-full text-xs font-bold tabular-nums ${
                   isActive ? 'bg-white/25 text-white dark:bg-[#08090a]/20 dark:text-[#08090a]' : 'bg-slate-200/70 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300'
                 }`}
               >

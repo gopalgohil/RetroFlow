@@ -10,6 +10,8 @@ import {
   ActionItemCard,
   ActionItemsEmptyState,
 } from './action-items';
+import type { ActionItemsQuickFilter, ActionItemsSortMode } from './action-items';
+import type { EnrichedActionItem } from '@/types/project';
 
 interface ActionItemsTabProps {
   user?: { name: string; email: string; role?: string; projectRole?: string } | null;
@@ -18,7 +20,23 @@ interface ActionItemsTabProps {
   onActionItemsCountChange?: (count: number) => void;
 }
 
-const DEFAULT_ITEMS_PER_PAGE = 8;
+const DEFAULT_ITEMS_PER_PAGE = 20;
+const DAY_MS = 86400000;
+
+// Whole days between today and the item's due date (negative = overdue). null when no due date.
+const getDueDayDiff = (item: EnrichedActionItem, todayMs: number): number | null => {
+  if (!item.dueDate) return null;
+  const parts = item.dueDate.split('T')[0].split('-');
+  const due =
+    parts.length === 3
+      ? new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+      : new Date(item.dueDate);
+  if (isNaN(due.getTime())) return null;
+  due.setHours(0, 0, 0, 0);
+  return Math.round((due.getTime() - todayMs) / DAY_MS);
+};
+
+const PRIORITY_ORDER: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
 
 export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
   user,
@@ -66,7 +84,6 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     setSelectedStatus,
     selectedPriority,
     setSelectedPriority,
-    sortBy,
     setSortBy,
     viewAllTeam,
     setViewAllTeam,
@@ -81,6 +98,70 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
 
   const [isFilterLoading, setIsFilterLoading] = useState<boolean>(false);
+  const [sortMode, setSortMode] = useState<ActionItemsSortMode>('smart');
+  const [quickFilter, setQuickFilter] = useState<ActionItemsQuickFilter>(null);
+  const [todayMs] = useState(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  });
+
+  const handleSortChange = useCallback(
+    (mode: ActionItemsSortMode) => {
+      setSortMode(mode);
+      // The hook still does the plain sorts; "smart" is layered on top below.
+      setSortBy(mode === 'smart' ? 'newest' : mode);
+    },
+    [setSortBy]
+  );
+
+  // Open items that need attention, scoped to the selected project.
+  const attention = useMemo(() => {
+    const scoped =
+      selectedProject === 'all'
+        ? items
+        : items.filter(
+            (i) =>
+              i.projectKey?.toLowerCase() === selectedProject.toLowerCase() ||
+              i.projectId?.toLowerCase() === selectedProject.toLowerCase()
+          );
+    const open = scoped.filter((i) => i.status !== 'done');
+    let overdue = 0;
+    let dueSoon = 0;
+    open.forEach((i) => {
+      const diff = getDueDayDiff(i, todayMs);
+      if (diff === null) return;
+      if (diff < 0) overdue += 1;
+      else if (diff <= 7) dueSoon += 1;
+    });
+    const unassigned = open.filter((i) => !i.assignee?.name).length;
+    return { overdue, dueSoon, unassigned };
+  }, [items, selectedProject, todayMs]);
+
+  const visibleItems = useMemo(() => {
+    let result = filteredItems;
+    if (quickFilter) {
+      result = result.filter((i) => {
+        if (i.status === 'done') return false;
+        if (quickFilter === 'unassigned') return !i.assignee?.name;
+        const diff = getDueDayDiff(i, todayMs);
+        if (diff === null) return false;
+        return quickFilter === 'overdue' ? diff < 0 : diff >= 0 && diff <= 7;
+      });
+    }
+    if (sortMode !== 'smart') return result;
+    // Most urgent first: open before done, overdue first, then nearest due date, then priority.
+    return [...result].sort((a, b) => {
+      const doneDiff = Number(a.status === 'done') - Number(b.status === 'done');
+      if (doneDiff !== 0) return doneDiff;
+      const da = getDueDayDiff(a, todayMs);
+      const db = getDueDayDiff(b, todayMs);
+      const va = da === null ? Number.MAX_SAFE_INTEGER : da;
+      const vb = db === null ? Number.MAX_SAFE_INTEGER : db;
+      if (va !== vb) return va - vb;
+      return (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2);
+    });
+  }, [filteredItems, quickFilter, sortMode, todayMs]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -88,13 +169,14 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
     selectedProject,
     selectedStatus,
     selectedPriority,
-    sortBy,
+    sortMode,
+    quickFilter,
     searchQuery,
     viewAllTeam,
     currentLimit,
   ]);
 
-  const totalItems = filteredItems.length;
+  const totalItems = visibleItems.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / currentLimit));
   const activePage = Math.min(currentPage, totalPages);
   const hasPrev = activePage > 1;
@@ -105,8 +187,8 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
 
   const paginatedItems = useMemo(() => {
     const startIndex = (activePage - 1) * currentLimit;
-    return filteredItems.slice(startIndex, startIndex + currentLimit);
-  }, [filteredItems, activePage, currentLimit]);
+    return visibleItems.slice(startIndex, startIndex + currentLimit);
+  }, [visibleItems, activePage, currentLimit]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage === activePage || newPage < 1 || newPage > totalPages) return;
@@ -168,6 +250,7 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
 
   const handleResetFiltersWithLoader = useCallback(() => {
     setIsFilterLoading(true);
+    setQuickFilter(null);
     clearAllFilters();
     setTimeout(() => {
       setIsFilterLoading(false);
@@ -192,43 +275,45 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#eaf5e3]/60 via-white to-slate-50 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#12151c] border border-[#cdeac0]/80 dark:border-white/[0.08] shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-2xl">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Retrospective Action Items
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Action Items
           </h1>
-          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-            Track, prioritize, and complete commitments derived from your sprint retrospectives. Keep your team aligned and agile deliverables on schedule.
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Follow-ups committed in sprint retrospectives. Overdue items are shown first.
           </p>
         </div>
 
         {(isAdmin || isManager) && (
-          <div className="flex items-center gap-2 bg-white dark:bg-[#12151c] p-1.5 rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-xs shrink-0 self-start lg:self-auto">
-            <button
-              onClick={() => handleToggleTeamView(false)}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                !viewAllTeam
-                  ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              My Action Items
-            </button>
-            <button
-              onClick={() => handleToggleTeamView(true)}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                viewAllTeam
-                  ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              All Team Items
-            </button>
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100/90 dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shrink-0 self-start sm:self-auto">
+            {[
+              { value: false, label: 'My items' },
+              { value: true, label: 'All team items' },
+            ].map((opt) => (
+              <button
+                key={opt.label}
+                onClick={() => handleToggleTeamView(opt.value)}
+                aria-pressed={viewAllTeam === opt.value}
+                className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                  viewAllTeam === opt.value
+                    ? 'bg-white dark:bg-[#141720] text-slate-900 dark:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         )}
       </div>
 
-      <ActionItemsMetrics metrics={metrics} />
+      <ActionItemsMetrics
+        metrics={metrics}
+        attention={attention}
+        activeQuickFilter={quickFilter}
+        onQuickFilterChange={setQuickFilter}
+      />
 
       <ActionItemsFilters
         searchQuery={searchQuery}
@@ -242,34 +327,45 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
         onStatusChange={handleStatusFilterChange}
         metrics={metrics}
         statusCounts={statusCounts}
-        hasActiveFilters={hasActiveFilters}
+        hasActiveFilters={hasActiveFilters || quickFilter !== null}
         onResetFilters={handleResetFiltersWithLoader}
+        sortMode={sortMode}
+        onSortChange={handleSortChange}
       />
 
       <div className="space-y-3">
         {isLoading || isSearching || isFilterLoading || isPageLoading ? (
           <ActionItemsCardsSkeleton count={Math.min(currentLimit, 8)} />
-        ) : filteredItems.length === 0 ? (
+        ) : visibleItems.length === 0 ? (
           <ActionItemsEmptyState
             totalCount={baseTotalCount}
-            hasActiveFilters={hasActiveFilters}
+            hasActiveFilters={hasActiveFilters || quickFilter !== null}
             onResetFilters={handleResetFiltersWithLoader}
           />
         ) : (
-          paginatedItems.map((item, idx) => (
-            <ActionItemCard
-              key={item.id}
-              item={item}
-              displayIndex={(activePage - 1) * currentLimit + idx + 1}
-              isUpdating={updatingItemId === item.id}
-              onStatusChange={handleStatusChange}
-              canMarkDone={canMarkDone}
-            />
-          ))
+          <div className="rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] shadow-xs">
+            <div className="hidden md:grid grid-cols-[minmax(0,1fr)_11rem_10rem_8.5rem] gap-4 px-5 py-2.5 border-b border-slate-200/80 dark:border-white/[0.08] text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <span>Action item</span>
+              <span>Assignee</span>
+              <span>Due</span>
+              <span className="text-right pr-1">Status</span>
+            </div>
+            <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+              {paginatedItems.map((item) => (
+                <ActionItemCard
+                  key={item.id}
+                  item={item}
+                  isUpdating={updatingItemId === item.id}
+                  onStatusChange={handleStatusChange}
+                  canMarkDone={canMarkDone}
+                />
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
-      {totalItems > 0 && totalPages > 1 && (
+      {totalItems > 10 && (
         <div className="p-4 sm:px-6 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/80 dark:border-white/[0.08] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
           <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
             <span>
@@ -285,9 +381,9 @@ export const ActionItemsTab: React.FC<ActionItemsTabProps> = ({
                 onChange={(e) => setCurrentLimit(Number(e.target.value))}
                 className="px-2.5 py-1 bg-slate-50 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#88c958] cursor-pointer"
               >
-                <option value={8}>8 per page</option>
-                <option value={16}>16 per page</option>
-                <option value={24}>24 per page</option>
+                <option value={10}>10 per page</option>
+                <option value={20}>20 per page</option>
+                <option value={50}>50 per page</option>
               </select>
             </div>
           </div>

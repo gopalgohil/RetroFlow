@@ -2,20 +2,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import {
-  Calendar,
-  Clock,
-  Sparkles,
-  ChevronDown,
-  ExternalLink,
-  Check,
-  User,
-} from 'lucide-react';
+import { Calendar, ChevronDown, Check, User } from 'lucide-react';
 import { EnrichedActionItem } from '@/types/project';
 
 interface ActionItemCardProps {
   item: EnrichedActionItem;
-  displayIndex?: number;
   isUpdating: boolean;
   onStatusChange: (item: EnrichedActionItem, status: 'todo' | 'in_progress' | 'done') => void;
   canMarkDone?: boolean;
@@ -47,6 +38,25 @@ const PRIORITY_CONFIG: Record<
   },
 };
 
+const PROJECT_AVATAR_COLORS = [
+  'bg-emerald-600',
+  'bg-sky-600',
+  'bg-violet-600',
+  'bg-amber-600',
+  'bg-rose-600',
+  'bg-teal-600',
+  'bg-indigo-600',
+  'bg-orange-600',
+];
+
+const getProjectAvatarColor = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  }
+  return PROJECT_AVATAR_COLORS[Math.abs(hash) % PROJECT_AVATAR_COLORS.length];
+};
+
 const getAssigneeInitials = (name?: string, avatar?: string): string => {
   if (name && name.trim()) {
     const parts = name.trim().split(/\s+/);
@@ -61,7 +71,6 @@ const getAssigneeInitials = (name?: string, avatar?: string): string => {
 
 export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
   item,
-  displayIndex,
   isUpdating,
   onStatusChange,
   canMarkDone = false,
@@ -152,6 +161,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
       dateFormatted = target.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
+        ...(target.getFullYear() !== today.getFullYear() ? { year: 'numeric' as const } : {}),
       });
     } else {
       target = new Date(item.dueDate);
@@ -159,6 +169,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
       dateFormatted = target.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
+        ...(target.getFullYear() !== today.getFullYear() ? { year: 'numeric' as const } : {}),
       });
     }
 
@@ -167,14 +178,14 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
     if (diffDays < 0) {
       const daysAgo = Math.abs(diffDays);
       return {
-        label: `${dateFormatted} · Overdue (${daysAgo}d)`,
+        label: `Overdue ${daysAgo}d · ${dateFormatted}`,
         className: 'text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/40 font-bold',
         isOverdue: true,
       };
     }
     if (diffDays === 0) {
       return {
-        label: `${dateFormatted} · Due Today`,
+        label: 'Due today',
         className: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/40 font-bold',
       };
     }
@@ -185,143 +196,153 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
       };
     }
     return {
-      label: `Due: ${dateFormatted}`,
+      label: dateFormatted,
       className: 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.04] border-slate-200/70 dark:border-white/[0.06]',
     };
   }, [item.dueDate, isDone]);
 
   const priorityMeta = PRIORITY_CONFIG[item.priority] || PRIORITY_CONFIG.medium;
+  // Medium is the default, so only call out priorities that differ from it.
+  const showPriority = item.priority && item.priority !== 'medium' && Boolean(PRIORITY_CONFIG[item.priority]);
+  const projectLabel = item.projectName || item.projectKey;
+  const projectInitials = (item.projectKey || item.projectName || 'P').slice(0, 2).toUpperCase();
 
   return (
     <div
-      className={`group p-4 sm:p-5 rounded-2xl border transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-        isDone
-          ? 'bg-slate-50/60 dark:bg-[#0e1015]/50 border-slate-200/60 dark:border-white/[0.04] opacity-75 hover:opacity-100'
-          : urgency?.isOverdue
-          ? 'bg-rose-50/15 dark:bg-rose-950/10 border-rose-200/80 dark:border-rose-900/40 shadow-xs hover:shadow-md'
-          : 'bg-white dark:bg-[#0e1015] border-slate-200/80 dark:border-white/[0.08] shadow-xs hover:shadow-md hover:border-[#88c958]/50 dark:hover:border-[#88c958]/40'
+      className={`group relative px-4 sm:px-5 py-4 transition-colors first:rounded-t-2xl last:rounded-b-2xl grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_11rem_10rem_8.5rem] md:items-center gap-3 md:gap-4 ${
+        urgency?.isOverdue
+          ? 'bg-rose-50/40 dark:bg-rose-950/10 hover:bg-rose-50/70 dark:hover:bg-rose-950/20'
+          : 'hover:bg-slate-50/80 dark:hover:bg-white/[0.02]'
       }`}
     >
-      <div className="flex items-start gap-4 flex-1 min-w-0">
-        {typeof displayIndex === 'number' && (
-          <span
-            className={`text-base sm:text-lg font-black select-none shrink-0 tabular-nums min-w-[24px] pt-0.5 ${
-              isDone
-                ? 'text-slate-400 dark:text-slate-500'
-                : 'text-slate-900 dark:text-slate-100'
-            }`}
-          >
-            {displayIndex}
-          </span>
-        )}
+      {urgency?.isOverdue && (
+        <span className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-rose-500" aria-hidden="true" />
+      )}
 
-        <div className="space-y-2 flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h4
-              className={`text-base sm:text-[17px] font-bold tracking-tight select-text leading-snug break-words break-all min-w-0 ${
-                isDone
-                  ? 'line-through text-slate-400 dark:text-slate-500 font-medium'
-                  : 'text-slate-900 dark:text-white'
-              }`}
-            >
-              {item.title}
-            </h4>
-
-            <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border leading-none shrink-0 ${priorityMeta.pill}`}
-            >
-              <span className={`w-2 h-2 rounded-full ${priorityMeta.dot}`} />
-              <span>{priorityMeta.label}</span>
+      <div className="min-w-0 space-y-1.5">
+        <div className="flex items-start gap-2 min-w-0">
+          {isDone && (
+            <span className="mt-0.5 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+              <Check className="w-3 h-3" strokeWidth={3} />
             </span>
-          </div>
+          )}
+          <h4
+            className={`text-[15px] font-semibold leading-snug line-clamp-2 [overflow-wrap:anywhere] min-w-0 ${
+              isDone ? 'line-through text-slate-500 dark:text-slate-500' : 'text-slate-900 dark:text-white'
+            }`}
+            title={item.title}
+          >
+            {item.title}
+          </h4>
+          {showPriority && (
+            <span
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold border shrink-0 ${priorityMeta.pill}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${priorityMeta.dot}`} />
+              {priorityMeta.label}
+            </span>
+          )}
+        </div>
 
-          {item.description &&
-            !item.description.startsWith('Action item originated from Retrospective') &&
-            !item.description.startsWith('Originated from Retrospective') &&
-            !item.description.startsWith('Retrospective item from session') &&
-            !item.description.startsWith('Generated from Retrospective') && (
-              <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
-                {item.description}
-              </p>
-            )}
+        {item.description &&
+          !item.description.startsWith('Action item originated from Retrospective') &&
+          !item.description.startsWith('Originated from Retrospective') &&
+          !item.description.startsWith('Retrospective item from session') &&
+          !item.description.startsWith('Generated from Retrospective') && (
+            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1 [overflow-wrap:anywhere]">
+              {item.description}
+            </p>
+          )}
 
-          <div className="flex flex-wrap items-center gap-2.5 pt-0.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 min-w-0">
+          {projectLabel && (
+            <span className="inline-flex items-center gap-1.5 min-w-0" title={projectLabel}>
+              <span
+                className={`w-5 h-5 rounded-md ${getProjectAvatarColor(item.projectKey || projectLabel)} text-white text-[10px] font-black flex items-center justify-center shrink-0`}
+                aria-hidden="true"
+              >
+                {projectInitials}
+              </span>
+              <span className="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[180px]">
+                {projectLabel}
+              </span>
+            </span>
+          )}
 
-            {item.sourceRetroTitle && (
-              item.sourceRetroShareToken ? (
+          {item.sourceRetroTitle && (
+            <>
+              {projectLabel && <span className="text-slate-300 dark:text-white/20">/</span>}
+              {item.sourceRetroShareToken ? (
                 <Link
                   href={`/retro/${item.sourceRetroShareToken}`}
-                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#3d8318] dark:text-[#88c958] hover:underline transition-colors max-w-[280px] truncate"
-                  title="Go to retrospective board"
+                  className="inline-flex items-center gap-1 truncate max-w-[240px] hover:text-[#3d8318] dark:hover:text-[#88c958] hover:underline"
+                  title="Open retrospective board"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] shrink-0" />
                   <span className="truncate">{item.sourceRetroTitle}</span>
-                  <ExternalLink className="w-3 h-3 opacity-60 shrink-0" />
                 </Link>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#3d8318] dark:text-[#88c958] max-w-[280px] truncate">
-                  <Sparkles className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] shrink-0" />
-                  <span className="truncate">{item.sourceRetroTitle}</span>
-                </span>
-              )
-            )}
-
-            {item.assignee?.name && (
-              <>
-                <span className="text-slate-300 dark:text-white/20">•</span>
-                {isSelfAssigned ? (
-                  <span
-                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30 shadow-2xs"
-                    title={fullTooltip}
-                  >
-                    <User className="w-3.5 h-3.5 shrink-0" />
-                    <span>{assigneeName}</span>
-                    <span className="text-[10px] uppercase tracking-wider font-black px-1.5 py-0.5 rounded-md bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a]">
-                      Self-assigned
-                    </span>
-                  </span>
-                ) : (
-                  <span
-                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30"
-                    title={fullTooltip || assigneeTooltip}
-                  >
-                    <User className="w-3.5 h-3.5 shrink-0" />
-                    <span>Assigned to: <strong className="font-extrabold">{assigneeName}</strong></span>
-                  </span>
-                )}
-              </>
-            )}
-
-            {urgency && (
-              <>
-                <span className="text-slate-300 dark:text-white/20">•</span>
-                <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs border font-semibold ${urgency.className}`}
-                  title={item.dueDate ? `Due date: ${item.dueDate}` : undefined}
-                >
-                  <Calendar className="w-3.5 h-3.5 shrink-0" />
-                  <span>{urgency.label}</span>
-                </span>
-              </>
-            )}
-          </div>
+                <span className="truncate max-w-[240px]">{item.sourceRetroTitle}</span>
+              )}
+            </>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center justify-between md:justify-end gap-3.5 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-white/[0.08] shrink-0">
+      <div className="flex items-center gap-2 min-w-0" title={item.assignee?.name ? fullTooltip || assigneeTooltip : 'No one is assigned yet'}>
+        {item.assignee?.name ? (
+          <>
+            <span className="w-7 h-7 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-[11px] font-bold flex items-center justify-center shrink-0">
+              {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+                {assigneeName}
+              </span>
+              {isSelfAssigned && (
+                <span className="block text-xs text-slate-500 dark:text-slate-400">Self-assigned</span>
+              )}
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="w-7 h-7 rounded-full border border-dashed border-slate-300 dark:border-white/20 text-slate-400 flex items-center justify-center shrink-0">
+              <User className="w-3.5 h-3.5" />
+            </span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">Unassigned</span>
+          </>
+        )}
+      </div>
+
+      <div className="min-w-0">
+        {urgency ? (
+          <span
+            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs border font-semibold ${urgency.className}`}
+            title={item.dueDate ? `Due date: ${item.dueDate}` : undefined}
+          >
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{urgency.label}</span>
+          </span>
+        ) : (
+          <span className="text-sm text-slate-400 dark:text-slate-500">No due date</span>
+        )}
+      </div>
+
+      <div className="flex md:justify-end">
         <div className="relative" ref={statusRef}>
           <button
             type="button"
             disabled={isUpdating || (!canMarkDone && isDone)}
             onClick={() => setIsStatusOpen((prev) => !prev)}
-            className={`inline-flex items-center justify-between gap-2 pl-3.5 pr-2.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-colors ${
+            aria-haspopup="menu"
+            aria-expanded={isStatusOpen}
+            className={`w-32 inline-flex items-center justify-between gap-2 pl-3 pr-2.5 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
               !canMarkDone && isDone ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'
             } ${
               isDone
                 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
                 : isInProgress
                 ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-500/30 hover:bg-sky-100 dark:hover:bg-sky-950/60'
-                : 'bg-slate-50 dark:bg-[#12151c] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/[0.08] hover:bg-slate-100 dark:hover:bg-[#181b24]'
+                : 'bg-white dark:bg-[#12151c] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-[#181b24]'
             }`}
             title={
               !canMarkDone && isDone
@@ -329,7 +350,14 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
                 : undefined
             }
           >
-            <span>{isDone ? 'Done' : isInProgress ? 'In Progress' : 'To Do'}</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isDone ? 'bg-emerald-500' : isInProgress ? 'bg-sky-500' : 'bg-slate-400'
+                }`}
+              />
+              {isDone ? 'Done' : isInProgress ? 'In Progress' : 'To Do'}
+            </span>
             <ChevronDown
               className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
                 isStatusOpen ? 'rotate-180' : ''
@@ -338,71 +366,38 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
           </button>
 
           {isStatusOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-36 rounded-2xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden flex flex-col">
-              <div className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
-                Update Status
-              </div>
-              <div className="py-0.5">
-                {[
-                  { value: 'todo' as const, label: 'To Do' },
-                  { value: 'in_progress' as const, label: 'In Progress' },
-                  ...(canMarkDone ? [{ value: 'done' as const, label: 'Done' }] : []),
-                ].map((s) => {
-                  const isSelected = item.status === s.value;
-                  return (
-                    <button
-                      key={s.value}
-                      type="button"
-                      onClick={() => {
-                        onStatusChange(item, s.value);
-                        setIsStatusOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer text-left ${
-                        isSelected
-                          ? 'bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/15 dark:text-[#88c958] font-bold'
-                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05]'
-                      }`}
-                    >
-                      <span>{s.label}</span>
-                      {isSelected && (
-                        <Check className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958] shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+            <div
+              role="menu"
+              className="absolute right-0 top-full mt-1.5 w-40 rounded-xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] py-1 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden"
+            >
+              {[
+                { value: 'todo' as const, label: 'To Do' },
+                { value: 'in_progress' as const, label: 'In Progress' },
+                ...(canMarkDone ? [{ value: 'done' as const, label: 'Done' }] : []),
+              ].map((s) => {
+                const isSelected = item.status === s.value;
+                return (
+                  <button
+                    key={s.value}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      onStatusChange(item, s.value);
+                      setIsStatusOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2 text-sm transition-colors cursor-pointer text-left ${
+                      isSelected
+                        ? 'bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/15 dark:text-[#88c958] font-semibold'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05]'
+                    }`}
+                  >
+                    <span>{s.label}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                  </button>
+                );
+              })}
             </div>
           )}
-        </div>
-
-        <div className="flex items-center shrink-0 select-none">
-          {givenByName && item.assignee?.name ? (
-            <div
-              className="flex items-center -space-x-3.5 group/merged"
-              title={fullTooltip}
-            >
-              <div
-                className="w-8 h-8 rounded-full bg-[#488e1e] text-white dark:bg-[#72ad46] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-0 group-hover/merged:z-10 group-hover/merged:scale-105 transition-all"
-                title={givenByTooltip}
-              >
-                {getAssigneeInitials(givenByName)}
-              </div>
-
-              <div
-                className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 ring-2 ring-white dark:ring-[#0e1015] shadow-xs cursor-pointer z-10 hover:z-20 hover:scale-105 transition-all"
-                title={assigneeTooltip}
-              >
-                {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
-              </div>
-            </div>
-          ) : item.assignee?.name ? (
-            <div
-              className="w-8 h-8 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-white dark:ring-[#0e1015] cursor-pointer"
-              title={assigneeTooltip}
-            >
-              {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
-            </div>
-          ) : null}
         </div>
       </div>
     </div>
