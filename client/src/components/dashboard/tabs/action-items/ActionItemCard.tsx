@@ -96,14 +96,7 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
   }, [isStatusOpen]);
 
   const assigneeName = item.assignee?.name || 'Unassigned';
-  const assigneeEmail = item.assignee?.email;
   const givenByName = item.givenBy || item.managerName;
-  const managerEmail = item.managerEmail;
-
-  const isSelfAssigned = Boolean(
-    (assigneeEmail && managerEmail && assigneeEmail.toLowerCase().trim() === managerEmail.toLowerCase().trim()) ||
-    (assigneeName && givenByName && givenByName !== 'Unassigned' && givenByName !== 'Project Manager' && assigneeName.toLowerCase().trim() === givenByName.toLowerCase().trim())
-  );
 
   const assignedDateFull = React.useMemo(() => {
     const rawDate = item.assignedAt || item.createdAt;
@@ -122,20 +115,6 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
   }, [item.assignedAt, item.createdAt]);
 
   const assignmentDateSuffix = assignedDateFull ? ` (Assigned on ${assignedDateFull})` : '';
-
-  const assigneeTooltip = assigneeEmail
-    ? `Assigned to: ${assigneeName} (${assigneeEmail})${assignmentDateSuffix}`
-    : `Assigned to: ${assigneeName}${assignmentDateSuffix}`;
-
-  const givenByTooltip = givenByName
-    ? managerEmail
-      ? `Assigned by: ${givenByName} (${managerEmail})${assignmentDateSuffix}`
-      : `Assigned by: ${givenByName}${assignmentDateSuffix}`
-    : '';
-
-  const fullTooltip = isSelfAssigned
-    ? `Self-assigned by ${assigneeName}${assigneeEmail ? ` (${assigneeEmail})` : ''}${assignmentDateSuffix}`
-    : [givenByTooltip, assigneeTooltip].filter(Boolean).join('\n');
 
   const urgency = React.useMemo(() => {
     if (!item.dueDate) return null;
@@ -296,27 +275,27 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 min-w-0" title={item.assignee?.name ? fullTooltip || assigneeTooltip : 'No one is assigned yet'}>
-        {item.assignee?.name ? (
+      <div
+        className="flex items-center gap-2 min-w-0"
+        title={
+          item.assignee?.name
+            ? `Assigned to ${assigneeName}${givenByName ? ` by ${givenByName}` : ''}${assignmentDateSuffix}`
+            : 'No one is assigned yet'
+        }
+      >
+        {item.assignee?.name && givenByName ? (
           <>
             <span className="w-7 h-7 rounded-full bg-[#5cb028] text-white dark:bg-[#88c958] dark:text-[#08090a] text-[11px] font-bold flex items-center justify-center shrink-0">
-              {getAssigneeInitials(item.assignee.name, item.assignee.avatar)}
+              {getAssigneeInitials(givenByName)}
             </span>
-            <span className="min-w-0">
-              <span className="block text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
-                {assigneeName}
-              </span>
-              {isSelfAssigned && (
-                <span className="block text-xs text-slate-500 dark:text-slate-400">Self-assigned</span>
-              )}
-            </span>
+            <span className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{givenByName}</span>
           </>
         ) : (
           <>
             <span className="w-7 h-7 rounded-full border border-dashed border-slate-300 dark:border-white/20 text-slate-400 flex items-center justify-center shrink-0">
               <User className="w-3.5 h-3.5" />
             </span>
-            <span className="text-sm text-slate-500 dark:text-slate-400">Unassigned</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">Not assigned yet</span>
           </>
         )}
       </div>

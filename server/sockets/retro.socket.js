@@ -449,6 +449,9 @@ export function initRetroSocket(io) {
             avatar: assignedTo.avatar || assignedTo.name.trim().slice(0, 2).toUpperCase(),
           } : undefined;
           setUpdates['cards.$.assignedTo'] = formattedAssignee;
+          if (formattedAssignee && authUser) {
+            setUpdates['cards.$.givenBy'] = (authUser.name || authUser.email?.split('@')[0] || '').trim() || null;
+          }
         }
 
         const updatedBoard = await RetroBoard.findOneAndUpdate(
@@ -463,7 +466,7 @@ export function initRetroSocket(io) {
         }
 
         if (assignedTo !== undefined) {
-          await projectService.syncCardAssigneeToSprint(shareToken, cardId, assignedTo);
+          await projectService.syncCardAssigneeToSprint(shareToken, cardId, assignedTo, setUpdates['cards.$.givenBy']);
         }
 
         const roomName = `retro:${shareToken}`;

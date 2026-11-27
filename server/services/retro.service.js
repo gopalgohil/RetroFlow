@@ -1388,6 +1388,9 @@ class RetroService {
       } : undefined;
       setUpdates['cards.$.assignedTo'] = formattedAssignee;
       targetCard.assignedTo = formattedAssignee;
+      if (formattedAssignee && user) {
+        setUpdates['cards.$.givenBy'] = (user.name || user.email?.split('@')[0] || '').trim() || null;
+      }
     }
 
     const query = identifier.length === 24 && /^[0-9a-fA-F]{24}$/.test(identifier)
@@ -1401,7 +1404,7 @@ class RetroService {
     );
 
     if (assignedTo !== undefined) {
-      await projectService.syncCardAssigneeToSprint(identifier, cardId, assignedTo);
+      await projectService.syncCardAssigneeToSprint(identifier, cardId, assignedTo, setUpdates['cards.$.givenBy']);
     }
 
     if (retro?.shareToken) {

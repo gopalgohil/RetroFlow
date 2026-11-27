@@ -851,7 +851,7 @@ class ProjectService {
     }
   }
 
-  async syncCardAssigneeToSprint(retroIdentifier, cardId, assignedTo) {
+  async syncCardAssigneeToSprint(retroIdentifier, cardId, assignedTo, assignedByName = null) {
     if (!cardId) return null;
     try {
       const retroQuery = mongoose.Types.ObjectId.isValid(retroIdentifier) && retroIdentifier.length === 24
@@ -888,6 +888,10 @@ class ProjectService {
                 email: assignedTo.email || '',
                 avatar: assignedTo.avatar || (assignedTo.name ? assignedTo.name.slice(0, 2).toUpperCase() : ''),
               } : undefined;
+              if (item.assignee && assignedByName) {
+                item.givenBy = assignedByName;
+                item.managerName = assignedByName;
+              }
               item.updatedAt = new Date();
               modified = true;
 
@@ -1475,6 +1479,11 @@ class ProjectService {
           email: aEmail,
           avatar: assignee.avatar || (aName ? aName.slice(0, 2).toUpperCase() : ''),
         };
+        const assignerName = (currentUser?.name || currentUser?.email?.split('@')[0] || '').trim();
+        if (assignerName) {
+          item.givenBy = assignerName;
+          item.managerName = assignerName;
+        }
       } else {
         item.assignee = undefined;
       }
@@ -1505,6 +1514,7 @@ class ProjectService {
             if (dueDate !== undefined) matchedCard.dueDate = dueDate;
             if (assignee !== undefined) {
               matchedCard.assignedTo = item.assignee;
+              if (item.assignee && item.givenBy) matchedCard.givenBy = item.givenBy;
             }
             matchedCard.updatedAt = new Date();
             retro.markModified('cards');

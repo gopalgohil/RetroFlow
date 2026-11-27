@@ -97,6 +97,11 @@ const cardSchema = new mongoose.Schema(
       email: { type: String, default: null },
       avatar: { type: String, default: null },
     },
+    // Name of the manager/admin who assigned this card (shown as "Assigned by").
+    givenBy: {
+      type: String,
+      default: null,
+    },
     assignedSprintName: {
       type: String,
       default: null,
