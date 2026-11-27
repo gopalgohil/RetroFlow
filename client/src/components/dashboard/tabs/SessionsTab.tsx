@@ -39,25 +39,61 @@ export const SessionsTab: React.FC<SessionsTabProps> = ({
   }
 
   const firstName = user?.name ? user.name.split(' ')[0] : 'there';
+  const activeSessions = sessions.filter((s) => s.status === 'active');
   const completedCount = sessions.filter((s) => s.status === 'completed').length;
-  const totalTopicsCount = sessions.reduce((acc, s) => acc + (s.topics?.length || 3), 0);
+  const liveCardsCount = activeSessions.reduce((acc, s) => acc + (s.cards?.length || 0), 0);
+  // Sessions whose end date falls within the next 7 days (or has already passed).
+  const endingSoonCount = activeSessions.filter((s) => {
+    if (!s.endDate) return false;
+    const end = new Date(s.endDate);
+    if (isNaN(end.getTime())) return false;
+    const weekAhead = new Date();
+    weekAhead.setDate(weekAhead.getDate() + 7);
+    return end <= weekAhead;
+  }).length;
+
+  const stats = [
+    { label: 'Live sessions', value: activeSessionsCount || activeSessions.length, accent: true },
+    { label: 'Ending in 7 days', value: endingSoonCount, warn: endingSoonCount > 0 },
+    { label: 'Cards in live retros', value: liveCardsCount },
+    { label: 'Completed', value: completedCount },
+  ];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="relative py-5 px-6 sm:py-6 sm:px-8 rounded-2xl bg-gradient-to-r from-[#5cb028] via-[#54a324] to-[#458b1b] text-white shadow-sm overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4 dark:from-[#0e1015] dark:via-[#0e1015] dark:to-[#0e1015] dark:border dark:border-white/[0.08] dark:shadow-2xl group">
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 dark:bg-[#88c958]/10 rounded-full blur-2xl dark:blur-3xl pointer-events-none" />
-        <div className="absolute top-2 right-1/4 w-32 h-32 bg-emerald-300/10 dark:bg-[#88c958]/5 rounded-full blur-xl dark:blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-2xl space-y-1.5">
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white dark:font-black">
-            Welcome back, <span className="text-white dark:text-[#88c958]">{firstName}</span>!
-          </h2>
-
-          <p className="text-white/90 dark:text-slate-400 text-xs sm:text-sm leading-relaxed max-w-xl">
+      <div className="flex flex-col gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Retrospective Sessions
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Welcome back, {firstName}.{' '}
             {isAdmin
-              ? "Here's an overview of your team sprint retrospectives, feedback topics, and continuous improvement action items."
-              : 'Collaborate live with your agile team, submit honest feedback on sprint questions, and vote on team action items in real-time.'}
+              ? 'Track live retros, feedback and follow-ups across your projects.'
+              : 'Join live retros, share feedback and vote on action items.'}
           </p>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="px-4 py-3 rounded-xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08]"
+            >
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{stat.label}</p>
+              <p
+                className={`mt-0.5 text-2xl font-extrabold tabular-nums ${
+                  stat.warn
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : stat.accent
+                    ? 'text-[#3d8318] dark:text-[#88c958]'
+                    : 'text-slate-900 dark:text-white'
+                }`}
+              >
+                {stat.value}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 

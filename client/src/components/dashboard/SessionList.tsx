@@ -4,12 +4,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Calendar,
-  ExternalLink,
+  ArrowRight,
   Share2,
   Edit3,
   Trash2,
   Users,
   Clock,
+  MoreHorizontal,
+  MessageSquare,
   Check,
   AlertTriangle,
   ChevronLeft,
@@ -40,6 +42,115 @@ interface SessionListProps {
 }
 
 const ITEMS_PER_PAGE = 9;
+const DAY_MS = 86400000;
+
+// Auto-filled description that carries no information; hidden on cards.
+const DEFAULT_DESCRIPTION_RE = /^continuous alignment session for engineering & product team/i;
+
+const PROJECT_AVATAR_COLORS = [
+  'bg-emerald-600',
+  'bg-sky-600',
+  'bg-violet-600',
+  'bg-amber-600',
+  'bg-rose-600',
+  'bg-teal-600',
+  'bg-indigo-600',
+  'bg-orange-600',
+];
+
+const getProjectAvatarColor = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  }
+  return PROJECT_AVATAR_COLORS[Math.abs(hash) % PROJECT_AVATAR_COLORS.length];
+};
+
+type TimeStatus = { label: string; className: string; dotClassName: string; rank: number };
+
+// Time-based status shown on each card instead of a plain "ACTIVE" badge.
+const getTimeStatus = (session: RetroBoard, now: number): TimeStatus => {
+  if (session.status === 'completed') {
+    return {
+      label: 'Completed',
+      className: 'bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/[0.08]',
+      dotClassName: 'bg-slate-400',
+      rank: 4,
+    };
+  }
+  if (session.status === 'draft') {
+    return {
+      label: 'Draft',
+      className: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30',
+      dotClassName: 'bg-amber-500',
+      rank: 3,
+    };
+  }
+  const start = session.startDate ? new Date(session.startDate).getTime() : NaN;
+  if (!isNaN(start) && start > now) {
+    const startLabel = new Date(start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return {
+      label: `Upcoming · starts ${startLabel}`,
+      className: 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-500/30',
+      dotClassName: 'bg-sky-500',
+      rank: 2,
+    };
+  }
+  const end = session.endDate ? new Date(session.endDate).getTime() : NaN;
+  if (!isNaN(end)) {
+    const days = Math.ceil((end - now) / DAY_MS);
+    if (days < 0) {
+      return {
+        label: 'Overdue',
+        className: 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/30',
+        dotClassName: 'bg-rose-500',
+        rank: 0,
+      };
+    }
+    if (days === 0) {
+      return {
+        label: 'Ends today',
+        className: 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/30',
+        dotClassName: 'bg-rose-500 animate-pulse',
+        rank: 0,
+      };
+    }
+    if (days <= 3) {
+      return {
+        label: `Ends in ${days} ${days === 1 ? 'day' : 'days'}`,
+        className: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30',
+        dotClassName: 'bg-amber-500 animate-pulse',
+        rank: 1,
+      };
+    }
+    return {
+      label: `Live · ends in ${days} days`,
+      className: 'bg-[#88c958]/10 text-[#3d8318] dark:text-[#88c958] border-[#cdeac0] dark:border-[#88c958]/30',
+      dotClassName: 'bg-[#88c958] animate-pulse',
+      rank: 1,
+    };
+  }
+  return {
+    label: 'Live',
+    className: 'bg-[#88c958]/10 text-[#3d8318] dark:text-[#88c958] border-[#cdeac0] dark:border-[#88c958]/30',
+    dotClassName: 'bg-[#88c958] animate-pulse',
+    rank: 1,
+  };
+};
+
+const formatRelativeTime = (dateStr: string | undefined, now: number) => {
+  if (!dateStr) return null;
+  const t = new Date(dateStr).getTime();
+  if (isNaN(t)) return null;
+  const mins = Math.max(0, Math.round((now - t) / 60000));
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
 
 export const SessionList: React.FC<SessionListProps> = ({
   sessions,
@@ -63,6 +174,26 @@ export const SessionList: React.FC<SessionListProps> = ({
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [invitingSession, setInvitingSession] = useState<RetroBoard | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [now] = useState(() => Date.now());
+
+  // Close the card "more" menu on outside click or Escape.
+  useEffect(() => {
+    if (!openMenuId) return;
+    const handleMouseDown = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target?.closest('[data-session-menu]')) setOpenMenuId(null);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpenMenuId(null);
+    };
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openMenuId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -188,12 +319,24 @@ export const SessionList: React.FC<SessionListProps> = ({
   }, [sessions, selectedProject, getSessionProjectName]);
 
   const filteredSessions = React.useMemo(() => {
-    return projectScopedSessions.filter((s) => {
-      if (activeFilter === 'active' && s.status !== 'active') return false;
-      if (activeFilter === 'completed' && s.status !== 'completed') return false;
-      return true;
-    });
-  }, [projectScopedSessions, activeFilter]);
+    const endTime = (s: RetroBoard) => {
+      const t = s.endDate ? new Date(s.endDate).getTime() : NaN;
+      return isNaN(t) ? Number.MAX_SAFE_INTEGER : t;
+    };
+    return projectScopedSessions
+      .filter((s) => {
+        if (activeFilter === 'active' && s.status !== 'active') return false;
+        if (activeFilter === 'completed' && s.status !== 'completed') return false;
+        return true;
+      })
+      .sort((a, b) => {
+        // Most urgent first: overdue / ending soon, then upcoming, then completed (latest first).
+        const rankDiff = getTimeStatus(a, now).rank - getTimeStatus(b, now).rank;
+        if (rankDiff !== 0) return rankDiff;
+        if (a.status === 'completed') return endTime(b) - endTime(a);
+        return endTime(a) - endTime(b);
+      });
+  }, [projectScopedSessions, activeFilter, now]);
 
   const totalItems = filteredSessions.length;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
@@ -287,7 +430,7 @@ export const SessionList: React.FC<SessionListProps> = ({
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id as any)}
-                className={`inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-xl text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
                   isActive
                     ? 'bg-[#5cb028] text-white shadow-xs dark:bg-[#88c958] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_12px_rgba(136,201,88,0.25)]'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.05]'
@@ -295,7 +438,7 @@ export const SessionList: React.FC<SessionListProps> = ({
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-extrabold transition-colors ${
+                  className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-extrabold transition-colors ${
                     isActive
                       ? 'bg-white/25 text-white dark:bg-[#08090a]/20 dark:text-[#08090a]'
                       : 'bg-slate-100 dark:bg-white/[0.08] text-slate-600 dark:text-slate-400'
@@ -322,7 +465,7 @@ export const SessionList: React.FC<SessionListProps> = ({
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
               placeholder="Search by title, project, topic..."
-              className="w-full pl-8 pr-8 py-1.5 bg-slate-50 dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.16] rounded-xl text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all shadow-2xs"
+              className="w-full pl-8 pr-8 py-2 bg-slate-50 dark:bg-[#0e1015] border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.16] rounded-xl text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all shadow-2xs"
             />
             {localSearch && (
               <button
@@ -341,7 +484,7 @@ export const SessionList: React.FC<SessionListProps> = ({
               <button
                 type="button"
                 onClick={() => setIsProjectDropdownOpen((prev) => !prev)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border transition-all cursor-pointer ${
                   selectedProject !== 'all'
                     ? 'bg-[#5cb028]/10 border-[#5cb028]/40 text-[#3d8318] dark:bg-[#88c958]/15 dark:border-[#88c958]/40 dark:text-[#88c958]'
                     : 'bg-slate-50 dark:bg-[#0e1015] border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/[0.16]'
@@ -418,17 +561,21 @@ export const SessionList: React.FC<SessionListProps> = ({
             </div>
           )}
 
-          {isInitialLoading ? (
-            <div className="h-4 w-24 rounded bg-slate-200/80 dark:bg-white/[0.06] animate-pulse hidden sm:block shrink-0" />
-          ) : (
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline-block shrink-0">
-              {totalItems > ITEMS_PER_PAGE
-                ? `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} Retros`
-                : `Showing ${totalItems} of ${projectScopedSessions.length} Retros`}
-            </span>
-          )}
         </div>
       </div>
+
+      {isInitialLoading ? (
+        <div className="h-4 w-40 rounded bg-slate-200/80 dark:bg-white/[0.06] animate-pulse -mt-2" />
+      ) : (
+        <p className="-mt-2 text-sm text-slate-500 dark:text-slate-400">
+          {totalItems > ITEMS_PER_PAGE
+            ? `Showing ${startIndex + 1}–${endIndex} of ${totalItems} retros`
+            : `Showing ${totalItems} of ${projectScopedSessions.length} retros`}
+          {activeFilter !== 'completed' && totalItems > 1 && (
+            <span className="text-slate-400 dark:text-slate-500"> · sorted by ending soonest</span>
+          )}
+        </p>
+      )}
 
       {isCardsLoading && (
         <SessionCardsSkeleton count={filteredSessions.length > 0 ? Math.min(filteredSessions.length, 6) : 6} />
@@ -488,197 +635,217 @@ export const SessionList: React.FC<SessionListProps> = ({
 
       {!isCardsLoading && filteredSessions.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4 lg:gap-4.5 2xl:gap-5">
-          {paginatedSessions.map((session) => (
-            <div
-              key={session._id}
-              className="group relative p-3.5 sm:p-4.5 2xl:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] hover:border-[#88c958]/40 dark:hover:border-[#88c958]/60 hover:shadow-xl dark:hover:shadow-[0_0_24px_rgba(0,0,0,0.8)] transition-all flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between gap-2 mb-2.5">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-                      session.status === 'active'
-                        ? 'bg-[#88c958]/10 text-[#3d8318] dark:text-[#88c958] border border-[#cdeac0] dark:border-[#88c958]/30'
-                        : session.status === 'completed'
-                        ? 'bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]'
-                        : 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30'
-                    }`}
-                  >
+          {paginatedSessions.map((session) => {
+            const projectName = getSessionProjectName(session);
+            const projectKey = (
+              session.projectKey ||
+              session.project?.key ||
+              projectName ||
+              'RF'
+            )
+              .slice(0, 3)
+              .toUpperCase();
+            const timeStatus = getTimeStatus(session, now);
+            const cards = Array.isArray(session.cards) ? session.cards : [];
+            const participantCount = new Set(
+              cards.map((c) => (c.authorEmail || c.author || '').toLowerCase()).filter(Boolean)
+            ).size;
+            const lastActivity = formatRelativeTime(session.updatedAt, now);
+            const showDescription = Boolean(
+              session.description && !DEFAULT_DESCRIPTION_RE.test(session.description.trim())
+            );
+            const topicsList =
+              session.topics && session.topics.length > 0
+                ? session.topics
+                : [
+                    { title: 'What went well?', color: '#88c958' },
+                    { title: 'What could be improved?', color: '#F43F5E' },
+                    { title: 'Action Items', color: '#0EA5E9' },
+                  ];
+            const dotColorMap: Record<string, string> = {
+              '#5cb028': 'bg-[#5cb028]',
+              '#88c958': 'bg-[#88c958]',
+              '#10B981': 'bg-emerald-500',
+              '#F43F5E': 'bg-rose-500',
+              '#0EA5E9': 'bg-sky-500',
+              '#F59E0B': 'bg-amber-500',
+              '#4F46E5': 'bg-indigo-500',
+              '#8B5CF6': 'bg-purple-500',
+              '#EC4899': 'bg-pink-500',
+              '#06B6D4': 'bg-teal-500',
+            };
+            const isMenuOpen = openMenuId === session._id;
+
+            return (
+              <div
+                key={session._id}
+                className="group relative p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0e1015] border border-slate-200/90 dark:border-white/[0.08] hover:border-[#88c958]/50 dark:hover:border-[#88c958]/60 hover:shadow-lg dark:hover:shadow-[0_0_24px_rgba(0,0,0,0.8)] transition-all flex flex-col gap-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0" title={projectName}>
                     <span
-                      className={`w-2 h-2 rounded-full ${
-                        session.status === 'active' ? 'bg-[#88c958] animate-pulse shadow-[0_0_6px_rgba(136,201,88,0.8)]' : 'bg-slate-400'
-                      }`}
-                    />
-                    {session.status}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-slate-500 dark:text-slate-400">
-                  <Calendar className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                  <span>
-                    {formatRetroDateRange(
-                      session.startDate,
-                      session.endDate,
-                      session.scheduledDate || session.createdAt
-                    )}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-1 mb-3.5">
-                <h3 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-white group-hover:text-[#88c958] transition-colors line-clamp-1">
-                  {session.title}
-                </h3>
-                {session.description && (
-                  <p className="text-xs sm:text-[13.5px] text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                    {session.description}
-                  </p>
-                )}
-              </div>
-
-              {(() => {
-                const topicsList =
-                  session.topics && session.topics.length > 0
-                    ? session.topics
-                    : [
-                        { title: 'What went well?', color: '#88c958' },
-                        { title: 'What could be improved?', color: '#F43F5E' },
-                        { title: 'Action Items', color: '#0EA5E9' },
-                      ];
-
-                const dotColorMap: Record<string, string> = {
-                  '#5cb028': 'bg-[#5cb028]',
-                  '#88c958': 'bg-[#88c958]',
-                  '#10B981': 'bg-emerald-500',
-                  '#F43F5E': 'bg-rose-500',
-                  '#0EA5E9': 'bg-sky-500',
-                  '#F59E0B': 'bg-amber-500',
-                  '#4F46E5': 'bg-indigo-500',
-                  '#8B5CF6': 'bg-purple-500',
-                  '#EC4899': 'bg-pink-500',
-                  '#06B6D4': 'bg-teal-500',
-                };
-
-                return (
-                  <div className="space-y-2 mb-4">
-                    <p className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">
-                      AGENDA TOPICS:
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {topicsList.map((t: any, idx: number) => {
-                        let dotColor = dotColorMap[t.color];
-                        if (!dotColor) {
-                          const titleLower = (t.title || '').toLowerCase();
-                          if (
-                            titleLower.includes('good') ||
-                            titleLower.includes('well') ||
-                            titleLower.includes('win') ||
-                            titleLower.includes('smile')
-                          ) {
-                            dotColor = 'bg-emerald-500';
-                          } else if (
-                            titleLower.includes('improve') ||
-                            titleLower.includes('bad') ||
-                            titleLower.includes('frown') ||
-                            titleLower.includes('problem')
-                          ) {
-                            dotColor = 'bg-rose-500';
-                          } else if (
-                            titleLower.includes('action') ||
-                            titleLower.includes('item') ||
-                            titleLower.includes('task') ||
-                            titleLower.includes('target')
-                          ) {
-                            dotColor = 'bg-sky-500';
-                          } else {
-                            const fallbackDots = [
-                              'bg-emerald-500',
-                              'bg-rose-500',
-                              'bg-sky-500',
-                              'bg-purple-500',
-                            ];
-                            dotColor = fallbackDots[idx % fallbackDots.length];
-                          }
-                        }
-
-                        const cardCount = Array.isArray(session.cards)
-                          ? session.cards.filter(
-                              (c) =>
-                                (t.topicId && c.topicId === t.topicId) ||
-                                (t.id && c.topicId === t.id) ||
-                                (t.title && c.topicId?.toLowerCase() === t.title.toLowerCase())
-                            ).length
-                          : 0;
-
-                        return (
-                          <span
-                            key={t.topicId || idx}
-                            className="px-3 py-1.5 rounded-lg text-xs sm:text-[13px] font-medium border transition-all inline-flex items-center gap-2 bg-slate-100/80 dark:bg-white/[0.04] border-slate-200/80 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-white/[0.15]"
-                          >
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-                            <span className="truncate max-w-[160px] sm:max-w-[200px]">{t.title}</span>
-                            <span
-                              className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full text-[10.5px] font-bold ${
-                                cardCount > 0
-                                  ? 'bg-slate-200 dark:bg-white/[0.14] text-slate-900 dark:text-white'
-                                  : 'bg-slate-200/70 dark:bg-white/[0.06] text-slate-500 dark:text-slate-400'
-                              }`}
-                            >
-                              {cardCount}
-                            </span>
-                          </span>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => onLaunch(session)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-xs sm:text-[13px] font-bold shadow-xs transition-colors cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-[0_0_12px_rgba(136,201,88,0.25)]"
-                  >
-                    <span>{isAdmin ? 'Open Board' : 'Join Live Board'}</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
-
-                  {isAdmin && (
-                    <button
-                      onClick={() => setInvitingSession(session)}
-                      title="Invite Teammates & Developers"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-semibold border transition-all cursor-pointer bg-[#eaf5e3] hover:bg-[#def0d4] text-[#3d8318] border-[#cdeac0] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:text-white dark:border-white/[0.08]"
+                      className={`w-7 h-7 rounded-lg ${getProjectAvatarColor(projectName)} text-white text-[11px] font-black tracking-wide flex items-center justify-center shrink-0`}
+                      aria-hidden="true"
                     >
-                      <Share2 className="w-3.5 h-3.5 text-[#5cb028] dark:text-[#88c958]" />
-                      <span>Share / Invite</span>
-                    </button>
+                      {projectKey.slice(0, 2)}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">
+                      {projectName}
+                    </span>
+                  </div>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border whitespace-nowrap shrink-0 ${timeStatus.className}`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${timeStatus.dotClassName}`} />
+                    {timeStatus.label}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white line-clamp-1">
+                    {session.title}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 shrink-0" />
+                      {formatRetroDateRange(
+                        session.startDate,
+                        session.endDate,
+                        session.scheduledDate || session.createdAt
+                      )}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 shrink-0" />
+                      {participantCount} {participantCount === 1 ? 'participant' : 'participants'}
+                    </span>
+                    {lastActivity && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 shrink-0" />
+                        {lastActivity}
+                      </span>
+                    )}
+                  </div>
+                  {showDescription && (
+                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 break-words leading-relaxed pt-1">
+                      {session.description}
+                    </p>
                   )}
                 </div>
 
-                {isAdmin && (
-                  <div className="flex items-center gap-1">
+                <div className="flex items-center gap-x-4 gap-y-1.5 flex-wrap p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06]">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    {cards.length} {cards.length === 1 ? 'card' : 'cards'}
+                  </span>
+                  {topicsList.map((t: any, idx: number) => {
+                    let dotColor = dotColorMap[t.color];
+                    if (!dotColor) {
+                      const titleLower = (t.title || '').toLowerCase();
+                      if (/good|well|win|smile/.test(titleLower)) dotColor = 'bg-emerald-500';
+                      else if (/improve|bad|frown|problem/.test(titleLower)) dotColor = 'bg-rose-500';
+                      else if (/action|item|task|target/.test(titleLower)) dotColor = 'bg-sky-500';
+                      else dotColor = ['bg-emerald-500', 'bg-rose-500', 'bg-sky-500', 'bg-purple-500'][idx % 4];
+                    }
+                    const cardCount = cards.filter(
+                      (c) =>
+                        (t.topicId && c.topicId === t.topicId) ||
+                        (t.id && c.topicId === t.id) ||
+                        (t.title && c.topicId?.toLowerCase() === t.title.toLowerCase())
+                    ).length;
 
+                    return (
+                      <span
+                        key={t.topicId || idx}
+                        className="inline-flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-200"
+                        title={`${t.title}: ${cardCount} ${cardCount === 1 ? 'card' : 'cards'}`}
+                      >
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
+                        <span className="truncate max-w-[150px]">{t.title}</span>
+                        <span
+                          className={`font-bold tabular-nums ${
+                            cardCount > 0 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'
+                          }`}
+                        >
+                          {cardCount}
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-auto pt-3 border-t border-slate-100 dark:border-white/[0.08] flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => onEdit(session)}
-                      title="Edit Topics & Rules"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                      onClick={() => onLaunch(session)}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-sm font-bold shadow-xs transition-colors cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black"
                     >
-                      <Edit3 className="w-4 h-4" />
+                      <span>{isAdmin ? 'Open Board' : 'Join Live Board'}</span>
+                      <ArrowRight className="w-4 h-4" />
                     </button>
 
-                    <button
-                      onClick={() => setDeletingId(session._id)}
-                      title="Delete Retrospective"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => setInvitingSession(session)}
+                        title="Invite teammates"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold border transition-all cursor-pointer bg-white hover:bg-slate-50 text-slate-700 border-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:text-white dark:border-white/[0.08]"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        <span>Invite</span>
+                      </button>
+                    )}
                   </div>
-                )}
+
+                  {isAdmin && (
+                    <div className="relative" data-session-menu>
+                      <button
+                        type="button"
+                        onClick={() => setOpenMenuId(isMenuOpen ? null : session._id)}
+                        aria-label="More actions"
+                        aria-haspopup="menu"
+                        aria-expanded={isMenuOpen}
+                        className="p-2 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+
+                      {isMenuOpen && (
+                        <div
+                          role="menu"
+                          className="absolute right-0 bottom-full mb-1.5 w-44 rounded-xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl py-1 z-30 animate-in fade-in zoom-in-95 duration-100"
+                        >
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              onEdit(session);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] cursor-pointer"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                            Edit topics & rules
+                          </button>
+                          <div className="my-1 border-t border-slate-100 dark:border-white/[0.06]" />
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              setDeletingId(session._id);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete retro
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
