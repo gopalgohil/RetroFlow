@@ -972,6 +972,11 @@ class RetroService {
       throw ApiError.forbidden('Retrospective session not found or you do not have permission to invite teammates.');
     }
 
+    // Completed retros are read-only: no new members can be invited.
+    if (retro.status === 'completed') {
+      throw ApiError.badRequest('Completed retros cannot accept new invites.');
+    }
+
     const normalizedEmail = email.toLowerCase().trim();
 
     if (!isAllowedCompanyEmail(normalizedEmail)) {

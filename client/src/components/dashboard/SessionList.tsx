@@ -12,6 +12,7 @@ import {
   Clock,
   MoreHorizontal,
   MessageSquare,
+  Link2,
   Check,
   AlertTriangle,
   ChevronLeft,
@@ -779,11 +780,18 @@ export const SessionList: React.FC<SessionListProps> = ({
                       onClick={() => onLaunch(session)}
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-sm font-bold shadow-xs transition-colors cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black"
                     >
-                      <span>{isAdmin ? 'Open Board' : 'Join Live Board'}</span>
+                      <span>
+                        {session.status === 'completed'
+                          ? 'View Results'
+                          : isAdmin
+                          ? 'Open Board'
+                          : 'Join Live Board'}
+                      </span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
 
-                    {isAdmin && (
+                    {/* Completed retros are read-only, so new invites are not offered. */}
+                    {isAdmin && session.status !== 'completed' && (
                       <button
                         onClick={() => setInvitingSession(session)}
                         title="Invite teammates"
@@ -839,6 +847,27 @@ export const SessionList: React.FC<SessionListProps> = ({
                               </span>
                             )}
                           </button>
+                          {session.status === 'completed' && session.shareToken && (
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={() => handleCopyLink(session.shareToken)}
+                              title="Copy a link to view this retro's results"
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] cursor-pointer"
+                            >
+                              {copiedToken === session.shareToken ? (
+                                <>
+                                  <Check className="w-4 h-4 text-[#5cb028] dark:text-[#88c958]" />
+                                  <span className="text-[#3d8318] dark:text-[#88c958]">Link copied</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Link2 className="w-4 h-4" />
+                                  Copy results link
+                                </>
+                              )}
+                            </button>
+                          )}
                           <div className="my-1 border-t border-slate-100 dark:border-white/[0.06]" />
                           <button
                             type="button"
