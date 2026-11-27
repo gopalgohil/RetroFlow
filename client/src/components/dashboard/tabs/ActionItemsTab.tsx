@@ -20,7 +20,7 @@ interface ActionItemsTabProps {
   onActionItemsCountChange?: (count: number) => void;
 }
 
-const DEFAULT_ITEMS_PER_PAGE = 20;
+const DEFAULT_ITEMS_PER_PAGE = 10;
 const DAY_MS = 86400000;
 
 // Whole days between today and the item's due date (negative = overdue). null when no due date.
