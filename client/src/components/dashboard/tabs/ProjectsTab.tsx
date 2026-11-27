@@ -25,7 +25,7 @@ import { Project } from '@/types/project';
 import { PaginationMeta } from '@/types/retro';
 import { ProjectApiService } from '@/services/projectApi';
 import { CreateProjectModal } from '@/components/project/CreateProjectModal';
-import { UserAvatar, StatusPill, ProgressBar, Modal } from '@/components/ui';
+import { StatusPill, ProgressBar, Modal } from '@/components/ui';
 import { ProjectsTabSkeleton, ProjectCardsSkeleton, ProjectTableSkeleton } from '@/components/dashboard/DashboardSkeletons';
 
 interface ProjectsTabProps {
@@ -548,17 +548,19 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200/80 dark:border-white/[0.08] bg-slate-50/90 dark:bg-white/[0.02] text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  <th className="py-4 px-5 sm:px-6">Project</th>
-                  <th className="py-4 px-5">Manager / Lead</th>
-                  <th className="py-4 px-5 min-w-[220px]">Active Sprint</th>
-                  <th className="py-4 px-3.5 text-center">Sprints</th>
-                  <th className="py-4 px-3.5 text-center">Retros</th>
-                  <th className="py-4 px-3.5 text-center">Members</th>
-                  <th className="py-4 px-5 sm:px-6 text-right">Actions</th>
+                <tr className="border-b border-slate-200/80 dark:border-white/[0.08] text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  <th className="py-3 px-5 sm:px-6 font-semibold">Project</th>
+                  <th className="py-3 px-5 font-semibold">Manager</th>
+                  <th className="py-3 px-5 font-semibold min-w-[220px]">Active sprint</th>
+                  <th className="py-3 px-3 font-semibold text-right">Sprints</th>
+                  <th className="py-3 px-3 font-semibold text-right">Retros</th>
+                  <th className="py-3 px-3 font-semibold text-right">Members</th>
+                  <th className="py-3 px-5 sm:px-6">
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05] text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06] text-sm">
                 {displayedProjects.map((project) => {
                   const activeSprint =
                     (project.sprints || []).find((s) => s.status === 'active') ||
@@ -581,42 +583,70 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                     ? 0
                     : Math.max(0, Math.min(totalSprintDays, rawRemaining));
 
+                  const userEmail = currentUser?.email?.toLowerCase().trim();
                   const managerMember = project.members?.find(
                     (m) => (m.role || '').toLowerCase() === 'manager'
                   );
                   const managerName = managerMember?.name || project.lead?.name || 'Manager';
                   const managerEmail = (managerMember?.email || project.lead?.email || '').toLowerCase().trim();
                   const managerAvatar = managerMember?.avatar || project.lead?.avatar || 'M';
+                  const isCurrentLead = Boolean(
+                    userEmail &&
+                      (managerEmail === userEmail ||
+                        project.lead?.email?.toLowerCase().trim() === userEmail ||
+                        project.members?.some(
+                          (m) => m.email?.toLowerCase().trim() === userEmail && (m.role || '').toLowerCase() === 'manager'
+                        ))
+                  );
+                  const createdLabel = project.createdAt ? formatProjectCreatedDate(project.createdAt) : null;
+                  const progressPercent = activeSprint
+                    ? Math.round((activeSprint.completedStoryPoints / (activeSprint.totalStoryPoints || 1)) * 100)
+                    : 0;
+                  const deadline = activeSprint
+                    ? getSprintDeadline(rawRemaining, computedDaysLeft, activeSprint.status === 'completed')
+                    : null;
 
                   return (
                     <tr
                       key={project.id}
-                      className="border-b border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors group"
+                      className={`transition-colors group hover:bg-slate-50/80 dark:hover:bg-white/[0.02] ${
+                        isCurrentLead ? 'bg-[#88c958]/[0.04] dark:bg-[#88c958]/[0.03]' : ''
+                      }`}
                     >
-                      <td className="py-5 px-5 sm:px-6">
-                        <div className="flex items-center gap-3.5 min-w-[220px]">
-                          <UserAvatar name={project.name} avatar={project.key} size="lg" />
+                      <td className="py-4 px-5 sm:px-6">
+                        <div className="flex items-center gap-3 min-w-[240px]">
+                          <div
+                            className={`w-10 h-10 rounded-xl ${getProjectAvatarColor(project.id || project.name)} text-white font-black text-sm tracking-wider flex items-center justify-center shrink-0 shadow-xs select-none`}
+                            aria-hidden="true"
+                          >
+                            {(project.key || project.name || 'P').slice(0, 2).toUpperCase()}
+                          </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <Link
                                 href={`/projects/${project.id}`}
                                 onClick={() => handleSaveActiveProject(project)}
-                                className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-[#5cb028] dark:group-hover:text-[#88c958] transition-colors truncate hover:underline"
+                                className="text-base font-bold text-slate-900 dark:text-white group-hover:text-[#3d8318] dark:group-hover:text-[#88c958] transition-colors truncate"
                               >
                                 {project.name}
                               </Link>
+                              {isCurrentLead && (
+                                <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-bold bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30">
+                                  You manage
+                                </span>
+                              )}
                               {project.isArchived && (
-                                <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                <span className="shrink-0 px-2 py-0.5 rounded text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                                   Archived
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 mt-1">
-                              <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{project.key}</span>
-                              {project.createdAt && formatProjectCreatedDate(project.createdAt) && (
+                            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                              <span className="font-mono font-bold">{project.key}</span>
+                              {createdLabel && (
                                 <>
-                                  <span>•</span>
-                                  <span>{formatProjectCreatedDate(project.createdAt)}</span>
+                                  <span aria-hidden="true">·</span>
+                                  <span>Created {createdLabel}</span>
                                 </>
                               )}
                             </div>
@@ -624,131 +654,97 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                         </div>
                       </td>
 
-                      <td className="py-5 px-5">
-                        <div className="flex items-center gap-2.5 min-w-[160px]" title={managerEmail ? `${managerName} (${managerEmail})` : managerName}>
-                          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                      <td className="py-4 px-5">
+                        <div
+                          className="flex items-center gap-2 min-w-[150px]"
+                          title={managerEmail ? `${managerName} (${managerEmail})` : managerName}
+                        >
+                          <div className="w-7 h-7 rounded-md bg-slate-200 dark:bg-white/[0.1] text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">
                             {managerAvatar}
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
-                              {managerName}
-                            </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                              Project Lead
-                            </p>
-                          </div>
+                          <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{managerName}</span>
                         </div>
                       </td>
 
-                      <td className="py-5 px-5 min-w-[220px]">
-                        {activeSprint ? (
-                          <div className="space-y-2 max-w-[220px]">
-                            <div className="flex items-center justify-between text-xs sm:text-sm">
-                              <span className="font-bold text-slate-800 dark:text-slate-200 truncate">
+                      <td className="py-4 px-5 min-w-[220px]">
+                        {activeSprint && deadline ? (
+                          <div className="space-y-1.5 max-w-[240px]">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
                                 {activeSprint.name.split(' - ')[0]}
                               </span>
-                              {(() => {
-                                const deadline = getSprintDeadline(
-                                  rawRemaining,
-                                  computedDaysLeft,
-                                  activeSprint.status === 'completed',
-                                  true
-                                );
-                                return (
-                                  <span className={`text-xs font-bold shrink-0 ml-2 ${deadline.className}`}>
-                                    {deadline.label}
-                                  </span>
-                                );
-                              })()}
+                              <span className={`text-xs font-bold shrink-0 ${deadline.className}`}>
+                                {deadline.label}
+                              </span>
                             </div>
                             <ProgressBar
                               value={activeSprint.completedStoryPoints}
                               max={activeSprint.totalStoryPoints || 1}
                               variant="emerald"
                               size="sm"
+                              className="[&>div:first-child]:bg-slate-200 dark:[&>div:first-child]:bg-white/[0.1]"
                             />
-                            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                              <span>Sprint Progress</span>
-                              <span className="font-bold text-[#5cb028] dark:text-[#88c958]">
-                                {Math.round(
-                                  (activeSprint.completedStoryPoints / (activeSprint.totalStoryPoints || 1)) * 100
-                                )}
-                                %
-                              </span>
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                              {progressPercent > 0 ? (
+                                <span className="font-bold text-[#3d8318] dark:text-[#88c958]">
+                                  {progressPercent}% complete
+                                </span>
+                              ) : (
+                                <span>No progress yet</span>
+                              )}
                             </div>
                           </div>
                         ) : (
-                          <span className="text-xs sm:text-sm text-slate-400 dark:text-slate-500 italic">No active sprint</span>
+                          <span className="text-sm text-slate-400 dark:text-slate-500">No active sprint</span>
                         )}
                       </td>
 
-                      <td className="py-5 px-3.5 text-center">
-                        <span className="inline-flex items-center justify-center min-w-[36px] px-3 py-1 rounded-lg bg-slate-100 dark:bg-white/[0.05] text-slate-800 dark:text-slate-200 font-extrabold text-sm sm:text-base">
-                          {project.sprints.length}
-                        </span>
+                      <td className="py-4 px-3 text-right tabular-nums font-semibold text-slate-800 dark:text-slate-200">
+                        {project.sprints.length}
+                      </td>
+                      <td className="py-4 px-3 text-right tabular-nums font-semibold text-slate-800 dark:text-slate-200">
+                        {project.retrospectives.length}
+                      </td>
+                      <td className="py-4 px-3 text-right tabular-nums font-semibold text-slate-800 dark:text-slate-200">
+                        {project.members.length}
                       </td>
 
-                      <td className="py-5 px-3.5 text-center">
-                        <span className="inline-flex items-center justify-center min-w-[36px] px-3 py-1 rounded-lg bg-[#5cb028]/10 text-[#3d8318] dark:bg-[#88c958]/10 dark:text-[#88c958] font-extrabold text-sm sm:text-base">
-                          {project.retrospectives.length}
-                        </span>
-                      </td>
-
-                      <td className="py-5 px-3.5 text-center">
-                        <span className="inline-flex items-center justify-center min-w-[36px] px-3 py-1 rounded-lg bg-slate-100 dark:bg-white/[0.05] text-slate-800 dark:text-slate-200 font-extrabold text-sm sm:text-base">
-                          {project.members.length}
-                        </span>
-                      </td>
-
-                      <td className="py-5 px-5 sm:px-6 text-right">
+                      <td className="py-4 px-5 sm:px-6 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {project.isArchived ? (
-                            <>
-                              {isManagerOrAdmin && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleRestoreProject(project.id);
-                                  }}
-                                  disabled={restoringProjectId === project.id}
-                                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 text-sm font-bold transition-all disabled:opacity-50 cursor-pointer"
-                                >
-                                  {restoringProjectId === project.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <RotateCcw className="w-4 h-4" />
-                                  )}
-                                  <span>Restore</span>
-                                </button>
-                              )}
-                              <Link
-                                href={`/projects/${project.id}`}
-                                onClick={() => handleSaveActiveProject(project)}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-slate-600 dark:text-slate-300 text-sm font-semibold transition-all"
-                                title="View Read-Only Project Dashboard"
-                              >
-                                <span>View</span>
-                                <ArrowRight className="w-4 h-4" />
-                              </Link>
-                            </>
-                          ) : (
-                            <Link
-                              href={`/projects/${project.id}`}
-                              onClick={() => handleSaveActiveProject(project)}
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-sm font-bold transition-all shadow-xs hover:scale-[1.02] cursor-pointer dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a]"
+                          {project.isArchived && isManagerOrAdmin && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleRestoreProject(project.id);
+                              }}
+                              disabled={restoringProjectId === project.id}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 text-sm font-semibold transition-colors disabled:opacity-50 cursor-pointer"
                             >
-                              {openingProjectId === project.id ? (
+                              {restoringProjectId === project.id ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
-                                <>
-                                  <span>Open</span>
-                                  <ArrowRight className="w-4 h-4" />
-                                </>
+                                <RotateCcw className="w-4 h-4" />
                               )}
-                            </Link>
+                              <span>Restore</span>
+                            </button>
                           )}
+                          <Link
+                            href={`/projects/${project.id}`}
+                            onClick={() => handleSaveActiveProject(project)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/[0.1] text-slate-700 dark:text-slate-200 text-sm font-semibold hover:border-[#88c958] hover:text-[#3d8318] dark:hover:text-[#88c958] transition-colors whitespace-nowrap"
+                            title={project.isArchived ? 'View read-only project' : undefined}
+                          >
+                            {openingProjectId === project.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <span>{project.isArchived ? 'View' : 'Open'}</span>
+                                <ArrowRight className="w-4 h-4" />
+                              </>
+                            )}
+                          </Link>
                         </div>
                       </td>
                     </tr>
