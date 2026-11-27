@@ -49,6 +49,33 @@ interface MembersTabProps {
 
 const ROLE_OPTIONS = ['Developer', 'QA', 'Manager', 'DevOps', 'Project Lead'];
 
+// "Last active" text: recent activity reads as normal text, long inactivity is muted.
+const getLastActiveLabel = (lastActiveAt?: string | null, hasLoggedIn?: boolean) => {
+  if (!lastActiveAt) {
+    return {
+      label: hasLoggedIn ? 'Unknown' : 'Never signed in',
+      className: 'text-slate-400 dark:text-slate-500 italic',
+    };
+  }
+  const t = new Date(lastActiveAt).getTime();
+  if (isNaN(t)) return { label: 'Unknown', className: 'text-slate-400 dark:text-slate-500 italic' };
+  const mins = Math.max(0, Math.floor((Date.now() - t) / 60000));
+  const days = Math.floor(mins / 1440);
+  let label: string;
+  if (mins < 5) label = 'Active now';
+  else if (mins < 60) label = `${mins}m ago`;
+  else if (mins < 1440) label = `${Math.floor(mins / 60)}h ago`;
+  else if (days < 30) label = `${days}d ago`;
+  else label = new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const className =
+    mins < 5
+      ? 'text-emerald-700 dark:text-[#88c958] font-semibold'
+      : days >= 14
+      ? 'text-slate-400 dark:text-slate-500'
+      : 'text-slate-700 dark:text-slate-300';
+  return { label, className };
+};
+
 interface MemberRoleDropdownProps {
   email: string;
   currentRole?: string;
@@ -426,7 +453,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                 <th className="px-6 py-3.5">Email Address</th>
                 <th className="px-6 py-3.5">Assigned Projects</th>
                 <th className="px-6 py-3.5">Project Role</th>
-                <th className="px-6 py-3.5">Status</th>
+                <th className="px-6 py-3.5">Last Active</th>
                 {isAdmin && (
                   <th className="px-6 py-3.5 text-right">Actions</th>
                 )}
@@ -494,7 +521,6 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                               title={m.email}
                               avatar={m.avatar}
                               size="md"
-                              status="online"
                             />
                           </div>
                           <div className="flex items-center gap-1.5">
@@ -608,10 +634,21 @@ export const MembersTab: React.FC<MembersTabProps> = ({
                             Unverified
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-[#88c958] font-semibold text-[11px]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#88c958]" />
-                            Active
-                          </span>
+                          (() => {
+                            const activity = getLastActiveLabel(m.lastActiveAt, m.hasLoggedIn);
+                            return (
+                              <span
+                                className={`text-sm ${activity.className}`}
+                                title={
+                                  m.lastActiveAt
+                                    ? `Last active: ${new Date(m.lastActiveAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`
+                                    : undefined
+                                }
+                              >
+                                {activity.label}
+                              </span>
+                            );
+                          })()
                         )}
                       </td>
 

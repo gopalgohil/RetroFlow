@@ -68,6 +68,11 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // Last time the user made an authenticated request (updated at most every few minutes).
+    lastActiveAt: {
+      type: Date,
+      default: null,
+    },
     verificationOtp: {
       type: String,
       default: null,

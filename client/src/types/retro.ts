@@ -111,6 +111,9 @@ export interface TeamMember {
   projectsCount?: number;
   projectNames?: string[];
   isPrimaryLead?: boolean;
+  /** Last authenticated activity (falls back to last sign-in), ISO date */
+  lastActiveAt?: string | null;
+  hasLoggedIn?: boolean;
 }
 
 export interface WorkspaceSettingsData {

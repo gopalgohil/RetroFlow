@@ -9,6 +9,8 @@ import { isAllowedCompanyEmail } from '../validations/auth.js';
 const COMPANY_EMAIL_ONLY_MESSAGE =
   'Access restricted: Only official @digiflux.io or @internal.digiflux.io accounts are allowed.';
 
+const LAST_ACTIVE_UPDATE_INTERVAL_MS = 5 * 60 * 1000;
+
 export const protect = asyncHandler(async (req, res, next) => {
   let token;
 
@@ -37,6 +39,12 @@ export const protect = asyncHandler(async (req, res, next) => {
 
     if (!isAllowedCompanyEmail(user.email)) {
       throw ApiError.forbidden(COMPANY_EMAIL_ONLY_MESSAGE);
+    }
+
+    // Track "last active" for the Team Members page; throttled so we write at most once per window.
+    const lastActiveMs = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0;
+    if (Date.now() - lastActiveMs > LAST_ACTIVE_UPDATE_INTERVAL_MS) {
+      User.updateOne({ _id: user._id }, { $set: { lastActiveAt: new Date() } }).catch(() => {});
     }
 
     req.user = user;

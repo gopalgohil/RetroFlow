@@ -19,7 +19,7 @@ class MembersService {
             { isVerified: true },
           ],
         },
-        'name email role projectRole status isApproved createdAt isVerified hasLoggedIn'
+        'name email role projectRole status isApproved createdAt isVerified hasLoggedIn lastLogin lastActiveAt'
       ).lean(),
       Project.find({}, 'name key members lead').lean(),
     ]);
@@ -104,6 +104,8 @@ class MembersService {
         isApproved: Boolean(isAdmin || u.isApproved || u.status === 'approved'),
         isWhitelisted: true,
         joinedAt: u.createdAt,
+        lastActiveAt: u.lastActiveAt || u.lastLogin || null,
+        hasLoggedIn: Boolean(u.hasLoggedIn || u.lastLogin || u.lastActiveAt),
       });
     });
 
