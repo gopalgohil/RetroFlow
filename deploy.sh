@@ -36,8 +36,8 @@ echo "🎨 2/3. Syncing Frontend to GitLab (env/prod)..."
 cd "$FE_REPO"
 git pull origin env/prod --rebase || true
 
-# Sync files (excluding node_modules, .git, .next)
-rsync -av --delete \
+# Sync files (excluding node_modules, .git, .next, .gitlab-ci.yml)
+rsync -av \
   --exclude='.git' \
   --exclude='node_modules' \
   --exclude='.next' \
@@ -60,7 +60,7 @@ cd "$BE_REPO"
 git pull origin env/prod --rebase || true
 
 # Sync files (excluding node_modules, .git)
-rsync -av --delete \
+rsync -av \
   --exclude='.git' \
   --exclude='node_modules' \
   --exclude='.env*' \
