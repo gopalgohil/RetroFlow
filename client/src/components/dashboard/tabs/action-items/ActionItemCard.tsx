@@ -226,6 +226,14 @@ export const ActionItemCard: React.FC<ActionItemCardProps> = React.memo(({
               <Check className="w-3 h-3" strokeWidth={3} />
             </span>
           )}
+          {item.itemKey && (
+            <span
+              className="mt-px shrink-0 font-mono text-xs font-semibold text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] select-all"
+              title={`Item ID: ${item.itemKey}`}
+            >
+              {item.itemKey}
+            </span>
+          )}
           <h4
             className={`text-[15px] font-semibold leading-snug line-clamp-2 [overflow-wrap:anywhere] min-w-0 ${
               isDone ? 'line-through text-slate-500 dark:text-slate-500' : 'text-slate-900 dark:text-white'

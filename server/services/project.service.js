@@ -2493,6 +2493,75 @@ class ProjectService {
     };
   }
 
+  /**
+   * Gives every action item a stable per-project number (KEY-<n>, e.g. MOLT-12).
+   * Numbers are stored on the project the first time an item is seen and never change.
+   * Older items get lower numbers: missing ones are numbered in creation order.
+   */
+  async attachActionItemNumbers(projects, actionItems) {
+    const identityOf = (item) => {
+      const raw = item.cardId || item.id;
+      return raw ? raw.toString().replace(/[.$]/g, '_') : null;
+    };
+
+    const itemsByProject = new Map();
+    for (const item of actionItems) {
+      if (!item.projectId) continue;
+      if (!itemsByProject.has(item.projectId)) itemsByProject.set(item.projectId, []);
+      itemsByProject.get(item.projectId).push(item);
+    }
+
+    for (const proj of projects) {
+      const projectId = proj._id ? proj._id.toString() : proj.id;
+      const visibleItems = itemsByProject.get(projectId);
+      if (!visibleItems || visibleItems.length === 0) continue;
+
+      let numbers = proj.actionItemNumbers || {};
+
+      // Number every item of the project (not just the ones this user sees) so numbering stays chronological.
+      const candidates = [
+        ...(proj.sprints || []).flatMap((s) => s.items || []),
+        ...visibleItems,
+      ];
+      const missing = new Map();
+      for (const it of candidates) {
+        const key = identityOf(it);
+        if (!key || numbers[key] !== undefined || missing.has(key)) continue;
+        missing.set(key, new Date(it.createdAt || 0).getTime());
+      }
+
+      if (missing.size > 0) {
+        const ordered = [...missing.entries()].sort((a, b) => a[1] - b[1]).map(([key]) => key);
+        for (const key of ordered) {
+          const path = `actionItemNumbers.${key}`;
+          // Reserve the next number, then store it only if no concurrent request numbered this item first.
+          const reserved = await Project.findOneAndUpdate(
+            { _id: proj._id, [path]: { $exists: false } },
+            { $inc: { actionItemCounter: 1 } },
+            { new: true, projection: { actionItemCounter: 1 } }
+          ).lean();
+          if (!reserved) continue;
+          await Project.updateOne(
+            { _id: proj._id, [path]: { $exists: false } },
+            { $set: { [path]: reserved.actionItemCounter } }
+          );
+        }
+
+        const fresh = await Project.findById(proj._id, { actionItemNumbers: 1 }).lean();
+        numbers = fresh?.actionItemNumbers || {};
+      }
+
+      for (const item of visibleItems) {
+        const key = identityOf(item);
+        const num = key ? numbers[key] : undefined;
+        if (num !== undefined && proj.key) {
+          item.itemNumber = num;
+          item.itemKey = `${proj.key.toUpperCase()}-${num}`;
+        }
+      }
+    }
+  }
+
   async getMyActionItems(currentUser = null, options = {}) {
     const userEmail = currentUser?.email?.toLowerCase().trim();
     const userName = currentUser?.name?.toLowerCase().trim();
@@ -2809,6 +2878,13 @@ class ProjectService {
       }
     }
 
+    try {
+      await this.attachActionItemNumbers(projects, actionItems);
+    } catch (err) {
+      // Numbering is cosmetic; never fail the whole list because of it.
+      console.warn('[Action Items] Could not assign item numbers:', err.message);
+    }
+
     let filtered = actionItems;
     if (options.projectId && options.projectId !== 'all') {
       const pid = options.projectId.toString().toLowerCase();
@@ -2834,6 +2910,7 @@ class ProjectService {
       filtered = filtered.filter(
         (it) =>
           it.title?.toLowerCase().includes(q) ||
+          it.itemKey?.toLowerCase().includes(q) ||
           it.description?.toLowerCase().includes(q) ||
           it.sourceRetroTitle?.toLowerCase().includes(q) ||
           it.projectName?.toLowerCase().includes(q) ||

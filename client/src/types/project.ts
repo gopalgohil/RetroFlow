@@ -47,6 +47,10 @@ export interface EnrichedActionItem extends BacklogItem {
   sprintStatus?: string;
   sourceRetroShareToken?: string;
   isDirectRetroCard?: boolean;
+  /** Stable per-project number, e.g. 12 */
+  itemNumber?: number;
+  /** Stable display id, e.g. "MOLT-12" */
+  itemKey?: string;
 }
 
 export interface Sprint {

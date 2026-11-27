@@ -253,6 +253,17 @@ const projectSchema = new mongoose.Schema(
     sprints: [sprintSchema],
     retrospectives: [projectRetroLinkSchema],
     velocityHistory: [velocityMetricSchema],
+    // Stable per-project action item numbers (shown as KEY-<n>, e.g. MOLT-12).
+    // actionItemNumbers maps an item's identity (its card id or item id) to its number.
+    actionItemCounter: {
+      type: Number,
+      default: 0,
+    },
+    actionItemNumbers: {
+      type: Map,
+      of: Number,
+      default: undefined,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

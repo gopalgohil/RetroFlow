@@ -107,7 +107,7 @@ export const ActionItemsFilters: React.FC<ActionItemsFiltersProps> = React.memo(
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search action items, retrospectives, projects..."
+            placeholder="Search by ID (e.g. MOLT-12), title, retro, project..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.08] text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-[#88c958]/20 focus:border-[#88c958] transition-all font-medium"
           />
           {searchQuery && (
