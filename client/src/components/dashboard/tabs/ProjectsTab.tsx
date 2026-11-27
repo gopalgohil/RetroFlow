@@ -49,6 +49,49 @@ const formatProjectCreatedDate = (dateStr?: string | Date) => {
   }
 };
 
+// Distinct, stable colour per project so cards are easy to tell apart at a glance.
+const PROJECT_AVATAR_COLORS = [
+  'bg-emerald-600',
+  'bg-sky-600',
+  'bg-violet-600',
+  'bg-amber-600',
+  'bg-rose-600',
+  'bg-teal-600',
+  'bg-indigo-600',
+  'bg-orange-600',
+];
+
+const getProjectAvatarColor = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  }
+  return PROJECT_AVATAR_COLORS[Math.abs(hash) % PROJECT_AVATAR_COLORS.length];
+};
+
+// Colour the sprint deadline by urgency: red when due/overdue, amber when close, green otherwise.
+const getSprintDeadline = (
+  rawRemaining: number,
+  daysLeft: number,
+  isCompleted: boolean,
+  short = false
+) => {
+  if (isCompleted) {
+    return { label: 'Completed', className: 'text-slate-500 dark:text-slate-400' };
+  }
+  if (rawRemaining < 0) {
+    return { label: 'Overdue', className: 'text-rose-600 dark:text-rose-400' };
+  }
+  if (daysLeft <= 0) {
+    return { label: 'Ends today', className: 'text-rose-600 dark:text-rose-400' };
+  }
+  const label = short ? `${daysLeft}d left` : `${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} left`;
+  if (daysLeft <= 3) {
+    return { label, className: 'text-amber-600 dark:text-amber-400' };
+  }
+  return { label, className: 'text-[#3d8318] dark:text-[#88c958]' };
+};
+
 export const ProjectsTab: React.FC<ProjectsTabProps> = ({
   isAdmin: propIsAdmin,
   canCreateProject: propCanCreateProject,
@@ -436,7 +479,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
           <p>
             Showing <strong className="text-slate-800 dark:text-slate-200 font-bold">{projects.length}</strong> of{' '}
             <strong className="text-slate-800 dark:text-slate-200 font-bold">{pagination.totalItems}</strong>{' '}
-            {selectedFilter === 'archived' ? 'archived initiatives' : 'initiatives'}
+            {selectedFilter === 'archived' ? 'archived projects' : 'projects'}
             {debouncedSearch.trim() && (
               <span>
                 {' '}for query &ldquo;
@@ -462,7 +505,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
             </div>
             <div className="space-y-1">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                No initiatives found
+                No projects found
               </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 No projects match &ldquo;{searchQuery}&rdquo;. Try searching with a different name, key, or manager.
@@ -604,9 +647,19 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                               <span className="font-bold text-slate-800 dark:text-slate-200 truncate">
                                 {activeSprint.name.split(' - ')[0]}
                               </span>
-                              <span className="text-xs font-bold text-[#5cb028] dark:text-[#88c958] shrink-0 ml-2">
-                                {computedDaysLeft}d left
-                              </span>
+                              {(() => {
+                                const deadline = getSprintDeadline(
+                                  rawRemaining,
+                                  computedDaysLeft,
+                                  activeSprint.status === 'completed',
+                                  true
+                                );
+                                return (
+                                  <span className={`text-xs font-bold shrink-0 ml-2 ${deadline.className}`}>
+                                    {deadline.label}
+                                  </span>
+                                );
+                              })()}
                             </div>
                             <ProgressBar
                               value={activeSprint.completedStoryPoints}
@@ -746,25 +799,47 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                   ))
             );
 
+            const createdLabel = project.createdAt ? formatProjectCreatedDate(project.createdAt) : null;
+            const progressPercent = activeSprint
+              ? Math.round(
+                  (activeSprint.completedStoryPoints / (activeSprint.totalStoryPoints || 1)) * 100
+                )
+              : 0;
+            const deadline = activeSprint
+              ? getSprintDeadline(rawRemaining, computedDaysLeft, activeSprint.status === 'completed')
+              : null;
+
             return (
               <div
                 key={project.id}
-                className={`p-6 rounded-2xl bg-white dark:bg-[#0e1015] border shadow-xs hover:shadow-xl dark:hover:shadow-[0_0_24px_rgba(0,0,0,0.8)] transition-all flex flex-col justify-between space-y-5 group ${
+                className={`relative p-6 rounded-2xl bg-white dark:bg-[#0e1015] border shadow-xs hover:shadow-xl dark:hover:shadow-[0_0_24px_rgba(0,0,0,0.8)] transition-all flex flex-col gap-5 group ${
                   isCurrentLead
-                    ? 'border-[#88c958]/60 ring-1 ring-[#88c958]/20'
-                    : 'border-slate-200/90 dark:border-white/[0.08] hover:border-[#88c958]/40 dark:hover:border-[#88c958]/40'
+                    ? 'border-[#88c958]/60 ring-1 ring-[#88c958]/20 hover:border-[#88c958]'
+                    : 'border-slate-200/90 dark:border-white/[0.08] hover:border-[#88c958]/50 dark:hover:border-[#88c958]/40'
                 }`}
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <UserAvatar name={project.name} avatar={project.key} size="lg" />
+                      <div
+                        className={`w-10 h-10 rounded-xl ${getProjectAvatarColor(project.id || project.name)} text-white font-black text-sm tracking-wider flex items-center justify-center shrink-0 shadow-xs select-none`}
+                        aria-hidden="true"
+                      >
+                        {(project.key || project.name || 'P').slice(0, 2).toUpperCase()}
+                      </div>
                       <div className="min-w-0">
-                        <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-[#88c958] transition-colors truncate">
-                          {project.name}
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-[#3d8318] dark:group-hover:text-[#88c958] transition-colors truncate">
+                          {/* Stretched link: the whole card opens the project dashboard. */}
+                          <Link
+                            href={`/projects/${project.id}`}
+                            onClick={() => handleSaveActiveProject(project)}
+                            className="after:absolute after:inset-0 after:rounded-2xl after:content-[''] focus:outline-none focus-visible:after:ring-2 focus-visible:after:ring-[#88c958]"
+                          >
+                            {project.name}
+                          </Link>
                         </h3>
-                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
-                          <span className="font-bold">{project.key}</span>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          <span className="font-mono font-bold">{project.key}</span>
                           {project.isArchived && (
                             <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                               Archived
@@ -774,47 +849,36 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                       </div>
                     </div>
 
-                    {project.createdAt && formatProjectCreatedDate(project.createdAt) && (
-                      <div className="shrink-0">
-                        <span
-                          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 dark:text-slate-500 tracking-tight"
-                          title={`Project created on ${formatProjectCreatedDate(project.createdAt)}`}
-                        >
-                          <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                          <span>{formatProjectCreatedDate(project.createdAt)}</span>
-                        </span>
-                      </div>
+                    {isCurrentLead && (
+                      <span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-bold bg-[#88c958]/15 text-[#3d8318] dark:text-[#88c958] border border-[#88c958]/30">
+                        You manage
+                      </span>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/90 dark:bg-[#12151c] border border-slate-200/60 dark:border-white/[0.08]" title={managerEmail ? `${managerName} (${managerEmail})` : managerName}>
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#5cb028] via-[#52a622] to-[#6ec437] text-white dark:from-[#88c958] dark:to-[#6ea347] dark:text-[#08090a] font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                        {managerAvatar}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider leading-none">
-                          Manager
-                        </p>
-                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate mt-0.5">
-                          {managerName}
-                        </p>
-                      </div>
+                  <div
+                    className="flex items-center gap-2 min-w-0 text-sm"
+                    title={managerEmail ? `${managerName} (${managerEmail})` : managerName}
+                  >
+                    <div className="w-6 h-6 rounded-md bg-slate-200 dark:bg-white/[0.1] text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">
+                      {managerAvatar}
                     </div>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{managerName}</span>
+                    <span className="text-slate-500 dark:text-slate-400 shrink-0">· Manager</span>
                   </div>
 
-                  <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 break-words leading-relaxed">
                     {project.description || 'No description provided.'}
                   </p>
 
-                  {activeSprint ? (
-                    <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.08] space-y-2">
-                      <div className="flex items-center justify-between text-xs sm:text-sm">
+                  {activeSprint && deadline ? (
+                    <div className="min-h-[92px] p-3.5 rounded-xl bg-slate-50/80 dark:bg-[#12151c] border border-slate-200/70 dark:border-white/[0.08] space-y-2">
+                      <div className="flex items-center justify-between text-sm">
                         <span className="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[160px]">
                           {activeSprint.name.split(' - ')[0]}
                         </span>
-                        <span className="text-xs font-bold text-[#5cb028] dark:text-[#88c958]">
-                          {computedDaysLeft} days left
+                        <span className={`text-xs font-bold ${deadline.className}`}>
+                          {deadline.label}
                         </span>
                       </div>
 
@@ -823,50 +887,43 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                         max={activeSprint.totalStoryPoints || 1}
                         variant="emerald"
                         size="sm"
+                        className="[&>div:first-child]:bg-slate-200 dark:[&>div:first-child]:bg-white/[0.1]"
                       />
 
                       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                        <span>Sprint Progress</span>
-                        <span className="font-bold text-[#5cb028] dark:text-[#88c958]">
-                          {Math.round(
-                            (activeSprint.completedStoryPoints / (activeSprint.totalStoryPoints || 1)) *
-                              100
-                          )}
-                          % complete
-                        </span>
+                        <span>Sprint progress</span>
+                        {progressPercent > 0 ? (
+                          <span className="font-bold text-[#3d8318] dark:text-[#88c958]">
+                            {progressPercent}% complete
+                          </span>
+                        ) : (
+                          <span className="font-medium">No progress yet</span>
+                        )}
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3.5 rounded-xl bg-slate-50/60 dark:bg-[#12151c] border border-dashed border-slate-200 dark:border-white/[0.08] text-center">
-                      <span className="text-xs sm:text-sm text-slate-400 dark:text-slate-500 font-medium">No active sprint</span>
+                    <div className="min-h-[92px] p-3.5 rounded-xl bg-slate-50/60 dark:bg-[#12151c] border border-dashed border-slate-300 dark:border-white/[0.1] flex items-center justify-center">
+                      <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">No active sprint</span>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-white/[0.08] text-center">
-                    <div className="p-2 rounded-lg bg-slate-50 dark:bg-[#12151c]">
-                      <span className="text-xs text-slate-400 dark:text-slate-500 block font-medium">Sprints</span>
-                      <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
-                        {project.sprints.length}
-                      </span>
-                    </div>
-                    <div className="p-2 rounded-lg bg-slate-50 dark:bg-[#12151c]">
-                      <span className="text-xs text-slate-400 dark:text-slate-500 block font-medium">Retros</span>
-                      <span className="text-sm sm:text-base font-bold text-[#5cb028] dark:text-[#88c958]">
-                        {project.retrospectives.length}
-                      </span>
-                    </div>
-                    <div className="p-2 rounded-lg bg-slate-50 dark:bg-[#12151c]">
-                      <span className="text-xs text-slate-400 dark:text-slate-500 block font-medium">Members</span>
-                      <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
-                        {project.members.length}
-                      </span>
-                    </div>
+                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 dark:border-white/[0.08] text-center">
+                    {[
+                      { label: 'Sprints', value: project.sprints.length },
+                      { label: 'Retros', value: project.retrospectives.length },
+                      { label: 'Members', value: project.members.length },
+                    ].map((stat) => (
+                      <div key={stat.label} className="p-2 rounded-lg bg-slate-50 dark:bg-[#12151c]">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">{stat.label}</span>
+                        <span className="text-base font-bold text-slate-800 dark:text-slate-200">{stat.value}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <div className="w-full">
+                <div className="w-full mt-auto">
                   {project.isArchived ? (
-                    <div className="flex items-center gap-2">
+                    <div className="relative z-10 flex items-center gap-2">
                       {isManagerOrAdmin ? (
                         <>
                           <button
@@ -909,23 +966,30 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
                       )}
                     </div>
                   ) : (
-                    <Link
-                      href={`/projects/${project.id}`}
-                      onClick={() => handleSaveActiveProject(project)}
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#5cb028] hover:bg-[#4e9921] text-white text-sm font-bold transition-all shadow-xs hover:scale-[1.01] cursor-pointer disabled:opacity-75 dark:bg-[#88c958] dark:hover:bg-[#96dc63] dark:text-[#08090a] dark:font-black dark:shadow-md dark:shadow-[#88c958]/20"
-                    >
-                      {openingProjectId === project.id ? (
-                        <span className="inline-flex items-center gap-2 animate-pulse">
-                          <span className="w-4 h-4 border-2 border-white/30 border-t-white dark:border-[#08090a]/30 dark:border-t-[#08090a] rounded-full animate-spin" />
-                          <span>Opening Dashboard...</span>
+                    <div className="flex items-center justify-between gap-3 text-xs">
+                      {createdLabel ? (
+                        <span
+                          className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400"
+                          title={`Project created on ${createdLabel}`}
+                        >
+                          <Calendar className="w-3.5 h-3.5 shrink-0" />
+                          <span>Created {createdLabel}</span>
                         </span>
                       ) : (
-                        <>
-                          <span>Open Project Dashboard</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </>
+                        <span />
                       )}
-                    </Link>
+                      {openingProjectId === project.id ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#3d8318] dark:text-[#88c958]">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Opening...</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-sm font-bold text-[#3d8318] dark:text-[#88c958]">
+                          <span>Open</span>
+                          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -945,7 +1009,7 @@ export const ProjectsTab: React.FC<ProjectsTabProps> = ({
             <span className="font-bold text-slate-900 dark:text-white">
               {Math.min(pagination.page * pagination.limit, pagination.totalItems)}
             </span>{' '}
-            of <span className="font-bold text-slate-900 dark:text-white">{pagination.totalItems}</span> initiatives
+            of <span className="font-bold text-slate-900 dark:text-white">{pagination.totalItems}</span> projects
           </div>
 
           <div className="flex items-center gap-2">
