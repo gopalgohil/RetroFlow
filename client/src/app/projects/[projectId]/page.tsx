@@ -694,7 +694,7 @@ function ProjectDetailContent() {
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer text-left"
                     >
                       <LogOut className="w-4 h-4 text-rose-500" />
-                      <span>Log Out</span>
+                      <span>Sign out</span>
                     </button>
                   </div>
                 </div>

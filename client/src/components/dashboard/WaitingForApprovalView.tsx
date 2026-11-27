@@ -152,7 +152,7 @@ export function WaitingForApprovalView({
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[#12151c] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors border border-slate-200 dark:border-white/[0.08] cursor-pointer shadow-2xs"
         >
           <LogOut className="w-3.5 h-3.5 text-slate-400" />
-          <span>Log Out</span>
+          <span>Sign out</span>
         </button>
       </header>
 

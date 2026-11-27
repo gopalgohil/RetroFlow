@@ -84,7 +84,7 @@ export function RejectedView({ user, onLogout, onRegisterAgain }: RejectedViewPr
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 hover:text-slate-900 transition-all cursor-pointer border border-slate-200 shadow-2xs"
           >
             <LogOut className="w-3.5 h-3.5 text-slate-500" />
-            <span>Back to Login</span>
+            <span>Back to Sign in</span>
           </button>
         </div>
       </header>
@@ -133,7 +133,7 @@ export function RejectedView({ user, onLogout, onRegisterAgain }: RejectedViewPr
               className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5 text-slate-500" />
-              <span>Back to Login</span>
+              <span>Back to Sign in</span>
             </button>
           </div>
         </div>

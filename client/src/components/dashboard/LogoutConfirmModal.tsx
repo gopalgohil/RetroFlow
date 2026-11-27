@@ -71,7 +71,7 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
 
         <div className="px-6 py-5 bg-white dark:bg-[#0e1015]">
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            Are you sure you want to log out? You will need to enter your credentials again to access your retrospective boards.
+            Are you sure you want to sign out? You will need to sign in again to access your retrospective boards.
           </p>
         </div>
 
