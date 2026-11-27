@@ -811,19 +811,33 @@ export const SessionList: React.FC<SessionListProps> = ({
                       {isMenuOpen && (
                         <div
                           role="menu"
-                          className="absolute right-0 bottom-full mb-1.5 w-44 rounded-xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl py-1 z-30 animate-in fade-in zoom-in-95 duration-100"
+                          className="absolute right-0 bottom-full mb-1.5 w-52 rounded-xl bg-white dark:bg-[#12151c] border border-slate-200 dark:border-white/[0.12] shadow-xl py-1 z-30 animate-in fade-in zoom-in-95 duration-100"
                         >
+                          {/* Completed (ended) retros are locked: editing is not allowed. */}
                           <button
                             type="button"
                             role="menuitem"
+                            disabled={session.status === 'completed'}
+                            aria-disabled={session.status === 'completed'}
+                            title={
+                              session.status === 'completed'
+                                ? 'Completed retros cannot be edited'
+                                : undefined
+                            }
                             onClick={() => {
+                              if (session.status === 'completed') return;
                               setOpenMenuId(null);
                               onEdit(session);
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] cursor-pointer"
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] cursor-pointer disabled:cursor-not-allowed disabled:text-slate-400 dark:disabled:text-slate-500 disabled:hover:bg-transparent"
                           >
                             <Edit3 className="w-4 h-4" />
-                            Edit topics & rules
+                            <span className="flex-1 text-left">Edit topics & rules</span>
+                            {session.status === 'completed' && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-slate-100 dark:bg-white/[0.06] text-slate-400 dark:text-slate-500">
+                                Disabled
+                              </span>
+                            )}
                           </button>
                           <div className="my-1 border-t border-slate-100 dark:border-white/[0.06]" />
                           <button
